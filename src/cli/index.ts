@@ -1,0 +1,109 @@
+#!/usr/bin/env bun
+import { parseArgs } from 'util';
+import { listCommand } from './commands/list';
+import { showCommand } from './commands/show';
+import { validateCommand } from './commands/validate';
+import { archiveCommand } from './commands/archive';
+import { statusCommand } from './commands/status';
+import { initCommand } from './commands/init';
+import { setWorkspaceDir } from './utils';
+
+const VERSION = '0.2.0';
+
+const HELP = `
+codument - Spec-driven development tool for AI coding assistants
+
+Usage:
+  codument <command> [options]
+
+Commands:
+  init              Initialize Codument in the current project
+  list              List active tracks or specs
+  show [item]       Show details of a track or spec
+  validate [item]   Validate track or spec format
+  archive <id>      Archive a completed track
+  status            Show project status overview
+
+Options:
+  -h, --help              Show this help message
+  -v, --version           Show version number
+  -w, --workspace-dir     Set workspace directory (default: current directory)
+
+Examples:
+  codument init                          # Initialize Codument with CLI tool selection
+  codument list                          # List active tracks
+  codument list --specs                  # List specifications
+  codument show add-user-auth            # Show track details
+  codument validate --strict             # Validate all with strict mode
+  codument archive add-user-auth         # Archive completed track
+  codument status                         # Show project status
+  codument status -w /path/to/project    # Show status for specific project
+`;
+
+async function main() {
+  const args = process.argv.slice(2);
+
+  // Parse global options first
+  let workspaceDir: string | undefined;
+  const filteredArgs: string[] = [];
+
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === '-w' || args[i] === '--workspace-dir') {
+      workspaceDir = args[i + 1];
+      i++; // Skip the value
+    } else {
+      filteredArgs.push(args[i]);
+    }
+  }
+
+  // Set workspace directory if provided
+  if (workspaceDir) {
+    setWorkspaceDir(workspaceDir);
+  }
+
+  if (filteredArgs.length === 0 || filteredArgs[0] === '-h' || filteredArgs[0] === '--help') {
+    console.log(HELP);
+    process.exit(0);
+  }
+
+  if (filteredArgs[0] === '-v' || filteredArgs[0] === '--version') {
+    console.log(`codument v${VERSION}`);
+    process.exit(0);
+  }
+
+  const command = filteredArgs[0];
+  const commandArgs = filteredArgs.slice(1);
+
+  try {
+    switch (command) {
+      case 'init':
+        await initCommand(commandArgs);
+        break;
+      case 'list':
+        await listCommand(commandArgs);
+        break;
+      case 'show':
+        await showCommand(commandArgs);
+        break;
+      case 'validate':
+        await validateCommand(commandArgs);
+        break;
+      case 'archive':
+        await archiveCommand(commandArgs);
+        break;
+      case 'status':
+        await statusCommand(commandArgs);
+        break;
+      default:
+        console.error(`Unknown command: ${command}`);
+        console.log(HELP);
+        process.exit(1);
+    }
+    process.exit(0);
+  } catch (error) {
+    console.error('Error:', error instanceof Error ? error.message : error);
+    process.exit(1);
+  }
+}
+
+main();

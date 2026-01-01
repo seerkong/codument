@@ -1,0 +1,35 @@
+{
+  "name": "codument",
+  "version": "0.1.0",
+  "description": "Spec-driven development tool for AI coding assistants",
+  "type": "module",
+  "main": "src/cli/index.ts",
+  "bin": {
+    "codument": "src/cli/index.ts"
+  },
+  "scripts": {
+    "dev": "bun run src/cli/index.ts",
+    "build": "bun build src/cli/index.ts --compile --outfile=dist/codument",
+    "test": "bun test",
+    "test:coverage": "bun test --coverage",
+    "lint": "bunx eslint src",
+    "typecheck": "bunx tsc --noEmit",
+    "check": "bun run typecheck && bun run lint && bun run test",
+    "install:local": "bun run scripts/install.ts"
+  },
+  "keywords": [
+    "spec-driven",
+    "ai-coding",
+    "development-tools",
+    "cli"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "^5.3.0"
+  },
+  "dependencies": {
+    "chalk": "^5.3.0"
+  }
+}
