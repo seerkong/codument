@@ -54,7 +54,7 @@ Track
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-repo/codument.git
+git clone https://github.com/seerkong/codument.git
 cd codument
 
 # Install dependencies

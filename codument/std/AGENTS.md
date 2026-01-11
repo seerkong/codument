@@ -32,12 +32,13 @@
 
 **工作流程**
 1. 查看 `codument/project.md` 和 `codument/product.md` 了解项目上下文
-2. 运行 `codument list` 和 `codument list --specs` 查看当前状态
-3. 选择唯一的动词开头 `track-id`，在 `codument/tracks/<id>/` 下创建文件
-4. 编写 `proposal.md` 说明为什么要变更、变更什么、影响范围
-5. 编写 `spec.md` 规范增量，使用 `## ADDED|MODIFIED|REMOVED Requirements`
-6. 编写 `tasks.xml` 结构化任务清单
-7. 运行 `codument validate <id> --strict` 验证后再提交审批
+2. 阅读 `codument/std/workflow.md` 了解工作流程
+3. 运行 `codument list` 和 `codument list --specs` 查看当前状态
+4. 选择唯一的动词开头 `track-id`，在 `codument/tracks/<id>/` 下创建文件
+5. 编写 `proposal.md` 说明为什么要变更、变更什么、影响范围
+6. 编写 `spec.md` 规范增量，使用 `## ADDED|MODIFIED|REMOVED Requirements`
+7. 编写 `tasks.xml` 结构化任务清单
+8. 运行 `codument validate <id> --strict` 验证后再提交审批
 
 ### 阶段二：实现变更
 
@@ -102,10 +103,13 @@ codument validate [track] --strict
 
 ## 目录结构
 
+## 目录结构
+
 ```
 codument/
 ├── project.md              # 项目约定（技术栈、架构、代码风格）
 ├── product.md              # 产品定义（愿景、目标用户、核心功能）
+├── tech-stack.md           # 技术栈配置
 ├── workflow.md             # 工作流规范（开发流程、质量门控）
 ├── state.json              # 状态持久化
 ├── specs/                  # 当前真相 - 已构建的内容

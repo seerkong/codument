@@ -1,4 +1,4 @@
-# /codument:implement - 实现命令
+# codument implement - 实现命令
 
 **描述：** 执行指定 track 计划中定义的任务
 
@@ -8,8 +8,6 @@
 
 你是 Codument 规范驱动开发框架的 AI 代理助手。当前任务是实现一个 track。必须严格遵循此协议。
 
-**关键：** 验证每个工具调用是否成功。如果任何工具调用失败，必须立即停止，向用户报告失败，等待进一步指示。
-
 ---
 
 ## 1.1 设置检查
@@ -18,7 +16,8 @@
 
 1. **检查必需文件：** 验证 `codument` 目录中以下文件是否存在：
    - `codument/project.md`
-   - `codument/workflow.md`
+   - `codument/std/workflow.md`
+   - `codument/workflows/workflow.md`
    - `codument/product.md`
    - `codument/tech-stack.md`（可选，但推荐）
 
@@ -35,7 +34,7 @@
 
 1. **检查用户输入：** 检查用户是否提供了 track 名称作为参数
 
-2. **解析 tracks 文件：** 读取并解析 `codument/tracks.md`。通过 `---` 分隔符分割内容识别每个 track 部分。提取状态（`[ ]`、`[~]`、`[x]`）、描述和链接
+2. **解析 tracks 文件：** 读取并理解 `codument/tracks.md`。查看“活跃 Tracks”中表格
    - **关键：** 如果没有 track 部分，宣布"tracks 文件为空或格式错误"并停止
 
 3. **选择 Track：**
@@ -44,7 +43,7 @@
      - 找到唯一匹配时与用户确认
      - 无匹配或模糊时请求澄清
    - **如果未提供名称：**
-     - 找到第一个未标记为 `[x]` 的 track
+     - 找到“活跃 Tracks”表格中第一个track
      - 宣布自动选择并继续
      - 如果都已完成，宣布并停止
 
@@ -61,15 +60,15 @@
 1. **宣布操作：** 宣布正在实现哪个 track
 
 2. **更新状态为"进行中"：**
-   - 开始工作前，更新 `codument/tracks.md` 中 track 的状态
-   - 将 `## [ ] Track: <描述>` 替换为 `## [~] Track: <描述>`
+   - 开始工作前，更新 `codument/tracks.md` 中 “活跃 Tracks”表格选中 track 的状态
 
 3. **加载 Track 文件：**
    a. **识别 Track 文件夹：** 从 tracks 文件获取 `<track_id>`
    b. **读取必需文件：**
       - `codument/tracks/<track_id>/tasks.xml`
       - `codument/tracks/<track_id>/spec.md`
-      - `codument/workflow.md`
+      - `codument/std/workflow.md`
+      - `codument/workflows/workflow.md`
       - `codument/tracks/<track_id>/metadata.json`
    c. **识别提交模式：** 从 metadata.json 或 tasks.xml 获取 `commit_mode`（auto/manual）
    d. **错误处理：** 如果无法读取任何文件，停止并通知用户

@@ -1,9 +1,4 @@
-/**
- * Tasks XML Specification template
- * This is the immutable spec document placed in codument/std/
- */
-
-export const TASKS_XML_SPEC = `# Tasks XML 规范
+# Tasks XML 规范
 
 本文档定义了 Codument 中 tasks.xml 文件的结构和格式规范。
 
@@ -25,7 +20,7 @@ tasks.xml 是 Codument 中用于追踪变更实现进度的结构化任务文件
 
 ## 完整结构
 
-\`\`\`xml
+```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <track change_id="add-user-auth">
   <metadata>
@@ -144,67 +139,67 @@ tasks.xml 是 Codument 中用于追踪变更实现进度的结构化任务文件
     </by_priority>
   </summary>
 </track>
-\`\`\`
+```
 
 ## 元素说明
 
-### \`<track>\` - 根元素
+### `<track>` - 根元素
 
 | 属性 | 必需 | 说明 |
 |------|------|------|
-| \`change_id\` | 是 | 变更唯一标识符，kebab-case 格式 |
+| `change_id` | 是 | 变更唯一标识符，kebab-case 格式 |
 
-### \`<metadata>\` - 元数据
+### `<metadata>` - 元数据
 
 | 元素 | 必需 | 说明 |
 |------|------|------|
-| \`track_name\` | 是 | Track 的可读名称 |
-| \`goal\` | 是 | Track 的目标描述 |
-| \`created_at\` | 是 | 创建时间，ISO 8601 格式 |
-| \`updated_at\` | 是 | 最后更新时间，ISO 8601 格式 |
-| \`status\` | 是 | 状态：new, in_progress, completed, cancelled |
-| \`commit_mode\` | 是 | 提交模式：auto（自动提交+Git Notes）, manual（手动提交） |
+| `track_name` | 是 | Track 的可读名称 |
+| `goal` | 是 | Track 的目标描述 |
+| `created_at` | 是 | 创建时间，ISO 8601 格式 |
+| `updated_at` | 是 | 最后更新时间，ISO 8601 格式 |
+| `status` | 是 | 状态：new, in_progress, completed, cancelled |
+| `commit_mode` | 是 | 提交模式：auto（自动提交+Git Notes）, manual（手动提交） |
 
-### \`<milestones>\` - 里程碑列表（可选）
+### `<milestones>` - 里程碑列表（可选）
 
-包含一个或多个 \`<milestone>\` 元素。
+包含一个或多个 `<milestone>` 元素。
 
-### \`<milestone>\` - 里程碑
-
-| 属性/元素 | 必需 | 说明 |
-|-----------|------|------|
-| \`id\` 属性 | 是 | 里程碑 ID，格式 M1, M2, ... |
-| \`name\` 属性 | 是 | 里程碑名称 |
-| \`<target_date>\` | 是 | 目标日期 |
-| \`<deliverables>\` | 是 | 交付物描述 |
-
-### \`<phases>\` - 阶段列表
-
-包含一个或多个 \`<phase>\` 元素。
-
-### \`<phase>\` - 阶段
+### `<milestone>` - 里程碑
 
 | 属性/元素 | 必需 | 说明 |
 |-----------|------|------|
-| \`id\` 属性 | 是 | 阶段 ID，格式 P1, P2, ... |
-| \`name\` 属性 | 是 | 阶段名称 |
-| \`milestone\` 属性 | 否 | 关联里程碑 ID |
-| \`<goal>\` | 是 | 阶段目标 |
-| \`<estimated_days>\` | 否 | 预估工时（天） |
-| \`<tasks>\` | 是 | 任务列表 |
-| \`<gate_criteria>\` | 否 | 阶段门控标准 |
+| `id` 属性 | 是 | 里程碑 ID，格式 M1, M2, ... |
+| `name` 属性 | 是 | 里程碑名称 |
+| `<target_date>` | 是 | 目标日期 |
+| `<deliverables>` | 是 | 交付物描述 |
 
-### \`<task>\` - 任务
+### `<phases>` - 阶段列表
+
+包含一个或多个 `<phase>` 元素。
+
+### `<phase>` - 阶段
+
+| 属性/元素 | 必需 | 说明 |
+|-----------|------|------|
+| `id` 属性 | 是 | 阶段 ID，格式 P1, P2, ... |
+| `name` 属性 | 是 | 阶段名称 |
+| `milestone` 属性 | 否 | 关联里程碑 ID |
+| `<goal>` | 是 | 阶段目标 |
+| `<estimated_days>` | 否 | 预估工时（天） |
+| `<tasks>` | 是 | 任务列表 |
+| `<gate_criteria>` | 否 | 阶段门控标准 |
+
+### `<task>` - 任务
 
 | 属性 | 必需 | 说明 |
 |------|------|------|
-| \`id\` | 是 | 任务 ID，格式 T1.1, T1.2, ... |
-| \`name\` | 是 | 任务名称（简短） |
-| \`status\` | 是 | 状态：TODO, IN_PROGRESS, DONE, BLOCKED, CANCELLED |
-| \`priority\` | 是 | 优先级：P0（紧急）, P1（高）, P2（中） |
-| \`estimated_days\` | 否 | 预估工时（天） |
-| \`commit\` | 否 | 完成时的 commit SHA（DONE 后填写） |
-| \`blocker\` | 否 | 阻塞原因（BLOCKED 时填写） |
+| `id` | 是 | 任务 ID，格式 T1.1, T1.2, ... |
+| `name` | 是 | 任务名称（简短） |
+| `status` | 是 | 状态：TODO, IN_PROGRESS, DONE, BLOCKED, CANCELLED |
+| `priority` | 是 | 优先级：P0（紧急）, P1（高）, P2（中） |
+| `estimated_days` | 否 | 预估工时（天） |
+| `commit` | 否 | 完成时的 commit SHA（DONE 后填写） |
+| `blocker` | 否 | 阻塞原因（BLOCKED 时填写） |
 
 **任务内容（text content）**：任务的详细描述，说明具体要做什么。
 
@@ -212,73 +207,73 @@ tasks.xml 是 Codument 中用于追踪变更实现进度的结构化任务文件
 
 | 元素 | 必需 | 说明 |
 |------|------|------|
-| \`<dependencies>\` | 否 | 依赖任务 ID，多个用逗号分隔 |
-| \`<owner>\` | 否 | 负责人 |
-| \`<acceptance_criteria>\` | 否 | 验收标准列表 |
-| \`<tech_stack>\` | 否 | 技术栈列表 |
-| \`<references>\` | 否 | 参考资料列表 |
-| \`<subtasks>\` | 否 | 子任务列表 |
+| `<dependencies>` | 否 | 依赖任务 ID，多个用逗号分隔 |
+| `<owner>` | 否 | 负责人 |
+| `<acceptance_criteria>` | 否 | 验收标准列表 |
+| `<tech_stack>` | 否 | 技术栈列表 |
+| `<references>` | 否 | 参考资料列表 |
+| `<subtasks>` | 否 | 子任务列表 |
 
-### \`<acceptance_criteria>\` - 验收标准
+### `<acceptance_criteria>` - 验收标准
 
-\`\`\`xml
+```xml
 <acceptance_criteria>
   <criterion id="T1.1-AC1" checked="false">验收标准描述</criterion>
 </acceptance_criteria>
-\`\`\`
+```
 
 | 属性 | 必需 | 说明 |
 |------|------|------|
-| \`id\` | 是 | 验收标准 ID，格式 T1.1-AC1 |
-| \`checked\` | 是 | 是否已验证：true/false |
+| `id` | 是 | 验收标准 ID，格式 T1.1-AC1 |
+| `checked` | 是 | 是否已验证：true/false |
 
-### \`<subtask>\` - 子任务
+### `<subtask>` - 子任务
 
 **子任务使用自闭合标签，所有信息放在属性中**：
 
-\`\`\`xml
+```xml
 <subtask id="T1.1.1" name="子任务名称" status="TODO" estimated_hours="2"/>
-\`\`\`
+```
 
 | 属性 | 必需 | 说明 |
 |------|------|------|
-| \`id\` | 是 | 子任务 ID，格式 T1.1.1, T1.1.2, ... |
-| \`name\` | 是 | 子任务名称 |
-| \`status\` | 是 | 状态：TODO, IN_PROGRESS, DONE, BLOCKED, CANCELLED |
-| \`estimated_hours\` | 否 | 预估工时（小时） |
+| `id` | 是 | 子任务 ID，格式 T1.1.1, T1.1.2, ... |
+| `name` | 是 | 子任务名称 |
+| `status` | 是 | 状态：TODO, IN_PROGRESS, DONE, BLOCKED, CANCELLED |
+| `estimated_hours` | 否 | 预估工时（小时） |
 
-### \`<gate_criteria>\` - 阶段门控标准
+### `<gate_criteria>` - 阶段门控标准
 
-\`\`\`xml
+```xml
 <gate_criteria>
   <criterion>所有 P0 任务完成</criterion>
   <criterion>测试覆盖率 >80%</criterion>
 </gate_criteria>
-\`\`\`
+```
 
 阶段完成前必须满足所有门控标准。
 
-### \`<validations>\` - 验收验证
+### `<validations>` - 验收验证
 
-包含一个或多个 \`<validation>\` 元素，用于定义功能验收标准。
+包含一个或多个 `<validation>` 元素，用于定义功能验收标准。
 
-### \`<validation>\` - 验证项
+### `<validation>` - 验证项
 
 | 属性 | 必需 | 说明 |
 |------|------|------|
-| \`id\` | 是 | 验证 ID，格式 V1, V2, ... |
-| \`name\` | 是 | 验证名称 |
-| \`status\` | 是 | 状态：TODO, PASSED, FAILED |
+| `id` | 是 | 验证 ID，格式 V1, V2, ... |
+| `name` | 是 | 验证名称 |
+| `status` | 是 | 状态：TODO, PASSED, FAILED |
 
 **子元素**：
 
 | 元素 | 必需 | 说明 |
 |------|------|------|
-| \`<checks>\` | 否 | 检查项列表 |
+| `<checks>` | 否 | 检查项列表 |
 
-### \`<risks>\` - 风险登记（可选）
+### `<risks>` - 风险登记（可选）
 
-\`\`\`xml
+```xml
 <risks>
   <risk id="R1" name="风险描述" level="high">
     <impact>高</impact>
@@ -286,65 +281,65 @@ tasks.xml 是 Codument 中用于追踪变更实现进度的结构化任务文件
     <mitigation>缓解措施</mitigation>
   </risk>
 </risks>
-\`\`\`
+```
 
 | 属性/元素 | 必需 | 说明 |
 |-----------|------|------|
-| \`id\` 属性 | 是 | 风险 ID，格式 R1, R2, ... |
-| \`name\` 属性 | 是 | 风险名称 |
-| \`level\` 属性 | 是 | 风险等级：high, medium, low |
-| \`<impact>\` | 是 | 影响程度 |
-| \`<probability>\` | 是 | 发生概率 |
-| \`<mitigation>\` | 是 | 缓解措施 |
+| `id` 属性 | 是 | 风险 ID，格式 R1, R2, ... |
+| `name` 属性 | 是 | 风险名称 |
+| `level` 属性 | 是 | 风险等级：high, medium, low |
+| `<impact>` | 是 | 影响程度 |
+| `<probability>` | 是 | 发生概率 |
+| `<mitigation>` | 是 | 缓解措施 |
 
-### \`<summary>\` - 统计摘要
+### `<summary>` - 统计摘要
 
 | 元素 | 说明 |
 |------|------|
-| \`total_phases\` | 阶段总数 |
-| \`total_tasks\` | 任务总数 |
-| \`total_subtasks\` | 子任务总数 |
-| \`total_estimated_days\` | 总预估天数 |
-| \`completed\` | 已完成任务数 |
-| \`in_progress\` | 进行中任务数 |
-| \`todo\` | 待处理任务数 |
-| \`blocked\` | 阻塞任务数 |
-| \`by_priority\` | 按优先级统计 |
+| `total_phases` | 阶段总数 |
+| `total_tasks` | 任务总数 |
+| `total_subtasks` | 子任务总数 |
+| `total_estimated_days` | 总预估天数 |
+| `completed` | 已完成任务数 |
+| `in_progress` | 进行中任务数 |
+| `todo` | 待处理任务数 |
+| `blocked` | 阻塞任务数 |
+| `by_priority` | 按优先级统计 |
 
 ## 状态值
 
 ### Track 状态
-- \`new\` - 新建，尚未开始
-- \`in_progress\` - 进行中
-- \`completed\` - 已完成
-- \`cancelled\` - 已取消
+- `new` - 新建，尚未开始
+- `in_progress` - 进行中
+- `completed` - 已完成
+- `cancelled` - 已取消
 
 ### 任务/子任务状态
-- \`TODO\` - 待处理
-- \`IN_PROGRESS\` - 进行中
-- \`DONE\` - 已完成
-- \`BLOCKED\` - 被阻塞
-- \`CANCELLED\` - 已取消
+- `TODO` - 待处理
+- `IN_PROGRESS` - 进行中
+- `DONE` - 已完成
+- `BLOCKED` - 被阻塞
+- `CANCELLED` - 已取消
 
 ### 验证状态
-- \`TODO\` - 待验证
-- \`PASSED\` - 验证通过
-- \`FAILED\` - 验证失败
+- `TODO` - 待验证
+- `PASSED` - 验证通过
+- `FAILED` - 验证失败
 
 ### 优先级
-- \`P0\` - 必须完成（影响核心功能）
-- \`P1\` - 重要（非关键路径但重要）
-- \`P2\` - 可选（有则更好）
+- `P0` - 必须完成（影响核心功能）
+- `P1` - 重要（非关键路径但重要）
+- `P2` - 可选（有则更好）
 
 ### 提交模式
-- \`auto\` - 自动提交模式：任务完成后自动 commit 并附加 Git Notes
-- \`manual\` - 手动提交模式：用户自行控制提交时机
+- `auto` - 自动提交模式：任务完成后自动 commit 并附加 Git Notes
+- `manual` - 手动提交模式：用户自行控制提交时机
 
 ## ID 命名规范
 
 | 类型 | 格式 | 示例 |
 |------|------|------|
-| Track ID | \`<动词>-<名词>\` | \`add-user-auth\`, \`fix-login-bug\` |
+| Track ID | `<动词>-<名词>` | `add-user-auth`, `fix-login-bug` |
 | 里程碑 | M{序号} | M1, M2, M3 |
 | 阶段 | P{序号} | P1, P2, P3 |
 | 任务 | T{阶段}.{任务} | T1.1, T2.3 |
@@ -357,7 +352,7 @@ tasks.xml 是 Codument 中用于追踪变更实现进度的结构化任务文件
 
 当 workflow.md 指定 TDD 流程时，每个功能任务应拆分为：
 
-\`\`\`xml
+```xml
 <task id="T1.1" name="实现用户模型" status="TODO" priority="P0" estimated_days="2">
   定义 User 模型结构并实现基本 CRUD 操作
   <acceptance_criteria>
@@ -370,16 +365,16 @@ tasks.xml 是 Codument 中用于追踪变更实现进度的结构化任务文件
     <subtask id="T1.1.3" name="重构优化" status="TODO" estimated_hours="1"/>
   </subtasks>
 </task>
-\`\`\`
+```
 
 ## 阶段门控协议
 
-每个阶段完成时，必须验证 \`<gate_criteria>\` 中的所有标准：
+每个阶段完成时，必须验证 `<gate_criteria>` 中的所有标准：
 
 1. **自动检查**：运行测试、检查覆盖率、Lint 检查
 2. **生成验证报告**：列出所有检查项及结果
 3. **用户确认**：呈现报告，等待用户明确确认
-4. **创建检查点**（auto 模式）：\`git commit -m "checkpoint: Phase P1 complete"\`
+4. **创建检查点**（auto 模式）：`git commit -m "checkpoint: Phase P1 complete"`
 5. **附加 Git Notes**（auto 模式）：记录验证报告
 
 ## 验证规则
@@ -393,7 +388,7 @@ tasks.xml 是 Codument 中用于追踪变更实现进度的结构化任务文件
 
 ## 示例：最小 tasks.xml
 
-\`\`\`xml
+```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <track change_id="fix-login-bug">
   <metadata>
@@ -446,5 +441,4 @@ tasks.xml 是 Codument 中用于追踪变更实现进度的结构化任务文件
     <blocked>0</blocked>
   </summary>
 </track>
-\`\`\`
-`;
+```

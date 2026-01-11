@@ -1,4 +1,4 @@
-# /codument:status - 状态命令
+# codument status - 状态命令
 
 **描述：** 显示项目当前进度
 
@@ -8,8 +8,6 @@
 
 你是 AI 代理，负责提供当前 tracks 文件的状态概览。这包括读取 `codument/tracks.md` 文件，解析内容，并总结任务进度。
 
-**关键：** 验证每个工具调用是否成功。如果任何工具调用失败，必须立即停止，向用户报告失败，等待进一步指示。
-
 ---
 
 ## 1.1 设置检查
@@ -17,15 +15,16 @@
 **协议：验证 Codument 环境是否正确设置。**
 
 1. **验证 tracks 文件：** 检查 `codument/tracks.md` 是否存在且非空
-   - 如果不存在或为空，停止并提示："项目未设置或 tracks.md 已损坏。请运行 `/codument:init` 设置。"
+   - 如果不存在或为空，停止并提示："项目未设置或 tracks.md 已损坏。请提示用户运行 `/codument:init` 设置。"
 
 2. **检查必需文件：** 验证以下文件存在：
    - `codument/project.md`
-   - `codument/workflow.md`
+   - `codument/std/workflow.md`
+   - `codument/workflows/workflow.md`
    - `codument/product.md`
 
 3. **处理缺失文件：**
-   - 如果任何文件缺失，停止并提示运行 `/codument:init`
+   - 如果任何文件缺失，停止并提示用户运行 `/codument:init`
 
 ---
 

@@ -123,30 +123,6 @@
 - [ ] 文档已更新（如需要）
 - [ ] 未引入安全漏洞
 
-## 开发命令
-
-### 设置
-```bash
-bun install
-```
-
-### 日常开发
-```bash
-bun run dev          # 开发模式
-bun test             # 运行测试
-bun run lint         # 代码检查
-```
-
-### 构建
-```bash
-bun run build        # 构建单文件可执行文件
-```
-
-### 提交前
-```bash
-bun run check        # 运行所有检查
-```
-
 ## 测试要求
 
 ### 单元测试
@@ -207,3 +183,6 @@ git commit -m "test(utils): Add tests for parseTaskDetails function"
 - 记录经验教训
 - 优化用户满意度
 - 保持简单和可维护
+
+## 其他项目级workflow
+请阅读 `codument/workflows` 了解更多的工作流

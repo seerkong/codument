@@ -1,9 +1,9 @@
-# 项目工作流
+# 系统级工作流
 
 ## 指导原则
 
 1. **规范是真实来源：** 所有工作必须在 tasks.xml 中追踪
-2. **技术栈是慎重选择的：** 对技术栈的更改必须在实现前记录在 project.md 中
+2. **技术栈是慎重选择的：** 对技术栈的更改必须在实现前记录在 tech-stack.md 中
 3. **测试驱动开发：** 在实现功能前编写单元测试
 4. **高代码覆盖率：** 所有模块的代码覆盖率目标为 >80%
 5. **用户体验优先：** 每个决策都应优先考虑用户体验
@@ -35,16 +35,13 @@
 
 6. **验证覆盖率：** 使用项目工具运行覆盖率报告
    ```bash
-   # 示例：Python 项目
-   pytest --cov=app --cov-report=html
-   # 示例：Node.js 项目
-   npm run test:coverage
+   bun test --coverage
    ```
    目标：新代码覆盖率 >80%
 
 7. **记录偏差：** 如果实现与技术栈不同：
    - **停止**实现
-   - 用新设计更新 `project.md`
+   - 用新设计更新 `tech-stack.md`
    - 添加带日期的注释解释更改
    - 恢复实现
 
@@ -75,6 +72,17 @@
 10. **提交任务更新（auto 模式）：**
     - 暂存修改的 tasks.xml
     - 提交更改，消息如 `codument(task): Mark task 'Create user model' as complete`
+
+
+### 更正进行中工作流
+当有如下情况：
+- 当前有进行中的tracks
+- 用户提出的补充需求，属于当前进行中的某个track范围
+
+需要执行下述工作流：
+1. **找到track：** 找到补充需求所属的进行中的track
+2. **更正tasks.xml：** 在所属的track.xml，合适的位置，按照`tasks-xml-spec.md`的规范，新增内容，初始化状态
+
 
 ### 阶段完成验证协议
 
@@ -123,37 +131,8 @@
 - [ ] 所有公共函数/方法有文档
 - [ ] 强制类型安全
 - [ ] 无代码检查或静态分析错误
-- [ ] 移动端正常工作（如适用）
 - [ ] 文档已更新（如需要）
 - [ ] 未引入安全漏洞
-
-## 开发命令
-
-**注意：本节应适应项目的具体语言、框架和构建工具。**
-
-### 设置
-```bash
-# 示例：设置开发环境的命令
-# Node.js: npm install
-# Python: pip install -r requirements.txt
-# Go: go mod tidy
-```
-
-### 日常开发
-```bash
-# 示例：常见日常任务的命令
-# Node.js: npm run dev, npm test, npm run lint
-# Python: python main.py, pytest, ruff check
-# Go: go run main.go, go test ./..., go fmt ./...
-```
-
-### 提交前
-```bash
-# 示例：预提交检查
-# Node.js: npm run check
-# Python: make check
-# Go: make check
-```
 
 ## 测试要求
 
@@ -164,10 +143,9 @@
 - 测试成功和失败情况
 
 ### 集成测试
-- 测试完整用户流程
-- 验证数据库事务
-- 测试认证和授权
-- 检查表单提交
+- 测试完整命令流程
+- 验证文件系统操作
+- 测试错误处理
 
 ## 提交指南
 
@@ -191,9 +169,9 @@
 
 ### 示例
 ```bash
-git commit -m "feat(auth): Add remember me functionality"
-git commit -m "fix(posts): Correct excerpt generation for short posts"
-git commit -m "test(comments): Add tests for emoji reaction limits"
+git commit -m "feat(cli): Add list command with specs option"
+git commit -m "fix(validate): Correct scenario parsing for GIVEN/WHEN/THEN"
+git commit -m "test(utils): Add tests for parseTaskDetails function"
 ```
 
 ## 完成定义
@@ -205,10 +183,9 @@ git commit -m "test(comments): Add tests for emoji reaction limits"
 3. 代码覆盖率满足项目要求
 4. 文档完成（如适用）
 5. 代码通过所有配置的代码检查
-6. 移动端运行良好（如适用）
-7. 实现说明添加到 tasks.xml
-8. 更改用正确消息提交
-9. 任务状态更新为 DONE
+6. 实现说明添加到 tasks.xml
+7. 更改用正确消息提交
+8. 任务状态更新为 DONE
 
 ## 持续改进
 
@@ -217,3 +194,6 @@ git commit -m "test(comments): Add tests for emoji reaction limits"
 - 记录经验教训
 - 优化用户满意度
 - 保持简单和可维护
+
+## 其他项目级workflow
+请阅读 `codument/workflows/` 目录下的更多文件，了解更多的本项目专属工作流

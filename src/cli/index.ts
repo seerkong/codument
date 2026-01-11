@@ -3,7 +3,6 @@ import { parseArgs } from 'util';
 import { listCommand } from './commands/list';
 import { showCommand } from './commands/show';
 import { validateCommand } from './commands/validate';
-import { archiveCommand } from './commands/archive';
 import { statusCommand } from './commands/status';
 import { initCommand } from './commands/init';
 import { setWorkspaceDir } from './utils';
@@ -35,7 +34,6 @@ Examples:
   codument list --specs                  # List specifications
   codument show add-user-auth            # Show track details
   codument validate --strict             # Validate all with strict mode
-  codument archive add-user-auth         # Archive completed track
   codument status                         # Show project status
   codument status -w /path/to/project    # Show status for specific project
 `;

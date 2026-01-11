@@ -21,7 +21,8 @@ function loadTemplate(filename: string): string {
 }
 
 // Core prompts
-export const agentsPrompt = loadPrompt("agents.md");
+export const stdAgentsPrompt = loadPrompt("std_agents.md");
+export const rootAgentsPrompt = loadPrompt("root_agents.md");
 export const initPrompt = loadPrompt("init.md");
 export const trackPrompt = loadPrompt("track.md");
 export const implementPrompt = loadPrompt("implement.md");
@@ -35,10 +36,11 @@ export const workflowTemplate = loadTemplate("workflow.md");
 export const projectTemplate = loadTemplate("project.md");
 export const productTemplate = loadTemplate("product.md");
 export const techStackTemplate = loadTemplate("tech-stack.md");
+export const tracksTemplate = loadTemplate("tracks.md");
 
 // Export all prompts as a map
 export const prompts = {
-  agents: agentsPrompt,
+  agents: stdAgentsPrompt,
   init: initPrompt,
   track: trackPrompt,
   implement: implementPrompt,

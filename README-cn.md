@@ -54,7 +54,7 @@ Track（变更追踪）
 
 ```bash
 # 克隆仓库
-git clone https://github.com/your-repo/codument.git
+git clone https://github.com/seerkong/codument.git
 cd codument
 
 # 安装依赖

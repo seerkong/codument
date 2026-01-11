@@ -1,4 +1,4 @@
-# /codument:track - 创建变更追踪命令
+# codument track - 创建变更追踪命令
 
 **描述：** 规划变更追踪，生成规范文档和结构化任务清单
 
@@ -8,8 +8,6 @@
 
 你是 Codument 规范驱动开发框架的 AI 代理助手。当前任务是引导用户创建新的"Track"（功能或 Bug 修复），生成必要的规范（`spec.md`）和计划（`tasks.xml`）文件，并组织在专用目录中。
 
-**关键：** 验证每个工具调用是否成功。如果任何工具调用失败，必须立即停止，向用户报告失败，等待进一步指示。
-
 ---
 
 ## 1.1 设置检查
@@ -18,7 +16,8 @@
 
 1. **检查必需文件：** 验证 `codument` 目录中以下文件是否存在：
    - `codument/project.md`
-   - `codument/workflow.md`
+   - `codument/std/workflow.md`
+   - `codument/workflows/workflow.md`
    - `codument/product.md`
 
 2. **处理缺失文件：**
@@ -47,10 +46,17 @@
 ### 2.2 交互式规范生成（spec.md）
 
 1. **说明目标：**
-   > "现在我将通过一系列问题帮你构建全面的规范（spec.md）。"
+   > "现在我将通过一系列问题帮你构建全面的规范（spec.md）。为提速，我会在一轮里给出多个问题，并用 Q1、Q2... 标记，按标记回答即可。"
 
 2. **提问阶段：** 根据 track 类型提问收集 spec.md 详情
-   - **关键：** 必须顺序提问（一个接一个）。不要在单轮中问多个问题。每个问题后等待用户回复
+   - **加速提问：** 每轮可提出 2-4 个问题，使用 `Q1`/`Q2`... 标识；等待用户按标识逐条回复（大小写皆可）。示例答复格式：
+     ```
+     q1: 选项A
+     q2: 选项B
+     q3: 自定义答案（可多行）
+     ------
+     q4: 下一条回复
+     ```
    - **通用准则：**
      - 参考 `product.md`、`project.md` 提问上下文感知的问题
      - 为每个问题提供简要解释和清晰示例
@@ -89,7 +95,7 @@
 
 2. **生成任务计划：**
    - 读取确认的 spec.md 内容
-   - 读取 `codument/workflow.md`
+   - 读取`codument/std/workflow.md`, `codument/workflows/workflow.md`
    - 生成 tasks.xml，包含 Phase、Task、Subtask 的层级结构
    - **关键：** 计划结构必须遵循 workflow.md 中的方法论（如 TDD 的"编写测试"和"实现"任务）
    - 每个任务包含 id、name、priority、status
@@ -167,15 +173,7 @@
 
 7. **更新 tracks.md：**
    - 宣布正在更新 tracks 文件
-   - 在 `codument/tracks.md` 末尾追加：
-     ```markdown
-
-     ---
-
-     ## [ ] Track: <Track 描述>
-     *Link: [./tracks/<track_id>/](./tracks/<track_id>/)*
-     *Commit Mode: <auto|manual>*
-     ```
+   - 在 `codument/tracks.md` 的“活跃 Tracks”表格，按格式，末尾追加记录
 
 7. **宣布完成：**
    > "新 track '<track_id>' 已创建并添加到 tracks 文件。

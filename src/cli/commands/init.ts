@@ -6,9 +6,58 @@ import { generateClaudeCommands } from '../generators/claude';
 import { generateCodexCommands } from '../generators/codex';
 import { generateGeminiCommands } from '../generators/gemini';
 import { generateEidolonCommands } from '../generators/eidolon';
-import { TASKS_XML_SPEC } from '../templates/tasks-xml-spec';
+import { generateOpenCodeCommands } from '../generators/opencode';
 
-type CLITool = 'claude' | 'codex' | 'gemini' | 'eidolon';
+import {
+  stdAgentsPrompt,
+  tasksXmlSpec,
+  workflowTemplate,
+  techStackTemplate,
+  tracksTemplate,
+  rootAgentsPrompt,
+} from '../../prompts'
+let TASKS_XML_SPEC = tasksXmlSpec;
+type CLITool = 'claude' | 'codex' | 'eidolon' | 'gemini' | 'opencode';
+const CODUMENT_MARKERS = {
+  start: '<!-- CODUMENT:START -->',
+  end: '<!-- CODUMENT:END -->',
+};
+
+function isMarkerOnOwnLine(content: string, markerIndex: number, markerLength: number): boolean {
+  let leftIndex = markerIndex - 1;
+  while (leftIndex >= 0 && content[leftIndex] !== '\n') {
+    const char = content[leftIndex];
+    if (char !== ' ' && char !== '\t' && char !== '\r') {
+      return false;
+    }
+    leftIndex--;
+  }
+
+  let rightIndex = markerIndex + markerLength;
+  while (rightIndex < content.length && content[rightIndex] !== '\n') {
+    const char = content[rightIndex];
+    if (char !== ' ' && char !== '\t' && char !== '\r') {
+      return false;
+    }
+    rightIndex++;
+  }
+
+  return true;
+}
+
+function findMarkerIndex(content: string, marker: string, fromIndex = 0): number {
+  let currentIndex = content.indexOf(marker, fromIndex);
+
+  while (currentIndex !== -1) {
+    if (isMarkerOnOwnLine(content, currentIndex, marker.length)) {
+      return currentIndex;
+    }
+
+    currentIndex = content.indexOf(marker, currentIndex + marker.length);
+  }
+
+  return -1;
+}
 
 function createReadline() {
   return readline.createInterface({
@@ -31,7 +80,7 @@ function multiSelect(rl: readline.Interface, prompt: string, options: { key: str
     options.forEach((opt) => {
       console.log(`  ${opt.key}. ${opt.label}`);
     });
-    rl.question('请输入选项编号（逗号分隔，如 1,2,3）: ', (answer) => {
+    rl.question('请输入选项编号（逗号分隔，如 1,2,3,4）: ', (answer) => {
       const choices = answer.split(',').map((s) => s.trim());
       const selected = choices
         .map((c) => options.find((o) => o.key === c))
@@ -66,8 +115,9 @@ export async function initCommand(args: string[]): Promise<void> {
     const cliOptions = [
       { key: '1', label: 'Claude Code', tool: 'claude' as CLITool },
       { key: '2', label: 'OpenAI Codex CLI', tool: 'codex' as CLITool },
-      { key: '3', label: 'Gemini CLI', tool: 'gemini' as CLITool },
-      { key: '4', label: 'Eidolon', tool: 'eidolon' as CLITool },
+      { key: '3', label: 'Eidolon', tool: 'eidolon' as CLITool },
+      { key: '4', label: 'Gemini CLI', tool: 'gemini' as CLITool },
+      { key: '5', label: 'OpenCode', tool: 'opencode' as CLITool },
     ];
 
     const selectedLabels = await multiSelect(
@@ -105,6 +155,7 @@ export async function initCommand(args: string[]): Promise<void> {
       path.join(CODUMENT_DIR, 'specs'),
       path.join(CODUMENT_DIR, 'archive'),
       path.join(CODUMENT_DIR, 'std'),
+      path.join(CODUMENT_DIR, 'workflows'),
     ];
 
     for (const dir of dirs) {
@@ -132,13 +183,17 @@ export async function initCommand(args: string[]): Promise<void> {
         await generateCodexCommands();
         console.log('  ✓ 创建 .codex/prompts/*.md');
         break;
+      case 'eidolon':
+        await generateEidolonCommands();
+        console.log('  ✓ 创建 .eidolon/commands/codument/*.toml');
+        break;
       case 'gemini':
         await generateGeminiCommands();
         console.log('  ✓ 创建 .gemini/commands/codument/*.toml');
         break;
-      case 'eidolon':
-        await generateEidolonCommands();
-        console.log('  ✓ 创建 .eidolon/commands/codument/*.toml');
+      case 'opencode':
+        await generateOpenCodeCommands();
+        console.log('  ✓ 创建 .opencode/command/*.md');
         break;
     }
   }
@@ -203,24 +258,6 @@ async function generateConfigFiles(
 
 ${projectDesc}
 
-## 目录结构
-
-\`\`\`
-codument/
-├── project.md        # 项目配置
-├── product.md        # 产品定义
-├── workflow.md       # 工作流规范
-├── tech-stack.md     # 技术栈配置
-├── tracks.md         # track 索引
-├── tracks/           # 变更追踪目录
-├── specs/            # 规范目录
-├── std/              # 标准规范目录（不可变）
-└── archive/          # 归档目录
-\`\`\`
-
-## 支持的 CLI 工具
-
-${selectedLabels.map((l) => `- ${l}`).join('\n')}
 
 ---
 
@@ -258,69 +295,15 @@ ${projectDesc}
   console.log('  ✓ 创建 product.md');
 
   // Generate workflow.md
-  const workflowMd = `# 项目工作流
+  const workflowMd = `# 项目级工作流
 
-## 指导原则
-
-1. **规范是真实来源：** 所有工作必须在 tasks.xml 中追踪
-2. **技术栈是慎重选择的：** 对技术栈的更改必须在实现前记录在 tech-stack.md 中
-3. **测试驱动开发：** 在实现功能前编写单元测试
-4. **高代码覆盖率：** 所有模块的代码覆盖率目标为 >80%
-
-## 任务工作流
-
-1. **选择任务：** 从 tasks.xml 按顺序选择下一个可用任务
-2. **标记进行中：** 开始工作前，将任务状态从 \`TODO\` 改为 \`IN_PROGRESS\`
-3. **编写测试：** 编写单元测试定义预期行为
-4. **实现功能：** 编写使测试通过所需的最少代码
-5. **验证覆盖率：** 运行覆盖率报告，目标 >80%
-6. **提交代码：** 根据提交模式 (auto/manual) 处理
-7. **更新任务状态：** 标记为 \`DONE\`
-
-## 提交指南
-
-### 消息格式
-\`\`\`
-<类型>(<范围>): <描述>
-\`\`\`
-
-### 类型
-- \`feat\`: 新功能
-- \`fix\`: Bug 修复
-- \`docs\`: 文档
-- \`refactor\`: 重构
-- \`test\`: 测试
-- \`chore\`: 维护任务
 `;
 
-  fs.writeFileSync(path.join(CODUMENT_DIR, 'workflow.md'), workflowMd);
+  fs.writeFileSync(path.join(CODUMENT_DIR, "workflows", 'workflow.md'), workflowMd);
   console.log('  ✓ 创建 workflow.md');
 
   // Generate tech-stack.md
-  const techStackMd = `# 技术栈
-
-## 编程语言
-
-| 语言 | 版本 | 用途 |
-|------|------|------|
-| - | - | 待配置 |
-
-## 运行时
-
-| 运行时 | 版本 | 用途 |
-|--------|------|------|
-| - | - | 待配置 |
-
-## 框架与库
-
-| 名称 | 版本 | 用途 |
-|------|------|------|
-| - | - | 待配置 |
-
-## 架构决策
-
-待记录
-
+  const techStackMd = `${techStackTemplate}
 ---
 
 *最后更新: ${new Date().toISOString()}*
@@ -330,14 +313,7 @@ ${projectDesc}
   console.log('  ✓ 创建 tech-stack.md');
 
   // Generate tracks.md
-  const tracksMd = `# 项目变更追踪
-
-此文件追踪项目的所有变更。每个 track 在各自的文件夹中有详细计划。
-
----
-
-<!-- 新的 track 将在此处添加 -->
-`;
+  const tracksMd = tracksTemplate;
 
   fs.writeFileSync(path.join(CODUMENT_DIR, 'tracks.md'), tracksMd);
   console.log('  ✓ 创建 tracks.md');
@@ -351,6 +327,7 @@ ${projectDesc}
     timestamp: new Date().toISOString(),
     commit_mode: 'manual',
     cli_tools: selectedTools,
+    last_successful_step: "2.1_project"
   };
 
   fs.writeFileSync(
@@ -365,80 +342,59 @@ ${projectDesc}
     TASKS_XML_SPEC
   );
   console.log('  ✓ 创建 std/tasks-xml-spec.md');
+
+
+  fs.writeFileSync(
+    path.join(CODUMENT_DIR, 'std', 'AGENTS.md'),
+    stdAgentsPrompt
+  );
+  console.log('  ✓ 创建 std/AGENTS.md');
+
+  fs.writeFileSync(
+    path.join(CODUMENT_DIR, 'std', 'workflow.md'),
+    workflowTemplate
+  );
+  console.log('  ✓ 创建 std/workflow.md');
 }
 
 async function generateAgentsMd(
   selectedLabels: string[],
   selectedTools: CLITool[]
 ): Promise<void> {
-  const agentsMd = `# Codument 指令入口
+  void selectedLabels;
+  void selectedTools;
 
-本项目使用 Codument 规范驱动开发。
+  const managedContent = rootAgentsPrompt.trim();
+  const managedBlock = `${CODUMENT_MARKERS.start}\n\n${managedContent}\n\n${CODUMENT_MARKERS.end}`;
 
-## 支持的 CLI 工具
+  if (!fs.existsSync('AGENTS.md')) {
+    fs.writeFileSync('AGENTS.md', managedBlock);
+    return;
+  }
 
-${selectedLabels.map((l) => `- ${l}`).join('\n')}
+  const existingContent = fs.readFileSync('AGENTS.md', 'utf-8');
+  const startIndex = findMarkerIndex(existingContent, CODUMENT_MARKERS.start);
+  const endIndex = startIndex !== -1
+    ? findMarkerIndex(existingContent, CODUMENT_MARKERS.end, startIndex + CODUMENT_MARKERS.start.length)
+    : findMarkerIndex(existingContent, CODUMENT_MARKERS.end);
 
-## 快速开始
+  if (startIndex !== -1 && endIndex !== -1) {
+    if (endIndex < startIndex) {
+      throw new Error('Invalid CODUMENT marker order in AGENTS.md (end marker appears before start).');
+    }
+    const before = existingContent.substring(0, startIndex);
+    const after = existingContent.substring(endIndex + CODUMENT_MARKERS.end.length);
+    fs.writeFileSync('AGENTS.md', `${before}${managedBlock}${after}`);
+    return;
+  }
 
-1. 阅读 \`codument/project.md\` 了解项目配置
-2. 阅读 \`codument/workflow.md\` 了解工作流程
-3. 运行 \`codument list\` 查看当前 track
-4. 运行 \`codument status\` 查看项目状态
+  if (startIndex === -1 && endIndex === -1) {
+    const updatedContent = existingContent.trim().length > 0
+      ? `${managedBlock}\n\n${existingContent}`
+      : managedBlock;
+    fs.writeFileSync('AGENTS.md', updatedContent);
+    return;
+  }
 
-## Slash Commands
-
-${selectedTools.includes('claude') ? `### Claude Code
-- \`/codument:init\` - 初始化
-- \`/codument:track\` - 创建变更追踪
-- \`/codument:implement\` - 实现任务
-- \`/codument:validate\` - 验证格式
-- \`/codument:archive\` - 归档
-- \`/codument:status\` - 查看状态
-` : ''}
-${selectedTools.includes('codex') ? `### Codex CLI
-- \`/prompts:codument-init\` - 初始化
-- \`/prompts:codument-track\` - 创建变更追踪
-- \`/prompts:codument-implement\` - 实现任务
-- \`/prompts:codument-validate\` - 验证格式
-- \`/prompts:codument-archive\` - 归档
-- \`/prompts:codument-status\` - 查看状态
-` : ''}
-${selectedTools.includes('gemini') ? `### Gemini CLI
-- \`/codument:init\` - 初始化
-- \`/codument:track\` - 创建变更追踪
-- \`/codument:implement\` - 实现任务
-- \`/codument:validate\` - 验证格式
-- \`/codument:archive\` - 归档
-- \`/codument:status\` - 查看状态
-` : ''}
-${selectedTools.includes('eidolon') ? `### Eidolon
-- \`/codument:init\` - 初始化
-- \`/codument:track\` - 创建变更追踪
-- \`/codument:implement\` - 实现任务
-- \`/codument:validate\` - 验证格式
-- \`/codument:archive\` - 归档
-- \`/codument:status\` - 查看状态
-` : ''}
-## 目录结构
-
-\`\`\`
-codument/
-├── project.md        # 项目配置
-├── product.md        # 产品定义
-├── workflow.md       # 工作流规范
-├── tech-stack.md     # 技术栈配置
-├── tracks.md         # track 索引
-├── tracks/           # 变更追踪目录
-├── specs/            # 规范目录
-├── std/              # 标准规范目录（不可变）
-└── archive/          # 归档目录
-\`\`\`
-
----
-
-*由 Codument 生成 - ${new Date().toISOString()}*
-`;
-
-  fs.writeFileSync('AGENTS.md', agentsMd);
+  throw new Error('Invalid CODUMENT marker state in AGENTS.md. Found only one marker.');
 }

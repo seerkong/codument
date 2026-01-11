@@ -1,6 +1,6 @@
 /**
- * Claude Code command generator
- * Generates .claude/commands/codument/*.md files
+ * OpenCode command generator
+ * Generates .opencode/command/*.md files
  */
 
 import * as fs from 'fs';
@@ -11,74 +11,85 @@ import {
   archivePrompt, statusPrompt
 } from '../../prompts'
 
-const CLAUDE_COMMANDS_DIR = '.claude/commands/codument';
+const OPENCODE_COMMANDS_DIR = '.opencode/command';
 
 const COMMANDS = {
-  init: {
+  'codument-init': {
     description: 'Initialize Codument in the current project',
     content: `---
 description: Initialize Codument in the current project
-allowed-tools: Read, Write, Edit, Bash, Glob, Grep
+allowed-tools: All
 ---
-
-$ARGUMENTS
-
 ${initPrompt}
+
 `,
   },
-  track: {
+  'codument-track': {
     description: 'Create a new change track',
     content: `---
 description: Create a new change track for a feature or bug fix
-allowed-tools: Read, Write, Edit, Bash, Glob, Grep
+allowed-tools: All
 ---
 
-$ARGUMENTS
+The user has requested the following change track.
+<UserRequest>
+  $ARGUMENTS
+</UserRequest>
+
 
 ${trackPrompt}
 `,
   },
-  implement: {
+  'codument-implement': {
     description: 'Implement tasks from a track',
     content: `---
 description: Implement tasks from a track following the workflow
-allowed-tools: Read, Write, Edit, Bash, Glob, Grep
+allowed-tools: All
 ---
 
-$ARGUMENTS
+The user has requested to implement the following change track. 
+Find the change track and follow the instructions below. 
+If you're not sure or if ambiguous, ask for clarification from the user.
+<UserRequest>
+  $ARGUMENTS
+</UserRequest>
 
 ${implementPrompt}
 `,
   },
-  validate: {
+  'codument-validate': {
     description: 'Validate track or spec format',
     content: `---
 description: Validate track or spec format
-allowed-tools: Read, Bash, Glob, Grep
+allowed-tools: All
 ---
 
-$ARGUMENTS
+<ChangeId>
+  $ARGUMENTS
+</ChangeId>
 
 ${validatePrompt}
 `,
   },
-  archive: {
+  'codument-archive': {
     description: 'Archive a completed track',
     content: `---
 description: Archive a completed track
-allowed-tools: Read, Write, Edit, Bash, Glob
+allowed-tools: All
 ---
 
-$ARGUMENTS
+<ChangeId>
+  $ARGUMENTS
+</ChangeId>
 
 ${archivePrompt}
 `,
   },
-  status: {
+  'codument-status': {
     description: 'Show project status overview',
     content: `---
 description: Show project status overview
-allowed-tools: Read, Bash, Glob
+allowed-tools: All
 ---
 
 ${statusPrompt}
@@ -86,15 +97,15 @@ ${statusPrompt}
   },
 };
 
-export async function generateClaudeCommands(): Promise<void> {
+export async function generateOpenCodeCommands(): Promise<void> {
   // Create directory
-  if (!fs.existsSync(CLAUDE_COMMANDS_DIR)) {
-    fs.mkdirSync(CLAUDE_COMMANDS_DIR, { recursive: true });
+  if (!fs.existsSync(OPENCODE_COMMANDS_DIR)) {
+    fs.mkdirSync(OPENCODE_COMMANDS_DIR, { recursive: true });
   }
 
   // Generate command files
   for (const [name, cmd] of Object.entries(COMMANDS)) {
-    const filePath = path.join(CLAUDE_COMMANDS_DIR, `${name}.md`);
+    const filePath = path.join(OPENCODE_COMMANDS_DIR, `${name}.md`);
     fs.writeFileSync(filePath, cmd.content);
   }
 }
