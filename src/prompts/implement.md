@@ -65,17 +65,17 @@
 3. **加载 Track 文件：**
    a. **识别 Track 文件夹：** 从 tracks 文件获取 `<track_id>`
    b. **读取必需文件：**
-      - `codument/tracks/<track_id>/tasks.xml`
+      - `codument/tracks/<track_id>/plan.xml`
       - `codument/tracks/<track_id>/spec.md`
       - `codument/std/workflow.md`
       - `codument/workflows/workflow.md`
       - `codument/tracks/<track_id>/metadata.json`
-   c. **识别提交模式：** 从 metadata.json 或 tasks.xml 获取 `commit_mode`（auto/manual）
+   c. **识别提交模式：** 从 metadata.json 或 plan.xml 获取 `commit_mode`（auto/manual）
    d. **错误处理：** 如果无法读取任何文件，停止并通知用户
 
 ### 3.2 中断恢复检查
 
-1. **检查当前进度：** 解析 tasks.xml 查找：
+1. **检查当前进度：** 解析 plan.xml 查找：
    - 状态为 `IN_PROGRESS` 的任务
    - 上一个已完成（`DONE`）的任务
 
@@ -90,7 +90,7 @@
 
 ### 3.3 执行任务
 
-1. **宣布：** 声明将按 workflow.md 的流程执行 tasks.xml 中的任务
+1. **宣布：** 声明将按 workflow.md 的流程执行 plan.xml 中的任务
 
 2. **遍历阶段和任务：** 按 Phase → Task → Subtask 顺序执行
 
@@ -102,7 +102,7 @@
       > 依赖：<已满足/待完成>
       > 验收标准：<列出标准>"
 
-   c. **更新状态：** 将 tasks.xml 中任务状态更新为 `IN_PROGRESS`
+   c. **更新状态：** 将 plan.xml 中任务状态更新为 `IN_PROGRESS`
 
    d. **遵循工作流：** 严格按 workflow.md 定义的方法论执行
       - 如果是 TDD 流程：编写测试 → 实现 → 重构
@@ -112,7 +112,7 @@
       - 更新 `checked="true"` 表示已验证
 
    f. **完成任务：**
-      - 更新 tasks.xml 中任务状态为 `DONE`
+      - 更新 plan.xml 中任务状态为 `DONE`
       - **如果是 auto 模式：**
         ```bash
         git add .
@@ -124,16 +124,22 @@
         ```
       - 记录 commit SHA 到任务的 `commit` 属性
 
-   g. **报告进度：**
-      > "✅ **任务 T1.2 完成**
-      > 验收标准：全部通过
-      > Commit: <SHA>（auto 模式）"
+    g. **报告进度：**
+       > "✅ **任务 T1.2 完成**
+       > 验收标准：全部通过
+       > Commit: <SHA>（auto 模式）"
+
+    h. **可选确认点（任务级）：**
+       - 当 `<task>` 下存在 `<confirm .../>` 时，按 `when` 执行 `codument/std/protocols.md` 中对应协议
+       - 如使用 `yield-ai-confirm`，必须在调用提示词中包含 `workspace_dir` 与 `track_dir`
+       - 若确认未通过，必须修复后重新 review，直到 `<confirm>` 的 `status=DONE` 才能继续
+
 
 ### 3.4 阶段门控验证
 
-**协议：每个阶段完成时执行门控检查。**
+**协议：仅在 `<phase>` 下存在 `<confirm protocol="yield-human-confirm" .../>` 或 `<confirm protocol="yield-ai-confirm" .../>` 且 when 包含 `after` 时执行门控检查。**
 
-1. **触发条件：** 当阶段内所有任务状态为 `DONE` 时
+1. **触发条件：** 当阶段内所有任务状态为 `DONE` 且该 `<phase>` 的 `<confirm>` when 包含 `after`
 
 2. **执行自动检查：**
    a. **运行测试：** 执行项目测试套件
@@ -142,23 +148,27 @@
    d. **验证门控标准：** 检查 `<gate_criteria>` 中的每个标准
 
 3. **生成验证报告：**
-   > "📋 **阶段 P1 门控验证报告**
-   >
-   > | 检查项 | 状态 |
-   > |--------|------|
-   > | 所有任务完成 | ✅ 通过 |
-   > | 测试通过 | ✅ 通过 |
-   > | 覆盖率 85% (≥80%) | ✅ 通过 |
-   > | Lint 检查 | ✅ 通过 |
-   >
-   > **门控标准**：
-   > - [x] 所有 P0 任务完成
-   > - [x] 测试覆盖率 >80%
-   > - [x] 无阻塞性 Bug
-   >
-   > 请确认是否可以继续下一阶段？(Y/N)"
+    > "📋 **阶段 P1 门控验证报告**
+    >
+    > | 检查项 | 状态 |
+    > |--------|------|
+    > | 所有任务完成 | ✅ 通过 |
+    > | 测试通过 | ✅ 通过 |
+    > | 覆盖率 85% (≥80%) | ✅ 通过 |
+    > | Lint 检查 | ✅ 通过 |
+    >
+    > **门控标准**：
+    > - [x] 所有 P0 任务完成
+    > - [x] 测试覆盖率 >80%
+    > - [x] 无阻塞性 Bug
+    >
+    > 请确认是否可以继续下一阶段？(Y/N)"
 
-4. **等待用户确认：** 必须等待明确确认才能继续
+4. **确认处理：**
+   - `yield-human-confirm`: 等待用户确认，更新 `<confirm>` 的 `status`
+   - `yield-ai-confirm`: 触发指定 `ai-agent` 评审并按协议处理（提示词必须包含 `workspace_dir` 与 `track_dir`），更新 `<confirm>` 的 `status`
+   - 未配置 `<confirm>`：直接继续
+
 
 5. **创建检查点：** 确认后，**如果是 auto 模式**：
    ```bash
@@ -171,7 +181,7 @@
    Verification Report: <报告摘要>"
    ```
 
-6. **更新 tasks.xml：** 记录检查点 commit SHA
+6. **更新 plan.xml：** 记录检查点 commit SHA
 
 ### 3.5 处理失败
 
@@ -213,7 +223,7 @@
 
 3. **更新状态：**
    - 更新 tracks.md 中 track 状态为 `[x]`
-   - 更新 tasks.xml 中 metadata 状态为 `completed`
+   - 更新 plan.xml 中 metadata 状态为 `completed`
 
 4. **宣布完成：**
    > "🎉 **Track '<track_id>' 实现完成！**
@@ -298,7 +308,7 @@
 
 参考 workflow.md 中定义的完整任务工作流，典型 TDD 步骤：
 
-1. **选择任务：** 从 tasks.xml 顺序选择下一个任务
+1. **选择任务：** 从 plan.xml 顺序选择下一个任务
 2. **标记进行中：** 更新任务状态为 `IN_PROGRESS`
 3. **编写测试（红色阶段）：** 创建失败测试
 4. **实现通过（绿色阶段）：** 编写最少代码通过测试

@@ -36,13 +36,13 @@
 
 1. **读取 tracks.md：** 读取 `codument/tracks.md` 内容
 2. **列出 tracks：** 使用 `ls codument/tracks` 列出所有 tracks
-3. **读取每个 track 的任务：** 对每个 track 读取 `codument/tracks/<track_id>/tasks.xml`
+3. **读取每个 track 的任务：** 对每个 track 读取 `codument/tracks/<track_id>/plan.xml`
 
 ### 2.2 解析和总结
 
 1. **解析内容：**
    - 识别所有 tracks 及其状态（`[ ]` 待开始、`[~]` 进行中、`[x]` 已完成）
-   - 解析每个 track 的 tasks.xml，统计任务数量和状态
+   - 解析每个 track 的 plan.xml，统计任务数量和状态
    - 识别当前进行中的阶段和任务
 
 2. **生成总结：** 创建项目进度的简洁总结：

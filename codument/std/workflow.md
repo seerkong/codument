@@ -1,8 +1,8 @@
-# 项目工作流
+# 系统级工作流
 
 ## 指导原则
 
-1. **规范是真实来源：** 所有工作必须在 tasks.xml 中追踪
+1. **规范是真实来源：** 所有工作必须在 plan.xml 中追踪
 2. **技术栈是慎重选择的：** 对技术栈的更改必须在实现前记录在 tech-stack.md 中
 3. **测试驱动开发：** 在实现功能前编写单元测试
 4. **高代码覆盖率：** 所有模块的代码覆盖率目标为 >80%
@@ -15,7 +15,7 @@
 
 ### 标准任务工作流
 
-1. **选择任务：** 从 tasks.xml 按顺序选择下一个可用任务
+1. **选择任务：** 从 plan.xml 按顺序选择下一个可用任务
 
 2. **标记进行中：** 开始工作前，将任务状态从 `TODO` 改为 `IN_PROGRESS`
 
@@ -70,12 +70,24 @@
    - 更新 `<acceptance_criteria>` 中各标准的 `checked` 属性
 
 10. **提交任务更新（auto 模式）：**
-    - 暂存修改的 tasks.xml
+    - 暂存修改的 plan.xml
     - 提交更改，消息如 `codument(task): Mark task 'Create user model' as complete`
+
+
+### 更正进行中工作流
+当有如下情况：
+- 当前有进行中的tracks
+- 用户提出的补充需求，属于当前进行中的某个track范围
+
+需要执行下述工作流：
+1. **找到track：** 找到补充需求所属的进行中的track
+2. **更正plan.xml：** 在所属的plan.xml，合适的位置，按照`plan-xml-spec.md`的规范，新增内容，初始化状态
+
 
 ### 阶段完成验证协议
 
 **触发器：** 完成某个阶段的最后一个任务后立即执行
+**执行条件：** 仅当该 `<phase>` 下存在 `<confirm protocol="yield-human-confirm" .../>` 或 `<confirm protocol="yield-ai-confirm" .../>` 且 when 包含 `after`（见 `codument/std/protocols.md`）
 
 1. **宣布协议开始：** 通知用户阶段已完成，验证和检查点协议开始
 
@@ -91,7 +103,7 @@
    - 如果仍失败，停止并请求用户指导
 
 4. **提议手动验证计划：**
-   - 分析 product.md 和 tasks.xml 确定用户目标
+   - 分析 product.md 和 plan.xml 确定用户目标
    - 生成分步验证计划，包括命令和预期结果
 
 5. **等待用户反馈：**
@@ -103,7 +115,7 @@
    - 提交，消息如 `codument(checkpoint): Checkpoint end of Phase X`
 
 7. **更新任务并记录检查点 SHA：**
-   - 在 tasks.xml 中阶段元素添加 checkpoint 属性
+   - 在 plan.xml 中阶段元素添加 checkpoint 属性
 
 8. **提交任务更新：**
    - 提交更改，消息如 `codument(phase): Mark phase 'P1' as complete`
@@ -172,7 +184,7 @@ git commit -m "test(utils): Add tests for parseTaskDetails function"
 3. 代码覆盖率满足项目要求
 4. 文档完成（如适用）
 5. 代码通过所有配置的代码检查
-6. 实现说明添加到 tasks.xml
+6. 实现说明添加到 plan.xml
 7. 更改用正确消息提交
 8. 任务状态更新为 DONE
 
@@ -185,4 +197,4 @@ git commit -m "test(utils): Add tests for parseTaskDetails function"
 - 保持简单和可维护
 
 ## 其他项目级workflow
-请阅读 `codument/workflows` 了解更多的工作流
+请阅读 `codument/workflows/` 目录下的更多文件，了解更多的本项目专属工作流

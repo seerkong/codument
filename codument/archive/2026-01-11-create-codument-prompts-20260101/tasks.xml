@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<track change_id="create-codument-prompts-20260101">
+<phase change_id="create-codument-prompts-20260101">
   <metadata>
     <track_name>创建 Codument 核心提示词和规范</track_name>
     <goal>创建完整的 Codument 提示词文件和规范目录结构</goal>
@@ -305,4 +305,4 @@
       <p2 count="1" days="0"/>
     </by_priority>
   </summary>
-</track>
+</phase>

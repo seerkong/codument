@@ -29,7 +29,8 @@ export const implementPrompt = loadPrompt("implement.md");
 export const validatePrompt = loadPrompt("validate.md");
 export const archivePrompt = loadPrompt("archive.md");
 export const statusPrompt = loadPrompt("status.md");
-export const tasksXmlSpec = loadPrompt("tasks-xml-spec.md");
+export const planXmlSpec = loadPrompt("plan-xml-spec.md");
+export const protocolsPrompt = loadPrompt("protocols.md");
 
 // Templates
 export const workflowTemplate = loadTemplate("workflow.md");
@@ -47,7 +48,7 @@ export const prompts = {
   validate: validatePrompt,
   archive: archivePrompt,
   status: statusPrompt,
-  tasksXmlSpec: tasksXmlSpec,
+  tasksXmlSpec: planXmlSpec,
 };
 
 // Export all templates as a map

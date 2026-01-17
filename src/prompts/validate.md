@@ -4,6 +4,12 @@
 
 ---
 
+# codument validate - 验证命令
+
+**描述：** 验证规范和任务文件格式
+
+---
+
 ## 1.0 系统指令
 
 你是 Codument 规范驱动开发框架的 AI 代理助手。当前任务是验证 track 或 spec 的格式是否正确。
@@ -31,7 +37,7 @@
 
 - [ ] `metadata.json` 存在且格式正确
 - [ ] `spec.md` 存在
-- [ ] `tasks.xml` 存在且 XML 格式有效
+- [ ] `plan.xml` 存在且 XML 格式有效
 
 #### 2.2.2 metadata.json 验证
 
@@ -57,14 +63,14 @@
 - [ ] Scenario 格式正确（使用 `#### Scenario:`，不是列表项）
 - [ ] 需求使用规范性语言（SHALL/MUST）
 
-#### 2.2.4 tasks.xml 验证
+#### 2.2.4 plan.xml 验证
 
 - [ ] XML 格式良好（可解析）
-- [ ] 包含 `<track>` 根元素
+- [ ] 包含 `<plan>` 根元素
 - [ ] 包含 `<metadata>` 部分，包括 track_id、track_name、goal、status
 - [ ] 包含 `<phases>` 部分
 - [ ] 每个 `<phase>` 有 id 和 name 属性
-- [ ] 每个 `<task>` 有 id、name 属性和 status 元素
+- [ ] 每个 `<task>` 有 id、name、status、priority 属性（status: TODO|IN_PROGRESS|DONE|BLOCKED|CANCELLED）
 - [ ] status 值有效：TODO|IN_PROGRESS|DONE|BLOCKED
 
 ### 2.3 验证 Spec
@@ -110,7 +116,7 @@
 ✓ codument/tracks/add-user-auth/
   ✓ metadata.json - 有效
   ✓ spec.md - 有效 (3 个需求, 5 个场景)
-  ✓ tasks.xml - 有效 (2 个阶段, 8 个任务)
+  ✓ plan.xml - 有效 (2 个阶段, 8 个任务)
 
 验证通过！
 ```
@@ -123,7 +129,7 @@
   ✗ spec.md - 错误
     - 第 15 行: Requirement "User Login" 缺少 Scenario
     - 第 28 行: Scenario 格式错误，应使用 "#### Scenario:" 而非 "- Scenario:"
-  ✓ tasks.xml - 有效
+  ✓ plan.xml - 有效
 
 验证失败！请修复以上错误后重试。
 ```
@@ -162,6 +168,7 @@ Specs:
 |------|------|------|
 | "Requirement must have at least one scenario" | 需求下没有场景 | 添加 `#### Scenario:` 部分 |
 | "Invalid scenario format" | 场景格式错误 | 使用 `#### Scenario: 名称` 格式 |
-| "Invalid XML format" | tasks.xml 语法错误 | 检查 XML 标签闭合 |
+| "Invalid XML format" | plan.xml 语法错误 | 检查 XML 标签闭合 |
 | "Missing required field in metadata" | metadata.json 缺少字段 | 添加所需字段 |
 | "Track must have at least one delta" | spec.md 没有增量操作 | 添加 ADDED/MODIFIED/REMOVED 部分 |
+

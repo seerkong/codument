@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { getTracks, getSpecs, codumentExists, formatStatus, CODUMENT_DIR } from '../utils';
+import { getTracks, getSpecs, codumentExists, formatStatus, CODUMENT_DIR, parseTaskDetails } from '../utils';
 
 export async function statusCommand(args: string[]) {
   if (!codumentExists()) {
@@ -42,25 +42,30 @@ export async function statusCommand(args: string[]) {
   let nextTask = '';
 
   if (currentTrack) {
-    const tasksPath = path.join(CODUMENT_DIR, 'tracks', currentTrack.id, 'tasks.xml');
-    if (fs.existsSync(tasksPath)) {
-      const content = fs.readFileSync(tasksPath, 'utf-8');
+    const planPath = path.join(CODUMENT_DIR, 'tracks', currentTrack.id, 'plan.xml');
+    if (fs.existsSync(planPath)) {
+      const phases = parseTaskDetails(planPath);
 
-      // Find current phase and task (IN_PROGRESS)
-      const phaseMatch = content.match(/<phase[^>]*name="([^"]+)"[^>]*>[\s\S]*?<status>IN_PROGRESS<\/status>/);
-      if (phaseMatch) {
-        currentPhase = phaseMatch[1];
-      }
+      for (const phase of phases) {
+        for (const task of phase.tasks) {
+          if (!currentPhase && task.status === 'IN_PROGRESS') {
+            currentPhase = phase.name;
+          }
+          if (!currentTask && task.status === 'IN_PROGRESS') {
+            currentTask = task.name;
+          }
+          if (!nextTask && task.status === 'TODO') {
+            nextTask = task.name;
+          }
 
-      const taskMatch = content.match(/<task[^>]*name="([^"]+)"[^>]*>[\s\S]*?<status>IN_PROGRESS<\/status>/);
-      if (taskMatch) {
-        currentTask = taskMatch[1];
-      }
+          if (currentTask && nextTask) {
+            break;
+          }
+        }
 
-      // Find next TODO task
-      const nextMatch = content.match(/<task[^>]*name="([^"]+)"[^>]*>[\s\S]*?<status>TODO<\/status>/);
-      if (nextMatch) {
-        nextTask = nextMatch[1];
+        if (currentTask && nextTask) {
+          break;
+        }
       }
     }
   }

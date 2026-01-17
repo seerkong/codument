@@ -87,10 +87,9 @@ export function getTracks(): Track[] {
         const metadata = JSON.parse(fs.readFileSync(metadataPath, 'utf-8')) as TrackMetadata;
         const track: Track = { id: trackId, metadata };
 
-        // Try to parse tasks.xml for summary
-        const tasksPath = path.join(TRACKS_DIR, trackId, 'tasks.xml');
-        if (fs.existsSync(tasksPath)) {
-          track.taskSummary = parseTasksSummary(tasksPath);
+        const planPath = path.join(TRACKS_DIR, trackId, 'plan.xml');
+        if (fs.existsSync(planPath)) {
+          track.taskSummary = parsePlanSummary(planPath);
         }
 
         tracks.push(track);
@@ -137,22 +136,22 @@ export function getSpecs(): Spec[] {
 }
 
 /**
- * Parse tasks.xml summary section (supports new XML format)
+ * Parse plan.xml summary section (supports new XML format)
  */
-export function parseTasksSummary(tasksPath: string): TaskSummary | undefined {
+export function parsePlanSummary(planPath: string): TaskSummary | undefined {
   try {
-    const content = fs.readFileSync(tasksPath, 'utf-8');
+    const content = fs.readFileSync(planPath, 'utf-8');
 
     // Helper to get tag value from summary section
     const getTagValue = (tag: string): number => {
-      const match = content.match(new RegExp(`<${tag}>(\\d+)</${tag}>`));
-      return match ? parseInt(match[1], 10) : 0;
+      const tagMatch = content.match(new RegExp(`<${tag}>(\\d+)</${tag}>`));
+      return tagMatch ? parseInt(tagMatch[1], 10) : 0;
     };
 
     // Helper to get commit_mode from metadata
     const getCommitMode = (): 'auto' | 'manual' | undefined => {
-      const match = content.match(/<commit_mode>(auto|manual)<\/commit_mode>/);
-      return match ? match[1] as 'auto' | 'manual' : undefined;
+      const modeMatch = content.match(/<commit_mode>(auto|manual)<\/commit_mode>/);
+      return modeMatch ? modeMatch[1] as 'auto' | 'manual' : undefined;
     };
 
     // If summary section exists, use it
@@ -183,9 +182,9 @@ export function parseTasksSummary(tasksPath: string): TaskSummary | undefined {
     let total_subtasks = 0;
 
     // Count tasks
-    for (const match of taskStatusMatches) {
+    for (const taskStatusMatch of taskStatusMatches) {
       total_tasks++;
-      const status = match[1];
+      const status = taskStatusMatch[1];
       if (status === 'DONE') completed++;
       else if (status === 'IN_PROGRESS') in_progress++;
       else if (status === 'TODO') todo++;
@@ -193,9 +192,7 @@ export function parseTasksSummary(tasksPath: string): TaskSummary | undefined {
     }
 
     // Count subtasks
-    for (const match of subtaskStatusMatches) {
-      total_subtasks++;
-    }
+    total_subtasks = [...subtaskStatusMatches].length;
 
     // Count phases
     const total_phases = [...phaseMatches].length;
@@ -231,9 +228,9 @@ export function getTrack(trackId: string): Track | null {
     const metadata = JSON.parse(fs.readFileSync(metadataPath, 'utf-8')) as TrackMetadata;
     const track: Track = { id: trackId, metadata };
 
-    const tasksPath = path.join(trackDir, 'tasks.xml');
-    if (fs.existsSync(tasksPath)) {
-      track.taskSummary = parseTasksSummary(tasksPath);
+    const planPath = path.join(trackDir, 'plan.xml');
+    if (fs.existsSync(planPath)) {
+      track.taskSummary = parsePlanSummary(planPath);
     }
 
     return track;
@@ -324,11 +321,11 @@ export interface PhaseDetail {
 }
 
 /**
- * Parse task details from tasks.xml
+ * Parse task details from plan.xml
  */
-export function parseTaskDetails(tasksPath: string): PhaseDetail[] {
+export function parseTaskDetails(planPath: string): PhaseDetail[] {
   try {
-    const content = fs.readFileSync(tasksPath, 'utf-8');
+    const content = fs.readFileSync(planPath, 'utf-8');
     const phases: PhaseDetail[] = [];
 
     // Match all phase elements
@@ -439,8 +436,8 @@ export function parseTaskDetails(tasksPath: string): PhaseDetail[] {
 /**
  * Find in-progress task (for interruption recovery)
  */
-export function findInProgressTask(tasksPath: string): TaskDetail | null {
-  const phases = parseTaskDetails(tasksPath);
+export function findInProgressTask(planPath: string): TaskDetail | null {
+  const phases = parseTaskDetails(planPath);
   for (const phase of phases) {
     for (const task of phase.tasks) {
       if (task.status === 'IN_PROGRESS') {
@@ -452,13 +449,13 @@ export function findInProgressTask(tasksPath: string): TaskDetail | null {
 }
 
 /**
- * Get track commit mode from tasks.xml
+ * Get track commit mode from plan.xml
  */
-export function getCommitMode(tasksPath: string): 'auto' | 'manual' | null {
+export function getCommitMode(planPath: string): 'auto' | 'manual' | null {
   try {
-    const content = fs.readFileSync(tasksPath, 'utf-8');
-    const match = content.match(/<commit_mode>(auto|manual)<\/commit_mode>/);
-    return match ? match[1] as 'auto' | 'manual' : null;
+    const content = fs.readFileSync(planPath, 'utf-8');
+    const modeMatch = content.match(/<commit_mode>(auto|manual)<\/commit_mode>/);
+    return modeMatch ? modeMatch[1] as 'auto' | 'manual' : null;
   } catch (e) {
     return null;
   }

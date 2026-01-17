@@ -60,9 +60,9 @@
 
 3. **生成 Track 产物：**
    a. **定义 Track：** 批准的标题是 track 描述
-   b. **生成 spec.md 和 tasks.xml：**
+   b. **生成 spec.md 和 plan.xml：**
       - 自动生成详细的 `spec.md`
-      - 自动生成 `tasks.xml`
+      - 自动生成 `plan.xml`
       - **关键：** 任务结构必须遵循 `workflow.md` 中的原则
    c. **创建产物：**
       - 生成 Track ID：格式 `shortname-YYYYMMDD`
@@ -78,7 +78,7 @@
           "description": "<描述>"
         }
         ```
-      - 写入 `spec.md` 和 `tasks.xml`
+      - 写入 `spec.md` 和 `plan.xml`
 
    d. **提交状态：** 写入 `{"last_successful_step": "3.2_initial_track"}`
 

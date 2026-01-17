@@ -6,7 +6,7 @@
 
 ## 1.0 系统指令
 
-你是 Codument 规范驱动开发框架的 AI 代理助手。当前任务是引导用户创建新的"Track"（功能或 Bug 修复），生成必要的规范（`spec.md`）和计划（`tasks.xml`）文件，并组织在专用目录中。
+你是 Codument 规范驱动开发框架的 AI 代理助手。当前任务是引导用户创建新的"Track"（功能或 Bug 修复），生成必要的规范（`spec.md`）和计划（`plan.xml`），以及其他文件，并组织在专用目录中。
 
 ---
 
@@ -24,6 +24,19 @@
    - 如果任何文件缺失，立即停止
    - 宣布："Codument 未设置。请运行 `/codument:init` 设置环境。"
    - 不要继续初始化 track
+
+## 1.2 交互式问答
+
+**协议：验证当前运行的环境对交互式问答的能力支持 **
+**重要** 如果当前运行的环境，支持直接向用户提出澄清、确认问题的ToolCall，则需要使用这类ToolCall, 提出下文中等价问题。
+
+
+## 1.3 生成文件产物
+**协议：生成的产物允许/不允许引用的文件 **
+**重要** 不可引用`.`开头的隐藏目录中的文档。例如 .abc/e.md
+**重要** 如果认为仅通过change track目录的 spec.md、proposal.md、design.md、plan.xml，不方便记录一些需要记录的关键信息，比如example.md, ui-ux-design.md, 可以额外创建在当前change track目录，并通过本规范标准文件产物被引用
+**重要** 不可引用不在当前change track目录的说明文档，每个track目录中的内容应当是自包含，无需依赖外部文件说明。例如 `doc`、`docs`等
+
 
 ---
 
@@ -43,7 +56,37 @@
 
 3. **推断 Track 类型：** 分析描述确定是"功能"还是"其他"（Bug、重构等）。不要让用户分类
 
-### 2.2 交互式规范生成（spec.md）
+
+
+### 2.2 创建 Track 产物目录
+
+1. **检查现有 Track：** 列出 `codument/tracks/` 中现有目录。如果提议的短名称与现有重复，停止创建并建议选择不同名称
+
+2. **生成 Track ID：** 创建唯一 ID，格式为小写英文和中横线组成的简短描述（如 `add-user-auth`、`fix-login-bug`）
+   - **不要包含日期**，日期只在归档时添加
+3. **用户确认：** 展示起草的 Track ID 供审查
+   > "我已起草了新的Track ID：<track_id>
+   > 这是否准确捕获了需求？请建议更改或确认。"
+
+   等待反馈并修改直到确认
+
+4. **创建目录：** `codument/tracks/<track_id>/`
+
+5. **创建 metadata.json：**
+   ```json
+   {
+     "track_id": "<track_id>",
+     "type": "feature",
+     "status": "new",
+     "commit_mode": "<auto|manual>",
+     "created_at": "YYYY-MM-DDTHH:MM:SSZ",
+     "updated_at": "YYYY-MM-DDTHH:MM:SSZ",
+     "description": "<初始描述>"
+   }
+   ```
+
+
+### 2.3 交互式规范生成（spec.md）
 
 1. **说明目标：**
    > "现在我将通过一系列问题帮你构建全面的规范（spec.md）。为提速，我会在一轮里给出多个问题，并用 Q1、Q2... 标记，按标记回答即可。"
@@ -79,39 +122,138 @@
    - 验收标准
    - 范围外事项
 
-4. **用户确认：** 展示起草的 spec.md 供审查
+4. **写入文件：**
+   - 将确认的规范写入 `codument/tracks/<track_id>/spec.md`
+
+5. **用户确认：** 展示起草的 spec.md 供审查
    > "我已起草了规范。请审查：
-   > ```markdown
-   > [spec.md 内容]
-   > ```
+   > 文件路径在：codument/tracks/<track_id>/spec.md
    > 这是否准确捕获了需求？请建议更改或确认。"
 
    等待反馈并修改直到确认
 
-### 2.3 交互式任务生成（tasks.xml）
+### 2.3 交互式提案生成（proposal.md）
 
-1. **说明目标：** spec.md 获批后：
-   > "现在我将根据规范创建结构化实现计划（tasks.xml）。"
+1. **说明目标：** spec.md 确认无误后：
+   > "现在我将创建完成的变更提案"
+   需要按照如下格式，基于用户描述生成变更提案
+   ```markdown
+   # 变更：<变更的简要标题>
+
+   ## 背景和动机 (Context And Why)
+   <变更的背景和动机, 几句话说明问题/机会>
+
+   ## “要做”和“不做” (Goals / Non-Goals)
+   **目标:**
+   - <Goals 1>
+   - <Goals 2>
+   - ...
+
+   **非目标:**
+   - <Non-Goals 1>
+   - <Non-Goals 2>
+   - ...
+   
+   ## 变更内容（What Changes）
+   - [变更列表]
+   - [用 **BREAKING** 标记破坏性变更]
+
+   ## 影响范围（Impact）
+   - 受影响的功能规范：[列出能力]
+   ```
+2. **创建 proposal.md：** 基于用户描述生成变更提案
+   - 将变更提案入 `codument/tracks/<track_id>/proposal.md`
+
+3. **用户确认：** 展示起草的 proposal.md 供审查
+   > "我已起草了变更提案。请审查：
+   > 文件路径在：codument/tracks/<track_id>/proposal.md
+   > 此提案是否正确？请建议更改或确认。"
+
+   等待反馈并修改 proposal.md 直到确认
+
+### 2.4 交互式方案设计生成（design.md）
+**需要时创建 design.md：**
+如果满足以下任一条件，创建 `design.md`；否则省略：
+- 跨切面变更（多个服务/模块）或新的架构模式
+- 新的外部依赖或重大数据模型变更
+- 安全、性能或迁移复杂性
+- 在编码前需要技术决策来消除歧义
+
+1. **说明目标：** proposal.md 确认无误后：
+   > "现在我将创建完成的变更提案"
+   需要按照如下格式，基于用户描述生成变更提案
+最小 `design.md` 骨架：
+```markdown
+## 上下文
+[背景、约束、利益相关者]
+
+## 方案概览
+1. [方案设计点 - 一级]
+  - [方案设计点 - 二级]
+    - [方案设计点 - 三级]
+2. [方案设计点 - 一级]
+  - [方案设计点 - 二级]
+3. [方案设计点 - 一级]
+
+4. [...]
+
+## 影响范围与修改点（Impact）
+- 受影响的文件/模块：[关键文件/系统]
+
+## 决策
+- 决策：[是什么以及为什么]
+- 考虑的替代方案：[选项 + 理由]
+
+## 风险 / 权衡
+- [风险] → 缓解措施
+
+## 兼容性设计 [**需要时创建**]
+- [兼容性设计项]
+
+## 迁移计划 [**需要时创建**]
+[步骤、回滚]
+
+## 待解决问题
+- [...]
+```
+
+2. **创建 design.md：** 基于用户描述生成方案设计
+   - 将方案设计写入 `codument/tracks/<track_id>/design.md`
+
+3. **用户确认：** 展示起草的 design.md 供审查
+   > "我已起草了方案设计。请审查：
+   > 文件路径在：codument/tracks/<track_id>/design.md
+   > 此方案设计是否正确？请建议更改或确认。"
+
+   等待反馈并修改 design.md 直到确认
+
+### 2.5 交互式任务生成（plan.xml）
+
+1. **说明目标：** proposal.md 获批后：
+    > "现在我将根据规范创建结构化实现计划（plan.xml）。"
 
 2. **生成任务计划：**
-   - 读取确认的 spec.md 内容
-   - 读取`codument/std/workflow.md`, `codument/workflows/workflow.md`
-   - 生成 tasks.xml，包含 Phase、Task、Subtask 的层级结构
-   - **关键：** 计划结构必须遵循 workflow.md 中的方法论（如 TDD 的"编写测试"和"实现"任务）
-   - 每个任务包含 id、name、priority、status
+    - 读取确认的 proposal.md 内容
+    - 读取确认的 spec.md 内容
+    - 读取确认的 design.md 内容
+    - 读取`codument/std/workflow.md`, `codument/workflows/workflow.md`
+    - 生成 plan.xml，包含 Phase、Task、Subtask 的层级结构
+    - **关键：** 计划结构必须遵循 workflow.md 中的方法论（如 TDD 的"编写测试"和"实现"任务）
+    - 每个任务包含 id、name、priority、status
+    - **可配置确认**：如需在阶段或任务执行前/后确认，可在 `<phase>` 或 `<task>` 下添加 `<confirm protocol="yield-human-confirm|yield-ai-confirm" when="before|after|both" [ai-agent] />`（见 `codument/std/protocols.md`）
 
-3. **用户确认：** 展示起草的 tasks.xml 供审查
-   > "我已起草了实现计划。请审查：
-   > ```xml
-   > [tasks.xml 内容]
-   > ```
-   > 此计划是否正确？请建议更改或确认。"
+3. **写入文件：**
+    - 将执行计划写入 `codument/tracks/<track_id>/plan.xml`
 
-   等待反馈并修改直到确认
+4. **用户确认：** 展示起草的 plan.xml 供审查
+    > "我已起草了实现计划。请审查：
+    > 文件路径在：codument/tracks/<track_id>/plan.xml
+    > 此计划是否正确？请建议更改或确认。"
 
-### 2.4 选择提交模式
+    等待反馈并修改 plan.xml 直到确认
 
-1. **说明选项：** tasks.xml 获批后：
+
+5. **用户确认：** 选择代码提交模式
    > "请选择本次 Track 的提交模式：
    > **A. 自动提交模式（auto）**
    > - 任务完成后自动 `git commit`
@@ -124,58 +266,17 @@
    >
    > 请选择 A 或 B。"
 
-2. **等待选择：** 等待用户回复并记录选择
+   等待用户回复并记录选择
+5. **更新提交模式：**
+   **关键：** 更新plan.xml 中的 `<commit_mode>`，必须与用户选择一致
 
-### 2.5 创建 Track 产物
+### 2.6 收尾
 
-1. **检查现有 Track：** 列出 `codument/tracks/` 中现有目录。如果提议的短名称与现有重复，停止创建并建议选择不同名称
-
-2. **生成 Track ID：** 创建唯一 ID，格式为小写英文和中横线组成的简短描述（如 `add-user-auth`、`fix-login-bug`）
-   - **不要包含日期**，日期只在归档时添加
-
-3. **创建目录：** `codument/tracks/<track_id>/`
-
-4. **创建 proposal.md：** 基于用户描述生成变更提案
-   ```markdown
-   # 变更：<变更简述>
-
-   ## 背景
-   <变更的背景和动机>
-
-   ## 变更内容
-   - <具体变更项 1>
-   - <具体变更项 2>
-   - ...
-
-   ## 影响范围
-   - 受影响的文件/模块：<列表>
-   - 受影响的功能：<列表>
-   ```
-
-5. **创建 metadata.json：**
-   ```json
-   {
-     "track_id": "<track_id>",
-     "type": "feature",
-     "status": "new",
-     "commit_mode": "<auto|manual>",
-     "created_at": "YYYY-MM-DDTHH:MM:SSZ",
-     "updated_at": "YYYY-MM-DDTHH:MM:SSZ",
-     "description": "<初始描述>"
-   }
-   ```
-
-6. **写入文件：**
-   - 将变更提案写入 `codument/tracks/<track_id>/proposal.md`
-   - 将确认的规范写入 `codument/tracks/<track_id>/spec.md`
-   - 将确认的任务写入 `codument/tracks/<track_id>/tasks.xml`
-   - **关键：** tasks.xml 中的 `<commit_mode>` 必须与用户选择一致
-
-7. **更新 tracks.md：**
+1. **更新 tracks.md：**
    - 宣布正在更新 tracks 文件
    - 在 `codument/tracks.md` 的“活跃 Tracks”表格，按格式，末尾追加记录
 
-7. **宣布完成：**
+2. **宣布完成：**
    > "新 track '<track_id>' 已创建并添加到 tracks 文件。
    > 提交模式：<auto|manual>
    > 你现在可以运行 `/codument:implement` 开始实现。"

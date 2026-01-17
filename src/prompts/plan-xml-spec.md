@@ -1,10 +1,10 @@
-# Tasks XML 规范
+# Plan XML 规范
 
-本文档定义了 Codument 中 tasks.xml 文件的结构和格式规范。
+本文档定义了 Codument 中 plan.xml 文件的结构和格式规范。
 
 ## 概述
 
-tasks.xml 是 Codument 中用于追踪变更实现进度的结构化任务文件。它采用 XML 格式，支持：
+plan.xml 是 Codument 中用于追踪变更实现进度的结构化任务文件。它采用 XML 格式，支持：
 - 结构化的层级关系（Phase → Task → Subtask）
 - 丰富的元数据（优先级、工时、依赖、验收标准）
 - 程序友好处理（XPath 查询、Excel 导出）
@@ -22,8 +22,9 @@ tasks.xml 是 Codument 中用于追踪变更实现进度的结构化任务文件
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
-<track change_id="add-user-auth">
+<plan>
   <metadata>
+    <track_id>add-user-auth</track_id>
     <track_name>添加用户认证功能</track_name>
     <goal>实现用户登录和注册功能</goal>
     <created_at>2026-01-01T10:00:00Z</created_at>
@@ -156,16 +157,47 @@ tasks.xml 是 Codument 中用于追踪变更实现进度的结构化任务文件
       <p1 count="1" days="2"/>
     </by_priority>
   </summary>
-</track>
+</plan>
 ```
 
 ## 元素说明
 
-### `<track>` - 根元素
+### `<plan>` - 根元素
 
-| 属性 | 必需 | 说明 |
-|------|------|------|
-| `change_id` | 是 | 变更唯一标识符，kebab-case 格式 |
+plan.xml 的根元素为 `<plan>`。Track 的唯一标识符在 `<metadata><track_id>...</track_id></metadata>` 中声明。
+
+### `<confirm>` - 确认提示标记（可选）
+
+用于让流程在特定阶段或任务执行前/后暂停并等待确认。支持人工确认或 AI 评审确认。
+
+- **可放置位置**：`<phase>` 或 `<task>` 节点下
+- **行为定义**：见 `codument/std/protocols.md`
+- **可用协议**：`yield-human-confirm`、`yield-ai-confirm`
+- **when**：`before` | `after` | `both`
+- **status**：`TODO` | `IN_PROGRESS` | `DONE` | `BLOCKED` | `CANCELLED`
+- **ai-agent**：仅 `yield-ai-confirm` 需要，指定 subagent 名称
+- **数量限制**：每个 `<phase>` 或 `<task>` 最多一个 `<confirm>`
+- **顺序规则**：若 phase 与 task 同时配置，执行顺序为：phase-before → task-before → task-after → phase-after
+- **重试规则**：若 confirm 未通过（人或 AI），必须修复后重新 review，直至 `status=DONE` 才能继续
+
+**示例：**
+```xml
+<phase id="P1" name="基础设施">
+  <goal>搭建认证基础架构</goal>
+  <confirm protocol="yield-human-confirm" when="after" status="TODO" />
+  <tasks>
+    ...
+  </tasks>
+</phase>
+
+<task id="T1.1" name="创建用户数据模型" status="TODO" priority="P0">
+  定义 User 模型结构并实现基本 CRUD 操作
+  <confirm protocol="yield-ai-confirm" ai-agent="codument-code-review" when="after" status="TODO" />
+  <subtasks>
+    ...
+  </subtasks>
+</task>
+```
 
 ### `<metadata>` - 元数据
 
@@ -391,7 +423,7 @@ tasks.xml 是 Codument 中用于追踪变更实现进度的结构化任务文件
 
 1. **自动检查**：运行测试、检查覆盖率、Lint 检查
 2. **生成验证报告**：列出所有检查项及结果
-3. **用户确认**：呈现报告，等待用户明确确认
+3. **确认（可选）**：仅当 `<phase>` 下存在 `<confirm protocol="yield-human-confirm" .../>` 或 `<confirm protocol="yield-ai-confirm" .../>` 且 when 包含 `after` 时，执行确认
 4. **创建检查点**（auto 模式）：`git commit -m "checkpoint: Phase P1 complete"`
 5. **附加 Git Notes**（auto 模式）：记录验证报告
 
@@ -429,11 +461,11 @@ count(//subtask[@status='DONE'])
 //criterion[@checked='false']
 ```
 
-## 示例：最小 tasks.xml
+## 示例：最小 plan.xml
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
-<track change_id="fix-login-bug">
+<plan>
   <metadata>
     <track_name>修复登录 Bug</track_name>
     <goal>修复用户无法登录的问题</goal>
@@ -493,5 +525,5 @@ count(//subtask[@status='DONE'])
     <todo>3</todo>
     <blocked>0</blocked>
   </summary>
-</track>
+</plan>
 ```

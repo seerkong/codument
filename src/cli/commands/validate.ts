@@ -151,7 +151,7 @@ function validateTrack(trackId: string, strict: boolean): ValidationResult {
     }
 
     // Check scenario format
-    const badScenarios = lines.filter((line, i) => {
+    const badScenarios = lines.filter((line) => {
       return line.match(/^-\s+\*\*Scenario:/i) || line.match(/^\*\*Scenario\*\*:/i);
     });
 
@@ -160,28 +160,32 @@ function validateTrack(trackId: string, strict: boolean): ValidationResult {
     }
   }
 
-  // Check tasks.xml
-  const tasksPath = path.join(trackDir, 'tasks.xml');
-  if (!fs.existsSync(tasksPath)) {
-    errors.push({ file: 'tasks.xml', message: 'File not found' });
+  // Check plan.xml
+  const planPath = path.join(trackDir, 'plan.xml');
+  if (!fs.existsSync(planPath)) {
+    errors.push({ file: 'plan.xml', message: 'File not found' });
   } else {
-    const content = fs.readFileSync(tasksPath, 'utf-8');
+    const content = fs.readFileSync(planPath, 'utf-8');
 
     // Basic XML validation
-    if (!content.includes('<track>')) {
-      errors.push({ file: 'tasks.xml', message: 'Missing <track> root element' });
+    if (!content.includes('<plan>')) {
+      errors.push({ file: 'plan.xml', message: 'Missing <plan> root element' });
     }
     if (!content.includes('<metadata>')) {
-      errors.push({ file: 'tasks.xml', message: 'Missing <metadata> section' });
+      errors.push({ file: 'plan.xml', message: 'Missing <metadata> section' });
     }
     if (!content.includes('<phases>')) {
-      errors.push({ file: 'tasks.xml', message: 'Missing <phases> section' });
+      errors.push({ file: 'plan.xml', message: 'Missing <phases> section' });
     }
 
-    // Check for valid status values
-    const invalidStatuses = content.match(/<status>(?!TODO|IN_PROGRESS|DONE|BLOCKED|new|in_progress|completed|cancelled)[^<]+<\/status>/g);
-    if (invalidStatuses) {
-      errors.push({ file: 'tasks.xml', message: `Invalid status values found` });
+    const invalidMetadataStatuses = content.match(/<metadata>[\s\S]*?<status>(?!new|in_progress|completed|cancelled)[^<]+<\/status>/g);
+    if (invalidMetadataStatuses) {
+      errors.push({ file: 'plan.xml', message: 'Invalid metadata status values found' });
+    }
+
+    const invalidTaskStatuses = content.match(/<(?:task|subtask)[^>]*\sstatus="(?!TODO|IN_PROGRESS|DONE|BLOCKED|CANCELLED)[^"]+"[^>]*>/g);
+    if (invalidTaskStatuses) {
+      errors.push({ file: 'plan.xml', message: 'Invalid task status values found' });
     }
   }
 
@@ -202,7 +206,7 @@ function validateTrack(trackId: string, strict: boolean): ValidationResult {
   };
 }
 
-function validateSpec(specId: string, strict: boolean): ValidationResult {
+function validateSpec(specId: string, _strict: boolean): ValidationResult {
   const specDir = path.join(SPECS_DIR, specId);
   const errors: ValidationError[] = [];
   const warnings: ValidationError[] = [];

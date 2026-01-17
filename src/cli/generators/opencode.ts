@@ -30,14 +30,10 @@ ${initPrompt}
 description: Create a new change track for a feature or bug fix
 allowed-tools: All
 ---
+${trackPrompt}
 
 The user has requested the following change track.
-<UserRequest>
-  $ARGUMENTS
-</UserRequest>
 
-
-${trackPrompt}
 `,
   },
   'codument-implement': {
@@ -46,15 +42,12 @@ ${trackPrompt}
 description: Implement tasks from a track following the workflow
 allowed-tools: All
 ---
+${implementPrompt}
 
 The user has requested to implement the following change track. 
 Find the change track and follow the instructions below. 
 If you're not sure or if ambiguous, ask for clarification from the user.
-<UserRequest>
-  $ARGUMENTS
-</UserRequest>
 
-${implementPrompt}
 `,
   },
   'codument-validate': {
@@ -63,12 +56,12 @@ ${implementPrompt}
 description: Validate track or spec format
 allowed-tools: All
 ---
+${validatePrompt}
 
 <ChangeId>
   $ARGUMENTS
 </ChangeId>
 
-${validatePrompt}
 `,
   },
   'codument-archive': {
@@ -77,12 +70,12 @@ ${validatePrompt}
 description: Archive a completed track
 allowed-tools: All
 ---
+${archivePrompt}
 
 <ChangeId>
   $ARGUMENTS
 </ChangeId>
 
-${archivePrompt}
 `,
   },
   'codument-status': {

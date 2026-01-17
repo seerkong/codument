@@ -7,7 +7,7 @@
 - 搜索已有工作：`codument list`、`codument list --specs`
 - 确定范围：新增能力 vs 修改现有能力
 - 选择唯一的 `track-id`：kebab-case 命名，动词开头（`add-`、`update-`、`remove-`、`refactor-`）
-- 创建文件：`proposal.md`、`tasks.xml`、`spec.md`，可选 `design.md`
+- 创建文件：`spec.md`，`proposal.md`、`design.md`(可选)、`plan.xml`
 - 编写规范增量：使用 `## ADDED|MODIFIED|REMOVED Requirements`，每个需求至少包含一个 `#### Scenario:`
 - 验证：`codument validate [track-id] --strict`
 - 等待批准：提案获批前不要开始实现
@@ -35,20 +35,21 @@
 2. 阅读 `codument/std/workflow.md` 了解工作流程
 3. 运行 `codument list` 和 `codument list --specs` 查看当前状态
 4. 选择唯一的动词开头 `track-id`，在 `codument/tracks/<id>/` 下创建文件
-5. 编写 `proposal.md` 说明为什么要变更、变更什么、影响范围
-6. 编写 `spec.md` 规范增量，使用 `## ADDED|MODIFIED|REMOVED Requirements`
-7. 编写 `tasks.xml` 结构化任务清单
-8. 运行 `codument validate <id> --strict` 验证后再提交审批
+5. 编写 `spec.md` 规范增量，使用 `## ADDED|MODIFIED|REMOVED Requirements`
+6. 编写 `proposal.md` 说明背景和动机、变更什么、“要做”和“不做”、 变更内容、影响范围
+7. 按需编写 `design.md` 说明上下文、方案概览、影响范围与修改点、决策、风险/权衡、兼容性设计、迁移计划、待解决问题
+8. 编写 `plan.xml` 结构化任务清单
+9. 运行 `codument validate <id> --strict` 验证后再提交审批
 
 ### 阶段二：实现变更
 
 将这些步骤作为待办事项逐一完成：
 1. **阅读 proposal.md** - 理解要构建什么
 2. **阅读 design.md**（如存在）- 审查技术决策
-3. **阅读 tasks.xml** - 获取实现清单
+3. **阅读 plan.xml** - 获取实现清单
 4. **遵循 workflow.md** - 按工作流执行任务
 5. **按顺序实现任务** - 依次完成
-6. **确认完成** - 确保 tasks.xml 中每个任务都已完成后再更新状态
+6. **确认完成** - 确保 plan.xml 中每个任务都已完成后再更新状态
 7. **更新任务状态** - 将已完成任务标记为 DONE
 8. **等待批准** - 提案被审查和批准之前不要开始实现
 
@@ -120,7 +121,7 @@ codument/
 │   └── [track-id]/
 │       ├── proposal.md     # 为什么、是什么、影响
 │       ├── spec.md         # 规范增量（ADDED/MODIFIED/REMOVED）
-│       ├── tasks.xml       # 结构化任务清单
+│       ├── plan.xml       # 结构化任务清单
 │       └── design.md       # 技术决策（可选）
 └── archive/                # 已完成的变更
     └── YYYY-MM-DD-[id]/
@@ -192,25 +193,25 @@ codument/
 **迁移**：[如何处理]
 ```
 
-4. **编写 tasks.xml：**
+4. **编写 plan.xml：**
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
-<track>
+<plan>
   <metadata>
     <track_id>add-user-auth</track_id>
     <track_name>添加用户认证功能</track_name>
     <goal>实现用户登录和注册功能</goal>
     <created_at>2026-01-01</created_at>
     <status>new</status>
+    <commit_mode>auto</commit_mode>
   </metadata>
 
   <phases>
     <phase id="P1" name="基础设施">
       <goal>搭建认证基础架构</goal>
       <tasks>
-        <task id="T1.1" name="创建用户数据模型">
-          <priority>P0</priority>
-          <status>TODO</status>
+        <task id="T1.1" name="创建用户数据模型" status="TODO" priority="P0">
+          定义 User 模型结构并实现基本 CRUD 操作
           <subtasks>
             <subtask id="T1.1.1" name="编写测试用例" status="TODO"/>
             <subtask id="T1.1.2" name="实现 User 模型" status="TODO"/>
@@ -219,7 +220,7 @@ codument/
       </tasks>
     </phase>
   </phases>
-</track>
+</plan>
 ```
 
 5. **需要时创建 design.md：**
@@ -315,7 +316,7 @@ codument/
 - 检查场景是否使用 `#### Scenario:` 格式（4 个井号）
 - 不要对场景标题使用列表项或粗体
 
-**"Invalid tasks.xml format"**
+**"Invalid plan.xml format"**
 - 检查 XML 语法是否正确
 - 验证必需元素是否存在
 
@@ -388,7 +389,7 @@ codument show [track] --json
 
 ### 文件用途
 - `proposal.md` - 为什么和是什么
-- `tasks.xml` - 结构化实现步骤
+- `plan.xml` - 结构化实现步骤
 - `design.md` - 技术决策
 - `spec.md` - 需求和行为
 
@@ -408,7 +409,7 @@ codument archive <id>      # 标记完成
 
 在开始任何 track 实现时，首先检查是否存在中断状态：
 
-1. **检查 tasks.xml**：查找状态为 `IN_PROGRESS` 的任务
+1. **检查 plan.xml**：查找状态为 `IN_PROGRESS` 的任务
 2. **检查 tracks.md**：查找状态为 `[~]` 的 track
 3. **检查 state.json**：查找保存的恢复点
 
@@ -459,15 +460,16 @@ Codument 使用三层确认机制确保重要决策得到用户认可：
 
 在创建 track 时：
 1. **spec.md 确认**：展示起草的规范，等待用户确认或修改
-2. **tasks.xml 确认**：展示任务计划，等待用户确认或修改
+2. **plan.xml 确认**：展示任务计划，等待用户确认或修改
 3. **提交模式确认**：询问用户选择 auto 或 manual 模式
 
-#### 第二层：阶段门控确认
+#### 第二层：阶段/任务确认（可配置）
 
 在实现过程中：
-1. **阶段完成确认**：每个阶段完成时，展示验证报告
-2. **门控标准确认**：用户必须明确确认才能进入下一阶段
-3. **失败处理确认**：任何失败都需要用户选择处理方式
+1. **阶段完成确认**：仅当 `<phase>` 下存在 `<confirm protocol="yield-human-confirm" .../>` 或 `<confirm protocol="yield-ai-confirm" .../>` 且 when 包含 `after`
+2. **任务执行前确认**：仅当 `<task>` 下存在 `<confirm ... when="before"/>` 或 `when="both"`
+3. **任务执行后确认**：仅当 `<task>` 下存在 `<confirm ... when="after"/>` 或 `when="both"`
+4. **确认行为**：见 `codument/std/protocols.md`（必须更新 `<confirm>` 的 `status`；未通过需修复并重复 review 直到 `DONE`）
 
 #### 第三层：项目文档确认
 
@@ -478,7 +480,7 @@ Codument 使用三层确认机制确保重要决策得到用户认可：
 
 ### 确认原则
 
-1. **明确等待**：每个确认点必须等待用户明确回复
+1. **明确等待**：仅在存在 `<confirm .../>` 时要求确认
 2. **提供选项**：尽可能提供 A/B/C 选项而非开放式问题
 3. **展示影响**：在确认前展示操作的影响范围
 4. **允许修改**：用户可以要求修改而非简单确认

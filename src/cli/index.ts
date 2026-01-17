@@ -5,6 +5,7 @@ import { showCommand } from './commands/show';
 import { validateCommand } from './commands/validate';
 import { statusCommand } from './commands/status';
 import { initCommand } from './commands/init';
+import { archiveCommand } from './commands/archive';
 import { setWorkspaceDir } from './utils';
 
 const VERSION = '0.2.0';

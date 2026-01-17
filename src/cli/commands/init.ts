@@ -10,13 +10,14 @@ import { generateOpenCodeCommands } from '../generators/opencode';
 
 import {
   stdAgentsPrompt,
-  tasksXmlSpec,
+  planXmlSpec,
   workflowTemplate,
   techStackTemplate,
   tracksTemplate,
   rootAgentsPrompt,
+  protocolsPrompt,
 } from '../../prompts'
-let TASKS_XML_SPEC = tasksXmlSpec;
+let TASKS_XML_SPEC = planXmlSpec;
 type CLITool = 'claude' | 'codex' | 'eidolon' | 'gemini' | 'opencode';
 const CODUMENT_MARKERS = {
   start: '<!-- CODUMENT:START -->',
@@ -336,12 +337,11 @@ ${projectDesc}
   );
   console.log('  ✓ 创建 state.json');
 
-  // Generate std/tasks-xml-spec.md (immutable spec document)
   fs.writeFileSync(
-    path.join(CODUMENT_DIR, 'std', 'tasks-xml-spec.md'),
+    path.join(CODUMENT_DIR, 'std', 'plan-xml-spec.md'),
     TASKS_XML_SPEC
   );
-  console.log('  ✓ 创建 std/tasks-xml-spec.md');
+  console.log('  ✓ 创建 std/plan-xml-spec.md');
 
 
   fs.writeFileSync(
@@ -355,6 +355,12 @@ ${projectDesc}
     workflowTemplate
   );
   console.log('  ✓ 创建 std/workflow.md');
+
+  fs.writeFileSync(
+    path.join(CODUMENT_DIR, 'std', 'protocols.md'),
+    protocolsPrompt
+  );
+  console.log('  ✓ 创建 std/protocols.md');
 }
 
 async function generateAgentsMd(

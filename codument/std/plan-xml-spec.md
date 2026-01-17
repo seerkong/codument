@@ -1,10 +1,10 @@
-# Tasks XML 规范
+# Plan XML 规范
 
-本文档定义了 Codument 中 tasks.xml 文件的结构和格式规范。
+本文档定义了 Codument 中 plan.xml 文件的结构和格式规范。
 
 ## 概述
 
-tasks.xml 是 Codument 中用于追踪变更实现进度的结构化任务文件。它采用 XML 格式，支持：
+plan.xml 是 Codument 中用于追踪变更实现进度的结构化任务文件。它采用 XML 格式，支持：
 - 结构化的层级关系（Phase → Task → Subtask）
 - 丰富的元数据（优先级、工时、依赖、验收标准）
 - 程序友好处理（XPath 查询、Excel 导出）
@@ -22,7 +22,7 @@ tasks.xml 是 Codument 中用于追踪变更实现进度的结构化任务文件
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
-<track change_id="add-user-auth">
+<plan>
   <metadata>
     <track_name>添加用户认证功能</track_name>
     <goal>实现用户登录和注册功能</goal>
@@ -78,6 +78,15 @@ tasks.xml 是 Codument 中用于追踪变更实现进度的结构化任务文件
             <subtask id="T1.2.2" name="实现连接池" status="IN_PROGRESS" estimated_hours="3"/>
           </subtasks>
         </task>
+        <task id="T1.3" name="实现 JWT 验证" status="TODO" priority="P1"
+              estimated_days="2">
+          实现 JWT token 的生成、验证和刷新机制
+          <dependencies>T1.2</dependencies>
+          <acceptance_criteria>
+            <criterion id="T1.3-AC1" checked="false">Token 生成和验证正常</criterion>
+            <criterion id="T1.3-AC2" checked="false">Token 刷新机制工作</criterion>
+          </acceptance_criteria>
+        </task>
       </tasks>
       <gate_criteria>
         <criterion>所有 P0 任务完成</criterion>
@@ -98,6 +107,14 @@ tasks.xml 是 Codument 中用于追踪变更实现进度的结构化任务文件
             <criterion id="T2.1-AC2" checked="false">错误凭证返回 401</criterion>
           </acceptance_criteria>
         </task>
+        <task id="T2.2" name="注册接口" status="TODO" priority="P0" estimated_days="1">
+          POST /api/auth/register 接口，创建新用户账户
+          <dependencies>T1.3</dependencies>
+          <acceptance_criteria>
+            <criterion id="T2.2-AC1" checked="false">成功创建用户</criterion>
+            <criterion id="T2.2-AC2" checked="false">重复邮箱返回错误</criterion>
+          </acceptance_criteria>
+        </task>
       </tasks>
       <gate_criteria>
         <criterion>所有 API 端点通过集成测试</criterion>
@@ -112,6 +129,7 @@ tasks.xml 是 Codument 中用于追踪变更实现进度的结构化任务文件
       <checks>
         <check name="登录返回有效 token">测试登录接口返回 JWT</check>
         <check name="token 可访问受保护资源">使用 token 访问需认证的 API</check>
+        <check name="无效 token 被拒绝">验证过期或伪造 token 被拒绝</check>
       </checks>
     </validation>
   </validations>
@@ -126,28 +144,61 @@ tasks.xml 是 Codument 中用于追踪变更实现进度的结构化任务文件
 
   <summary>
     <total_phases>2</total_phases>
-    <total_tasks>3</total_tasks>
+    <total_tasks>5</total_tasks>
     <total_subtasks>4</total_subtasks>
     <total_estimated_days>8</total_estimated_days>
     <completed>1</completed>
     <in_progress>1</in_progress>
-    <todo>1</todo>
+    <todo>3</todo>
     <blocked>0</blocked>
     <by_priority>
-      <p0 count="3" days="4"/>
-      <p1 count="0" days="0"/>
+      <p0 count="4" days="5"/>
+      <p1 count="1" days="2"/>
     </by_priority>
   </summary>
-</track>
+</plan>
 ```
 
 ## 元素说明
 
-### `<track>` - 根元素
+### `<plan>` - 根元素
 
-| 属性 | 必需 | 说明 |
-|------|------|------|
-| `change_id` | 是 | 变更唯一标识符，kebab-case 格式 |
+plan.xml 的根元素为 `<plan>`。Track 的唯一标识符在 `<metadata><track_id>...</track_id></metadata>` 中声明。
+
+> 说明：历史版本曾用 `<track change_id="...">`，已废弃。
+
+### `<confirm>` - 确认提示标记（可选）
+
+用于让流程在特定阶段或任务执行前/后暂停并等待确认。支持人工确认或 AI 评审确认。
+
+- **可放置位置**：`<phase>` 或 `<task>` 节点下
+- **行为定义**：见 `codument/std/protocols.md`
+- **可用协议**：`yield-human-confirm`、`yield-ai-confirm`
+- **when**：`before` | `after` | `both`
+- **status**：`TODO` | `IN_PROGRESS` | `DONE` | `BLOCKED` | `CANCELLED`
+- **ai-agent**：仅 `yield-ai-confirm` 需要，指定 subagent 名称
+- **数量限制**：每个 `<phase>` 或 `<task>` 最多一个 `<confirm>`
+- **顺序规则**：若 phase 与 task 同时配置，执行顺序为：phase-before → task-before → task-after → phase-after
+- **重试规则**：若 confirm 未通过（人或 AI），必须修复后重新 review，直至 `status=DONE` 才能继续
+
+**示例：**
+```xml
+<phase id="P1" name="基础设施">
+  <goal>搭建认证基础架构</goal>
+  <confirm protocol="yield-human-confirm" when="after" status="TODO" />
+  <tasks>
+    ...
+  </tasks>
+</phase>
+
+<task id="T1.1" name="创建用户数据模型" status="TODO" priority="P0">
+  定义 User 模型结构并实现基本 CRUD 操作
+  <confirm protocol="yield-ai-confirm" ai-agent="codument-code-review" when="after" status="TODO" />
+  <subtasks>
+    ...
+  </subtasks>
+</task>
+```
 
 ### `<metadata>` - 元数据
 
@@ -373,7 +424,7 @@ tasks.xml 是 Codument 中用于追踪变更实现进度的结构化任务文件
 
 1. **自动检查**：运行测试、检查覆盖率、Lint 检查
 2. **生成验证报告**：列出所有检查项及结果
-3. **用户确认**：呈现报告，等待用户明确确认
+3. **确认（可选）**：仅当 `<phase>` 下存在 `<confirm protocol="yield-human-confirm" .../>` 或 `<confirm protocol="yield-ai-confirm" .../>` 且 when 包含 `after` 时，执行确认
 4. **创建检查点**（auto 模式）：`git commit -m "checkpoint: Phase P1 complete"`
 5. **附加 Git Notes**（auto 模式）：记录验证报告
 
@@ -386,11 +437,36 @@ tasks.xml 是 Codument 中用于追踪变更实现进度的结构化任务文件
 5. **时间格式**：使用 ISO 8601 格式
 6. **XML 格式**：必须是格式良好的 XML
 
-## 示例：最小 tasks.xml
+## XPath 查询示例
+
+```xpath
+# 获取所有未完成的任务
+//task[@status='TODO']
+
+# 获取所有 P0 优先级任务
+//task[@priority='P0']
+
+# 获取特定阶段的所有任务
+//phase[@id='P1']/tasks/task
+
+# 统计已完成的子任务数量
+count(//subtask[@status='DONE'])
+
+# 获取有依赖的任务
+//task[dependencies != '']
+
+# 获取特定里程碑下的阶段
+//phase[@milestone='M1']
+
+# 获取所有未通过的验收标准
+//criterion[@checked='false']
+```
+
+## 示例：最小 plan.xml
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
-<track change_id="fix-login-bug">
+<plan>
   <metadata>
     <track_name>修复登录 Bug</track_name>
     <goal>修复用户无法登录的问题</goal>
@@ -432,6 +508,16 @@ tasks.xml 是 Codument 中用于追踪变更实现进度的结构化任务文件
     </phase>
   </phases>
 
+  <validations>
+    <validation id="V1" name="登录功能验证" status="TODO">
+      验证登录功能正常工作
+      <checks>
+        <check name="正常登录">使用正确的用户名密码可以登录</check>
+        <check name="错误提示">使用错误密码显示正确的错误信息</check>
+      </checks>
+    </validation>
+  </validations>
+
   <summary>
     <total_phases>1</total_phases>
     <total_tasks>3</total_tasks>
@@ -440,5 +526,5 @@ tasks.xml 是 Codument 中用于追踪变更实现进度的结构化任务文件
     <todo>3</todo>
     <blocked>0</blocked>
   </summary>
-</track>
+</plan>
 ```

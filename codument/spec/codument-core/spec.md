@@ -48,7 +48,7 @@ Source: track `create-codument-prompts-20260101` (archived 2026-01-11)
 系统应当（SHALL）提供 /codument:track 命令，支持：
 - 收集 track 描述
 - 交互式生成 spec.md
-- 交互式生成 tasks.xml
+- 交互式生成 plan.xml
 - 选择提交模式（auto/manual）
 - 创建 track 目录和元数据
 
@@ -57,16 +57,16 @@ Source: track `create-codument-prompts-20260101` (archived 2026-01-11)
 - **AND** 用户有新功能需求
 - **WHEN** 用户运行 /codument:track 并提供功能描述
 - **AND** 用户选择 auto 提交模式
-- **THEN** 系统生成包含 spec.md 和 tasks.xml 的 track 目录
-- **AND** tasks.xml 中 commit_mode 设置为 auto
+- **THEN** 系统生成包含 spec.md 和 plan.xml 的 track 目录
+- **AND** plan.xml 中 commit_mode 设置为 auto
 
 ### Scenario: 创建新功能 track（manual 模式）
 - **GIVEN** 用户已初始化 Codument
 - **AND** 用户有新功能需求
 - **WHEN** 用户运行 /codument:track 并提供功能描述
 - **AND** 用户选择 manual 提交模式
-- **THEN** 系统生成包含 spec.md 和 tasks.xml 的 track 目录
-- **AND** tasks.xml 中 commit_mode 设置为 manual
+- **THEN** 系统生成包含 spec.md 和 plan.xml 的 track 目录
+- **AND** plan.xml 中 commit_mode 设置为 manual
 
 ## Requirement: 实现命令
 系统应当（SHALL）提供 /codument:implement 命令，支持：
@@ -82,7 +82,7 @@ Source: track `create-codument-prompts-20260101` (archived 2026-01-11)
 - **GIVEN** 用户已创建 track
 - **AND** track 中有待完成任务
 - **WHEN** 用户运行 /codument:implement
-- **THEN** 系统引导用户按顺序完成 tasks.xml 中的任务
+- **THEN** 系统引导用户按顺序完成 plan.xml 中的任务
 - **AND** 系统在每个阶段结束时执行门控验证
 
 ### Scenario: 从中断恢复
@@ -104,7 +104,7 @@ Source: track `create-codument-prompts-20260101` (archived 2026-01-11)
 系统应当（SHALL）提供 /codument:validate 命令，支持：
 - 验证 track 结构
 - 验证 spec.md 格式（GIVEN/WHEN/THEN/AND）
-- 验证 tasks.xml 格式
+- 验证 plan.xml 格式
 - 提供详细错误信息
 
 ### Scenario: 验证 track 格式
@@ -146,8 +146,8 @@ Source: track `create-codument-prompts-20260101` (archived 2026-01-11)
 - **THEN** 系统将 track 移动到 archive/
 - **AND** 系统更新相关规范
 
-## Requirement: Tasks XML 格式
-系统应当（SHALL）定义结构化的 tasks.xml 格式，包含：
+## Requirement: Plan XML 格式
+系统应当（SHALL）定义结构化的 plan.xml 格式，包含：
 - metadata 元数据（含 commit_mode）
 - milestones 里程碑
 - phases 阶段
@@ -159,15 +159,15 @@ Source: track `create-codument-prompts-20260101` (archived 2026-01-11)
 - risks 风险
 - summary 统计
 
-### Scenario: 解析 tasks.xml
+### Scenario: 解析 plan.xml
 - **GIVEN** 系统需要读取任务信息
-- **WHEN** 系统读取 tasks.xml 文件
+- **WHEN** 系统读取 plan.xml 文件
 - **THEN** 系统能正确解析所有元素和属性
 - **AND** 系统能识别 commit_mode 设置
 
 ### Scenario: 更新任务状态
 - **GIVEN** 任务已完成
-- **WHEN** 系统更新 tasks.xml
+- **WHEN** 系统更新 plan.xml
 - **THEN** 系统更新任务的 status 属性
 - **AND** 系统更新 acceptance_criteria 的 checked 属性
 
