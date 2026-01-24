@@ -1,0 +1,9 @@
+{
+  "track_id": "refactor-prompt-question-protocols",
+  "type": "refactor",
+  "status": "completed",
+  "commit_mode": "manual",
+  "created_at": "2026-01-22T20:00:00Z",
+  "updated_at": "2026-01-22T20:00:00Z",
+  "description": "统一提问协议并同步归档 XML 规范"
+}

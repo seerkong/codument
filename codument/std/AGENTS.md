@@ -74,7 +74,7 @@
 - 始终检查能力是否已存在
 - 优先修改现有规范而不是创建重复
 - 使用 `codument show [spec]` 审查当前状态
-- 如果需求模糊，先问 1-2 个澄清问题再动手
+- 如果需求模糊，先问 1-2 个澄清问题再动手（使用 **ask-single-question-free** 或 **ask-multi-question-free**）
 
 ## CLI 命令
 
@@ -203,15 +203,15 @@ codument/
     <goal>实现用户登录和注册功能</goal>
     <created_at>2026-01-01</created_at>
     <status>new</status>
+    <commit_mode>auto</commit_mode>
   </metadata>
 
   <phases>
     <phase id="P1" name="基础设施">
       <goal>搭建认证基础架构</goal>
       <tasks>
-        <task id="T1.1" name="创建用户数据模型">
-          <priority>P0</priority>
-          <status>TODO</status>
+        <task id="T1.1" name="创建用户数据模型" status="TODO" priority="P0">
+          定义 User 模型结构并实现基本 CRUD 操作
           <subtasks>
             <subtask id="T1.1.1" name="编写测试用例" status="TODO"/>
             <subtask id="T1.1.2" name="实现 User 模型" status="TODO"/>
@@ -378,7 +378,7 @@ codument show [track] --json
 1. 首先阅读 project.md 和 product.md
 2. 检查相关规范
 3. 查看最近的归档
-4. 请求澄清
+4. 请求澄清（使用 **ask-single-question-free** 或 **ask-multi-question-free**）
 
 ## 快速参考
 
@@ -421,12 +421,14 @@ codument archive <id>      # 标记完成
 > - Track: <track_id>
 > - 当前任务: <任务名称> (IN_PROGRESS)
 > - 上次完成: <上一个 DONE 任务>
->
+> 
 > 请选择：
 > A. 继续当前任务
 > B. 重新开始当前任务
 > C. 跳过当前任务，继续下一个
 > D. 从头开始整个 Track"
+（使用 **ask-single-question-closed**）
+
 
 ### 保存恢复点
 
@@ -459,9 +461,9 @@ Codument 使用三层确认机制确保重要决策得到用户认可：
 #### 第一层：规范确认
 
 在创建 track 时：
-1. **spec.md 确认**：展示起草的规范，等待用户确认或修改
-2. **plan.xml 确认**：展示任务计划，等待用户确认或修改
-3. **提交模式确认**：询问用户选择 auto 或 manual 模式
+1. **spec.md 确认**：展示起草的规范，等待用户确认或修改（使用 **ask-single-question-free**）
+2. **plan.xml 确认**：展示任务计划，等待用户确认或修改（使用 **ask-single-question-free**）
+3. **提交模式确认**：询问用户选择 auto 或 manual 模式（使用 **ask-single-question-closed**）
 
 #### 第二层：阶段/任务确认（可配置）
 
@@ -474,9 +476,9 @@ Codument 使用三层确认机制确保重要决策得到用户认可：
 #### 第三层：项目文档确认
 
 在 track 完成后：
-1. **product.md 更新确认**：如需更新，展示 diff 等待确认
-2. **project.md 更新确认**：如需更新，展示 diff 等待确认
-3. **归档/删除确认**：询问用户选择处理方式
+1. **product.md 更新确认**：如需更新，展示 diff 等待确认（使用 **ask-single-question-closed**）
+2. **project.md 更新确认**：如需更新，展示 diff 等待确认（使用 **ask-single-question-closed**）
+3. **归档/删除确认**：询问用户选择处理方式（使用 **ask-single-question-closed**）
 
 ### 确认原则
 

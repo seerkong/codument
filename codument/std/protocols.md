@@ -1,6 +1,91 @@
 # Codument Protocols
 
-This document defines reusable protocol blocks referenced by `<confirm>` elements in plan.xml.
+This document defines reusable protocol blocks referenced by prompts and `<confirm>` elements in plan.xml.
+
+## Protocol: ask-single-question-closed
+**ID:** ask-single-question-closed
+
+**Trigger:** You need to ask a single question and the answers must be chosen from fixed options (no free-text option).
+
+**Behavior:**
+- Ask one question at a time.
+- Use lettered options (`A)`, `B)`, `C)`...).
+- If the environment supports question ToolCalls, use those ToolCalls with equivalent content.
+
+**Example (suggested):**
+```
+A) [选项 A]
+B) [选项 B]
+```
+
+## Protocol: ask-single-question-free
+**ID:** ask-single-question-free
+
+**Trigger:** You need to ask a single question and allow a free-text answer in addition to suggested options.
+
+**Behavior:**
+- Ask one question at a time.
+- Prefer 2-3 high-quality options when possible.
+- Use lettered options (`A)`, `B)`, `C)`...).
+- The **last option must allow free-text input**, but the option label/name is NOT fixed.
+  - Do NOT require the literal text "自定义答案".
+  - Use a flexible label such as "其他（可填写）" / "自由输入" / "自定义".
+  - In ToolCall environments that already provide a built-in free-input/"Other" option, do NOT add a duplicate.
+- If the environment supports question ToolCalls, use those ToolCalls with equivalent content.
+
+**Example (suggested):**
+```
+A) [选项 A]
+B) [选项 B]
+C) [其他（可填写）]
+```
+
+## Protocol: ask-multi-question-closed
+**ID:** ask-multi-question-closed
+
+**Trigger:** You need to ask multiple questions in one round and answers must be chosen from fixed options (no free-text option).
+
+**Behavior:**
+- Ask 2-4 questions per round unless a prompt specifies a different cap.
+- Prefix each question with `Q1`/`Q2`... and ask the user to answer by label.
+- Use lettered options (`A)`, `B)`, `C)`...).
+- Provide brief context and examples per question when helpful.
+- If the environment supports question ToolCalls, use those ToolCalls with equivalent content.
+
+**Response Format (recommended):**
+```
+q1: <answer>
+q2: <answer>
+q3: <answer>
+------
+q4: <answer>
+```
+
+## Protocol: ask-multi-question-free
+**ID:** ask-multi-question-free
+
+**Trigger:** You need to ask multiple questions in one round and allow free-text answers in addition to suggested options.
+
+**Behavior:**
+- Ask 2-4 questions per round unless a prompt specifies a different cap.
+- Prefix each question with `Q1`/`Q2`... and ask the user to answer by label.
+- Prefer 2-3 high-quality options when possible.
+- Use lettered options (`A)`, `B)`, `C)`...).
+- The **last option must allow free-text input**, but the option label/name is NOT fixed.
+  - Do NOT require the literal text "自定义答案".
+  - Use a flexible label such as "其他（可填写）" / "自由输入" / "自定义".
+  - In ToolCall environments that already provide a built-in free-input/"Other" option, do NOT add a duplicate.
+- Provide brief context and examples per question when helpful.
+- If the environment supports question ToolCalls, use those ToolCalls with equivalent content.
+
+**Response Format (recommended):**
+```
+q1: <answer>
+q2: <answer>
+q3: <answer>
+------
+q4: <answer>
+```
 
 ## Protocol: yield-human-confirm
 **ID:** yield-human-confirm

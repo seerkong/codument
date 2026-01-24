@@ -52,7 +52,7 @@
    - **如果 `{{args}}` 包含描述：** 使用 `{{args}}` 内容
    - **如果 `{{args}}` 为空：** 询问用户：
      > "请提供你想开始的变更追踪的简要描述（功能、Bug 修复、重构等）。"
-     等待用户回复
+     等待用户回复（使用 **Protocol: ask-single-question-free**）
 
 3. **推断 Track 类型：** 分析描述确定是"功能"还是"其他"（Bug、重构等）。不要让用户分类
 
@@ -68,7 +68,7 @@
    > "我已起草了新的Track ID：<track_id>
    > 这是否准确捕获了需求？请建议更改或确认。"
 
-   等待反馈并修改直到确认
+   等待反馈并修改直到确认（使用 **Protocol: ask-single-question-free**）
 
 4. **创建目录：** `codument/tracks/<track_id>/`
 
@@ -88,23 +88,16 @@
 
 ### 2.3 交互式规范生成（spec.md）
 
-1. **说明目标：**
-   > "现在我将通过一系列问题帮你构建全面的规范（spec.md）。为提速，我会在一轮里给出多个问题，并用 Q1、Q2... 标记，按标记回答即可。"
+  1. **说明目标：**
+    > "现在我将通过一系列问题帮你构建全面的规范（spec.md）。为提速，我会在一轮里给出多个问题，并用 Q1、Q2... 标记，按标记回答即可。"
 
-2. **提问阶段：** 根据 track 类型提问收集 spec.md 详情
-   - **加速提问：** 每轮可提出 2-4 个问题，使用 `Q1`/`Q2`... 标识；等待用户按标识逐条回复（大小写皆可）。示例答复格式：
-     ```
-     q1: 选项A
-     q2: 选项B
-     q3: 自定义答案（可多行）
-     ------
-     q4: 下一条回复
-     ```
-   - **通用准则：**
-     - 参考 `product.md`、`project.md` 提问上下文感知的问题
-     - 为每个问题提供简要解释和清晰示例
-     - **强烈建议：** 尽可能呈现 2-3 个选项供用户选择
-     - **强制：** 最后一个选项必须是"自定义答案"
+ 2. **提问阶段：** 根据 track 类型提问收集 spec.md 详情
+    - 使用 `protocols.md` 中的 **ask-multi-question-free** 协议
+    - **通用准则：**
+      - 参考 `product.md`、`project.md` 提问上下文感知的问题
+      - 为每个问题提供简要解释和清晰示例
+      - **强烈建议：** 尽可能呈现 2-3 个选项供用户选择
+
 
    - **如果是功能：**
      - 问 3-5 个相关问题澄清功能需求
@@ -130,7 +123,7 @@
    > 文件路径在：codument/tracks/<track_id>/spec.md
    > 这是否准确捕获了需求？请建议更改或确认。"
 
-   等待反馈并修改直到确认
+   等待反馈并修改直到确认（使用 **Protocol: ask-single-question-free**）
 
 ### 2.3 交互式提案生成（proposal.md）
 
@@ -169,7 +162,7 @@
    > 文件路径在：codument/tracks/<track_id>/proposal.md
    > 此提案是否正确？请建议更改或确认。"
 
-   等待反馈并修改 proposal.md 直到确认
+   等待反馈并修改 proposal.md 直到确认（使用 **Protocol: ask-single-question-free**）
 
 ### 2.4 交互式方案设计生成（design.md）
 **需要时创建 design.md：**
@@ -225,7 +218,7 @@
    > 文件路径在：codument/tracks/<track_id>/design.md
    > 此方案设计是否正确？请建议更改或确认。"
 
-   等待反馈并修改 design.md 直到确认
+   等待反馈并修改 design.md 直到确认（使用 **Protocol: ask-single-question-free**）
 
 ### 2.5 交互式任务生成（plan.xml）
 
@@ -250,7 +243,7 @@
     > 文件路径在：codument/tracks/<track_id>/plan.xml
     > 此计划是否正确？请建议更改或确认。"
 
-    等待反馈并修改 plan.xml 直到确认
+    等待反馈并修改 plan.xml 直到确认（使用 **Protocol: ask-single-question-free**）
 
 
 5. **用户确认：** 选择代码提交模式
@@ -266,7 +259,7 @@
    >
    > 请选择 A 或 B。"
 
-   等待用户回复并记录选择
+   等待用户回复并记录选择（使用 **Protocol: ask-single-question-closed**）
 5. **更新提交模式：**
    **关键：** 更新plan.xml 中的 `<commit_mode>`，必须与用户选择一致
 

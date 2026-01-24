@@ -24,6 +24,7 @@ plan.xml 是 Codument 中用于追踪变更实现进度的结构化任务文件�
 <?xml version="1.0" encoding="UTF-8"?>
 <plan>
   <metadata>
+    <track_id>add-user-auth</track_id>
     <track_name>添加用户认证功能</track_name>
     <goal>实现用户登录和注册功能</goal>
     <created_at>2026-01-01T10:00:00Z</created_at>
@@ -164,8 +165,6 @@ plan.xml 是 Codument 中用于追踪变更实现进度的结构化任务文件�
 ### `<plan>` - 根元素
 
 plan.xml 的根元素为 `<plan>`。Track 的唯一标识符在 `<metadata><track_id>...</track_id></metadata>` 中声明。
-
-> 说明：历史版本曾用 `<track change_id="...">`，已废弃。
 
 ### `<confirm>` - 确认提示标记（可选）
 

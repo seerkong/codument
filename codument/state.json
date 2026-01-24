@@ -2,13 +2,12 @@
   "active_track": null,
   "current_phase": null,
   "current_task": null,
-  "last_action": "archived",
-  "timestamp": "2026-01-11T11:34:13Z",
+  "last_action": "init",
+  "timestamp": "2026-01-22T13:32:16.399Z",
   "commit_mode": "manual",
   "cli_tools": [
-    "claude",
-    "codex",
-    "gemini",
-    "eidolon"
-  ]
+    "eidolon",
+    "gemini"
+  ],
+  "last_successful_step": "2.1_project"
 }

@@ -16,8 +16,8 @@
 
 1. **检查输入：**
    - 如果提示词包含具体 track ID，使用该值
-   - 如果对话中模糊引用了 track，运行 `codument list` 显示候选项并确认
-   - 否则，询问用户要归档哪个 track
+   - 如果对话中模糊引用了 track，运行 `codument list` 显示候选项并确认（使用 **Protocol: ask-single-question-closed**）
+   - 否则，询问用户要归档哪个 track（使用 **Protocol: ask-single-question-free**）
 
 2. **验证 Track：**
    - 运行 `codument list` 验证 track ID
@@ -27,7 +27,7 @@
 
 1. **检查 Track 状态：**
    - 读取 `codument/tracks.md` 确认 track 状态为 `[x]`（已完成）
-   - 如果未完成，警告用户并询问是否仍要归档
+   - 如果未完成，警告用户并询问是否仍要归档（使用 **ask-single-question-closed**）
 
 2. **创建归档目录：**
    - 如果 `codument/archive/` 不存在，创建它
