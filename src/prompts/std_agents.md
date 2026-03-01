@@ -125,6 +125,10 @@ codument/
 │       └── design.md       # 技术设计（可选）
 ├── tracks/                 # 变更追踪 - 待实现的变更
 │   └── [track-id]/
+│       ├── analysis/       # 创建/规划阶段 analysis 产物（planning-with-files 外部记忆）
+│       │   ├── task_plan.md   # 分阶段任务拆解/推进清单
+│       │   ├── findings.md    # 关键发现与决策（why/why-not）
+│       │   └── progress.md    # 进展与验证记录（含测试/错误）
 │       ├── proposal.md     # 为什么、是什么、影响
 │       ├── spec.md         # 规范增量（ADDED/MODIFIED/REMOVED）
 │       ├── plan.xml        # 结构化任务清单
@@ -441,6 +445,7 @@ codument show [track] --json
 - `archive/` - 已完成的变更
 
 ### 文件用途
+- `analysis/` - track 创建/规划阶段的持久化上下文（task_plan/findings/progress）；用于记录“上下文理解 / 发现 / 进展”，避免长对话或多轮工具调用导致关键信息丢失；不引用 `.` 开头隐藏目录的文件
 - `proposal.md` - 为什么和是什么
 - `plan.xml` - 结构化实现步骤
 - `design.md` - 技术决策

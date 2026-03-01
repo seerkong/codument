@@ -1,0 +1,8 @@
+{
+  "track_id": "add-track-planning-artifacts",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-03-01T12:53:35Z",
+  "updated_at": "2026-03-01T12:53:35Z",
+  "description": "在创建 track 时自动生成 analysis/ 下的规划与发现文件，用于持久化上下文理解与进展"
+}

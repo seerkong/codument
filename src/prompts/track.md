@@ -72,17 +72,118 @@
 
 4. **创建目录：** `codument/tracks/<track_id>/`
 
-5. **创建 metadata.json：**
-   ```json
-   {
-     "track_id": "<track_id>",
-     "type": "feature",
-     "status": "new",
-     "created_at": "YYYY-MM-DDTHH:MM:SSZ",
-     "updated_at": "YYYY-MM-DDTHH:MM:SSZ",
-     "description": "<初始描述>"
-   }
+5. **创建分析产物（analysis/）：** 在 track 目录下创建 `analysis/` 子目录，用于持久化记录“上下文理解 / 发现 / 进展”，以避免长对话或多轮工具调用导致目标与发现丢失。
+   - 创建目录：`codument/tracks/<track_id>/analysis/`
+   - 创建文件：
+     - `codument/tracks/<track_id>/analysis/task_plan.md`
+     - `codument/tracks/<track_id>/analysis/findings.md`
+     - `codument/tracks/<track_id>/analysis/progress.md`
+
+   **关键规则（必须遵守）：仅缺失时创建，不覆盖已有内容**
+   - 如果 `codument/tracks/<track_id>/analysis/` 已存在：不要删除、不要重写目录内的任何文件
+   - 对上述三个文件：
+     - **文件已存在** → 绝不要覆盖/改写其内容（哪怕你认为内容不完整）
+     - **文件不存在** → 才创建文件并写入下面的模板
+
+   **写入内容要求：**
+   - 参考“planning-with-files”的理念：把关键结论写入文件作为外部记忆
+   - 内容必须与本 track 相关，避免泛化
+   - 不要引用隐藏目录（`.` 开头）的文件
+
+   `analysis/task_plan.md` 模板（可按需要裁剪/补全）：
+   ```markdown
+   # Task Plan: <track_id>
+
+   ## Goal
+   [一句话描述本 track 的目标终态]
+
+   ## Current Phase
+   Phase 1
+
+   ## Phases
+   ### Phase 1: Requirements & Discovery
+   - [ ] 理解用户意图与边界
+   - [ ] 识别约束与风险
+   - [ ] 将关键发现写入 findings.md
+   - **Status:** in_progress
+
+   ### Phase 2: Planning & Structure
+   - [ ] 形成 proposal/design 的关键决策
+   - [ ] 形成可执行 plan.xml（含 gate/confirm）
+   - **Status:** pending
+
+   ### Phase 3: Implementation
+   - [ ] 按 plan.xml 推进任务
+   - [ ] 必要时更新 plan.xml 以反映现实
+   - **Status:** pending
+
+   ### Phase 4: Testing & Verification
+   - [ ] 运行自动化测试并记录
+   - [ ] 对照验收标准验证
+   - **Status:** pending
+
+   ### Phase 5: Delivery
+   - [ ] 完成文档收尾
+   - [ ] 准备归档
+   - **Status:** pending
    ```
+
+   `analysis/findings.md` 模板：
+   ```markdown
+   # Findings & Decisions
+
+   ## Requirements
+   -
+
+   ## Research Findings
+   -
+
+   ## Technical Decisions
+   | Decision | Rationale |
+   |----------|-----------|
+   |          |           |
+
+   ## Issues Encountered
+   | Issue | Resolution |
+   |-------|------------|
+   |       |            |
+   ```
+
+   `analysis/progress.md` 模板：
+   ```markdown
+   # Progress Log
+
+   ## Session: YYYY-MM-DD
+   
+   ### Phase 1: Requirements & Discovery
+   - **Status:** in_progress
+   - Actions taken:
+     -
+   - Files created/modified:
+     -
+   
+   ## Test Results
+   | Test | Input | Expected | Actual | Status |
+   |------|-------|----------|--------|--------|
+   |      |       |          |        |        |
+
+   ## Error Log
+   | Timestamp | Error | Attempt | Resolution |
+   |-----------|-------|---------|------------|
+   |           |       | 1       |            |
+   ```
+
+6. **创建 metadata.json：**
+    ```json
+    {
+      "track_id": "<track_id>",
+      "type": "feature",
+      "status": "new",
+      "created_at": "YYYY-MM-DDTHH:MM:SSZ",
+      "updated_at": "YYYY-MM-DDTHH:MM:SSZ",
+      "description": "<初始描述>"
+    }
+    ```
 
 
 ### 2.3 交互式规范生成（spec.md）

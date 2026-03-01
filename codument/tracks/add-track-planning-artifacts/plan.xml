@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plan>
+  <metadata>
+    <track_id>add-track-planning-artifacts</track_id>
+    <track_name>Track 创建时生成 analysis 规划产物</track_name>
+    <goal>在新建 track 时生成 analysis/ 持久化上下文文件，提升规划质量</goal>
+    <created_at>2026-03-01T12:53:35Z</created_at>
+    <updated_at>2026-03-01T14:49:21Z</updated_at>
+    <status>completed</status>
+    <commit_mode>manual</commit_mode>
+    <execution_mode>wave</execution_mode>
+  </metadata>
+
+  <phases>
+    <phase id="P1" name="提示词与文档">
+      <goal>更新 track 提示词并补齐文档说明</goal>
+      <context_files>
+        <file>codument/tracks/add-track-planning-artifacts/spec.md</file>
+        <file>codument/tracks/add-track-planning-artifacts/proposal.md</file>
+        <file>codument/tracks/add-track-planning-artifacts/design.md</file>
+        <file>codument/tracks/add-track-planning-artifacts/context.md</file>
+        <file>codument/tracks/add-track-planning-artifacts/state.md</file>
+        <file>codument/tracks/add-track-planning-artifacts/plan.xml</file>
+      </context_files>
+      <waves>
+        <wave id="WAVE-P1-01" depends_on="" />
+        <wave id="WAVE-P1-02" depends_on="WAVE-P1-01" />
+      </waves>
+      <tasks>
+        <task id="T1.1" name="更新 track 提示词" status="DONE" priority="P0" estimated_days="1" wave="WAVE-P1-01">
+          <description>更新 src/prompts/track.md：在创建 track 目录后生成 analysis/ 目录与三个文件，并确保不覆盖已有内容</description>
+          <acceptance_criteria>
+            <criterion id="T1.1-AC1" checked="true">新增 analysis 产物步骤与模板内容</criterion>
+            <criterion id="T1.1-AC2" checked="true">明确“仅缺失时创建，不覆盖”规则</criterion>
+          </acceptance_criteria>
+        </task>
+        <task id="T1.2" name="更新文档示例" status="DONE" priority="P1" estimated_days="1" wave="WAVE-P1-02">
+          <description>在 std_agents 或相关文档中补充说明 analysis/ 的用途（如需要），保持示例一致</description>
+          <acceptance_criteria>
+            <criterion id="T1.2-AC1" checked="true">文档中能找到 analysis/ 的用途说明</criterion>
+          </acceptance_criteria>
+        </task>
+      </tasks>
+      <gate_criteria>
+        <criterion>提示词更新完成并可读</criterion>
+      </gate_criteria>
+    </phase>
+
+    <phase id="P2" name="生成器输出">
+      <goal>确保各 CLI 工具使用新版本 track 提示词</goal>
+      <context_files>
+        <file>codument/tracks/add-track-planning-artifacts/plan.xml</file>
+        <file>codument/tracks/add-track-planning-artifacts/proposal.md</file>
+      </context_files>
+      <waves>
+        <wave id="WAVE-P2-01" depends_on="" />
+      </waves>
+      <tasks>
+        <task id="T2.1" name="重新生成命令文件" status="DONE" priority="P0" estimated_days="1" wave="WAVE-P2-01">
+          <description>使用现有 generators 重新生成各工具的 codument-track 命令文件（如仓库内跟踪生成物则同步更新）</description>
+          <acceptance_criteria>
+            <criterion id="T2.1-AC1" checked="true">OpenCode 的 codument-track.md 包含 analysis 步骤</criterion>
+          </acceptance_criteria>
+        </task>
+      </tasks>
+    </phase>
+
+    <phase id="P3" name="验证">
+      <goal>验证新 track 创建流程可用</goal>
+      <context_files>
+        <file>codument/tracks/add-track-planning-artifacts/plan.xml</file>
+        <file>codument/tracks/add-track-planning-artifacts/phases/P1/index.md</file>
+        <file>codument/tracks/add-track-planning-artifacts/phases/P2/index.md</file>
+        <file>codument/tracks/add-track-planning-artifacts/waves/WAVE-P3-01/index.md</file>
+      </context_files>
+      <waves>
+        <wave id="WAVE-P3-01" depends_on="" />
+      </waves>
+      <tasks>
+        <task id="T3.1" name="手动验证" status="DONE" priority="P1" estimated_days="1" wave="WAVE-P3-01">
+          <description>创建一个示例 track，确认 analysis/ 目录与 3 文件被生成且不覆盖已存在内容</description>
+          <acceptance_criteria>
+            <criterion id="T3.1-AC1" checked="true">analysis/ 产物生成正确</criterion>
+          </acceptance_criteria>
+        </task>
+      </tasks>
+      <confirm protocol="yield-human-confirm" when="after" />
+    </phase>
+  </phases>
+
+  <summary>
+    <total_phases>3</total_phases>
+    <total_tasks>4</total_tasks>
+    <total_subtasks>0</total_subtasks>
+    <total_estimated_days>0</total_estimated_days>
+    <completed>4</completed>
+    <in_progress>0</in_progress>
+    <todo>0</todo>
+    <blocked>0</blocked>
+  </summary>
+</plan>
