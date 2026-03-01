@@ -4,7 +4,7 @@ Source: track `create-codument-prompts-20260101` (archived 2026-01-11)
 
 ---
 
-## Requirement: AI 助手核心指令
+### Requirement: AI 助手核心指令
 系统应当（SHALL）提供完整的 AI 助手指令文档（agents.md），包含：
 - 快速检查清单
 - 三阶段工作流说明
@@ -15,14 +15,14 @@ Source: track `create-codument-prompts-20260101` (archived 2026-01-11)
 - 中断恢复协议
 - 多层确认协议
 
-### Scenario: AI 助手阅读 agents.md
+#### Scenario: AI 助手阅读 agents.md
 - **GIVEN** AI 助手开始处理项目
 - **AND** 项目根目录存在 AGENTS.md 入口文件
 - **WHEN** AI 助手阅读 codument/agents.md
 - **THEN** AI 助手能理解 Codument 的工作流和约定
 - **AND** AI 助手能识别当前项目状态
 
-## Requirement: 项目初始化命令
+### Requirement: 项目初始化命令
 系统应当（SHALL）提供 /codument:init 命令，支持：
 - 检测项目类型（Brownfield/Greenfield）
 - 交互式收集项目信息
@@ -30,21 +30,21 @@ Source: track `create-codument-prompts-20260101` (archived 2026-01-11)
 - 创建初始 track
 - 支持恢复中断的初始化流程
 
-### Scenario: 初始化新项目
+#### Scenario: 初始化新项目
 - **GIVEN** 用户在空目录中
 - **AND** 目录不存在 codument/ 文件夹
 - **WHEN** 用户运行 /codument:init
 - **THEN** 系统引导用户完成项目设置
 - **AND** 系统生成初始 track
 
-### Scenario: 初始化现有项目
+#### Scenario: 初始化现有项目
 - **GIVEN** 用户在现有代码库中
 - **AND** 代码库包含源代码文件
 - **WHEN** 用户运行 /codument:init
 - **THEN** 系统分析项目结构
 - **AND** 系统基于分析结果引导设置
 
-## Requirement: 创建变更追踪命令
+### Requirement: 创建变更追踪命令
 系统应当（SHALL）提供 /codument:track 命令，支持：
 - 收集 track 描述
 - 交互式生成 spec.md
@@ -52,7 +52,33 @@ Source: track `create-codument-prompts-20260101` (archived 2026-01-11)
 - 选择提交模式（auto/manual）
 - 创建 track 目录和元数据
 
-### Scenario: 创建新功能 track（auto 模式）
+### Requirement: Track 创建时生成 analysis 产物
+系统应当（SHALL）在创建新的 track 目录后，自动在该 track 目录下生成用于持久化上下文理解与进展的 analysis 产物。
+
+#### Scenario: 创建新 track 时生成 analysis 目录与文件
+- **GIVEN** `codument/` 已初始化且用户创建一个新的 track
+- **WHEN** AI 助手完成 `codument/tracks/<track_id>/` 目录创建
+- **THEN** 系统在 `codument/tracks/<track_id>/analysis/` 创建以下文件：
+  - `task_plan.md`
+  - `findings.md`
+  - `progress.md`
+- **AND** 以上文件包含可用的模板内容，用于后续持续更新
+
+#### Scenario: analysis 文件已存在时不覆盖用户内容
+- **GIVEN** `codument/tracks/<track_id>/analysis/` 中部分或全部文件已存在
+- **WHEN** AI 助手重新执行 track 创建/补齐流程
+- **THEN** 系统不应覆盖已存在文件的内容
+- **AND** 仅在缺失时创建对应文件
+
+### Requirement: analysis 产物不依赖隐藏目录
+系统应当（SHALL）保证 analysis 产物内容不引用以 `.` 开头的隐藏目录中的文件路径。
+
+#### Scenario: analysis 文件内容不包含隐藏目录引用
+- **GIVEN** AI 助手生成 analysis 文件
+- **WHEN** 用户审查生成内容
+- **THEN** analysis 文件中不应出现形如 `.xxx/yyy.md` 的引用
+
+#### Scenario: 创建新功能 track（auto 模式）
 - **GIVEN** 用户已初始化 Codument
 - **AND** 用户有新功能需求
 - **WHEN** 用户运行 /codument:track 并提供功能描述
@@ -60,7 +86,7 @@ Source: track `create-codument-prompts-20260101` (archived 2026-01-11)
 - **THEN** 系统生成包含 spec.md 和 plan.xml 的 track 目录
 - **AND** plan.xml 中 commit_mode 设置为 auto
 
-### Scenario: 创建新功能 track（manual 模式）
+#### Scenario: 创建新功能 track（manual 模式）
 - **GIVEN** 用户已初始化 Codument
 - **AND** 用户有新功能需求
 - **WHEN** 用户运行 /codument:track 并提供功能描述
@@ -68,7 +94,7 @@ Source: track `create-codument-prompts-20260101` (archived 2026-01-11)
 - **THEN** 系统生成包含 spec.md 和 plan.xml 的 track 目录
 - **AND** plan.xml 中 commit_mode 设置为 manual
 
-## Requirement: 实现命令
+### Requirement: 实现命令
 系统应当（SHALL）提供 /codument:implement 命令，支持：
 - 选择要实现的 track
 - 中断恢复检查
@@ -78,21 +104,21 @@ Source: track `create-codument-prompts-20260101` (archived 2026-01-11)
 - 同步项目文档
 - 提供归档选项
 
-### Scenario: 实现 track 任务
+#### Scenario: 实现 track 任务
 - **GIVEN** 用户已创建 track
 - **AND** track 中有待完成任务
 - **WHEN** 用户运行 /codument:implement
 - **THEN** 系统引导用户按顺序完成 plan.xml 中的任务
 - **AND** 系统在每个阶段结束时执行门控验证
 
-### Scenario: 从中断恢复
+#### Scenario: 从中断恢复
 - **GIVEN** 用户之前的实现被中断
 - **AND** 存在 IN_PROGRESS 状态的任务
 - **WHEN** 用户运行 /codument:implement
 - **THEN** 系统检测到中断状态
 - **AND** 系统询问用户恢复选项
 
-### Scenario: 阶段门控验证
+#### Scenario: 阶段门控验证
 - **GIVEN** 用户完成某阶段所有任务
 - **WHEN** 系统执行阶段门控验证
 - **THEN** 系统运行自动化测试
@@ -100,53 +126,53 @@ Source: track `create-codument-prompts-20260101` (archived 2026-01-11)
 - **AND** 系统生成验证报告
 - **AND** 系统等待用户确认
 
-## Requirement: 验证命令
+### Requirement: 验证命令
 系统应当（SHALL）提供 /codument:validate 命令，支持：
 - 验证 track 结构
 - 验证 spec.md 格式（GIVEN/WHEN/THEN/AND）
 - 验证 plan.xml 格式
 - 提供详细错误信息
 
-### Scenario: 验证 track 格式
+#### Scenario: 验证 track 格式
 - **GIVEN** 用户已创建 track
 - **WHEN** 用户运行 /codument:validate <track-id>
 - **THEN** 系统检查 track 文件格式
 - **AND** 系统报告发现的问题
 
-### Scenario: 严格模式验证
+#### Scenario: 严格模式验证
 - **GIVEN** 用户需要全面验证
 - **WHEN** 用户运行 /codument:validate --strict
 - **THEN** 系统执行所有验证规则
 - **AND** 系统检查场景格式是否符合 GIVEN/WHEN/THEN/AND
 
-## Requirement: 状态命令
+### Requirement: 状态命令
 系统应当（SHALL）提供 /codument:status 命令，显示：
 - 项目整体进度
 - 当前 track 和任务
 - 统计信息
 - 提交模式
 
-### Scenario: 查看项目状态
+#### Scenario: 查看项目状态
 - **GIVEN** 用户已初始化 Codument
 - **AND** 存在活跃 track
 - **WHEN** 用户运行 /codument:status
 - **THEN** 系统显示项目进度概览
 - **AND** 系统显示当前任务状态
 
-## Requirement: 归档命令
+### Requirement: 归档命令
 系统应当（SHALL）提供 /codument:archive 命令，支持：
 - 移动 track 到 archive/
 - 更新 specs/ 中的规范
 - 清理 tracks.md
 
-### Scenario: 归档已完成 track
+#### Scenario: 归档已完成 track
 - **GIVEN** 用户已完成某个 track
 - **AND** track 状态为 completed
 - **WHEN** 用户运行 /codument:archive <track-id>
 - **THEN** 系统将 track 移动到 archive/
 - **AND** 系统更新相关规范
 
-## Requirement: Plan XML 格式
+### Requirement: Plan XML 格式
 系统应当（SHALL）定义结构化的 plan.xml 格式，包含：
 - metadata 元数据（含 commit_mode）
 - milestones 里程碑
@@ -159,19 +185,19 @@ Source: track `create-codument-prompts-20260101` (archived 2026-01-11)
 - risks 风险
 - summary 统计
 
-### Scenario: 解析 plan.xml
+#### Scenario: 解析 plan.xml
 - **GIVEN** 系统需要读取任务信息
 - **WHEN** 系统读取 plan.xml 文件
 - **THEN** 系统能正确解析所有元素和属性
 - **AND** 系统能识别 commit_mode 设置
 
-### Scenario: 更新任务状态
+#### Scenario: 更新任务状态
 - **GIVEN** 任务已完成
 - **WHEN** 系统更新 plan.xml
 - **THEN** 系统更新任务的 status 属性
 - **AND** 系统更新 acceptance_criteria 的 checked 属性
 
-## Requirement: CLI 工具
+### Requirement: CLI 工具
 系统应当（SHALL）提供 CLI 工具，支持：
 - list 命令列出 tracks 和 specs
 - show 命令显示详情
@@ -180,14 +206,14 @@ Source: track `create-codument-prompts-20260101` (archived 2026-01-11)
 - status 命令查看状态
 - 构建为单文件可执行文件
 
-### Scenario: 使用 CLI 列出 tracks
+#### Scenario: 使用 CLI 列出 tracks
 - **GIVEN** 用户已安装 CLI
 - **AND** 存在活跃 tracks
 - **WHEN** 用户运行 codument list
 - **THEN** CLI 显示所有活跃 tracks
 - **AND** 显示每个 track 的状态和进度
 
-### Scenario: 构建单文件可执行文件
+#### Scenario: 构建单文件可执行文件
 - **GIVEN** 开发者需要分发 CLI
 - **WHEN** 开发者运行 bun run build
 - **THEN** 系统生成单文件可执行文件
