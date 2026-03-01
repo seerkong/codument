@@ -1,0 +1,9 @@
+{
+  "track_id": "add-wave-execution",
+  "type": "feature",
+  "status": "new",
+  "commit_mode": "manual",
+  "created_at": "2026-03-01T12:00:00Z",
+  "updated_at": "2026-03-01T12:00:00Z",
+  "description": "为 codument 添加基于 GSD 原理的波次执行能力，包括 plan.xml schema 扩展、wave DAG 调度、subtask 嵌套与外链、context_files 替代 references、移除 dependencies、新增命令和中文提示词"
+}

@@ -1,3 +1,7 @@
+---
+description: Validate track or spec format
+allowed-tools: All
+---
 # codument validate - 验证命令
 
 **描述：** 验证规范和任务文件格式
@@ -246,3 +250,9 @@ Specs:
 1. **阻塞问题**（blocking issues）— 必须修复才能继续
 2. **非阻塞问题**（non-blocking issues）— 建议修复但不阻塞
 3. **简要总结**（brief summary）— 通过/失败统计
+
+
+<ChangeId>
+  $ARGUMENTS
+</ChangeId>
+

@@ -196,5 +196,53 @@ git commit -m "test(utils): Add tests for parseTaskDetails function"
 - 优化用户满意度
 - 保持简单和可维护
 
+## 波次执行工作流
+
+当 plan.xml 中 `<execution_mode>` 为 `wave` 时，使用波次执行工作流替代标准顺序执行。
+
+### 核心模型
+
+- **阶段（Phase）严格串行**：P1 完成后才能开始 P2
+- **波次（Wave）DAG 并行**：同一阶段内的波次按依赖关系组成有向无环图（DAG），无依赖的波次可并行执行
+- **波次标签格式**：`WAVE-P{n}-{序号}`（如 `WAVE-P1-01`、`WAVE-P2-03`）
+- **wave 属性在 task 级别**：每个 task 通过 `wave="WAVE-P1-01"` 声明所属波次
+- **波次依赖声明**：在 `<phase>` 内通过 `<waves><wave id="..." depends_on="..."/></waves>` 声明 DAG
+
+### 波次执行流程
+
+1. **讨论阶段**（`/codument:discuss`）
+   - 针对当前阶段进行深度讨论
+   - 生成 `context.md` 记录讨论结论和上下文
+
+2. **波次规划**（`/codument:plan-wave`）
+   - 分析任务间的依赖关系
+   - 将任务分配到波次，构建 DAG
+   - 更新 plan.xml 中的 `<waves>` 和 task 的 `wave` 属性
+
+3. **波次执行**（`/codument:execute-wave`）
+   - 按拓扑排序确定波次执行顺序
+   - 同一波次内的任务通过 `Task()` 分派给子代理并行执行
+   - 每个子代理获得独立的 200k 上下文窗口
+   - 编排器保持轻量（~10-15% 上下文），通过 `state.md` 传递跨波次知识
+   - 支持指定单个阶段执行：`/codument:execute-wave <track-id> P2`
+
+4. **独立验证**（`/codument:verify`）
+   - 启动独立验证子代理
+   - 目标倒推验证：从目标出发，逐层验证实现
+   - 三级验证：存在性 → 实质性 → 连通性
+
+### 波次执行状态追踪
+
+波次执行过程中维护以下文件：
+- `state.md`：当前执行状态、已完成波次、跨波次知识摘要
+- `phases/P{n}/index.md`：阶段级产出汇总
+- `waves/WAVE-P{n}-{序号}/index.md`：波次级产出详情
+
+### 上下文工程
+
+- `<context_files>` 替代旧的 `<references>` 标签，声明阶段级上下文文件
+- 编排器在分派任务时，将 `context_files` + `state.md` 摘要注入子代理上下文
+- 子任务可通过 `<detail_ref>` 链接到外部详情文件
+
 ## 其他项目级workflow
 请阅读 `codument/workflows/` 目录下的更多文件，了解更多的本项目专属工作流

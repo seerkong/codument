@@ -31,6 +31,10 @@ export const archivePrompt = loadPrompt("archive.md");
 export const statusPrompt = loadPrompt("status.md");
 export const planXmlSpec = loadPrompt("plan-xml-spec.md");
 export const protocolsPrompt = loadPrompt("protocols.md");
+export const discussPrompt = loadPrompt("discuss.md");
+export const planWavePrompt = loadPrompt("plan-wave.md");
+export const executeWavePrompt = loadPrompt("execute-wave.md");
+export const verifyPrompt = loadPrompt("verify.md");
 
 // Templates
 export const workflowTemplate = loadTemplate("workflow.md");
@@ -49,6 +53,10 @@ export const prompts = {
   archive: archivePrompt,
   status: statusPrompt,
   tasksXmlSpec: planXmlSpec,
+  discuss: discussPrompt,
+  planWave: planWavePrompt,
+  executeWave: executeWavePrompt,
+  verify: verifyPrompt,
 };
 
 // Export all templates as a map

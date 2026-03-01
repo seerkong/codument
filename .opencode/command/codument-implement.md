@@ -1,3 +1,7 @@
+---
+description: Implement tasks from a track following the workflow
+allowed-tools: All
+---
 # codument implement - 实现命令
 
 **描述：** 执行指定 track 计划中定义的任务
@@ -374,3 +378,9 @@ Statistics:
 Verification Report:
 <详细报告>
 ```
+
+
+The user has requested to implement the following change track. 
+Find the change track and follow the instructions below. 
+If you're not sure or if ambiguous, ask for clarification from the user.
+

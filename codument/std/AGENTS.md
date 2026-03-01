@@ -88,7 +88,15 @@ codument archive <track-id>    # 归档已完成的变更
 
 # 项目管理
 codument init [path]           # 初始化 Codument
+codument upgrade-workspace      # 升级工作区内置标准文件与命令
+codument upgrade-track <id>     # 升级单个 track 到支持波次的新版本
 codument status                # 查看项目状态
+
+# 波次执行命令
+/codument:discuss <track-id>    # 阶段级讨论，生成 context.md
+/codument:plan-wave <track-id>  # 规划波次 DAG，更新 plan.xml
+/codument:execute-wave <track-id> [phase]  # 按波次 DAG 执行任务
+/codument:verify <track-id>     # 独立验证子代理模式
 
 # 调试
 codument show [track] --json
@@ -101,8 +109,6 @@ codument validate [track] --strict
 - `--type track|spec` - 消除歧义
 - `--strict` - 全面验证
 - `--yes`/`-y` - 跳过确认提示
-
-## 目录结构
 
 ## 目录结构
 
@@ -121,8 +127,16 @@ codument/
 │   └── [track-id]/
 │       ├── proposal.md     # 为什么、是什么、影响
 │       ├── spec.md         # 规范增量（ADDED/MODIFIED/REMOVED）
-│       ├── plan.xml       # 结构化任务清单
-│       └── design.md       # 技术决策（可选）
+│       ├── plan.xml        # 结构化任务清单
+│       ├── design.md       # 技术决策（可选）
+│       ├── context.md      # 波次执行上下文（波次模式）
+│       ├── state.md        # 波次执行状态追踪（波次模式）
+│       ├── phases/         # 阶段级产出（波次模式）
+│       │   └── P{n}/
+│       │       └── index.md
+│       └── waves/          # 波次级产出（波次模式）
+│           └── WAVE-P{n}-{序号}/
+│               └── index.md
 └── archive/                # 已完成的变更
     └── YYYY-MM-DD-[id]/
 ```
@@ -194,6 +208,8 @@ codument/
 ```
 
 4. **编写 plan.xml：**
+
+顺序执行模式（默认）：
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <plan>
@@ -211,11 +227,48 @@ codument/
       <goal>搭建认证基础架构</goal>
       <tasks>
         <task id="T1.1" name="创建用户数据模型" status="TODO" priority="P0">
-          定义 User 模型结构并实现基本 CRUD 操作
+          <description>定义 User 模型结构并实现基本 CRUD 操作</description>
           <subtasks>
             <subtask id="T1.1.1" name="编写测试用例" status="TODO"/>
             <subtask id="T1.1.2" name="实现 User 模型" status="TODO"/>
           </subtasks>
+        </task>
+      </tasks>
+    </phase>
+  </phases>
+</plan>
+```
+
+波次执行模式（DAG 并行）：
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<plan>
+  <metadata>
+    <track_id>add-wave-feature</track_id>
+    <track_name>添加波次功能</track_name>
+    <goal>实现波次并行执行</goal>
+    <created_at>2026-01-01</created_at>
+    <status>new</status>
+    <commit_mode>auto</commit_mode>
+    <execution_mode>wave</execution_mode>
+  </metadata>
+
+  <phases>
+    <phase id="P1" name="基础设施">
+      <goal>搭建基础架构</goal>
+      <context_files>
+        <file>src/core/index.ts</file>
+      </context_files>
+      <waves>
+        <wave id="WAVE-P1-01" depends_on=""/>
+        <wave id="WAVE-P1-02" depends_on="WAVE-P1-01"/>
+      </waves>
+      <tasks>
+        <task id="T1.1" name="创建数据模型" status="TODO" priority="P0" wave="WAVE-P1-01">
+          <description>定义模型结构</description>
+        </task>
+        <task id="T1.2" name="创建 API 路由" status="TODO" priority="P0" wave="WAVE-P1-02">
+          <description>实现 REST API</description>
         </task>
       </tasks>
     </phase>
@@ -392,6 +445,8 @@ codument show [track] --json
 - `plan.xml` - 结构化实现步骤
 - `design.md` - 技术决策
 - `spec.md` - 需求和行为
+- `context.md` - 波次执行上下文（波次模式）
+- `state.md` - 波次执行状态追踪（波次模式）
 
 ### CLI 精要
 ```bash
@@ -399,6 +454,12 @@ codument list              # 正在进行什么？
 codument show [item]       # 查看详情
 codument validate --strict # 正确吗？
 codument archive <id>      # 标记完成
+
+# 波次执行
+/codument:discuss <id>      # 阶段讨论
+/codument:plan-wave <id>    # 规划波次 DAG
+/codument:execute-wave <id> # 执行波次
+/codument:verify <id>       # 独立验证
 ```
 
 记住：规范是真相，变更追踪是提案。保持同步。
@@ -462,8 +523,7 @@ Codument 使用三层确认机制确保重要决策得到用户认可：
 
 在创建 track 时：
 1. **spec.md 确认**：展示起草的规范，等待用户确认或修改（使用 **ask-single-question-free**）
-2. **plan.xml 确认**：展示任务计划，等待用户确认或修改（使用 **ask-single-question-free**）
-3. **提交模式确认**：询问用户选择 auto 或 manual 模式（使用 **ask-single-question-closed**）
+2. **plan.xml + 提交模式确认**：在同一轮交互中确认任务计划并选择提交模式（auto/manual）（使用 **ask-single-question-free**）
 
 #### 第二层：阶段/任务确认（可配置）
 
@@ -487,4 +547,3 @@ Codument 使用三层确认机制确保重要决策得到用户认可：
 3. **展示影响**：在确认前展示操作的影响范围
 4. **允许修改**：用户可以要求修改而非简单确认
 5. **记录决策**：重要决策记录在相关文件中
-

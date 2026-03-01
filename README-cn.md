@@ -118,6 +118,28 @@ AI 将引导你完成：
 
 将 track 移动到 `codument/archive/YYYY-MM-DD-add-user-auth/`
 
+## 升级已有工作区
+
+当你的项目已存在 `codument/` 目录，并且你更新了 Codument CLI 版本后，可以用下面的命令将工作区文件升级到最新内置版本：
+
+```bash
+codument upgrade-workspace
+```
+
+该命令会升级 `codument/std/`，并根据 `codument/state.json` 中的 `cli_tools` 重新生成对应 AI CLI 工具的 codument 命令文件。同时会在 `./.tmp/codument/` 下创建备份，便于回滚。
+
+详见 `UPGRADE_WORKSPACE.md`。
+
+## 升级已有 Track
+
+将单个 track（活跃或已归档）升级到支持波次的新 plan.xml 版本：
+
+```bash
+codument upgrade-track <track-id-或-archive-id>
+```
+
+详见 `UPGRADE_TRACK.md`。
+
 ## CLI 命令
 
 | 命令 | 描述 |
@@ -127,6 +149,8 @@ AI 将引导你完成：
 | `codument show <track-id>` | 显示 track 详情 |
 | `codument status` | 显示项目状态概览 |
 | `codument validate [track-id]` | 验证 track 格式 |
+| `codument upgrade-workspace` | 升级当前工作区的 Codument 文件 |
+| `codument upgrade-track` | 升级单个 track 到支持波次的新版本 |
 | `codument archive <track-id>` | 归档已完成的 track |
 
 ### 全局选项
@@ -184,7 +208,7 @@ your-project/
       <goal>搭建认证基础架构</goal>
       <tasks>
         <task id="T1.1" name="创建用户模型" status="TODO" priority="P0">
-          定义 User 模型，包含用户名、密码哈希、邮箱
+          <description>定义 User 模型，包含用户名、密码哈希、邮箱</description>
           <acceptance_criteria>
             <criterion id="T1.1-AC1" checked="false">User 模型包含必要字段</criterion>
           </acceptance_criteria>

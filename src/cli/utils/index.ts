@@ -28,7 +28,7 @@ export interface TrackMetadata {
   track_id: string;
   type: 'feature' | 'bug' | 'chore' | 'refactor';
   status: 'new' | 'in_progress' | 'completed' | 'cancelled';
-  commit_mode: 'auto' | 'manual';
+  commit_mode?: 'auto' | 'manual';
   created_at: string;
   updated_at: string;
   description: string;
@@ -44,6 +44,7 @@ export interface TaskSummary {
   todo: number;
   blocked: number;
   commit_mode?: 'auto' | 'manual';
+  execution_mode?: 'wave' | 'sequential';
 }
 
 export interface Track {
@@ -57,6 +58,16 @@ export interface Spec {
   path: string;
   requirements: number;
   scenarios: number;
+}
+
+function getPlanTrackStatus(planPath: string): TrackMetadata['status'] | undefined {
+  try {
+    const content = fs.readFileSync(planPath, 'utf-8');
+    const statusMatch = content.match(/<metadata>[\s\S]*?<status>(new|in_progress|completed|cancelled)<\/status>/);
+    return statusMatch ? statusMatch[1] as TrackMetadata['status'] : undefined;
+  } catch (e) {
+    return undefined;
+  }
 }
 
 /**
@@ -90,6 +101,10 @@ export function getTracks(): Track[] {
         const planPath = path.join(TRACKS_DIR, trackId, 'plan.xml');
         if (fs.existsSync(planPath)) {
           track.taskSummary = parsePlanSummary(planPath);
+          const planStatus = getPlanTrackStatus(planPath);
+          if (planStatus) {
+            track.metadata.status = planStatus;
+          }
         }
 
         tracks.push(track);
@@ -154,6 +169,12 @@ export function parsePlanSummary(planPath: string): TaskSummary | undefined {
       return modeMatch ? modeMatch[1] as 'auto' | 'manual' : undefined;
     };
 
+    // Helper to get execution_mode
+    const getExecutionMode = (): 'wave' | 'sequential' => {
+      const modeMatch = content.match(/<execution_mode>(wave|sequential)<\/execution_mode>/);
+      return modeMatch ? modeMatch[1] as 'wave' | 'sequential' : 'sequential';
+    };
+
     // If summary section exists, use it
     if (content.includes('<summary>')) {
       return {
@@ -166,12 +187,13 @@ export function parsePlanSummary(planPath: string): TaskSummary | undefined {
         todo: getTagValue('todo'),
         blocked: getTagValue('blocked'),
         commit_mode: getCommitMode(),
+        execution_mode: getExecutionMode(),
       };
     }
 
     // Otherwise, compute from task attributes (new format: status in attributes)
     const taskStatusMatches = content.matchAll(/<task[^>]+status="([^"]+)"[^>]*>/g);
-    const subtaskStatusMatches = content.matchAll(/<subtask[^>]+status="([^"]+)"[^>]*\/>/g);
+    const subtaskStatusMatches = content.matchAll(/<subtask\s+[^>]*status="([^"]+)"[^>]*(?:\/>|>)/g);
     const phaseMatches = content.matchAll(/<phase[^>]+id="[^"]+"[^>]*>/g);
 
     let completed = 0;
@@ -207,6 +229,7 @@ export function parsePlanSummary(planPath: string): TaskSummary | undefined {
       todo,
       blocked,
       commit_mode: getCommitMode(),
+      execution_mode: getExecutionMode(),
     };
   } catch (e) {
     return undefined;
@@ -231,6 +254,10 @@ export function getTrack(trackId: string): Track | null {
     const planPath = path.join(trackDir, 'plan.xml');
     if (fs.existsSync(planPath)) {
       track.taskSummary = parsePlanSummary(planPath);
+      const planStatus = getPlanTrackStatus(planPath);
+      if (planStatus) {
+        track.metadata.status = planStatus;
+      }
     }
 
     return track;
@@ -298,7 +325,7 @@ export interface TaskDetail {
   description: string;
   estimated_days?: number;
   commit?: string;
-  dependencies?: string[];
+  wave?: string;
   acceptance_criteria?: { id: string; text: string; checked: boolean }[];
   subtasks?: SubtaskDetail[];
 }
@@ -308,6 +335,13 @@ export interface SubtaskDetail {
   name: string;
   status: 'TODO' | 'IN_PROGRESS' | 'DONE' | 'BLOCKED' | 'CANCELLED';
   estimated_hours?: number;
+  detail_ref?: string;
+  children?: SubtaskDetail[];
+}
+
+export interface WaveInfo {
+  id: string;
+  depends_on: string[];
 }
 
 export interface PhaseDetail {
@@ -318,6 +352,197 @@ export interface PhaseDetail {
   estimated_days?: number;
   tasks: TaskDetail[];
   gate_criteria?: string[];
+  waves?: WaveInfo[];
+  context_files?: string[];
+}
+
+interface ParsedSubtaskNode {
+  attrs: string;
+  innerContent?: string;
+}
+
+function findFirstBalancedTag(
+  content: string,
+  tagName: string,
+): { start: number; end: number; inner: string } | undefined {
+  const openTag = `<${tagName}>`;
+  const closeTag = `</${tagName}>`;
+
+  const start = content.indexOf(openTag);
+  if (start === -1) {
+    return undefined;
+  }
+
+  let depth = 1;
+  let cursor = start + openTag.length;
+
+  while (depth > 0) {
+    const nextOpen = content.indexOf(openTag, cursor);
+    const nextClose = content.indexOf(closeTag, cursor);
+
+    if (nextClose === -1) {
+      return undefined;
+    }
+
+    if (nextOpen !== -1 && nextOpen < nextClose) {
+      depth++;
+      cursor = nextOpen + openTag.length;
+      continue;
+    }
+
+    depth--;
+    if (depth === 0) {
+      const closeEnd = nextClose + closeTag.length;
+      return {
+        start,
+        end: closeEnd,
+        inner: content.slice(start + openTag.length, nextClose),
+      };
+    }
+
+    cursor = nextClose + closeTag.length;
+  }
+
+  return undefined;
+}
+
+function parseSubtaskNodes(subtasksContent: string): ParsedSubtaskNode[] {
+  const nodes: ParsedSubtaskNode[] = [];
+  let cursor = 0;
+
+  const findNextSubtaskOpen = (from: number): number => {
+    let idx = subtasksContent.indexOf('<subtask', from);
+    while (idx !== -1) {
+      const nextChar = subtasksContent[idx + '<subtask'.length];
+      if (nextChar === ' ' || nextChar === '\t' || nextChar === '\n' || nextChar === '\r') {
+        return idx;
+      }
+      idx = subtasksContent.indexOf('<subtask', idx + 1);
+    }
+    return -1;
+  };
+
+  while (true) {
+    const openIdx = findNextSubtaskOpen(cursor);
+    if (openIdx === -1) {
+      break;
+    }
+
+    const tagEndIdx = subtasksContent.indexOf('>', openIdx);
+    if (tagEndIdx === -1) {
+      break;
+    }
+
+    const openingTag = subtasksContent.slice(openIdx, tagEndIdx + 1);
+    const attrsMatch = openingTag.match(/<subtask\s+([^>]*?)(?:\/)?\s*>/);
+    const attrs = attrsMatch ? attrsMatch[1] : '';
+    const selfClosing = /\/\s*>$/.test(openingTag);
+
+    if (selfClosing) {
+      nodes.push({ attrs });
+      cursor = tagEndIdx + 1;
+      continue;
+    }
+
+    let depth = 1;
+    let searchFrom = tagEndIdx + 1;
+    let closeIdx = -1;
+
+    while (depth > 0) {
+      const nextOpen = findNextSubtaskOpen(searchFrom);
+      const nextClose = subtasksContent.indexOf('</subtask>', searchFrom);
+
+      if (nextClose === -1) {
+        break;
+      }
+
+      if (nextOpen !== -1 && nextOpen < nextClose) {
+        const nextOpenEnd = subtasksContent.indexOf('>', nextOpen);
+        if (nextOpenEnd === -1) {
+          break;
+        }
+
+        const nextOpenTag = subtasksContent.slice(nextOpen, nextOpenEnd + 1);
+        const nextSelfClosing = /\/\s*>$/.test(nextOpenTag);
+        if (!nextSelfClosing) {
+          depth++;
+        }
+
+        searchFrom = nextOpenEnd + 1;
+        continue;
+      }
+
+      depth--;
+      closeIdx = nextClose;
+      searchFrom = nextClose + '</subtask>'.length;
+    }
+
+    if (closeIdx === -1 || depth !== 0) {
+      cursor = tagEndIdx + 1;
+      continue;
+    }
+
+    nodes.push({
+      attrs,
+      innerContent: subtasksContent.slice(tagEndIdx + 1, closeIdx),
+    });
+
+    cursor = closeIdx + '</subtask>'.length;
+  }
+
+  return nodes;
+}
+
+/**
+ * Recursively parse subtasks (supports both self-closing and open/close tags)
+ */
+function parseSubtasks(subtasksContent: string): SubtaskDetail[] {
+  const results: SubtaskDetail[] = [];
+
+  const subtaskNodes = parseSubtaskNodes(subtasksContent);
+
+  for (const node of subtaskNodes) {
+    const attrs = node.attrs;
+    const innerContent = node.innerContent; // undefined for self-closing
+
+    const id = attrs.match(/id="([^"]+)"/)?.[1] ?? '';
+    const name = attrs.match(/name="([^"]+)"/)?.[1] ?? '';
+    const status = attrs.match(/status="([^"]+)"/)?.[1] ?? 'TODO';
+    const estHours = attrs.match(/estimated_hours="(\d+)"/)?.[1];
+
+    const subtask: SubtaskDetail = {
+      id,
+      name,
+      status: status as SubtaskDetail['status'],
+      estimated_hours: estHours ? parseInt(estHours, 10) : undefined,
+    };
+
+    if (innerContent) {
+      // Extract nested subtasks (balanced)
+      const nestedSubtasksTag = findFirstBalancedTag(innerContent, 'subtasks');
+
+      // Extract detail_ref from current level (exclude nested subtasks content)
+      const detailRefSearchContent = nestedSubtasksTag
+        ? innerContent.slice(0, nestedSubtasksTag.start) + innerContent.slice(nestedSubtasksTag.end)
+        : innerContent;
+      const detailRefMatch = detailRefSearchContent.match(/<detail_ref>([^<]+)<\/detail_ref>/);
+      if (detailRefMatch) {
+        subtask.detail_ref = detailRefMatch[1].trim();
+      }
+
+      // Recursively parse nested subtasks
+      if (nestedSubtasksTag) {
+        const children = parseSubtasks(nestedSubtasksTag.inner);
+        if (children.length > 0) {
+          subtask.children = children;
+        }
+      }
+    }
+
+    results.push(subtask);
+  }
+
+  return results;
 }
 
 /**
@@ -351,23 +576,53 @@ export function parseTaskDetails(planPath: string): PhaseDetail[] {
         gate_criteria = [...criterionMatches].map(m => m[1].trim());
       }
 
+      // Extract waves DAG
+      const wavesMatch = phaseContent.match(/<waves>([\s\S]*?)<\/waves>/);
+      let waves: WaveInfo[] | undefined;
+      if (wavesMatch) {
+        const waveMatches = wavesMatch[1].matchAll(/<wave\s+id="([^"]+)"(?:\s+depends_on="([^"]*)")?[^/]*\/>/g);
+        waves = [...waveMatches].map(m => ({
+          id: m[1],
+          depends_on: m[2] ? m[2].split(',').map(d => d.trim()).filter(Boolean) : [],
+        }));
+      }
+
+      // Extract context_files
+      const ctxMatch = phaseContent.match(/<context_files>([\s\S]*?)<\/context_files>/);
+      let context_files: string[] | undefined;
+      if (ctxMatch) {
+        const fileMatches = ctxMatch[1].matchAll(/<file>([^<]+)<\/file>/g);
+        context_files = [...fileMatches].map(m => m[1].trim());
+      }
+
       // Parse tasks
       const tasks: TaskDetail[] = [];
-      const taskRegex = /<task\s+id="([^"]+)"\s+name="([^"]+)"\s+status="([^"]+)"\s+priority="([^"]+)"(?:[^>]*)>([\s\S]*?)<\/task>/g;
+      const taskRegex = /<task\s+([^>]+)>([\s\S]*?)<\/task>/g;
       let taskMatch;
 
       while ((taskMatch = taskRegex.exec(phaseContent)) !== null) {
-        const [, taskId, taskName, taskStatus, taskPriority, taskContent] = taskMatch;
+        const [, taskAttrs, taskContent] = taskMatch;
 
-        // Extract description (text content before first child element)
-        const descMatch = taskContent.match(/^\s*([^<]+)/);
-        const description = descMatch ? descMatch[1].trim() : '';
+        // Extract task attributes
+        const taskId = taskAttrs.match(/id="([^"]+)"/)?.[1] ?? '';
+        const taskName = taskAttrs.match(/name="([^"]+)"/)?.[1] ?? '';
+        const taskStatus = taskAttrs.match(/status="([^"]+)"/)?.[1] ?? 'TODO';
+        const taskPriority = taskAttrs.match(/priority="([^"]+)"/)?.[1] ?? 'P2';
+        const taskWave = taskAttrs.match(/wave="([^"]+)"/)?.[1];
+        const commitAttr = taskAttrs.match(/commit="([^"]+)"/)?.[1];
+        const estDaysAttr = taskAttrs.match(/estimated_days="([^"]+)"/)?.[1];
 
-        // Extract dependencies
-        const depsMatch = taskContent.match(/<dependencies>([^<]*)<\/dependencies>/);
-        const dependencies = depsMatch && depsMatch[1].trim()
-          ? depsMatch[1].trim().split(',').map(d => d.trim())
-          : undefined;
+        // Extract description
+        // Preferred: <description>...</description>
+        // Backward-compatible: raw text content before first child element
+        const descriptionTagMatch = taskContent.match(/<description>([\s\S]*?)<\/description>/);
+        let description = '';
+        if (descriptionTagMatch) {
+          description = descriptionTagMatch[1].trim();
+        } else {
+          const descMatch = taskContent.match(/^\s*([^<]+)/);
+          description = descMatch ? descMatch[1].trim() : '';
+        }
 
         // Extract acceptance criteria
         const acMatch = taskContent.match(/<acceptance_criteria>([\s\S]*?)<\/acceptance_criteria>/);
@@ -381,26 +636,16 @@ export function parseTaskDetails(planPath: string): PhaseDetail[] {
           }));
         }
 
-        // Extract subtasks
-        const subtasksMatch = taskContent.match(/<subtasks>([\s\S]*?)<\/subtasks>/);
+        // Extract subtasks (use balanced matching for nested subtasks)
+        const subtasksStartIdx = taskContent.indexOf('<subtasks>');
         let subtasks: SubtaskDetail[] | undefined;
-        if (subtasksMatch) {
-          const subtaskMatches = subtasksMatch[1].matchAll(/<subtask\s+id="([^"]+)"\s+name="([^"]+)"\s+status="([^"]+)"(?:\s+estimated_hours="(\d+)")?[^/]*\/>/g);
-          subtasks = [...subtaskMatches].map(m => ({
-            id: m[1],
-            name: m[2],
-            status: m[3] as SubtaskDetail['status'],
-            estimated_hours: m[4] ? parseInt(m[4], 10) : undefined,
-          }));
+        if (subtasksStartIdx !== -1) {
+          const subtasksEndIdx = taskContent.lastIndexOf('</subtasks>');
+          if (subtasksEndIdx > subtasksStartIdx) {
+            const subtasksInner = taskContent.slice(subtasksStartIdx + '<subtasks>'.length, subtasksEndIdx);
+            subtasks = parseSubtasks(subtasksInner);
+          }
         }
-
-        // Extract commit SHA
-        const commitMatch = taskContent.match(/commit="([^"]+)"/);
-        const commit = commitMatch ? commitMatch[1] : undefined;
-
-        // Extract estimated_days from task attributes
-        const taskEstMatch = taskContent.match(/estimated_days="(\d+)"/);
-        const taskEstDays = taskEstMatch ? parseInt(taskEstMatch[1], 10) : undefined;
 
         tasks.push({
           id: taskId,
@@ -408,9 +653,9 @@ export function parseTaskDetails(planPath: string): PhaseDetail[] {
           status: taskStatus as TaskDetail['status'],
           priority: taskPriority as TaskDetail['priority'],
           description,
-          estimated_days: taskEstDays,
-          commit,
-          dependencies,
+          estimated_days: estDaysAttr ? parseInt(estDaysAttr, 10) : undefined,
+          commit: commitAttr,
+          wave: taskWave,
           acceptance_criteria,
           subtasks,
         });
@@ -424,6 +669,8 @@ export function parseTaskDetails(planPath: string): PhaseDetail[] {
         estimated_days,
         tasks,
         gate_criteria,
+        waves,
+        context_files,
       });
     }
 
@@ -458,5 +705,18 @@ export function getCommitMode(planPath: string): 'auto' | 'manual' | null {
     return modeMatch ? modeMatch[1] as 'auto' | 'manual' : null;
   } catch (e) {
     return null;
+  }
+}
+
+/**
+ * Get execution mode from plan.xml (defaults to 'sequential')
+ */
+export function getExecutionMode(planPath: string): 'wave' | 'sequential' {
+  try {
+    const content = fs.readFileSync(planPath, 'utf-8');
+    const modeMatch = content.match(/<execution_mode>(wave|sequential)<\/execution_mode>/);
+    return modeMatch ? modeMatch[1] as 'wave' | 'sequential' : 'sequential';
+  } catch (e) {
+    return 'sequential';
   }
 }

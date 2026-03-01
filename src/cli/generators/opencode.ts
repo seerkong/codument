@@ -8,7 +8,9 @@ import * as path from 'path';
 import {
   initPrompt, trackPrompt,
   implementPrompt, validatePrompt,
-  archivePrompt, statusPrompt
+  archivePrompt, statusPrompt,
+  discussPrompt, planWavePrompt, executeWavePrompt,
+  verifyPrompt
 } from '../../prompts'
 
 const OPENCODE_COMMANDS_DIR = '.opencode/command';
@@ -86,6 +88,46 @@ allowed-tools: All
 ---
 
 ${statusPrompt}
+`,
+  },
+  'codument-discuss': {
+    description: 'Discuss a phase for wave execution planning',
+    content: `---
+description: Discuss a phase for wave execution planning
+allowed-tools: All
+---
+${discussPrompt}
+
+`,
+  },
+  'codument-plan-wave': {
+    description: 'Plan wave DAG for a track phase',
+    content: `---
+description: Plan wave DAG for a track phase
+allowed-tools: All
+---
+${planWavePrompt}
+
+`,
+  },
+  'codument-execute-wave': {
+    description: 'Execute tasks by wave DAG scheduling',
+    content: `---
+description: Execute tasks by wave DAG scheduling
+allowed-tools: All
+---
+${executeWavePrompt}
+
+`,
+  },
+  'codument-verify': {
+    description: 'Verify implementation with independent validation mode',
+    content: `---
+description: Verify implementation with independent validation mode
+allowed-tools: All
+---
+${verifyPrompt}
+
 `,
   },
 };

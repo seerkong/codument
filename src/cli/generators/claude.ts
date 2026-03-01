@@ -8,7 +8,9 @@ import * as path from 'path';
 import {
   initPrompt, trackPrompt,
   implementPrompt, validatePrompt,
-  archivePrompt, statusPrompt
+  archivePrompt, statusPrompt,
+  discussPrompt, planWavePrompt, executeWavePrompt,
+  verifyPrompt
 } from '../../prompts'
 
 const CLAUDE_COMMANDS_DIR = '.claude/commands/codument';
@@ -82,6 +84,54 @@ allowed-tools: Read, Bash, Glob
 ---
 
 ${statusPrompt}
+`,
+  },
+  discuss: {
+    description: 'Discuss a phase for wave execution planning',
+    content: `---
+description: Discuss a phase for wave execution planning
+allowed-tools: Read, Write, Edit, Bash, Glob, Grep
+---
+
+$ARGUMENTS
+
+${discussPrompt}
+`,
+  },
+  'plan-wave': {
+    description: 'Plan wave DAG for a track phase',
+    content: `---
+description: Plan wave DAG for a track phase
+allowed-tools: Read, Write, Edit, Bash, Glob, Grep
+---
+
+$ARGUMENTS
+
+${planWavePrompt}
+`,
+  },
+  'execute-wave': {
+    description: 'Execute tasks by wave DAG scheduling',
+    content: `---
+description: Execute tasks by wave DAG scheduling
+allowed-tools: Read, Write, Edit, Bash, Glob, Grep
+---
+
+$ARGUMENTS
+
+${executeWavePrompt}
+`,
+  },
+  verify: {
+    description: 'Verify implementation with independent validation mode',
+    content: `---
+description: Verify implementation with independent validation mode
+allowed-tools: Read, Bash, Glob, Grep
+---
+
+$ARGUMENTS
+
+${verifyPrompt}
 `,
   },
 };

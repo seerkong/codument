@@ -118,6 +118,28 @@ Follow the workflow:
 
 Moves the track to `codument/archive/YYYY-MM-DD-add-user-auth/`
 
+## Upgrade An Existing Workspace
+
+If your project already has a `codument/` folder and you updated the Codument CLI, you can upgrade the workspace files to the latest embedded versions:
+
+```bash
+codument upgrade-workspace
+```
+
+This updates `codument/std/` and regenerates assistant command files for the CLI tools listed in `codument/state.json` (`cli_tools`). It also creates a rollback backup under `./.tmp/codument/`.
+
+See `UPGRADE_WORKSPACE.md` for details.
+
+## Upgrade An Existing Track
+
+To upgrade a single existing track (active or archived) to the latest plan.xml conventions that support wave execution:
+
+```bash
+codument upgrade-track <track-id-or-archive-id>
+```
+
+See `UPGRADE_TRACK.md` for details.
+
 ## CLI Commands
 
 | Command | Description |
@@ -127,6 +149,8 @@ Moves the track to `codument/archive/YYYY-MM-DD-add-user-auth/`
 | `codument show <track-id>` | Show track details |
 | `codument status` | Show project status overview |
 | `codument validate [track-id]` | Validate track format |
+| `codument upgrade-workspace` | Upgrade workspace Codument files |
+| `codument upgrade-track` | Upgrade a track plan.xml to wave-capable format |
 | `codument archive <track-id>` | Archive a completed track |
 
 ### Global Options
@@ -184,7 +208,7 @@ your-project/
       <goal>Set up authentication infrastructure</goal>
       <tasks>
         <task id="T1.1" name="Create User Model" status="TODO" priority="P0">
-          Define User model with username, password hash, email
+          <description>Define User model with username, password hash, email</description>
           <acceptance_criteria>
             <criterion id="T1.1-AC1" checked="false">User model has required fields</criterion>
           </acceptance_criteria>

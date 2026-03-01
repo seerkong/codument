@@ -96,6 +96,7 @@ jspm_packages/
 # Temporary folders
 tmp/
 temp/
+.tmp/
 
 # Editor directories and files
 .vscode/*

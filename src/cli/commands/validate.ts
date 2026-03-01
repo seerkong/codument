@@ -178,14 +178,182 @@ function validateTrack(trackId: string, strict: boolean): ValidationResult {
       errors.push({ file: 'plan.xml', message: 'Missing <phases> section' });
     }
 
-    const invalidMetadataStatuses = content.match(/<metadata>[\s\S]*?<status>(?!new|in_progress|completed|cancelled)[^<]+<\/status>/g);
-    if (invalidMetadataStatuses) {
-      errors.push({ file: 'plan.xml', message: 'Invalid metadata status values found' });
+    const metadataBlockMatch = content.match(/<metadata>([\s\S]*?)<\/metadata>/);
+    if (metadataBlockMatch) {
+      const metadataStatus = metadataBlockMatch[1].match(/<status>([^<]+)<\/status>/)?.[1]?.trim();
+      if (metadataStatus) {
+        const validMetadataStatuses = new Set(['new', 'in_progress', 'completed', 'cancelled']);
+        if (!validMetadataStatuses.has(metadataStatus)) {
+          errors.push({
+            file: 'plan.xml',
+            message: `Invalid metadata status value: ${metadataStatus}`,
+          });
+        }
+      }
     }
 
-    const invalidTaskStatuses = content.match(/<(?:task|subtask)[^>]*\sstatus="(?!TODO|IN_PROGRESS|DONE|BLOCKED|CANCELLED)[^"]+"[^>]*>/g);
-    if (invalidTaskStatuses) {
-      errors.push({ file: 'plan.xml', message: 'Invalid task status values found' });
+    const taskStatusMatches = [...content.matchAll(/<(?:task|subtask)[^>]*\sstatus="([^"]+)"[^>]*>/g)];
+    const validTaskStatuses = new Set(['TODO', 'IN_PROGRESS', 'DONE', 'BLOCKED', 'CANCELLED']);
+    const invalidTaskStatuses = taskStatusMatches
+      .map((m) => m[1])
+      .filter((status) => !validTaskStatuses.has(status));
+    if (invalidTaskStatuses.length > 0) {
+      errors.push({
+        file: 'plan.xml',
+        message: `Invalid task status values found: ${[...new Set(invalidTaskStatuses)].join(', ')}`,
+      });
+    }
+
+    // Validate detail_ref targets
+    const detailRefMatches = content.matchAll(/<detail_ref>([^<]+)<\/detail_ref>/g);
+    for (const match of detailRefMatches) {
+      const detailRefPath = match[1].trim();
+      const absolutePath = path.join(trackDir, detailRefPath);
+      if (!fs.existsSync(absolutePath)) {
+        errors.push({
+          file: 'plan.xml',
+          message: `detail_ref file not found: ${detailRefPath}`,
+        });
+      }
+    }
+
+    // Wave mode validation
+    const modeMatch = content.match(/<execution_mode>([^<]+)<\/execution_mode>/);
+    let executionMode: 'wave' | 'sequential' = 'sequential';
+    if (modeMatch) {
+      const rawMode = modeMatch[1].trim();
+      if (rawMode === 'wave' || rawMode === 'sequential') {
+        executionMode = rawMode;
+      } else {
+        errors.push({
+          file: 'plan.xml',
+          message: `Invalid execution_mode value: ${rawMode}`,
+        });
+      }
+    }
+
+    if (executionMode === 'wave') {
+      const phaseRegex = /<phase\s+id="([^"]+)"[^>]*>([\s\S]*?)<\/phase>/g;
+      let phaseMatch;
+
+      while ((phaseMatch = phaseRegex.exec(content)) !== null) {
+        const phaseId = phaseMatch[1];
+        const phaseContent = phaseMatch[2];
+
+        const wavesMatch = phaseContent.match(/<waves>([\s\S]*?)<\/waves>/);
+        if (!wavesMatch) {
+          errors.push({
+            file: 'plan.xml',
+            message: `Phase ${phaseId} is missing <waves> declaration in wave mode`,
+          });
+          continue;
+        }
+
+        const waveNodes = [...wavesMatch[1].matchAll(/<wave\s+id="([^"]+)"(?:\s+depends_on="([^"]*)")?[^>]*\/>/g)];
+        const waveIds = waveNodes.map((m) => m[1]);
+
+        if (waveIds.length === 0) {
+          errors.push({
+            file: 'plan.xml',
+            message: `Phase ${phaseId} has empty <waves> declaration in wave mode`,
+          });
+          continue;
+        }
+
+        for (const waveId of waveIds) {
+          const waveIdPattern = new RegExp(`^WAVE-${phaseId}-\\d{2}$`);
+          if (!waveIdPattern.test(waveId)) {
+            errors.push({
+              file: 'plan.xml',
+              message: `Phase ${phaseId} has invalid wave id format: ${waveId}`,
+            });
+          }
+        }
+
+        const duplicateWaves = waveIds.filter((id, idx) => waveIds.indexOf(id) !== idx);
+        if (duplicateWaves.length > 0) {
+          errors.push({
+            file: 'plan.xml',
+            message: `Phase ${phaseId} contains duplicate wave ids: ${[...new Set(duplicateWaves)].join(', ')}`,
+          });
+        }
+
+        const adjacency = new Map<string, string[]>();
+        const indegree = new Map<string, number>();
+        for (const waveId of waveIds) {
+          adjacency.set(waveId, []);
+          indegree.set(waveId, 0);
+        }
+
+        for (const node of waveNodes) {
+          const currentWaveId = node[1];
+          const dependsRaw = node[2] || '';
+          const dependsOn = dependsRaw.split(',').map(d => d.trim()).filter(Boolean);
+
+          for (const dep of dependsOn) {
+            if (!waveIds.includes(dep)) {
+              errors.push({
+                file: 'plan.xml',
+                message: `Phase ${phaseId} wave ${currentWaveId} depends_on unknown wave: ${dep}`,
+              });
+              continue;
+            }
+
+            adjacency.get(dep)!.push(currentWaveId);
+            indegree.set(currentWaveId, (indegree.get(currentWaveId) || 0) + 1);
+          }
+        }
+
+        const queue: string[] = [];
+        for (const [waveId, degree] of indegree.entries()) {
+          if (degree === 0) {
+            queue.push(waveId);
+          }
+        }
+
+        let visited = 0;
+        while (queue.length > 0) {
+          const current = queue.shift()!;
+          visited++;
+
+          for (const next of adjacency.get(current) || []) {
+            const nextDegree = (indegree.get(next) || 0) - 1;
+            indegree.set(next, nextDegree);
+            if (nextDegree === 0) {
+              queue.push(next);
+            }
+          }
+        }
+
+        if (visited !== waveIds.length) {
+          errors.push({
+            file: 'plan.xml',
+            message: `Phase ${phaseId} waves contain a cycle (not a valid DAG)`,
+          });
+        }
+
+        const taskMatches = phaseContent.matchAll(/<task\s+([^>]+)>/g);
+        for (const taskMatch of taskMatches) {
+          const attrs = taskMatch[1];
+          const taskId = attrs.match(/id="([^"]+)"/)?.[1] || '(unknown task)';
+          const taskWave = attrs.match(/wave="([^"]+)"/)?.[1];
+
+          if (!taskWave) {
+            errors.push({
+              file: 'plan.xml',
+              message: `Task ${taskId} in phase ${phaseId} is missing wave attribute in wave mode`,
+            });
+            continue;
+          }
+
+          if (!waveIds.includes(taskWave)) {
+            errors.push({
+              file: 'plan.xml',
+              message: `Task ${taskId} in phase ${phaseId} references unknown wave: ${taskWave}`,
+            });
+          }
+        }
+      }
     }
   }
 

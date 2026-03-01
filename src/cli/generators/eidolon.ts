@@ -9,7 +9,9 @@ import * as path from 'path';
 import {
   initPrompt, trackPrompt,
   implementPrompt, validatePrompt,
-  archivePrompt, statusPrompt
+  archivePrompt, statusPrompt,
+  discussPrompt, planWavePrompt, executeWavePrompt,
+  verifyPrompt
 } from '../../prompts'
 
 const EIDOLON_COMMANDS_DIR = '.eidolon/commands/codument';
@@ -53,6 +55,34 @@ ${archivePrompt}
   status: {
     description: 'Show project status overview',
     prompt: `${statusPrompt}`,
+  },
+  discuss: {
+    description: 'Discuss a phase for wave execution planning',
+    prompt: `{{args}}
+
+${discussPrompt}
+`,
+  },
+  'plan-wave': {
+    description: 'Plan wave DAG for a track phase',
+    prompt: `{{args}}
+
+${planWavePrompt}
+`,
+  },
+  'execute-wave': {
+    description: 'Execute tasks by wave DAG scheduling',
+    prompt: `{{args}}
+
+${executeWavePrompt}
+`,
+  },
+  verify: {
+    description: 'Verify implementation with independent validation mode',
+    prompt: `{{args}}
+
+${verifyPrompt}
+`,
   },
 };
 

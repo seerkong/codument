@@ -1,3 +1,7 @@
+---
+description: Create a new change track for a feature or bug fix
+allowed-tools: All
+---
 # codument track - 创建变更追踪命令
 
 **描述：** 规划变更追踪，生成规范文档和结构化任务清单
@@ -260,3 +264,7 @@
    > "新 track '<track_id>' 已创建并添加到 tracks 文件。
    > 提交模式：<auto|manual>
    > 你现在可以运行 `/codument:implement` 开始实现。"
+
+
+The user has requested the following change track.
+

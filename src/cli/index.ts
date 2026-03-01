@@ -6,6 +6,8 @@ import { validateCommand } from './commands/validate';
 import { statusCommand } from './commands/status';
 import { initCommand } from './commands/init';
 import { archiveCommand } from './commands/archive';
+import { upgradeWorkspaceCommand } from './commands/upgrade-workspace';
+import { upgradeTrackCommand } from './commands/upgrade-track';
 import { setWorkspaceDir } from './utils';
 
 const VERSION = '0.2.0';
@@ -18,6 +20,8 @@ Usage:
 
 Commands:
   init              Initialize Codument in the current project
+  upgrade-workspace  Upgrade workspace Codument files to latest
+  upgrade-track      Upgrade a track plan.xml to wave-capable format
   list              List active tracks or specs
   show [item]       Show details of a track or spec
   validate [item]   Validate track or spec format
@@ -31,6 +35,8 @@ Options:
 
 Examples:
   codument init                          # Initialize Codument with CLI tool selection
+  codument upgrade-workspace             # Upgrade codument/std + assistant commands
+  codument upgrade-track add-user-auth    # Upgrade a track to wave-capable format
   codument list                          # List active tracks
   codument list --specs                  # List specifications
   codument show add-user-auth            # Show track details
@@ -92,6 +98,12 @@ async function main() {
         break;
       case 'status':
         await statusCommand(commandArgs);
+        break;
+      case 'upgrade-workspace':
+        await upgradeWorkspaceCommand(commandArgs);
+        break;
+      case 'upgrade-track':
+        await upgradeTrackCommand(commandArgs);
         break;
       default:
         console.error(`Unknown command: ${command}`);

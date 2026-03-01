@@ -8,7 +8,9 @@ import * as path from 'path';
 import {
   initPrompt, trackPrompt,
   implementPrompt, validatePrompt,
-  archivePrompt, statusPrompt
+  archivePrompt, statusPrompt,
+  discussPrompt, planWavePrompt, executeWavePrompt,
+  verifyPrompt
 } from '../../prompts'
 
 // Project-level prompts directory
@@ -59,6 +61,38 @@ ${archivePrompt}
     description: 'Show project status overview',
     argumentHint: '',
     content: `${statusPrompt}`,
+  },
+  'codument-discuss': {
+    description: 'Discuss a phase for wave execution planning',
+    argumentHint: '<track-id>',
+    content: `$ARGUMENTS
+
+${discussPrompt}
+`,
+  },
+  'codument-plan-wave': {
+    description: 'Plan wave DAG for a track phase',
+    argumentHint: '<track-id>',
+    content: `$ARGUMENTS
+
+${planWavePrompt}
+`,
+  },
+  'codument-execute-wave': {
+    description: 'Execute tasks by wave DAG scheduling',
+    argumentHint: '<track-id> [phase]',
+    content: `$ARGUMENTS
+
+${executeWavePrompt}
+`,
+  },
+  'codument-verify': {
+    description: 'Verify implementation with independent validation mode',
+    argumentHint: '<track-id> [phase|wave]',
+    content: `$ARGUMENTS
+
+${verifyPrompt}
+`,
   },
 };
 
