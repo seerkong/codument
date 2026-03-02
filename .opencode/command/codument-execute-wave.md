@@ -27,7 +27,15 @@ allowed-tools: All
 ## 1.2 交互式问答
 
 **协议：验证当前运行的环境对交互式问答的能力支持**
-**重要** 如果当前运行的环境，支持直接向用户提出澄清、确认问题的ToolCall，则需要使用这类ToolCall, 提出下文中等价问题。
+**重要** 若环境支持向用户提出澄清/确认问题的 ToolCall，则在“必须提问”的场景下必须使用 ToolCall。
+
+**必须提问的场景仅包括：**
+- 需要用户选择（如 track 选择模糊、phase 选择）
+- plan.xml 存在 `<confirm protocol="yield-human-confirm" .../>` 且 `when` 包含 `before/after/both`（按协议要求等待确认）
+- 子代理执行失败、抽检失败、DAG 阻塞等失败处理分支（按协议询问重试/跳过/中止）
+
+**禁止提问的场景：**
+- 仅因为环境支持 ToolCall 就在每个 phase 或 wave 边界额外发问
 
 ---
 
@@ -192,9 +200,10 @@ while 存在未完成的 wave:
 1. **生成 phase index.md：**
    写入 `codument/tracks/<track_id>/phases/P{n}/index.md`
 
-2. **阶段门控验证：** 与 implement.md 相同的门控逻辑
+2. **阶段门控验证：** 与 implement.md 相同的门控逻辑（严格触发条件）
    - 检查 gate_criteria
-   - 如果存在 `<confirm>`，执行确认协议
+   - **仅当**该 `<phase>` 下存在 `<confirm protocol="yield-human-confirm" .../>` 或 `<confirm protocol="yield-ai-confirm" .../>` 且 `when` 包含 `after`（或 `both`）时：执行 `codument/std/workflow.md` 的“阶段完成验证协议”，并按 `codument/std/protocols.md` 等待确认完成
+   - **否则：**跳过门控确认步骤，不要提问，并输出提示："当前 phase 未配置 confirm(after/both)，将自动进入下一 phase。"
 
 3. **创建检查点：** auto 模式下 git commit
 

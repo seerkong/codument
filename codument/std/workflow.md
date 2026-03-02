@@ -86,8 +86,8 @@
 
 ### 阶段完成验证协议
 
-**触发器：** 完成某个阶段的最后一个任务后立即执行
-**执行条件：** 仅当该 `<phase>` 下存在 `<confirm protocol="yield-human-confirm" .../>` 或 `<confirm protocol="yield-ai-confirm" .../>` 且 when 包含 `after`（见 `codument/std/protocols.md`）
+**触发器（严格）：** 仅当某个阶段的最后一个任务完成，且该 `<phase>` 下存在 `<confirm protocol="yield-human-confirm" .../>` 或 `<confirm protocol="yield-ai-confirm" .../>` 且 `when` 包含 `after`（或 `both`）时，才执行本协议。
+**否则：** 不要执行本协议，不要等待用户反馈，直接进入下一阶段。
 
 1. **宣布协议开始：** 通知用户阶段已完成，验证和检查点协议开始
 
@@ -107,7 +107,7 @@
    - 生成分步验证计划，包括命令和预期结果
 
 5. **等待用户反馈：**
-   - 请求确认："这是否符合预期？请用 yes 确认或提供反馈。"（使用 **Protocol: ask-single-question-free**）
+   - 请求确认："这是否符合预期？请回复 'yes' 确认，或直接给出需要修改的反馈点。"（必须使用 **ask-single-question-free**；如支持则用 ToolCall 发起该问题）
    - 等待用户响应
 
 6. **创建检查点提交：**
