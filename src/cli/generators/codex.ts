@@ -1,9 +1,10 @@
 /**
  * Codex CLI command generator
- * Generates ~/.codex/prompts/*.md or .codex/prompts/*.md files
+ * Generates ~/.codex/prompts/*.md files
  */
 
 import * as fs from 'fs';
+import * as os from 'os';
 import * as path from 'path';
 import {
   initPrompt, trackPrompt,
@@ -12,50 +13,40 @@ import {
   discussPrompt, planWavePrompt, executeWavePrompt,
   verifyPrompt
 } from '../../prompts'
+import {
+  withLeadingArgs,
+  withTrackRequest,
+  withImplementRequest,
+  withChangeId,
+} from './prompt-builders';
 
-// Project-level prompts directory
-const CODEX_PROMPTS_DIR = '.codex/prompts';
+const CODEX_PROMPTS_DIR = path.join(os.homedir(), '.codex', 'prompts');
 
 const COMMANDS = {
   'codument-init': {
     description: 'Initialize Codument in the current project',
     argumentHint: '[project-name]',
-    content: `$ARGUMENTS
-
-${initPrompt}
-`,
+    content: withLeadingArgs(initPrompt, '$ARGUMENTS'),
   },
   'codument-track': {
     description: 'Create a new change track for a feature or bug fix',
     argumentHint: '[description]',
-    content: `$ARGUMENTS
-
-${trackPrompt}
-`,
+    content: withTrackRequest(trackPrompt, '$ARGUMENTS'),
   },
   'codument-implement': {
     description: 'Implement tasks from a track following the workflow',
     argumentHint: '[track-id]',
-    content: `$ARGUMENTS
-
-${implementPrompt}
-`,
+    content: withImplementRequest(implementPrompt, '$ARGUMENTS'),
   },
   'codument-validate': {
     description: 'Validate track or spec format',
     argumentHint: '[track-id]',
-    content: `$ARGUMENTS
-
-${validatePrompt}
-`,
+    content: withChangeId(validatePrompt, '$ARGUMENTS'),
   },
   'codument-archive': {
     description: 'Archive a completed track',
     argumentHint: '<track-id>',
-    content: `$ARGUMENTS
-
-${archivePrompt}
-`,
+    content: withChangeId(archivePrompt, '$ARGUMENTS'),
   },
   'codument-status': {
     description: 'Show project status overview',
@@ -65,34 +56,22 @@ ${archivePrompt}
   'codument-discuss': {
     description: 'Discuss a phase for wave execution planning',
     argumentHint: '<track-id>',
-    content: `$ARGUMENTS
-
-${discussPrompt}
-`,
+    content: withLeadingArgs(discussPrompt, '$ARGUMENTS'),
   },
   'codument-plan-wave': {
     description: 'Plan wave DAG for a track phase',
     argumentHint: '<track-id>',
-    content: `$ARGUMENTS
-
-${planWavePrompt}
-`,
+    content: withLeadingArgs(planWavePrompt, '$ARGUMENTS'),
   },
   'codument-execute-wave': {
     description: 'Execute tasks by wave DAG scheduling',
     argumentHint: '<track-id> [phase]',
-    content: `$ARGUMENTS
-
-${executeWavePrompt}
-`,
+    content: withLeadingArgs(executeWavePrompt, '$ARGUMENTS'),
   },
   'codument-verify': {
     description: 'Verify implementation with independent validation mode',
     argumentHint: '<track-id> [phase|wave]',
-    content: `$ARGUMENTS
-
-${verifyPrompt}
-`,
+    content: withLeadingArgs(verifyPrompt, '$ARGUMENTS'),
   },
 };
 

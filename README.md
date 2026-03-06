@@ -10,11 +10,11 @@ Codument is a CLI tool that brings structure and traceability to AI-assisted sof
 
 When working with AI coding assistants, it's easy to lose track of what was planned, what's been implemented, and what still needs to be done. Codument solves this by:
 
-- **Structured Planning**: Break down features into phases, tasks, and subtasks
-- **Specification First**: Define requirements in GIVEN/WHEN/THEN format before coding
-- **Progress Tracking**: Track task status (TODO, IN_PROGRESS, DONE, BLOCKED)
-- **Multi-Tool Support**: Works with Claude Code, OpenAI Codex CLI, Gemini CLI, and Eidolon
-- **Git Integration**: Optional auto-commit with Git Notes for full traceability
+- **Structured Planning**: Break down work into phases, tasks, and subtasks in `plan.xml`
+- **Specification First**: Define requirements in `spec.md` before coding
+- **Progress Tracking**: Track TODO / IN_PROGRESS / DONE / BLOCKED status from `plan.xml`
+- **Wave Workflow Support**: Supports discuss / plan-wave / execute-wave / verify command flows
+- **Multi-Tool Support**: Works with Claude Code, OpenAI Codex CLI, Eidolon, Gemini CLI, and OpenCode
 
 ## Features
 
@@ -22,9 +22,10 @@ When working with AI coding assistants, it's easy to lose track of what was plan
 
 Each feature or bug fix is managed as a "track" with:
 - **proposal.md** - Change proposal with background and scope
-- **spec.md** - Behavioral specifications in GIVEN/WHEN/THEN format
-- **tasks.xml** - Hierarchical task breakdown (Phase → Task → Subtask)
-- **metadata.json** - Track metadata and status
+- **spec.md** - Behavioral specifications and requirement deltas
+- **plan.xml** - Phase / task / subtask plan, status, commit mode, and optional wave DAG
+- **metadata.json** - Track metadata and status snapshot
+- **design.md** - Optional technical design
 
 ### Hierarchical Task Management
 
@@ -37,12 +38,13 @@ Track
 
 ### Supported AI CLI Tools
 
-| Tool | Slash Commands |
-|------|----------------|
-| Claude Code | `/codument:init`, `/codument:track`, `/codument:implement`, etc. |
-| OpenAI Codex CLI | `/prompts:codument-init`, `/prompts:codument-track`, etc. |
-| Gemini CLI | `/codument:init`, `/codument:track`, etc. |
-| Eidolon | `/codument:init`, `/codument:track`, etc. |
+| Tool | Generated command location | Typical invocation |
+|------|----------------------------|--------------------|
+| Claude Code | `.claude/commands/codument/` | `/codument:init`, `/codument:track`, `/codument:implement` |
+| OpenAI Codex CLI | `~/.codex/prompts/` | `/prompts:codument-init`, `/prompts:codument-track`, `/prompts:codument-plan-wave` |
+| Eidolon | `.eidolon/commands/codument/` | `/codument:init`, `/codument:track`, `/codument:plan-wave` |
+| Gemini CLI | `.gemini/commands/codument/` | `/codument:init`, `/codument:track`, `/codument:plan-wave` |
+| OpenCode | `.opencode/command/` | Generated from `codument-*.md` command files |
 
 ## Installation
 
@@ -63,10 +65,12 @@ bun install
 # Build the CLI
 bun run build
 
-# The executable will be at dist/codument
-# Optionally, move it to your PATH
-cp dist/codument /usr/local/bin/
+# Optional: install to ~/.local/bin (or CODUMENT_BIN_DIR)
+bun run scripts/install.ts
 ```
+
+After build, the binary is at `dist/codument`.
+The install script places `codument` in `~/.local/bin` by default and prints PATH instructions if needed.
 
 ## Quick Start
 
@@ -79,44 +83,47 @@ codument init
 
 This will:
 - Create the `codument/` directory structure
-- Generate configuration files
-- Create slash commands for your selected AI CLI tools
+- Generate `project.md`, `product.md`, `tech-stack.md`, `tracks.md`, `state.json`
+- Generate `codument/std/` and `codument/workflows/workflow.md`
+- Generate command files only for the AI CLI tools you selected
 
 ### 2. Create a Change Track
 
-Use the slash command in your AI assistant:
+Use the generated command for your selected AI tool.
+Examples:
 
-```
-/codument:track Add user authentication feature
+```text
+Claude / Gemini / Eidolon: /codument:track Add user authentication feature
+Codex: /prompts:codument-track Add user authentication feature
 ```
 
-The AI will guide you through:
+The assistant will guide you through:
 1. Discussing requirements
-2. Creating spec.md with GIVEN/WHEN/THEN scenarios
-3. Breaking down tasks into phases and subtasks
-4. Choosing commit mode (auto/manual)
+2. Creating `spec.md`, `proposal.md`, and `plan.xml`
+3. Breaking down work into phases, tasks, and subtasks
+4. Choosing commit mode (`auto` / `manual`)
 
 ### 3. Implement Tasks
 
-```
-/codument:implement
+```text
+Claude / Gemini / Eidolon: /codument:implement <track-id>
+Codex: /prompts:codument-implement <track-id>
 ```
 
-Follow the workflow:
-1. Pick the next TODO task
-2. Mark as IN_PROGRESS
-3. Write tests (TDD recommended)
-4. Implement the feature
-5. Mark as DONE
-6. Proceed to next task
+For wave-based execution, the generated command set also includes:
+- `discuss`
+- `plan-wave`
+- `execute-wave`
+- `verify`
 
 ### 4. Archive Completed Track
 
-```
-/codument:archive add-user-auth
+```text
+Claude / Gemini / Eidolon: /codument:archive add-user-auth
+Codex: /prompts:codument-archive add-user-auth
 ```
 
-Moves the track to `codument/archive/YYYY-MM-DD-add-user-auth/`
+Moves the track to `codument/archive/YYYY-MM-DD-add-user-auth/`.
 
 ## Upgrade An Existing Workspace
 
@@ -126,7 +133,9 @@ If your project already has a `codument/` folder and you updated the Codument CL
 codument upgrade-workspace
 ```
 
-This updates `codument/std/` and regenerates assistant command files for the CLI tools listed in `codument/state.json` (`cli_tools`). It also creates a rollback backup under `./.tmp/codument/`.
+This updates `codument/std/` and regenerates assistant command files for the CLI tools listed in `codument/state.json` (`cli_tools`).
+For Codex, regenerated prompt files are written to `~/.codex/prompts/`.
+A rollback backup is created under `./.tmp/codument/` by default.
 
 See `UPGRADE_WORKSPACE.md` for details.
 
@@ -144,14 +153,15 @@ See `UPGRADE_TRACK.md` for details.
 
 | Command | Description |
 |---------|-------------|
-| `codument init` | Initialize Codument in the current project |
-| `codument list` | List all active tracks |
-| `codument show <track-id>` | Show track details |
+| `codument init` | Interactively initialize Codument in the current project |
+| `codument list [--specs] [--json]` | List active tracks or specs |
+| `codument show <id> [--type track\|spec] [--json]` | Show track or spec details |
 | `codument status` | Show project status overview |
-| `codument validate [track-id]` | Validate track format |
-| `codument upgrade-workspace` | Upgrade workspace Codument files |
-| `codument upgrade-track` | Upgrade a track plan.xml to wave-capable format |
-| `codument archive <track-id>` | Archive a completed track |
+| `codument validate [id] [--type track\|spec] [--strict]` | Validate tracks or specs |
+| `codument archive <track-id> [--skip-specs] [--yes]` | Archive a completed track |
+| `codument upgrade-workspace [--no-backup] [--backup-dir <path>]` | Upgrade embedded workspace files and assistant commands |
+| `codument upgrade-track <track-id-or-archive-id> [--mode wave\|sequential]` | Upgrade one track to the current `plan.xml` conventions |
+| `codument --help` / `codument --version` | Show help or version |
 
 ### Global Options
 
@@ -163,38 +173,50 @@ See `UPGRADE_TRACK.md` for details.
 
 After initialization:
 
-```
+```text
 your-project/
 ├── codument/
-│   ├── project.md        # Project configuration
-│   ├── product.md        # Product definition
-│   ├── workflow.md       # Workflow guidelines
-│   ├── tech-stack.md     # Technology stack
-│   ├── tracks.md         # Track index
-│   ├── state.json        # Current state
-│   ├── tracks/           # Active tracks
-│   │   └── <track-id>/
+│   ├── project.md
+│   ├── product.md
+│   ├── tech-stack.md
+│   ├── tracks.md
+│   ├── state.json
+│   ├── std/
+│   │   ├── AGENTS.md
+│   │   ├── plan-xml-spec.md
+│   │   ├── workflow.md
+│   │   └── protocols.md
+│   ├── workflows/
+│   │   └── workflow.md
+│   ├── tracks/
+│   │   └── <track-id>/          # Created later by the AI commands
 │   │       ├── proposal.md
 │   │       ├── spec.md
-│   │       ├── tasks.xml
-│   │       └── metadata.json
-│   ├── specs/            # Shared specifications
-│   ├── std/              # Standard specs (immutable)
-│   │   └── tasks-xml-spec.md
-│   └── archive/          # Archived tracks
-├── .claude/commands/codument/     # Claude Code commands
-├── .codex/prompts/                # Codex CLI prompts
-├── .gemini/commands/codument/     # Gemini CLI commands
-├── .eidolon/commands/codument/    # Eidolon commands
-└── AGENTS.md                      # AI agent entry point
+│   │       ├── plan.xml
+│   │       ├── metadata.json
+│   │       ├── design.md        # optional
+│   │       ├── analysis/        # optional planning artifacts
+│   │       ├── context.md       # optional, wave workflow
+│   │       ├── state.md         # optional, wave workflow
+│   │       ├── phases/          # optional, wave workflow
+│   │       └── waves/           # optional, wave workflow
+│   ├── specs/
+│   └── archive/
+├── .claude/commands/codument/    # if Claude Code was selected
+├── .gemini/commands/codument/    # if Gemini CLI was selected
+├── .eidolon/commands/codument/   # if Eidolon was selected
+├── .opencode/command/            # if OpenCode was selected
+├── AGENTS.md
+└── ~/.codex/prompts/             # if Codex CLI was selected
 ```
 
-## tasks.xml Format
+## plan.xml Format
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
-<track change_id="add-user-auth">
+<plan>
   <metadata>
+    <track_id>add-user-auth</track_id>
     <track_name>Add User Authentication</track_name>
     <goal>Implement login and registration</goal>
     <created_at>2026-01-01T10:00:00Z</created_at>
@@ -233,7 +255,7 @@ your-project/
     <todo>1</todo>
     <blocked>0</blocked>
   </summary>
-</track>
+</plan>
 ```
 
 ### Priority Levels
@@ -259,7 +281,7 @@ your-project/
 ### Auto Mode
 - Automatically commits after each task completion
 - Creates checkpoint commits at phase boundaries
-- Attaches Git Notes with change details
+- Whether commits happen automatically depends on the workflow and assistant executing the prompt
 
 ### Manual Mode
 - You control when to commit

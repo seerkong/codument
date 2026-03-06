@@ -13,44 +13,35 @@ import {
   discussPrompt, planWavePrompt, executeWavePrompt,
   verifyPrompt
 } from '../../prompts'
+import {
+  withLeadingArgs,
+  withTrackRequest,
+  withImplementRequest,
+  withChangeId,
+} from './prompt-builders';
 
 const EIDOLON_COMMANDS_DIR = '.eidolon/commands/codument';
 
 const COMMANDS = {
   init: {
     description: 'Initialize Codument in the current project',
-    prompt: `{{args}}
-
-${initPrompt}
-`,
+    prompt: withLeadingArgs(initPrompt, '{{args}}'),
   },
   track: {
     description: 'Create a new change track for a feature or bug fix',
-    prompt: `{{args}}
-
-${trackPrompt}
-`,
+    prompt: withTrackRequest(trackPrompt, '{{args}}'),
   },
   implement: {
     description: 'Implement tasks from a track following the workflow',
-    prompt: `{{args}}
-
-${implementPrompt}
-`,
+    prompt: withImplementRequest(implementPrompt, '{{args}}'),
   },
   validate: {
     description: 'Validate track or spec format',
-    prompt: `{{args}}
-
-${validatePrompt}
-`,
+    prompt: withChangeId(validatePrompt, '{{args}}'),
   },
   archive: {
     description: 'Archive a completed track',
-    prompt: `{{args}}
-
-${archivePrompt}
-`,
+    prompt: withChangeId(archivePrompt, '{{args}}'),
   },
   status: {
     description: 'Show project status overview',
@@ -58,31 +49,19 @@ ${archivePrompt}
   },
   discuss: {
     description: 'Discuss a phase for wave execution planning',
-    prompt: `{{args}}
-
-${discussPrompt}
-`,
+    prompt: withLeadingArgs(discussPrompt, '{{args}}'),
   },
   'plan-wave': {
     description: 'Plan wave DAG for a track phase',
-    prompt: `{{args}}
-
-${planWavePrompt}
-`,
+    prompt: withLeadingArgs(planWavePrompt, '{{args}}'),
   },
   'execute-wave': {
     description: 'Execute tasks by wave DAG scheduling',
-    prompt: `{{args}}
-
-${executeWavePrompt}
-`,
+    prompt: withLeadingArgs(executeWavePrompt, '{{args}}'),
   },
   verify: {
     description: 'Verify implementation with independent validation mode',
-    prompt: `{{args}}
-
-${verifyPrompt}
-`,
+    prompt: withLeadingArgs(verifyPrompt, '{{args}}'),
   },
 };
 

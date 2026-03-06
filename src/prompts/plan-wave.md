@@ -47,8 +47,8 @@
 3. **选择 Track：**
     - **如果提供了名称：**
       - 执行精确、不区分大小写的匹配
-      - 找到唯一匹配时与用户确认（使用 **Protocol: ask-single-question-closed**）
-      - 无匹配或模糊时请求澄清（使用 **Protocol: ask-single-question-free**）
+      - 找到精确且唯一匹配时，直接选择并继续，不需要用户确认
+      - 无匹配或存在多个候选时请求澄清（使用 **Protocol: ask-single-question-free**）
 
    - **如果未提供名称：**
      - 找到"活跃 Tracks"表格中第一个track

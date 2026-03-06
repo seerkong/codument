@@ -193,6 +193,7 @@ plan.xml 的根元素为 `<plan>`。Track 的唯一标识符在 `<metadata><trac
 - **数量限制**：每个 `<phase>` 或 `<task>` 最多一个 `<confirm>`
 - **顺序规则**：若 phase 与 task 同时配置，执行顺序为：phase-before → task-before → task-after → phase-after
 - **重试规则**：若 confirm 未通过（人或 AI），必须修复后重新 review，直至 `status=DONE` 才能继续
+- **默认生成建议**：创建初始 `plan.xml` 时，默认仅在最后一个 `<phase>` 下放置一个 `when="after"` 的 phase 级 `<confirm>`；中间 phase 与 task 默认不放置 `<confirm>`，以减少不必要的暂停
 
 **示例：**
 ```xml

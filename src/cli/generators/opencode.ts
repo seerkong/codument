@@ -12,6 +12,11 @@ import {
   discussPrompt, planWavePrompt, executeWavePrompt,
   verifyPrompt
 } from '../../prompts'
+import {
+  withTrackRequest,
+  withImplementRequest,
+  withChangeId,
+} from './prompt-builders';
 
 const OPENCODE_COMMANDS_DIR = '.opencode/command';
 
@@ -32,9 +37,7 @@ ${initPrompt}
 description: Create a new change track for a feature or bug fix
 allowed-tools: All
 ---
-${trackPrompt}
-
-The user has requested the following change track.
+${withTrackRequest(trackPrompt)}
 
 `,
   },
@@ -44,11 +47,7 @@ The user has requested the following change track.
 description: Implement tasks from a track following the workflow
 allowed-tools: All
 ---
-${implementPrompt}
-
-The user has requested to implement the following change track. 
-Find the change track and follow the instructions below. 
-If you're not sure or if ambiguous, ask for clarification from the user.
+${withImplementRequest(implementPrompt)}
 
 `,
   },
@@ -58,11 +57,7 @@ If you're not sure or if ambiguous, ask for clarification from the user.
 description: Validate track or spec format
 allowed-tools: All
 ---
-${validatePrompt}
-
-<ChangeId>
-  $ARGUMENTS
-</ChangeId>
+${withChangeId(validatePrompt, '$ARGUMENTS')}
 
 `,
   },
@@ -72,11 +67,7 @@ ${validatePrompt}
 description: Archive a completed track
 allowed-tools: All
 ---
-${archivePrompt}
-
-<ChangeId>
-  $ARGUMENTS
-</ChangeId>
+${withChangeId(archivePrompt, '$ARGUMENTS')}
 
 `,
   },

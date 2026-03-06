@@ -12,6 +12,12 @@ import {
   discussPrompt, planWavePrompt, executeWavePrompt,
   verifyPrompt
 } from '../../prompts'
+import {
+  withLeadingArgs,
+  withTrackRequest,
+  withImplementRequest,
+  withChangeId,
+} from './prompt-builders';
 
 const CLAUDE_COMMANDS_DIR = '.claude/commands/codument';
 
@@ -23,9 +29,7 @@ description: Initialize Codument in the current project
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep
 ---
 
-$ARGUMENTS
-
-${initPrompt}
+${withLeadingArgs(initPrompt, '$ARGUMENTS')}
 `,
   },
   track: {
@@ -35,9 +39,7 @@ description: Create a new change track for a feature or bug fix
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep
 ---
 
-$ARGUMENTS
-
-${trackPrompt}
+${withTrackRequest(trackPrompt, '$ARGUMENTS')}
 `,
   },
   implement: {
@@ -47,9 +49,7 @@ description: Implement tasks from a track following the workflow
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep
 ---
 
-$ARGUMENTS
-
-${implementPrompt}
+${withImplementRequest(implementPrompt, '$ARGUMENTS')}
 `,
   },
   validate: {
@@ -59,9 +59,7 @@ description: Validate track or spec format
 allowed-tools: Read, Bash, Glob, Grep
 ---
 
-$ARGUMENTS
-
-${validatePrompt}
+${withChangeId(validatePrompt, '$ARGUMENTS')}
 `,
   },
   archive: {
@@ -71,9 +69,7 @@ description: Archive a completed track
 allowed-tools: Read, Write, Edit, Bash, Glob
 ---
 
-$ARGUMENTS
-
-${archivePrompt}
+${withChangeId(archivePrompt, '$ARGUMENTS')}
 `,
   },
   status: {
@@ -93,9 +89,7 @@ description: Discuss a phase for wave execution planning
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep
 ---
 
-$ARGUMENTS
-
-${discussPrompt}
+${withLeadingArgs(discussPrompt, '$ARGUMENTS')}
 `,
   },
   'plan-wave': {
@@ -105,9 +99,7 @@ description: Plan wave DAG for a track phase
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep
 ---
 
-$ARGUMENTS
-
-${planWavePrompt}
+${withLeadingArgs(planWavePrompt, '$ARGUMENTS')}
 `,
   },
   'execute-wave': {
@@ -117,9 +109,7 @@ description: Execute tasks by wave DAG scheduling
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep
 ---
 
-$ARGUMENTS
-
-${executeWavePrompt}
+${withLeadingArgs(executeWavePrompt, '$ARGUMENTS')}
 `,
   },
   verify: {
@@ -129,9 +119,7 @@ description: Verify implementation with independent validation mode
 allowed-tools: Read, Bash, Glob, Grep
 ---
 
-$ARGUMENTS
-
-${verifyPrompt}
+${withLeadingArgs(verifyPrompt, '$ARGUMENTS')}
 `,
   },
 };

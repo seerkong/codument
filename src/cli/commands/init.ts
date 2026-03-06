@@ -117,8 +117,8 @@ export async function initCommand(args: string[]): Promise<void> {
       { key: '1', label: 'Claude Code', tool: 'claude' as CLITool },
       { key: '2', label: 'OpenAI Codex CLI', tool: 'codex' as CLITool },
       { key: '3', label: 'Eidolon', tool: 'eidolon' as CLITool },
-      { key: '4', label: 'Gemini CLI', tool: 'gemini' as CLITool },
-      { key: '5', label: 'OpenCode', tool: 'opencode' as CLITool },
+      { key: '4', label: 'OpenCode', tool: 'opencode' as CLITool },
+      { key: '5', label: 'Gemini CLI', tool: 'gemini' as CLITool },
     ];
 
     const selectedLabels = await multiSelect(
@@ -182,7 +182,7 @@ export async function initCommand(args: string[]): Promise<void> {
         break;
       case 'codex':
         await generateCodexCommands();
-        console.log('  ✓ 创建 .codex/prompts/*.md');
+        console.log('  ✓ 创建 ~/.codex/prompts/codument-*.md');
         break;
       case 'eidolon':
         await generateEidolonCommands();

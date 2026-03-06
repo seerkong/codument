@@ -13,7 +13,7 @@ It is designed for projects that already have a `codument/` folder and want to p
   - `protocols.md`
 - Assistant command files for the CLI tools selected in `codument/state.json` (`cli_tools`)
   - Claude Code: `.claude/commands/codument/`
-  - Codex CLI: `.codex/prompts/codument-*.md`
+  - Codex CLI: `~/.codex/prompts/codument-*.md`
   - Gemini: `.gemini/commands/codument/`
   - Eidolon: `.eidolon/commands/codument/`
   - OpenCode: `.opencode/command/`
@@ -30,7 +30,7 @@ Before overwriting anything, the command creates a backup under:
 
 `./.tmp/codument/upgrade-workspace-<timestamp>/`
 
-The backup mirrors the original relative paths (for example `codument/std/workflow.md`).
+The backup mirrors the original paths. Workspace files stay under relative workspace paths (for example `codument/std/workflow.md`). Codex prompt backups may appear under a user-home subtree because the source path is `~/.codex/prompts/`.
 
 To rollback, copy the files back from the backup directory to the workspace root. Example:
 

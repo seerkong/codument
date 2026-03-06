@@ -1,4 +1,5 @@
 import * as fs from 'fs';
+import * as os from 'os';
 import * as path from 'path';
 import {
   CODUMENT_DIR,
@@ -116,7 +117,7 @@ export async function upgradeWorkspaceCommand(args: string[]): Promise<void> {
     backupIfExists('.opencode/command', backupRoot, '.opencode/command');
 
     // Codex prompts directory may contain other prompts; backup only codument-*.md
-    const codexDir = '.codex/prompts';
+    const codexDir = path.join(os.homedir(), '.codex', 'prompts');
     if (fs.existsSync(codexDir)) {
       const entries = fs.readdirSync(codexDir, { withFileTypes: true });
       for (const entry of entries) {
@@ -168,7 +169,7 @@ export async function upgradeWorkspaceCommand(args: string[]): Promise<void> {
         break;
       case 'codex':
         await generateCodexCommands();
-        console.log('✓ Upgraded .codex/prompts (codument-*.md)');
+        console.log('✓ Upgraded ~/.codex/prompts (codument-*.md)');
         break;
       case 'gemini':
         await generateGeminiCommands();

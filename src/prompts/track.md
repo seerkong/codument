@@ -334,6 +334,8 @@
     - **关键：** 计划结构必须遵循 workflow.md 中的方法论（如 TDD 的"编写测试"和"实现"任务）
     - 每个任务包含 id、name、priority、status
     - **可配置确认**：如需在阶段或任务执行前/后确认，可在 `<phase>` 或 `<task>` 下添加 `<confirm protocol="yield-human-confirm|yield-ai-confirm" when="before|after|both" [ai-agent] />`（见 `codument/std/protocols.md`）
+    - **默认确认策略（重要）**：默认情况下，仅在**最后一个 phase** 下添加一个 `when="after"` 的 phase 级 `<confirm ... />`；中间 phase 默认**不添加** `<confirm>`，task 默认也**不添加** `<confirm>`
+    - **例外**：只有在用户明确要求、存在高风险发布/迁移/安全检查、或确有必要在关键节点暂停审阅时，才为中间 phase 或 task 添加额外 `<confirm>`
 
 3. **写入文件：**
     - 将执行计划写入 `codument/tracks/<track_id>/plan.xml`

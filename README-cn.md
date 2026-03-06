@@ -10,21 +10,22 @@ Codument 是一个 CLI 工具，为 AI 辅助软件开发带来结构化和可�
 
 在使用 AI 编程助手时，很容易忘记计划了什么、实现了什么、还有什么待完成。Codument 通过以下方式解决这个问题：
 
-- **结构化规划**：将功能分解为阶段、任务和子任务
-- **规范优先**：在编码前用 GIVEN/WHEN/THEN 格式定义需求
-- **进度追踪**：追踪任务状态（TODO、IN_PROGRESS、DONE、BLOCKED）
-- **多工具支持**：支持 Claude Code、OpenAI Codex CLI、Gemini CLI 和 Eidolon
-- **Git 集成**：可选的自动提交和 Git Notes，实现完整的可追溯性
+- **结构化规划**：把工作拆解到 `plan.xml` 的阶段、任务和子任务
+- **规范优先**：先在 `spec.md` 中定义需求，再编码
+- **进度追踪**：从 `plan.xml` 读取 TODO / IN_PROGRESS / DONE / BLOCKED 状态
+- **支持波次工作流**：支持 discuss / plan-wave / execute-wave / verify 命令流
+- **多工具支持**：支持 Claude Code、OpenAI Codex CLI、Eidolon、Gemini CLI 和 OpenCode
 
 ## 功能特性
 
 ### 基于 Track 的工作流
 
-每个功能或 Bug 修复作为一个 "track" 进行管理，包含：
+每个功能或 Bug 修复作为一个 "track" 进行管理，通常包含：
 - **proposal.md** - 变更提案，包含背景和范围
-- **spec.md** - GIVEN/WHEN/THEN 格式的行为规范
-- **tasks.xml** - 层级化任务分解（阶段 → 任务 → 子任务）
-- **metadata.json** - Track 元数据和状态
+- **spec.md** - 行为规范和需求增量
+- **plan.xml** - 阶段 / 任务 / 子任务计划、状态、提交模式以及可选的 wave DAG
+- **metadata.json** - Track 元数据和状态快照
+- **design.md** - 可选的技术设计
 
 ### 层级化任务管理
 
@@ -37,12 +38,13 @@ Track（变更追踪）
 
 ### 支持的 AI CLI 工具
 
-| 工具 | Slash 命令 |
-|------|------------|
-| Claude Code | `/codument:init`、`/codument:track`、`/codument:implement` 等 |
-| OpenAI Codex CLI | `/prompts:codument-init`、`/prompts:codument-track` 等 |
-| Gemini CLI | `/codument:init`、`/codument:track` 等 |
-| Eidolon | `/codument:init`、`/codument:track` 等 |
+| 工具 | 生成位置 | 常见调用方式 |
+|------|----------|----------------|
+| Claude Code | `.claude/commands/codument/` | `/codument:init`、`/codument:track`、`/codument:implement` |
+| OpenAI Codex CLI | `~/.codex/prompts/` | `/prompts:codument-init`、`/prompts:codument-track`、`/prompts:codument-plan-wave` |
+| Eidolon | `.eidolon/commands/codument/` | `/codument:init`、`/codument:track`、`/codument:plan-wave` |
+| Gemini CLI | `.gemini/commands/codument/` | `/codument:init`、`/codument:track`、`/codument:plan-wave` |
+| OpenCode | `.opencode/command/` | 由 `codument-*.md` 生成的命令文件 |
 
 ## 安装
 
@@ -63,10 +65,12 @@ bun install
 # 构建 CLI
 bun run build
 
-# 可执行文件位于 dist/codument
-# 可选：移动到 PATH 路径下
-cp dist/codument /usr/local/bin/
+# 可选：安装到 ~/.local/bin（或自定义 CODUMENT_BIN_DIR）
+bun run scripts/install.ts
 ```
+
+构建后可执行文件位于 `dist/codument`。
+安装脚本默认安装到 `~/.local/bin`，如 PATH 未包含该目录，会打印提示。
 
 ## 快速开始
 
@@ -79,44 +83,46 @@ codument init
 
 这将：
 - 创建 `codument/` 目录结构
-- 生成配置文件
-- 为你选择的 AI CLI 工具创建 slash 命令
+- 生成 `project.md`、`product.md`、`tech-stack.md`、`tracks.md`、`state.json`
+- 生成 `codument/std/` 和 `codument/workflows/workflow.md`
+- 仅为你选择的 AI CLI 工具生成命令文件
 
 ### 2. 创建变更追踪（Track）
 
-在你的 AI 助手中使用 slash 命令：
+使用你所选 AI 工具生成的命令即可，例如：
 
-```
-/codument:track 添加用户认证功能
+```text
+Claude / Gemini / Eidolon：/codument:track 添加用户认证功能
+Codex：/prompts:codument-track 添加用户认证功能
 ```
 
-AI 将引导你完成：
+助手会引导你完成：
 1. 讨论需求
-2. 创建 GIVEN/WHEN/THEN 场景的 spec.md
-3. 将任务分解为阶段和子任务
-4. 选择提交模式（auto/manual）
+2. 创建 `spec.md`、`proposal.md` 和 `plan.xml`
+3. 将工作拆解为阶段、任务和子任务
+4. 选择提交模式（`auto` / `manual`）
 
 ### 3. 实现任务
 
-```
-/codument:implement
+```text
+Claude / Gemini / Eidolon：/codument:implement <track-id>
+Codex：/prompts:codument-implement <track-id>
 ```
 
-按照工作流：
-1. 选择下一个 TODO 任务
-2. 标记为 IN_PROGRESS
-3. 编写测试（推荐 TDD）
-4. 实现功能
-5. 标记为 DONE
-6. 继续下一个任务
+如果采用 wave 工作流，生成的命令集还包括：
+- `discuss`
+- `plan-wave`
+- `execute-wave`
+- `verify`
 
 ### 4. 归档已完成的 Track
 
-```
-/codument:archive add-user-auth
+```text
+Claude / Gemini / Eidolon：/codument:archive add-user-auth
+Codex：/prompts:codument-archive add-user-auth
 ```
 
-将 track 移动到 `codument/archive/YYYY-MM-DD-add-user-auth/`
+将 track 移动到 `codument/archive/YYYY-MM-DD-add-user-auth/`。
 
 ## 升级已有工作区
 
@@ -126,7 +132,9 @@ AI 将引导你完成：
 codument upgrade-workspace
 ```
 
-该命令会升级 `codument/std/`，并根据 `codument/state.json` 中的 `cli_tools` 重新生成对应 AI CLI 工具的 codument 命令文件。同时会在 `./.tmp/codument/` 下创建备份，便于回滚。
+该命令会升级 `codument/std/`，并根据 `codument/state.json` 中的 `cli_tools` 重新生成对应 AI CLI 工具的 codument 命令文件。
+对于 Codex，命令文件会重新生成到 `~/.codex/prompts/`。
+默认会在 `./.tmp/codument/` 下创建回滚备份。
 
 详见 `UPGRADE_WORKSPACE.md`。
 
@@ -144,14 +152,15 @@ codument upgrade-track <track-id-或-archive-id>
 
 | 命令 | 描述 |
 |------|------|
-| `codument init` | 在当前项目初始化 Codument |
-| `codument list` | 列出所有活跃的 track |
-| `codument show <track-id>` | 显示 track 详情 |
+| `codument init` | 交互式初始化当前项目中的 Codument |
+| `codument list [--specs] [--json]` | 列出活跃 track 或 specs |
+| `codument show <id> [--type track\|spec] [--json]` | 显示 track 或 spec 详情 |
 | `codument status` | 显示项目状态概览 |
-| `codument validate [track-id]` | 验证 track 格式 |
-| `codument upgrade-workspace` | 升级当前工作区的 Codument 文件 |
-| `codument upgrade-track` | 升级单个 track 到支持波次的新版本 |
-| `codument archive <track-id>` | 归档已完成的 track |
+| `codument validate [id] [--type track\|spec] [--strict]` | 验证 track 或 spec |
+| `codument archive <track-id> [--skip-specs] [--yes]` | 归档已完成的 track |
+| `codument upgrade-workspace [--no-backup] [--backup-dir <path>]` | 升级内置工作区文件和 AI 命令 |
+| `codument upgrade-track <track-id-or-archive-id> [--mode wave\|sequential]` | 将单个 track 升级到当前 `plan.xml` 约定 |
+| `codument --help` / `codument --version` | 显示帮助或版本号 |
 
 ### 全局选项
 
@@ -163,38 +172,50 @@ codument upgrade-track <track-id-或-archive-id>
 
 初始化后：
 
-```
+```text
 your-project/
 ├── codument/
-│   ├── project.md        # 项目配置
-│   ├── product.md        # 产品定义
-│   ├── workflow.md       # 工作流指南
-│   ├── tech-stack.md     # 技术栈
-│   ├── tracks.md         # Track 索引
-│   ├── state.json        # 当前状态
-│   ├── tracks/           # 活跃的 track
-│   │   └── <track-id>/
+│   ├── project.md
+│   ├── product.md
+│   ├── tech-stack.md
+│   ├── tracks.md
+│   ├── state.json
+│   ├── std/
+│   │   ├── AGENTS.md
+│   │   ├── plan-xml-spec.md
+│   │   ├── workflow.md
+│   │   └── protocols.md
+│   ├── workflows/
+│   │   └── workflow.md
+│   ├── tracks/
+│   │   └── <track-id>/          # 由 AI 命令后续创建
 │   │       ├── proposal.md
 │   │       ├── spec.md
-│   │       ├── tasks.xml
-│   │       └── metadata.json
-│   ├── specs/            # 共享规范
-│   ├── std/              # 标准规范（不可变）
-│   │   └── tasks-xml-spec.md
-│   └── archive/          # 已归档的 track
-├── .claude/commands/codument/     # Claude Code 命令
-├── .codex/prompts/                # Codex CLI 提示词
-├── .gemini/commands/codument/     # Gemini CLI 命令
-├── .eidolon/commands/codument/    # Eidolon 命令
-└── AGENTS.md                      # AI 代理入口文件
+│   │       ├── plan.xml
+│   │       ├── metadata.json
+│   │       ├── design.md        # 可选
+│   │       ├── analysis/        # 可选，规划产物
+│   │       ├── context.md       # 可选，wave 工作流
+│   │       ├── state.md         # 可选，wave 工作流
+│   │       ├── phases/          # 可选，wave 工作流
+│   │       └── waves/           # 可选，wave 工作流
+│   ├── specs/
+│   └── archive/
+├── .claude/commands/codument/    # 选择 Claude Code 时生成
+├── .gemini/commands/codument/    # 选择 Gemini CLI 时生成
+├── .eidolon/commands/codument/   # 选择 Eidolon 时生成
+├── .opencode/command/            # 选择 OpenCode 时生成
+├── AGENTS.md
+└── ~/.codex/prompts/             # 选择 Codex CLI 时生成
 ```
 
-## tasks.xml 格式
+## plan.xml 格式
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
-<track change_id="add-user-auth">
+<plan>
   <metadata>
+    <track_id>add-user-auth</track_id>
     <track_name>添加用户认证</track_name>
     <goal>实现登录和注册功能</goal>
     <created_at>2026-01-01T10:00:00Z</created_at>
@@ -233,7 +254,7 @@ your-project/
     <todo>1</todo>
     <blocked>0</blocked>
   </summary>
-</track>
+</plan>
 ```
 
 ### 优先级
@@ -259,7 +280,7 @@ your-project/
 ### 自动模式（Auto）
 - 每个任务完成后自动提交
 - 阶段边界创建检查点提交
-- 附加 Git Notes 记录变更详情
+- 是否自动提交取决于所选工作流和 AI 助手的执行能力
 
 ### 手动模式（Manual）
 - 由你控制何时提交
@@ -287,8 +308,8 @@ Codument 强制先定义规范再实现代码。通过 GIVEN/WHEN/THEN 格式，
 每个变更都有完整的文档记录：
 - 变更背景和动机（proposal.md）
 - 行为规范（spec.md）
-- 任务分解和进度（tasks.xml）
-- Git 提交历史和 Notes
+- 任务分解和进度（plan.xml）
+- 相关实现记录与状态追踪
 
 ### 3. AI 友好
 
@@ -335,9 +356,9 @@ A: Codument 专门为 AI 辅助开发设计。它：
 
 A: 不需要。在 `codument init` 时选择你实际使用的工具即可。
 
-### Q: tasks.xml 格式是否可以扩展？
+### Q: plan.xml 格式是否可以扩展？
 
-A: 是的。tasks.xml 设计为可扩展格式，你可以添加自定义字段，但不应删除必需字段。
+A: 是的。plan.xml 设计为可扩展格式，你可以添加自定义字段，但不应删除必需字段。
 
 ### Q: 如何处理跨 Track 的依赖？
 

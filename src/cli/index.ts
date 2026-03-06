@@ -1,5 +1,6 @@
 #!/usr/bin/env bun
 import { parseArgs } from 'util';
+import packageJson from '../../package.json';
 import { listCommand } from './commands/list';
 import { showCommand } from './commands/show';
 import { validateCommand } from './commands/validate';
@@ -10,10 +11,10 @@ import { upgradeWorkspaceCommand } from './commands/upgrade-workspace';
 import { upgradeTrackCommand } from './commands/upgrade-track';
 import { setWorkspaceDir } from './utils';
 
-const VERSION = '0.2.0';
+const VERSION = packageJson.version;
 
 const HELP = `
-codument - Spec-driven development tool for AI coding assistants
+codument v${VERSION} - Spec-driven development tool for AI coding assistants
 
 Usage:
   codument <command> [options]
