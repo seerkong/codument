@@ -126,12 +126,12 @@ codument/
 ├── tracks/                 # 变更追踪 - 待实现的变更
 │   └── [track-id]/
 │       ├── analysis/       # 创建/规划阶段 analysis 产物（planning-with-files 外部记忆）
-│       │   ├── task_plan.md   # 分阶段任务拆解/推进清单
-│       │   ├── findings.md    # 关键发现与决策（why/why-not）
-│       │   └── progress.md    # 进展与验证记录（含测试/错误）
+│       │   ├── findings.md    # 分析中直接找到的事实、约束、问题与结论
+│       │   └── knowledge.md   # 阅读后沉淀出的知识上下文、术语与机制理解
 │       ├── proposal.md     # 为什么、是什么、影响
 │       ├── spec.md         # 规范增量（ADDED/MODIFIED/REMOVED）
 │       ├── plan.xml        # 结构化任务清单
+│       ├── decisions.md    # 决策问题、选项、结论与理由（需要决策时创建）
 │       ├── design.md       # 技术决策（可选）
 │       ├── context.md      # 波次执行上下文（波次模式）
 │       ├── state.md        # 波次执行状态追踪（波次模式）
@@ -297,9 +297,9 @@ codument/
 - 目标：[...]
 - 非目标：[...]
 
-## 决策
-- 决策：[是什么以及为什么]
-- 备选方案：[考虑过的选项及理由]
+## 决策摘要
+- 详见 `decisions.md`
+- 已确认的关键决策：[...]
 
 ## 风险 / 权衡
 - [风险] → 缓解措施
@@ -445,10 +445,11 @@ codument show [track] --json
 - `archive/` - 已完成的变更
 
 ### 文件用途
-- `analysis/` - track 创建/规划阶段的持久化上下文（task_plan/findings/progress）；用于记录“上下文理解 / 发现 / 进展”，避免长对话或多轮工具调用导致关键信息丢失；不引用 `.` 开头隐藏目录的文件
+- `analysis/` - track 分析阶段的持久化上下文（findings/knowledge）；用于记录“找到的内容 / 关键发现 / 知识上下文”，避免长对话或多轮工具调用导致关键信息丢失；不引用 `.` 开头隐藏目录的文件
 - `proposal.md` - 为什么和是什么
 - `plan.xml` - 结构化实现步骤
-- `design.md` - 技术决策
+- `decisions.md` - 决策问题、选项、用户答复、最终结论与理由
+- `design.md` - 方案设计与决策摘要
 - `spec.md` - 需求和行为
 - `context.md` - 波次执行上下文（波次模式）
 - `state.md` - 波次执行状态追踪（波次模式）

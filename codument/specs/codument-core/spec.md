@@ -53,16 +53,21 @@ Source: track `create-codument-prompts-20260101` (archived 2026-01-11)
 - 创建 track 目录和元数据
 
 ### Requirement: Track 创建时生成 analysis 产物
-系统应当（SHALL）在创建新的 track 目录后，自动在该 track 目录下生成用于持久化上下文理解与进展的 analysis 产物。
+系统应当（SHALL）在创建新的 track 目录后，自动在该 track 目录下生成用于持久化找到的内容、关键发现与知识上下文的 analysis 产物。
 
 #### Scenario: 创建新 track 时生成 analysis 目录与文件
 - **GIVEN** `codument/` 已初始化且用户创建一个新的 track
 - **WHEN** AI 助手完成 `codument/tracks/<track_id>/` 目录创建
 - **THEN** 系统在 `codument/tracks/<track_id>/analysis/` 创建以下文件：
-  - `task_plan.md`
   - `findings.md`
-  - `progress.md`
+  - `knowledge.md`
 - **AND** 以上文件包含可用的模板内容，用于后续持续更新
+
+#### Scenario: 阅读总结出的知识写入 knowledge 文件
+- **GIVEN** AI 助手在分析阶段阅读了代码、文档或规范
+- **WHEN** AI 助手整理分析阶段的外部记忆
+- **THEN** 从阅读中总结出来的知识、术语、机制理解应写入 `codument/tracks/<track_id>/analysis/knowledge.md`
+- **AND** `findings.md` 仅保留直接找到的事实、约束、问题和结论
 
 #### Scenario: analysis 文件已存在时不覆盖用户内容
 - **GIVEN** `codument/tracks/<track_id>/analysis/` 中部分或全部文件已存在
@@ -77,6 +82,41 @@ Source: track `create-codument-prompts-20260101` (archived 2026-01-11)
 - **GIVEN** AI 助手生成 analysis 文件
 - **WHEN** 用户审查生成内容
 - **THEN** analysis 文件中不应出现形如 `.xxx/yyy.md` 的引用
+
+### Requirement: 决策记录使用独立 decisions 文件
+系统应当（SHALL）在 track 存在待确认决策时，将决策问题、选项、用户答复、最终结论与理由记录在 track 根目录下的 `decisions.md`，以便独立评审。
+
+#### Scenario: 待确认决策记录到 decisions.md
+- **GIVEN** track 创建、设计或后续执行过程中出现需要用户确认的决策问题
+- **WHEN** AI 助手整理待确认决策
+- **THEN** 系统在 `codument/tracks/<track_id>/decisions.md` 记录这些问题
+- **AND** 记录中包含问题、选项、用户答复、最终决策和决策理由
+
+#### Scenario: 执行阶段新增决策继续追加到 decisions.md
+- **GIVEN** track 已进入实现或验证阶段
+- **AND** 执行过程中出现新的决策补充
+- **WHEN** AI 助手整理这些新增决策
+- **THEN** 系统应继续追加到现有的 `codument/tracks/<track_id>/decisions.md`
+- **AND** 不应改为写入其他分散的决策文件
+
+#### Scenario: 决策标题使用优先级标记而非字母前缀
+- **GIVEN** AI 助手在 `decisions.md` 中记录待确认问题
+- **WHEN** 用户审查问题标题与选项格式
+- **THEN** 问题标题应使用形如 `【P0】文件内容来源` 的格式
+- **AND** 字母仅用于问题选项，不用于问题标题
+
+#### Scenario: 决策问题较少时使用一次性多问题工具
+- **GIVEN** 待确认决策问题数量小于等于 5
+- **AND** 当前环境支持一次性多问题 ToolCall
+- **WHEN** AI 助手向用户收集决策答复
+- **THEN** 系统应优先使用一次性多问题 ToolCall 发问
+- **AND** 收到的答复应回写到 `codument/tracks/<track_id>/decisions.md`
+
+#### Scenario: 决策问题较多时改为文档编辑
+- **GIVEN** 待确认决策问题数量大于 5
+- **WHEN** AI 助手向用户收集决策答复
+- **THEN** 系统应引导用户直接在 `codument/tracks/<track_id>/decisions.md` 中编辑和回答
+- **AND** 不应将这些问题拆成多轮零散提问
 
 #### Scenario: 创建新功能 track（auto 模式）
 - **GIVEN** 用户已初始化 Codument

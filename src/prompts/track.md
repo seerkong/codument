@@ -72,105 +72,61 @@
 
 4. **创建目录：** `codument/tracks/<track_id>/`
 
-5. **创建分析产物（analysis/）：** 在 track 目录下创建 `analysis/` 子目录，用于持久化记录“上下文理解 / 发现 / 进展”，以避免长对话或多轮工具调用导致目标与发现丢失。
+5. **创建分析产物（analysis/）：** 在 track 目录下创建 `analysis/` 子目录，用于持久化记录“找到的内容 / 关键发现 / 知识上下文”，以避免长对话或多轮工具调用导致重要信息丢失。
    - 创建目录：`codument/tracks/<track_id>/analysis/`
    - 创建文件：
-     - `codument/tracks/<track_id>/analysis/task_plan.md`
      - `codument/tracks/<track_id>/analysis/findings.md`
-     - `codument/tracks/<track_id>/analysis/progress.md`
+     - `codument/tracks/<track_id>/analysis/knowledge.md`
 
    **关键规则（必须遵守）：仅缺失时创建，不覆盖已有内容**
    - 如果 `codument/tracks/<track_id>/analysis/` 已存在：不要删除、不要重写目录内的任何文件
-   - 对上述三个文件：
+   - 对上述两个文件：
      - **文件已存在** → 绝不要覆盖/改写其内容（哪怕你认为内容不完整）
      - **文件不存在** → 才创建文件并写入下面的模板
 
    **写入内容要求：**
    - 参考“planning-with-files”的理念：把关键结论写入文件作为外部记忆
    - 内容必须与本 track 相关，避免泛化
+   - `findings.md` 记录本次分析中直接找到的事实、约束、问题和结论
+   - `knowledge.md` 记录通过阅读代码、文档、规范后总结出来的知识上下文、术语、机制理解和可复用认知
    - 不要引用隐藏目录（`.` 开头）的文件
-
-   `analysis/task_plan.md` 模板（可按需要裁剪/补全）：
-   ```markdown
-   # Task Plan: <track_id>
-
-   ## Goal
-   [一句话描述本 track 的目标终态]
-
-   ## Current Phase
-   Phase 1
-
-   ## Phases
-   ### Phase 1: Requirements & Discovery
-   - [ ] 理解用户意图与边界
-   - [ ] 识别约束与风险
-   - [ ] 将关键发现写入 findings.md
-   - **Status:** in_progress
-
-   ### Phase 2: Planning & Structure
-   - [ ] 形成 proposal/design 的关键决策
-   - [ ] 形成可执行 plan.xml（含 gate/confirm）
-   - **Status:** pending
-
-   ### Phase 3: Implementation
-   - [ ] 按 plan.xml 推进任务
-   - [ ] 必要时更新 plan.xml 以反映现实
-   - **Status:** pending
-
-   ### Phase 4: Testing & Verification
-   - [ ] 运行自动化测试并记录
-   - [ ] 对照验收标准验证
-   - **Status:** pending
-
-   ### Phase 5: Delivery
-   - [ ] 完成文档收尾
-   - [ ] 准备归档
-   - **Status:** pending
-   ```
 
    `analysis/findings.md` 模板：
    ```markdown
-   # Findings & Decisions
+   # Findings
 
-   ## Requirements
+   ## Found Facts
    -
 
-   ## Research Findings
+   ## Constraints
    -
 
-   ## Technical Decisions
-   | Decision | Rationale |
-   |----------|-----------|
-   |          |           |
+   ## Open Questions
+   -
 
-   ## Issues Encountered
-   | Issue | Resolution |
-   |-------|------------|
-   |       |            |
+   ## Conclusions
+   -
    ```
 
-   `analysis/progress.md` 模板：
+   `analysis/knowledge.md` 模板：
    ```markdown
-   # Progress Log
+   # Knowledge Context
 
-   ## Session: YYYY-MM-DD
-   
-   ### Phase 1: Requirements & Discovery
-   - **Status:** in_progress
-   - Actions taken:
-     -
-   - Files created/modified:
-     -
-   
-   ## Test Results
-   | Test | Input | Expected | Actual | Status |
-   |------|-------|----------|--------|--------|
-   |      |       |          |        |        |
+   ## Source Notes
+   | Source | Summary | Relevance |
+   |--------|---------|-----------|
+   |        |         |           |
 
-   ## Error Log
-   | Timestamp | Error | Attempt | Resolution |
-   |-----------|-------|---------|------------|
-   |           |       | 1       |            |
+   ## Codebase Knowledge
+   -
+
+   ## Domain Knowledge
+   -
+
+   ## Terms
+   | Term | Meaning |
+   |------|---------|
+   |      |         |
    ```
 
 6. **创建 metadata.json：**
@@ -272,7 +228,50 @@
 - 安全、性能或迁移复杂性
 - 在编码前需要技术决策来消除歧义
 
-1. **说明目标：** proposal.md 确认无误后：
+1. **识别是否需要决策记录：**
+   - 如果存在需要用户确认的技术/产品/交互决策，创建 `codument/tracks/<track_id>/decisions.md`
+   - `decisions.md` 是决策评审的主入口；无论在创建/设计阶段还是后续执行阶段，只要出现新的决策补充，都必须追加并回写到该文件
+   - 问题标题必须避免使用字母作为标题前缀；字母仅用于选项
+   - 每个问题标题使用 `【Pn】` 表示重要程度，例如：`### 1. 【P0】文件内容来源`
+
+2. **起草 decisions.md：**
+   - 先梳理待决策问题列表，并按重要度标记为 `P0` / `P1` / `P2`
+   - 将待决策问题、候选选项、当前建议写入 `codument/tracks/<track_id>/decisions.md`
+   - 模板如下：
+```markdown
+# Decisions
+
+## Usage
+- 用于记录需要用户确认的决策问题、选项、最终结论与理由
+- 问题标题不用字母前缀；字母只用于选项
+- 后续执行过程中出现的新决策，也继续追加到本文件，不新建分散的决策记录
+
+### 1. 【P0】文件内容来源
+- 背景：
+- 需要决定：
+- 选项：
+  - A) [选项 A]
+  - B) [选项 B]
+  - C) [其他（可填写）]
+- 当前建议：
+- 用户答复：
+- 最终决策：
+- 决策理由：
+- 状态：pending
+```
+
+3. **根据问题数量选择交互方式：**
+   - 统计尚未确认的决策问题数量
+   - **如果问题数小于等于 5，且当前环境支持一次性多问题 ToolCall：**
+     - 使用内置多问题 ToolCall 一次性发问
+     - 问题格式遵循 `codument/std/protocols.md` 中的 **ask-multi-question-free**
+     - 每个问题仍需在 `decisions.md` 中保留对应条目，并在收到答复后回写“用户答复 / 最终决策 / 决策理由 / 状态”
+   - **如果问题数大于 5，或当前环境不支持一次性多问题 ToolCall：**
+     - 不要拆成多轮零散提问
+     - 引导用户直接编辑 `codument/tracks/<track_id>/decisions.md`
+     - 用户编辑后，再基于文档内容补全“最终决策 / 决策理由 / 状态”
+
+4. **说明目标：** proposal.md 确认无误后：
    > "现在我将创建完成的变更提案"
    需要按照如下格式，基于用户描述生成变更提案
 最小 `design.md` 骨架：
@@ -293,9 +292,9 @@
 ## 影响范围与修改点（Impact）
 - 受影响的文件/模块：[关键文件/系统]
 
-## 决策
-- 决策：[是什么以及为什么]
-- 考虑的替代方案：[选项 + 理由]
+## 决策摘要
+- 详见 `codument/tracks/<track_id>/decisions.md`
+- 当前关键结论：[已确认的决策摘要]
 
 ## 风险 / 权衡
 - [风险] → 缓解措施
@@ -310,10 +309,10 @@
 - [...]
 ```
 
-2. **创建 design.md：** 基于用户描述生成方案设计
+5. **创建 design.md：** 基于用户描述和已记录的决策生成方案设计
    - 将方案设计写入 `codument/tracks/<track_id>/design.md`
 
-3. **用户确认：** 展示起草的 design.md 供审查
+6. **用户确认：** 展示起草的 design.md 供审查
    > "我已起草了方案设计。请审查：
    > 文件路径在：codument/tracks/<track_id>/design.md
    > 此方案设计是否正确？请建议更改或确认。"
