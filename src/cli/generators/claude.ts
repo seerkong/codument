@@ -1,138 +1,143 @@
 /**
  * Claude Code command generator
- * Generates .claude/commands/codument/*.md files
+ * Generates .claude/skills/codument-workflow/ and .claude/commands/codument/*.md files
  */
 
 import * as fs from 'fs';
 import * as path from 'path';
 import {
-  initPrompt, trackPrompt,
-  implementPrompt, validatePrompt,
-  archivePrompt, statusPrompt,
-  discussPrompt, planWavePrompt, executeWavePrompt,
-  verifyPrompt
-} from '../../prompts'
-import {
-  withLeadingArgs,
-  withTrackRequest,
-  withImplementRequest,
-  withChangeId,
-} from './prompt-builders';
+  CLAUDE_WORKFLOW_SKILL_DISPLAY_PATH,
+  CODUMENT_WORKFLOW_SKILL_NAME,
+  buildWorkflowSkillFiles,
+} from '../../skills/codument-workflow';
+import { buildSkillWrapperBody } from './prompt-builders';
+import { syncGeneratedSkillDirectory } from './skill-sync';
 
 const CLAUDE_COMMANDS_DIR = '.claude/commands/codument';
+const CLAUDE_SKILL_DIR = path.join('.claude', 'skills', CODUMENT_WORKFLOW_SKILL_NAME);
 
 const COMMANDS = {
   init: {
     description: 'Initialize Codument in the current project',
-    content: `---
-description: Initialize Codument in the current project
-allowed-tools: Read, Write, Edit, Bash, Glob, Grep
----
-
-${withLeadingArgs(initPrompt, '$ARGUMENTS')}
-`,
+    content: buildSkillWrapperBody({
+      commandId: 'init',
+      skillDisplayPath: CLAUDE_WORKFLOW_SKILL_DISPLAY_PATH,
+      subskillName: 'init',
+      argsToken: '$ARGUMENTS',
+    }),
   },
   track: {
     description: 'Create a new change track',
-    content: `---
-description: Create a new change track for a feature or bug fix
-allowed-tools: Read, Write, Edit, Bash, Glob, Grep
----
-
-${withTrackRequest(trackPrompt, '$ARGUMENTS')}
-`,
+    content: buildSkillWrapperBody({
+      commandId: 'track',
+      skillDisplayPath: CLAUDE_WORKFLOW_SKILL_DISPLAY_PATH,
+      subskillName: 'track',
+      argsToken: '$ARGUMENTS',
+    }),
   },
   implement: {
     description: 'Implement tasks from a track',
-    content: `---
-description: Implement tasks from a track following the workflow
-allowed-tools: Read, Write, Edit, Bash, Glob, Grep
----
-
-${withImplementRequest(implementPrompt, '$ARGUMENTS')}
-`,
+    content: buildSkillWrapperBody({
+      commandId: 'implement',
+      skillDisplayPath: CLAUDE_WORKFLOW_SKILL_DISPLAY_PATH,
+      subskillName: 'implement',
+      argsToken: '$ARGUMENTS',
+    }),
   },
   validate: {
     description: 'Validate track or spec format',
-    content: `---
-description: Validate track or spec format
-allowed-tools: Read, Bash, Glob, Grep
----
-
-${withChangeId(validatePrompt, '$ARGUMENTS')}
-`,
+    content: buildSkillWrapperBody({
+      commandId: 'validate',
+      skillDisplayPath: CLAUDE_WORKFLOW_SKILL_DISPLAY_PATH,
+      subskillName: 'validate',
+      argsToken: '$ARGUMENTS',
+    }),
   },
   archive: {
     description: 'Archive a completed track',
-    content: `---
-description: Archive a completed track
-allowed-tools: Read, Write, Edit, Bash, Glob
----
-
-${withChangeId(archivePrompt, '$ARGUMENTS')}
-`,
+    content: buildSkillWrapperBody({
+      commandId: 'archive',
+      skillDisplayPath: CLAUDE_WORKFLOW_SKILL_DISPLAY_PATH,
+      subskillName: 'archive',
+      argsToken: '$ARGUMENTS',
+    }),
   },
   status: {
     description: 'Show project status overview',
-    content: `---
-description: Show project status overview
-allowed-tools: Read, Bash, Glob
----
-
-${statusPrompt}
-`,
+    content: buildSkillWrapperBody({
+      commandId: 'status',
+      skillDisplayPath: CLAUDE_WORKFLOW_SKILL_DISPLAY_PATH,
+      subskillName: 'status',
+    }),
   },
   discuss: {
     description: 'Discuss a phase for wave execution planning',
-    content: `---
-description: Discuss a phase for wave execution planning
-allowed-tools: Read, Write, Edit, Bash, Glob, Grep
----
-
-${withLeadingArgs(discussPrompt, '$ARGUMENTS')}
-`,
+    content: buildSkillWrapperBody({
+      commandId: 'discuss',
+      skillDisplayPath: CLAUDE_WORKFLOW_SKILL_DISPLAY_PATH,
+      subskillName: 'discuss',
+      argsToken: '$ARGUMENTS',
+    }),
   },
   'plan-wave': {
     description: 'Plan wave DAG for a track phase',
-    content: `---
-description: Plan wave DAG for a track phase
-allowed-tools: Read, Write, Edit, Bash, Glob, Grep
----
-
-${withLeadingArgs(planWavePrompt, '$ARGUMENTS')}
-`,
+    content: buildSkillWrapperBody({
+      commandId: 'plan-wave',
+      skillDisplayPath: CLAUDE_WORKFLOW_SKILL_DISPLAY_PATH,
+      subskillName: 'plan-wave',
+      argsToken: '$ARGUMENTS',
+    }),
   },
   'execute-wave': {
     description: 'Execute tasks by wave DAG scheduling',
-    content: `---
-description: Execute tasks by wave DAG scheduling
-allowed-tools: Read, Write, Edit, Bash, Glob, Grep
----
-
-${withLeadingArgs(executeWavePrompt, '$ARGUMENTS')}
-`,
+    content: buildSkillWrapperBody({
+      commandId: 'execute-wave',
+      skillDisplayPath: CLAUDE_WORKFLOW_SKILL_DISPLAY_PATH,
+      subskillName: 'execute-wave',
+      argsToken: '$ARGUMENTS',
+    }),
   },
   verify: {
     description: 'Verify implementation with independent validation mode',
-    content: `---
-description: Verify implementation with independent validation mode
-allowed-tools: Read, Bash, Glob, Grep
----
-
-${withLeadingArgs(verifyPrompt, '$ARGUMENTS')}
-`,
+    content: buildSkillWrapperBody({
+      commandId: 'verify',
+      skillDisplayPath: CLAUDE_WORKFLOW_SKILL_DISPLAY_PATH,
+      subskillName: 'verify',
+      argsToken: '$ARGUMENTS',
+    }),
+  },
+  'gap-loop': {
+    description: 'Run a fresh gap loop for a track or phase',
+    content: buildSkillWrapperBody({
+      commandId: 'gap-loop',
+      skillDisplayPath: CLAUDE_WORKFLOW_SKILL_DISPLAY_PATH,
+      subskillName: 'gap-loop',
+      argsToken: '$ARGUMENTS',
+      extraRules: [
+        'For Claude Code, the preferred fresh-child mechanism is a newly created child agent.',
+        'Each gap-loop round must run in a brand-new child agent instead of reusing the previous child context.',
+      ],
+    }),
   },
 };
 
 export async function generateClaudeCommands(): Promise<void> {
-  // Create directory
+  syncGeneratedSkillDirectory(CLAUDE_SKILL_DIR, buildWorkflowSkillFiles('claude'));
+
   if (!fs.existsSync(CLAUDE_COMMANDS_DIR)) {
     fs.mkdirSync(CLAUDE_COMMANDS_DIR, { recursive: true });
   }
 
-  // Generate command files
   for (const [name, cmd] of Object.entries(COMMANDS)) {
     const filePath = path.join(CLAUDE_COMMANDS_DIR, `${name}.md`);
-    fs.writeFileSync(filePath, cmd.content);
+    const content = `---
+description: ${cmd.description}
+allowed-tools: Read, Write, Edit, Bash, Glob, Grep
+---
+
+${cmd.content}
+`;
+
+    fs.writeFileSync(filePath, content);
   }
 }

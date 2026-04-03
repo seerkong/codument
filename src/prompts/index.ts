@@ -35,6 +35,7 @@ export const discussPrompt = loadPrompt("discuss.md");
 export const planWavePrompt = loadPrompt("plan-wave.md");
 export const executeWavePrompt = loadPrompt("execute-wave.md");
 export const verifyPrompt = loadPrompt("verify.md");
+export const gapLoopPrompt = loadPrompt("gap-loop.md");
 
 // Templates
 export const workflowTemplate = loadTemplate("workflow.md");
@@ -57,6 +58,7 @@ export const prompts = {
   planWave: planWavePrompt,
   executeWave: executeWavePrompt,
   verify: verifyPrompt,
+  gapLoop: gapLoopPrompt,
 };
 
 // Export all templates as a map

@@ -13,8 +13,9 @@ When working with AI coding assistants, it's easy to lose track of what was plan
 - **Structured Planning**: Break down work into phases, tasks, and subtasks in `plan.xml`
 - **Specification First**: Define requirements in `spec.md` before coding
 - **Progress Tracking**: Track TODO / IN_PROGRESS / DONE / BLOCKED status from `plan.xml`
+- **Gap Loop Validation**: Run fresh verification-and-fix rounds before closing a track
 - **Wave Workflow Support**: Supports discuss / plan-wave / execute-wave / verify command flows
-- **Multi-Tool Support**: Works with Claude Code, OpenAI Codex CLI, Eidolon, Gemini CLI, and OpenCode
+- **Multi-Tool Support**: Works with Claude Code, OpenAI Codex CLI, Sparrow, Eidolon, and OpenCode
 
 ## Features
 
@@ -38,13 +39,13 @@ Track
 
 ### Supported AI CLI Tools
 
-| Tool | Generated command location | Typical invocation |
-|------|----------------------------|--------------------|
-| Claude Code | `.claude/commands/codument/` | `/codument:init`, `/codument:track`, `/codument:implement` |
-| OpenAI Codex CLI | `~/.codex/prompts/` | `/prompts:codument-init`, `/prompts:codument-track`, `/prompts:codument-plan-wave` |
-| Eidolon | `.eidolon/commands/codument/` | `/codument:init`, `/codument:track`, `/codument:plan-wave` |
-| Gemini CLI | `.gemini/commands/codument/` | `/codument:init`, `/codument:track`, `/codument:plan-wave` |
-| OpenCode | `.opencode/command/` | Generated from `codument-*.md` command files |
+| Tool | Generated workflow entry location | Typical invocation |
+|------|-----------------------------------|--------------------|
+| Claude Code | `.claude/skills/codument-workflow/` + `.claude/commands/codument/` | `/codument:init`, `/codument:track`, `/codument:gap-loop` |
+| OpenAI Codex CLI | `~/.codex/skills/codument-workflow/` | `Use $codument-workflow to initialize, track, implement, gap-loop, or archive` |
+| Sparrow | `.sparrow/skill/codument-workflow/` | `Load the codument-workflow skill and continue the matching Codument lifecycle step` |
+| Eidolon | `.eidolon/skills/codument-workflow/` + `.eidolon/commands/codument/` | `/codument:init`, `/codument:track`, `/codument:gap-loop` |
+| OpenCode | `.opencode/skills/codument-workflow/` + `.opencode/command/` | Generated from `codument-*.md` wrapper commands |
 
 ## Installation
 
@@ -85,7 +86,8 @@ This will:
 - Create the `codument/` directory structure
 - Generate `project.md`, `product.md`, `tech-stack.md`, `tracks.md`, `state.json`
 - Generate `codument/std/` and `codument/workflows/workflow.md`
-- Generate command files only for the AI CLI tools you selected
+- Generate the selected targets' `codument-workflow` skill directories
+- Generate command wrappers for the targets that support command entrypoints
 
 ### 2. Create a Change Track
 
@@ -93,9 +95,12 @@ Use the generated command for your selected AI tool.
 Examples:
 
 ```text
-Claude / Gemini / Eidolon: /codument:track Add user authentication feature
-Codex: /prompts:codument-track Add user authentication feature
+Claude / Eidolon: /codument:track Add user authentication feature
+Codex: Use $codument-workflow to create a track for "Add user authentication feature"
+Sparrow: Load `codument-workflow` and create a track for "Add user authentication feature"
 ```
+
+For Claude, Eidolon, and OpenCode, the generated command wrappers load the same shared `codument-workflow` sub-skills used by the other targets.
 
 The assistant will guide you through:
 1. Discussing requirements
@@ -106,21 +111,26 @@ The assistant will guide you through:
 ### 3. Implement Tasks
 
 ```text
-Claude / Gemini / Eidolon: /codument:implement <track-id>
-Codex: /prompts:codument-implement <track-id>
+Claude / Eidolon: /codument:implement <track-id>
+Codex: Use $codument-workflow to implement track <track-id>
+Sparrow: Load `codument-workflow` and implement track <track-id>
 ```
 
 For wave-based execution, the generated command set also includes:
 - `discuss`
 - `plan-wave`
 - `execute-wave`
+- `gap-loop`
 - `verify`
+
+For `yield-gap-loop`, use fresh rounds; if a higher-level orchestration app already owns the protocol, follow that app instead of starting a nested loop here.
 
 ### 4. Archive Completed Track
 
 ```text
-Claude / Gemini / Eidolon: /codument:archive add-user-auth
-Codex: /prompts:codument-archive add-user-auth
+Claude / Eidolon: /codument:archive add-user-auth
+Codex: Use $codument-workflow to archive track add-user-auth
+Sparrow: Load `codument-workflow` and archive track add-user-auth
 ```
 
 Moves the track to `codument/archive/YYYY-MM-DD-add-user-auth/`.
@@ -133,8 +143,13 @@ If your project already has a `codument/` folder and you updated the Codument CL
 codument upgrade-workspace
 ```
 
-This updates `codument/std/` and regenerates assistant command files for the CLI tools listed in `codument/state.json` (`cli_tools`).
-For Codex, regenerated prompt files are written to `~/.codex/prompts/`.
+This updates `codument/std/` and regenerates assistant workflow entrypoints for the CLI tools listed in `codument/state.json` (`cli_tools`).
+For command-first targets, the workspace skill directory is refreshed before command wrappers are regenerated.
+For Codex, the embedded skill template is synced to `~/.codex/skills/codument-workflow/`.
+For Claude, the embedded skill template is synced to `.claude/skills/codument-workflow/`.
+For Eidolon, the embedded skill template is synced to `.eidolon/skills/codument-workflow/`.
+For OpenCode, the embedded skill template is synced to `.opencode/skills/codument-workflow/`.
+For Sparrow, the embedded skill template is synced to `.sparrow/skill/codument-workflow/`.
 A rollback backup is created under `./.tmp/codument/` by default.
 
 See `UPGRADE_WORKSPACE.md` for details.
@@ -202,12 +217,15 @@ your-project/
 │   │       └── waves/           # optional, wave workflow
 │   ├── specs/
 │   └── archive/
+├── .claude/skills/codument-workflow/  # if Claude Code was selected
 ├── .claude/commands/codument/    # if Claude Code was selected
-├── .gemini/commands/codument/    # if Gemini CLI was selected
+├── .sparrow/skill/codument-workflow/  # if Sparrow was selected
+├── .eidolon/skills/codument-workflow/ # if Eidolon was selected
 ├── .eidolon/commands/codument/   # if Eidolon was selected
+├── .opencode/skills/codument-workflow/ # if OpenCode was selected
 ├── .opencode/command/            # if OpenCode was selected
 ├── AGENTS.md
-└── ~/.codex/prompts/             # if Codex CLI was selected
+└── ~/.codex/skills/codument-workflow/  # if Codex CLI was selected
 ```
 
 ## plan.xml Format

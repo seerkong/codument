@@ -32,6 +32,9 @@ plan.xml 是 Codument 中用于追踪变更实现进度的结构化任务文件�
     <status>in_progress</status>
     <commit_mode>auto</commit_mode>
     <execution_mode>sequential</execution_mode>
+    <validation_mode>yield-gap-loop</validation_mode>
+    <validation_granularity>final_phase</validation_granularity>
+    <gap_loop_round>0</gap_loop_round>
   </metadata>
 
   <milestones>
@@ -182,17 +185,22 @@ plan.xml 的根元素为 `<plan>`。Track 的唯一标识符在 `<metadata><trac
 
 ### `<confirm>` - 确认提示标记（可选）
 
-用于让流程在特定阶段或任务执行前/后暂停并等待确认。支持人工确认或 AI 评审确认。
+用于让流程在特定阶段或任务执行前/后暂停并等待确认。支持人工确认或 gap loop 闭环确认。
 
 - **可放置位置**：`<phase>` 或 `<task>` 节点下
 - **行为定义**：见 `codument/std/protocols.md`
-- **可用协议**：`yield-human-confirm`、`yield-ai-confirm`
+- **可用协议**：`yield-human-confirm`、`yield-gap-loop`
 - **when**：`before` | `after` | `both`
 - **status**：`TODO` | `IN_PROGRESS` | `DONE` | `BLOCKED` | `CANCELLED`
-- **ai-agent**：仅 `yield-ai-confirm` 需要，指定 subagent 名称
 - **数量限制**：每个 `<phase>` 或 `<task>` 最多一个 `<confirm>`
 - **顺序规则**：若 phase 与 task 同时配置，执行顺序为：phase-before → task-before → task-after → phase-after
-- **重试规则**：若 confirm 未通过（人或 AI），必须修复后重新 review，直至 `status=DONE` 才能继续
+- **重试规则**：若 confirm 未通过，必须修复后重新确认，直至 `status=DONE` 才能继续
+- **默认生成建议**：
+  - 当 `validation_mode=yield-human-confirm` 时，默认仅在最后一个 `<phase>` 下放置一个 `when="after"` 的 phase 级 `<confirm>`
+  - 当 `validation_mode=yield-gap-loop` 且 `validation_granularity=final_phase` 时，默认仅在最后一个 `<phase>` 下放置一个 `yield-gap-loop`
+  - 当 `validation_mode=yield-gap-loop` 且 `validation_granularity=every_phase` 时，在每个 `<phase>` 下都放置一个 `yield-gap-loop`
+  - 当 `validation_mode=yield-gap-loop` 时，metadata 中默认初始化 `<gap_loop_round>0</gap_loop_round>`，父层编排者在每轮 fresh-round 前递增
+  - 如果用户后续手动执行 `codument:gap-loop` 到一个原本不是 gap-loop 模式的 track，父层编排者应先将 `validation_mode` 切到 `yield-gap-loop`，补齐 `validation_granularity` / `gap_loop_round`，并把所需的 phase 级 `<confirm>` 迁移或补齐为 `yield-gap-loop`
 
 **示例：**
 ```xml
@@ -206,7 +214,7 @@ plan.xml 的根元素为 `<plan>`。Track 的唯一标识符在 `<metadata><trac
 
 <task id="T1.1" name="创建用户数据模型" status="TODO" priority="P0">
   定义 User 模型结构并实现基本 CRUD 操作
-  <confirm protocol="yield-ai-confirm" ai-agent="codument-code-review" when="after" status="TODO" />
+  <confirm protocol="yield-gap-loop" when="after" status="TODO" />
   <subtasks>
     ...
   </subtasks>
@@ -224,6 +232,9 @@ plan.xml 的根元素为 `<plan>`。Track 的唯一标识符在 `<metadata><trac
 | `status` | 是 | 状态：new, in_progress, completed, cancelled |
 | `commit_mode` | 是 | 提交模式：auto（自动提交+Git Notes）, manual（手动提交） |
 | `execution_mode` | 否 | 执行模式：wave（波次 DAG）, sequential（顺序执行）。缺失默认 sequential |
+| `validation_mode` | 否 | 校验模式：`yield-human-confirm` 或 `yield-gap-loop`。缺失时按旧 track 兼容处理 |
+| `validation_granularity` | 否 | 仅 `validation_mode=yield-gap-loop` 时使用：`final_phase` 或 `every_phase`。缺失默认 `final_phase`；手动运行 `codument:gap-loop` 时也应按当前 confirm 覆盖范围补齐或回落到该默认值 |
+| `gap_loop_round` | 否 | 仅 `validation_mode=yield-gap-loop` 时使用的当前轮次计数。创建时初始化为 `0`，父层编排者在每轮 fresh-round 前更新；若手动切换到 gap-loop 模式也应补齐为 `0` |
 
 ### `<milestones>` - 里程碑列表（可选）
 
@@ -515,7 +526,7 @@ plan.xml 的根元素为 `<plan>`。Track 的唯一标识符在 `<metadata><trac
 
 1. **自动检查**：运行测试、检查覆盖率、Lint 检查
 2. **生成验证报告**：列出所有检查项及结果
-3. **确认（可选）**：仅当 `<phase>` 下存在 `<confirm protocol="yield-human-confirm" .../>` 或 `<confirm protocol="yield-ai-confirm" .../>` 且 when 包含 `after` 时，执行确认
+3. **确认（可选）**：仅当 `<phase>` 下存在 `<confirm protocol="yield-human-confirm" .../>` 或 `<confirm protocol="yield-gap-loop" .../>` 且 when 包含 `after` 时，执行确认
 4. **创建检查点**（auto 模式）：`git commit -m "checkpoint: Phase P1 complete"`
 5. **附加 Git Notes**（auto 模式）：记录验证报告
 
@@ -566,6 +577,7 @@ count(//subtask[@status='DONE'])
     <updated_at>2026-01-01T10:00:00Z</updated_at>
     <status>new</status>
     <commit_mode>manual</commit_mode>
+    <validation_mode>yield-human-confirm</validation_mode>
   </metadata>
 
   <phases>

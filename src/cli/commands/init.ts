@@ -4,9 +4,19 @@ import * as readline from 'readline';
 import { CODUMENT_DIR, codumentExists } from '../utils';
 import { generateClaudeCommands } from '../generators/claude';
 import { generateCodexCommands } from '../generators/codex';
-import { generateGeminiCommands } from '../generators/gemini';
 import { generateEidolonCommands } from '../generators/eidolon';
 import { generateOpenCodeCommands } from '../generators/opencode';
+import { generateSparrowCommands } from '../generators/sparrow';
+import {
+  CLAUDE_WORKFLOW_SKILL_DISPLAY_PATH,
+  CLAUDE_WORKFLOW_COMMAND_DISPLAY_PATH,
+  CODEX_WORKFLOW_SKILL_DISPLAY_PATH,
+  EIDOLON_WORKFLOW_SKILL_DISPLAY_PATH,
+  EIDOLON_WORKFLOW_COMMAND_DISPLAY_PATH,
+  OPENCODE_WORKFLOW_SKILL_DISPLAY_PATH,
+  OPENCODE_WORKFLOW_COMMAND_DISPLAY_PATH,
+  SPARROW_WORKFLOW_SKILL_DISPLAY_PATH,
+} from '../../skills/codument-workflow';
 
 import {
   stdAgentsPrompt,
@@ -18,7 +28,7 @@ import {
   protocolsPrompt,
 } from '../../prompts'
 let TASKS_XML_SPEC = planXmlSpec;
-type CLITool = 'claude' | 'codex' | 'eidolon' | 'gemini' | 'opencode';
+type CLITool = 'claude' | 'codex' | 'eidolon' | 'opencode' | 'sparrow';
 const CODUMENT_MARKERS = {
   start: '<!-- CODUMENT:START -->',
   end: '<!-- CODUMENT:END -->',
@@ -118,7 +128,7 @@ export async function initCommand(args: string[]): Promise<void> {
       { key: '2', label: 'OpenAI Codex CLI', tool: 'codex' as CLITool },
       { key: '3', label: 'Eidolon', tool: 'eidolon' as CLITool },
       { key: '4', label: 'OpenCode', tool: 'opencode' as CLITool },
-      { key: '5', label: 'Gemini CLI', tool: 'gemini' as CLITool },
+      { key: '5', label: 'Sparrow', tool: 'sparrow' as CLITool },
     ];
 
     const selectedLabels = await multiSelect(
@@ -178,23 +188,26 @@ export async function initCommand(args: string[]): Promise<void> {
     switch (tool) {
       case 'claude':
         await generateClaudeCommands();
-        console.log('  ✓ 创建 .claude/commands/codument/*.md');
+        console.log(`  ✓ 安装 ${CLAUDE_WORKFLOW_SKILL_DISPLAY_PATH}`);
+        console.log(`  ✓ 创建 ${CLAUDE_WORKFLOW_COMMAND_DISPLAY_PATH}*.md`);
         break;
       case 'codex':
         await generateCodexCommands();
-        console.log('  ✓ 创建 ~/.codex/prompts/codument-*.md');
+        console.log(`  ✓ 安装 ${CODEX_WORKFLOW_SKILL_DISPLAY_PATH}`);
         break;
       case 'eidolon':
         await generateEidolonCommands();
-        console.log('  ✓ 创建 .eidolon/commands/codument/*.toml');
-        break;
-      case 'gemini':
-        await generateGeminiCommands();
-        console.log('  ✓ 创建 .gemini/commands/codument/*.toml');
+        console.log(`  ✓ 安装 ${EIDOLON_WORKFLOW_SKILL_DISPLAY_PATH}`);
+        console.log(`  ✓ 创建 ${EIDOLON_WORKFLOW_COMMAND_DISPLAY_PATH}*.toml`);
         break;
       case 'opencode':
         await generateOpenCodeCommands();
-        console.log('  ✓ 创建 .opencode/command/*.md');
+        console.log(`  ✓ 安装 ${OPENCODE_WORKFLOW_SKILL_DISPLAY_PATH}`);
+        console.log(`  ✓ 创建 ${OPENCODE_WORKFLOW_COMMAND_DISPLAY_PATH}codument-*.md`);
+        break;
+      case 'sparrow':
+        await generateSparrowCommands();
+        console.log(`  ✓ 安装 ${SPARROW_WORKFLOW_SKILL_DISPLAY_PATH}`);
         break;
     }
   }
@@ -230,15 +243,15 @@ export async function initCommand(args: string[]): Promise<void> {
 下一步:
   1. 编辑 codument/project.md 完善项目配置
   2. 编辑 codument/tech-stack.md 配置技术栈
-  3. 运行相应的 slash command 创建第一个变更追踪
+  3. 运行相应的 AI 命令或加载生成的 workflow skill 创建第一个变更追踪
   4. 运行 codument status 查看项目状态
 `);
   } else {
     console.log(`
-已为以下 CLI 工具生成命令文件:
+已为以下 CLI 工具安装/生成工作流入口:
 ${selectedLabels.map((l) => `  - ${l}`).join('\n')}
 
-现在可以使用对应的 slash command 了。
+现在可以使用对应 AI 工具入口了。
 `);
     }
   } finally {

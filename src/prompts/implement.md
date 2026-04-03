@@ -132,13 +132,12 @@
 
     g. **可选确认点（任务级）：**
        - 当 `<task>` 下存在 `<confirm .../>` 时，按 `when` 执行 `codument/std/protocols.md` 中对应协议
-       - 如使用 `yield-ai-confirm`，必须在调用提示词中包含 `workspace_dir` 与 `track_dir`
        - 若确认未通过，必须修复后重新 review，直到 `<confirm>` 的 `status=DONE` 才能继续
 
 
 ### 3.4 阶段门控验证
 
-**协议：仅在 `<phase>` 下存在 `<confirm protocol="yield-human-confirm" .../>` 或 `<confirm protocol="yield-ai-confirm" .../>` 且 when 包含 `after` 时执行门控检查。**
+**协议：仅在 `<phase>` 下存在 `<confirm protocol="yield-human-confirm" .../>` 或 `<confirm protocol="yield-gap-loop" .../>` 且 when 包含 `after` 时执行门控检查。**
 
 1. **触发条件：** 当阶段内所有任务状态为 `DONE` 且该 `<phase>` 的 `<confirm>` when 包含 `after`
 
@@ -149,27 +148,34 @@
    d. **验证门控标准：** 检查 `<gate_criteria>` 中的每个标准
 
 3. **生成验证报告：**
-    > "📋 **阶段 P1 门控验证报告**
-    >
-    > | 检查项 | 状态 |
-    > |--------|------|
-    > | 所有任务完成 | ✅ 通过 |
-    > | 测试通过 | ✅ 通过 |
-    > | 覆盖率 85% (≥80%) | ✅ 通过 |
-    > | Lint 检查 | ✅ 通过 |
-    >
-    > **门控标准**：
-    > - [x] 所有 P0 任务完成
-    > - [x] 测试覆盖率 >80%
-    > - [x] 无阻塞性 Bug
-    >
+   - 生成阶段门控验证报告，至少包含：任务完成情况、测试结果、覆盖率、Lint 结果、gate_criteria 校验结果
+4. **确认处理：**
+   - `yield-human-confirm`:
+     > "📋 **阶段 P1 门控验证报告**
+     >
+     > | 检查项 | 状态 |
+     > |--------|------|
+     > | 所有任务完成 | ✅ 通过 |
+     > | 测试通过 | ✅ 通过 |
+     > | 覆盖率 85% (≥80%) | ✅ 通过 |
+     > | Lint 检查 | ✅ 通过 |
+     >
+     > **门控标准**：
+     > - [x] 所有 P0 任务完成
+     > - [x] 测试覆盖率 >80%
+     > - [x] 无阻塞性 Bug
+     >
      > 请确认是否可以继续下一阶段？(Y/N)"
      （使用 **Protocol: ask-single-question-closed**）
-
-
-4. **确认处理：**
-   - `yield-human-confirm`: 等待用户确认，更新 `<confirm>` 的 `status`
-   - `yield-ai-confirm`: 触发指定 `ai-agent` 评审并按协议处理（提示词必须包含 `workspace_dir` 与 `track_dir`），更新 `<confirm>` 的 `status`
+   - `yield-gap-loop`:
+     - 当前实现 agent 不在原上下文里继续做 gap 校验或修正
+     - 当前实现 agent 只负责把控制权交回父层编排者
+     - 父层编排者每次启动新一轮前，必须先更新 `plan.xml` metadata 中的 `<gap_loop_round>`
+     - 父层编排者必须 fresh-spawn 一个新的 gap-loop 子代理或等价的 fresh child context，并让其执行当前 scope 的 gap-loop 子流程
+     - 父层读取该子代理返回的结构化 XML 后，严格按下列规则处理：
+       - `NO_GAP`：若这是“首轮 + 无历史报告”的结果，父层仍必须再 fresh-spawn 一轮新的 gap-loop 子代理验证；只有验证轮也通过时，才能将当前 `<confirm>` 标记为 `DONE`
+       - `FIX_APPLIED`：当前 `<confirm>` 保持未完成，父层必须再次 fresh-spawn 新的 gap-loop 子代理复检，不得停止在这一轮
+       - `BLOCKED`：将当前 `<confirm>` 标记为 `BLOCKED`，停止并请求用户输入
    - 未配置 `<confirm>`：直接继续
 
 

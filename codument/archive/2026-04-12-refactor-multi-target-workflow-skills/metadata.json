@@ -1,0 +1,8 @@
+{
+  "track_id": "refactor-multi-target-workflow-skills",
+  "type": "refactor",
+  "status": "completed",
+  "created_at": "2026-04-11T00:00:00Z",
+  "updated_at": "2026-04-11T00:00:00Z",
+  "description": "重构 gap-loop 与 Codument 生命周期工作流的多 target skill 生成方式，统一为公共 skill 模板与 sub-skill 引用模型"
+}

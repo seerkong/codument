@@ -1,67 +1,123 @@
 /**
  * Eidolon CLI command generator
- * Generates .eidolon/commands/codument/*.toml files
- * Format is the same as Gemini CLI
+ * Generates .eidolon/skills/codument-workflow/ and .eidolon/commands/codument/*.toml files
  */
 
 import * as fs from 'fs';
 import * as path from 'path';
 import {
-  initPrompt, trackPrompt,
-  implementPrompt, validatePrompt,
-  archivePrompt, statusPrompt,
-  discussPrompt, planWavePrompt, executeWavePrompt,
-  verifyPrompt
-} from '../../prompts'
-import {
-  withLeadingArgs,
-  withTrackRequest,
-  withImplementRequest,
-  withChangeId,
-} from './prompt-builders';
+  CODUMENT_WORKFLOW_SKILL_NAME,
+  EIDOLON_WORKFLOW_SKILL_DISPLAY_PATH,
+  buildWorkflowSkillFiles,
+} from '../../skills/codument-workflow';
+import { buildSkillWrapperBody } from './prompt-builders';
+import { syncGeneratedSkillDirectory } from './skill-sync';
 
 const EIDOLON_COMMANDS_DIR = '.eidolon/commands/codument';
+const EIDOLON_SKILL_DIR = path.join('.eidolon', 'skills', CODUMENT_WORKFLOW_SKILL_NAME);
 
 const COMMANDS = {
   init: {
     description: 'Initialize Codument in the current project',
-    prompt: withLeadingArgs(initPrompt, '{{args}}'),
+    prompt: buildSkillWrapperBody({
+      commandId: 'init',
+      skillDisplayPath: EIDOLON_WORKFLOW_SKILL_DISPLAY_PATH,
+      subskillName: 'init',
+      argsToken: '{{args}}',
+    }),
   },
   track: {
     description: 'Create a new change track for a feature or bug fix',
-    prompt: withTrackRequest(trackPrompt, '{{args}}'),
+    prompt: buildSkillWrapperBody({
+      commandId: 'track',
+      skillDisplayPath: EIDOLON_WORKFLOW_SKILL_DISPLAY_PATH,
+      subskillName: 'track',
+      argsToken: '{{args}}',
+    }),
   },
   implement: {
     description: 'Implement tasks from a track following the workflow',
-    prompt: withImplementRequest(implementPrompt, '{{args}}'),
+    prompt: buildSkillWrapperBody({
+      commandId: 'implement',
+      skillDisplayPath: EIDOLON_WORKFLOW_SKILL_DISPLAY_PATH,
+      subskillName: 'implement',
+      argsToken: '{{args}}',
+    }),
   },
   validate: {
     description: 'Validate track or spec format',
-    prompt: withChangeId(validatePrompt, '{{args}}'),
+    prompt: buildSkillWrapperBody({
+      commandId: 'validate',
+      skillDisplayPath: EIDOLON_WORKFLOW_SKILL_DISPLAY_PATH,
+      subskillName: 'validate',
+      argsToken: '{{args}}',
+    }),
   },
   archive: {
     description: 'Archive a completed track',
-    prompt: withChangeId(archivePrompt, '{{args}}'),
+    prompt: buildSkillWrapperBody({
+      commandId: 'archive',
+      skillDisplayPath: EIDOLON_WORKFLOW_SKILL_DISPLAY_PATH,
+      subskillName: 'archive',
+      argsToken: '{{args}}',
+    }),
   },
   status: {
     description: 'Show project status overview',
-    prompt: `${statusPrompt}`,
+    prompt: buildSkillWrapperBody({
+      commandId: 'status',
+      skillDisplayPath: EIDOLON_WORKFLOW_SKILL_DISPLAY_PATH,
+      subskillName: 'status',
+    }),
   },
   discuss: {
     description: 'Discuss a phase for wave execution planning',
-    prompt: withLeadingArgs(discussPrompt, '{{args}}'),
+    prompt: buildSkillWrapperBody({
+      commandId: 'discuss',
+      skillDisplayPath: EIDOLON_WORKFLOW_SKILL_DISPLAY_PATH,
+      subskillName: 'discuss',
+      argsToken: '{{args}}',
+    }),
   },
   'plan-wave': {
     description: 'Plan wave DAG for a track phase',
-    prompt: withLeadingArgs(planWavePrompt, '{{args}}'),
+    prompt: buildSkillWrapperBody({
+      commandId: 'plan-wave',
+      skillDisplayPath: EIDOLON_WORKFLOW_SKILL_DISPLAY_PATH,
+      subskillName: 'plan-wave',
+      argsToken: '{{args}}',
+    }),
   },
   'execute-wave': {
     description: 'Execute tasks by wave DAG scheduling',
-    prompt: withLeadingArgs(executeWavePrompt, '{{args}}'),
+    prompt: buildSkillWrapperBody({
+      commandId: 'execute-wave',
+      skillDisplayPath: EIDOLON_WORKFLOW_SKILL_DISPLAY_PATH,
+      subskillName: 'execute-wave',
+      argsToken: '{{args}}',
+    }),
   },
   verify: {
     description: 'Verify implementation with independent validation mode',
-    prompt: withLeadingArgs(verifyPrompt, '{{args}}'),
+    prompt: buildSkillWrapperBody({
+      commandId: 'verify',
+      skillDisplayPath: EIDOLON_WORKFLOW_SKILL_DISPLAY_PATH,
+      subskillName: 'verify',
+      argsToken: '{{args}}',
+    }),
+  },
+  'gap-loop': {
+    description: 'Run a fresh gap loop for a track or phase',
+    prompt: buildSkillWrapperBody({
+      commandId: 'gap-loop',
+      skillDisplayPath: EIDOLON_WORKFLOW_SKILL_DISPLAY_PATH,
+      subskillName: 'gap-loop',
+      argsToken: '{{args}}',
+      extraRules: [
+        'For Eidolon, the preferred fresh-child mechanism is a new agent or fresh session.',
+        'Do not reuse the previous session when a new gap-loop round is required.',
+      ],
+    }),
   },
 };
 
@@ -70,12 +126,12 @@ function escapeToml(str: string): string {
 }
 
 export async function generateEidolonCommands(): Promise<void> {
-  // Create directory
+  syncGeneratedSkillDirectory(EIDOLON_SKILL_DIR, buildWorkflowSkillFiles('eidolon'));
+
   if (!fs.existsSync(EIDOLON_COMMANDS_DIR)) {
     fs.mkdirSync(EIDOLON_COMMANDS_DIR, { recursive: true });
   }
 
-  // Generate command files
   for (const [name, cmd] of Object.entries(COMMANDS)) {
     const content = `description = "${cmd.description}"
 

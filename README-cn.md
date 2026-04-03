@@ -13,8 +13,9 @@ Codument 是一个 CLI 工具，为 AI 辅助软件开发带来结构化和可�
 - **结构化规划**：把工作拆解到 `plan.xml` 的阶段、任务和子任务
 - **规范优先**：先在 `spec.md` 中定义需求，再编码
 - **进度追踪**：从 `plan.xml` 读取 TODO / IN_PROGRESS / DONE / BLOCKED 状态
+- **Gap Loop 校验**：在收口前用 fresh 轮次做目标偏差复检与修正
 - **支持波次工作流**：支持 discuss / plan-wave / execute-wave / verify 命令流
-- **多工具支持**：支持 Claude Code、OpenAI Codex CLI、Eidolon、Gemini CLI 和 OpenCode
+- **多工具支持**：支持 Claude Code、OpenAI Codex CLI、Sparrow、Eidolon 和 OpenCode
 
 ## 功能特性
 
@@ -38,13 +39,13 @@ Track（变更追踪）
 
 ### 支持的 AI CLI 工具
 
-| 工具 | 生成位置 | 常见调用方式 |
-|------|----------|----------------|
-| Claude Code | `.claude/commands/codument/` | `/codument:init`、`/codument:track`、`/codument:implement` |
-| OpenAI Codex CLI | `~/.codex/prompts/` | `/prompts:codument-init`、`/prompts:codument-track`、`/prompts:codument-plan-wave` |
-| Eidolon | `.eidolon/commands/codument/` | `/codument:init`、`/codument:track`、`/codument:plan-wave` |
-| Gemini CLI | `.gemini/commands/codument/` | `/codument:init`、`/codument:track`、`/codument:plan-wave` |
-| OpenCode | `.opencode/command/` | 由 `codument-*.md` 生成的命令文件 |
+| 工具 | 工作流入口生成位置 | 常见调用方式 |
+|------|--------------------|----------------|
+| Claude Code | `.claude/skills/codument-workflow/` + `.claude/commands/codument/` | `/codument:init`、`/codument:track`、`/codument:gap-loop` |
+| OpenAI Codex CLI | `~/.codex/skills/codument-workflow/` | `使用 $codument-workflow 执行 init、track、implement、gap-loop、archive 等流程` |
+| Sparrow | `.sparrow/skill/codument-workflow/` | `加载 codument-workflow skill 后继续对应的 Codument 生命周期流程` |
+| Eidolon | `.eidolon/skills/codument-workflow/` + `.eidolon/commands/codument/` | `/codument:init`、`/codument:track`、`/codument:gap-loop` |
+| OpenCode | `.opencode/skills/codument-workflow/` + `.opencode/command/` | 由 `codument-*.md` 生成的 wrapper 命令文件 |
 
 ## 安装
 
@@ -85,16 +86,20 @@ codument init
 - 创建 `codument/` 目录结构
 - 生成 `project.md`、`product.md`、`tech-stack.md`、`tracks.md`、`state.json`
 - 生成 `codument/std/` 和 `codument/workflows/workflow.md`
-- 仅为你选择的 AI CLI 工具生成命令文件
+- 为你选择的 target 生成对应的 `codument-workflow` skill 目录
+- 对仍支持 command 的 target 额外生成 command wrapper
 
 ### 2. 创建变更追踪（Track）
 
 使用你所选 AI 工具生成的命令即可，例如：
 
 ```text
-Claude / Gemini / Eidolon：/codument:track 添加用户认证功能
-Codex：/prompts:codument-track 添加用户认证功能
+Claude / Eidolon：/codument:track 添加用户认证功能
+Codex：使用 $codument-workflow 创建 “添加用户认证功能” 的 track
+Sparrow：加载 `codument-workflow` 并创建“添加用户认证功能”的 track
 ```
+
+对 Claude、Eidolon 和 OpenCode，这些 command wrapper 会加载同一套共享的 `codument-workflow` sub-skill，而不是再维护一份独立 prompt 副本。
 
 助手会引导你完成：
 1. 讨论需求
@@ -105,21 +110,26 @@ Codex：/prompts:codument-track 添加用户认证功能
 ### 3. 实现任务
 
 ```text
-Claude / Gemini / Eidolon：/codument:implement <track-id>
-Codex：/prompts:codument-implement <track-id>
+Claude / Eidolon：/codument:implement <track-id>
+Codex：使用 $codument-workflow 实现 track <track-id>
+Sparrow：加载 `codument-workflow` 并实现 track <track-id>
 ```
 
 如果采用 wave 工作流，生成的命令集还包括：
 - `discuss`
 - `plan-wave`
 - `execute-wave`
+- `gap-loop`
 - `verify`
+
+启用 `yield-gap-loop` 时应使用 fresh round；若已有上层编排应用接管该协议，则遵循上层协议，不再在当前节点启动冲突的嵌套 loop。
 
 ### 4. 归档已完成的 Track
 
 ```text
-Claude / Gemini / Eidolon：/codument:archive add-user-auth
-Codex：/prompts:codument-archive add-user-auth
+Claude / Eidolon：/codument:archive add-user-auth
+Codex：使用 $codument-workflow 归档 track add-user-auth
+Sparrow：加载 `codument-workflow` 并归档 track add-user-auth
 ```
 
 将 track 移动到 `codument/archive/YYYY-MM-DD-add-user-auth/`。
@@ -132,8 +142,13 @@ Codex：/prompts:codument-archive add-user-auth
 codument upgrade-workspace
 ```
 
-该命令会升级 `codument/std/`，并根据 `codument/state.json` 中的 `cli_tools` 重新生成对应 AI CLI 工具的 codument 命令文件。
-对于 Codex，命令文件会重新生成到 `~/.codex/prompts/`。
+该命令会升级 `codument/std/`，并根据 `codument/state.json` 中的 `cli_tools` 重新生成对应 AI CLI 工具的工作流入口。
+对于命令型 target，会先同步工作区内的 skill 模板，再重新生成 command wrapper。
+对于 Codex，会将内置 skill 模板同步到 `~/.codex/skills/codument-workflow/`。
+对于 Claude，会将内置 skill 模板同步到 `.claude/skills/codument-workflow/`。
+对于 Eidolon，会将内置 skill 模板同步到 `.eidolon/skills/codument-workflow/`。
+对于 OpenCode，会将内置 skill 模板同步到 `.opencode/skills/codument-workflow/`。
+对于 Sparrow，会将内置 skill 模板同步到 `.sparrow/skill/codument-workflow/`。
 默认会在 `./.tmp/codument/` 下创建回滚备份。
 
 详见 `UPGRADE_WORKSPACE.md`。
@@ -201,12 +216,15 @@ your-project/
 │   │       └── waves/           # 可选，wave 工作流
 │   ├── specs/
 │   └── archive/
+├── .claude/skills/codument-workflow/  # 选择 Claude Code 时生成
 ├── .claude/commands/codument/    # 选择 Claude Code 时生成
-├── .gemini/commands/codument/    # 选择 Gemini CLI 时生成
+├── .sparrow/skill/codument-workflow/  # 选择 Sparrow 时生成
+├── .eidolon/skills/codument-workflow/ # 选择 Eidolon 时生成
 ├── .eidolon/commands/codument/   # 选择 Eidolon 时生成
+├── .opencode/skills/codument-workflow/ # 选择 OpenCode 时生成
 ├── .opencode/command/            # 选择 OpenCode 时生成
 ├── AGENTS.md
-└── ~/.codex/prompts/             # 选择 Codex CLI 时生成
+└── ~/.codex/skills/codument-workflow/  # 选择 Codex CLI 时生成
 ```
 
 ## plan.xml 格式

@@ -1,0 +1,89 @@
+import { describe, expect, it } from "bun:test";
+import * as fs from "fs";
+import * as os from "os";
+import * as path from "path";
+import { generateClaudeCommands } from "./claude";
+import { generateEidolonCommands } from "./eidolon";
+import { generateOpenCodeCommands } from "./opencode";
+
+const DEPRECATED_CONFIRM_PROTOCOL = ["yield", "ai-confirm"].join("-");
+
+function makeTempDir(prefix: string): string {
+  return fs.mkdtempSync(path.join(os.tmpdir(), prefix));
+}
+
+function collectFiles(rootDir: string): string[] {
+  const results: string[] = [];
+
+  function visit(currentDir: string): void {
+    const entries = fs.readdirSync(currentDir, { withFileTypes: true });
+    for (const entry of entries) {
+      const absolutePath = path.join(currentDir, entry.name);
+      if (entry.isDirectory()) {
+        visit(absolutePath);
+        continue;
+      }
+      results.push(absolutePath);
+    }
+  }
+
+  if (fs.existsSync(rootDir)) {
+    visit(rootDir);
+  }
+
+  return results.sort();
+}
+
+describe("assistant command generators", () => {
+  it("generate gap-loop commands and remove deprecated confirm references", async () => {
+    const tempWorkspace = makeTempDir("codument-generators-");
+    const originalCwd = process.cwd();
+
+    try {
+      process.chdir(tempWorkspace);
+
+      await generateClaudeCommands();
+      await generateEidolonCommands();
+      await generateOpenCodeCommands();
+
+      expect(fs.existsSync(path.join(tempWorkspace, ".claude", "commands", "codument", "gap-loop.md"))).toBe(true);
+      expect(fs.existsSync(path.join(tempWorkspace, ".claude", "skills", "codument-workflow", "subskills", "gap-loop", "SKILL.md"))).toBe(true);
+      expect(fs.existsSync(path.join(tempWorkspace, ".eidolon", "commands", "codument", "gap-loop.toml"))).toBe(true);
+      expect(fs.existsSync(path.join(tempWorkspace, ".eidolon", "skills", "codument-workflow", "subskills", "gap-loop", "SKILL.md"))).toBe(true);
+      expect(fs.existsSync(path.join(tempWorkspace, ".opencode", "command", "codument-gap-loop.md"))).toBe(true);
+      expect(fs.existsSync(path.join(tempWorkspace, ".opencode", "skills", "codument-workflow", "subskills", "gap-loop", "SKILL.md"))).toBe(true);
+
+      const generatedFiles = [
+        ...collectFiles(path.join(tempWorkspace, ".claude")),
+        ...collectFiles(path.join(tempWorkspace, ".eidolon")),
+        ...collectFiles(path.join(tempWorkspace, ".opencode")),
+      ];
+
+      expect(generatedFiles.length).toBeGreaterThan(0);
+
+      for (const filePath of generatedFiles) {
+        const content = fs.readFileSync(filePath, "utf-8");
+        expect(content.includes(DEPRECATED_CONFIRM_PROTOCOL)).toBe(false);
+      }
+
+      const claudeGapLoop = fs.readFileSync(path.join(tempWorkspace, ".claude", "commands", "codument", "gap-loop.md"), "utf-8");
+      const eidolonGapLoop = fs.readFileSync(path.join(tempWorkspace, ".eidolon", "commands", "codument", "gap-loop.toml"), "utf-8");
+      const openCodeGapLoop = fs.readFileSync(path.join(tempWorkspace, ".opencode", "command", "codument-gap-loop.md"), "utf-8");
+
+      expect(claudeGapLoop).toContain(".claude/skills/codument-workflow/shared/target-capabilities.md");
+      expect(claudeGapLoop).toContain(".claude/skills/codument-workflow/subskills/gap-loop/SKILL.md");
+      expect(claudeGapLoop).toContain("preferred fresh-child mechanism is a newly created child agent");
+      expect(claudeGapLoop).not.toContain("you MUST create a newly created child agent before reading code");
+      expect(eidolonGapLoop).toContain(".eidolon/skills/codument-workflow/shared/target-capabilities.md");
+      expect(eidolonGapLoop).toContain(".eidolon/skills/codument-workflow/subskills/gap-loop/SKILL.md");
+      expect(eidolonGapLoop).toContain("preferred fresh-child mechanism is a new agent or fresh session");
+      expect(eidolonGapLoop).not.toContain("you MUST start a new agent or fresh session before any substantive review");
+      expect(openCodeGapLoop).toContain(".opencode/skills/codument-workflow/shared/target-capabilities.md");
+      expect(openCodeGapLoop).toContain(".opencode/skills/codument-workflow/subskills/gap-loop/SKILL.md");
+      expect(openCodeGapLoop).toContain("Do not reuse a previous task ID");
+      expect(openCodeGapLoop).not.toContain("you MUST start a fresh task or fresh session before any substantive review");
+    } finally {
+      process.chdir(originalCwd);
+    }
+  });
+});

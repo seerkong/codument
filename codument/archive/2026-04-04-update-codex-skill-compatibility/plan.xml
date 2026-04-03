@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plan>
+  <metadata>
+    <track_id>update-codex-skill-compatibility</track_id>
+    <track_name>兼容 Codex 新版 skills 工作流</track_name>
+    <goal>让 Codument 在 init、upgrade-workspace 和文档层面从旧的 ~/.codex/prompts 模式迁移到 ~/.codex/skills/codument-workflow/ 模式</goal>
+    <created_at>2026-04-04T12:00:00Z</created_at>
+    <updated_at>2026-04-04T16:00:00Z</updated_at>
+    <status>completed</status>
+    <execution_mode>sequential</execution_mode>
+    <commit_mode>manual</commit_mode>
+  </metadata>
+
+  <phases>
+    <phase id="P1" name="模板源与生成器切换">
+      <goal>建立 Codex skill 模板源，并让生成器输出到 ~/.codex/skills/codument-workflow/</goal>
+      <tasks>
+        <task id="T1.1" name="引入 codument-workflow skill 模板" status="DONE" priority="P0">
+          <description>将当前可工作的 codument-workflow skill 结构纳入仓库内受控模板，至少包含 SKILL.md、agents/openai.yaml、references/ 下的工作流参考文件。</description>
+          <acceptance_criteria>
+            <criterion id="T1.1-AC1" checked="true">仓库内存在完整的 codument-workflow skill 模板源</criterion>
+            <criterion id="T1.1-AC2" checked="true">模板目录结构与用户现有可用版本一致</criterion>
+          </acceptance_criteria>
+        </task>
+
+        <task id="T1.2" name="改造 Codex 生成器" status="DONE" priority="P0">
+          <description>修改 src/cli/generators/codex.ts，使其不再生成 ~/.codex/prompts/codument-*.md，而是将模板同步到 ~/.codex/skills/codument-workflow/。</description>
+          <acceptance_criteria>
+            <criterion id="T1.2-AC1" checked="true">generateCodexCommands 不再写入 ~/.codex/prompts</criterion>
+            <criterion id="T1.2-AC2" checked="true">generateCodexCommands 能正确同步 ~/.codex/skills/codument-workflow/</criterion>
+          </acceptance_criteria>
+        </task>
+      </tasks>
+      <gate_criteria>
+        <criterion>Codex 生成器已切换为 skill 模式</criterion>
+      </gate_criteria>
+    </phase>
+
+    <phase id="P2" name="初始化与升级流程更新">
+      <goal>让 init 和 upgrade-workspace 正确安装、备份和升级 Codex skill</goal>
+      <tasks>
+        <task id="T2.1" name="更新 init.ts 中的 Codex 初始化逻辑与输出" status="DONE" priority="P0">
+          <description>修改 src/cli/commands/init.ts：
+            - 选择 Codex 时调用新的 skill 同步逻辑
+            - 输出文案改为 ~/.codex/skills/codument-workflow/
+            - 移除 prompts 相关提示</description>
+          <acceptance_criteria>
+            <criterion id="T2.1-AC1" checked="true">init 选择 Codex 时安装的是 skill 目录</criterion>
+            <criterion id="T2.1-AC2" checked="true">init 输出不再提及 ~/.codex/prompts</criterion>
+          </acceptance_criteria>
+        </task>
+
+        <task id="T2.2" name="更新 upgrade-workspace.ts 中的 Codex 备份与升级逻辑" status="DONE" priority="P0">
+          <description>修改 src/cli/commands/upgrade-workspace.ts：
+            - 备份 ~/.codex/skills/codument-workflow/
+            - 升级时同步 skill 目录
+            - 输出文案同步更新</description>
+          <acceptance_criteria>
+            <criterion id="T2.2-AC1" checked="true">upgrade-workspace 备份的是 Codex skill 目录</criterion>
+            <criterion id="T2.2-AC2" checked="true">upgrade-workspace 输出不再提及 ~/.codex/prompts</criterion>
+          </acceptance_criteria>
+        </task>
+      </tasks>
+      <gate_criteria>
+        <criterion>init 和 upgrade-workspace 都已兼容 Codex skill 模式</criterion>
+      </gate_criteria>
+    </phase>
+
+    <phase id="P3" name="文档与回归验证">
+      <goal>同步 README 和升级文档，并验证 Codex skill 模式输出正确</goal>
+      <tasks>
+        <task id="T3.1" name="更新 README 与升级文档" status="DONE" priority="P1">
+          <description>修改 README.md、README-cn.md、UPGRADE_WORKSPACE.md 中 Codex 的路径、调用方式和升级说明，统一改为 ~/.codex/skills/codument-workflow/。</description>
+          <acceptance_criteria>
+            <criterion id="T3.1-AC1" checked="true">公开文档中 Codex 主路径改为 ~/.codex/skills/codument-workflow/</criterion>
+            <criterion id="T3.1-AC2" checked="true">不再把 ~/.codex/prompts 作为 Codex 主入口说明</criterion>
+          </acceptance_criteria>
+        </task>
+
+        <task id="T3.2" name="补充测试或校验" status="DONE" priority="P1">
+          <description>补充与 Codex 相关的生成器或 upgrade-workspace 测试/校验，确保新版路径与模板同步逻辑正确。</description>
+          <acceptance_criteria>
+            <criterion id="T3.2-AC1" checked="true">相关测试或校验通过</criterion>
+            <criterion id="T3.2-AC2" checked="true">Codex 兼容路径行为可被回归验证</criterion>
+          </acceptance_criteria>
+        </task>
+      </tasks>
+      <gate_criteria>
+        <criterion>文档与实现对 Codex 的描述一致</criterion>
+        <criterion>Codex 兼容逻辑有回归验证</criterion>
+      </gate_criteria>
+    </phase>
+  </phases>
+
+  <summary>
+    <total_phases>3</total_phases>
+    <total_tasks>6</total_tasks>
+    <total_subtasks>0</total_subtasks>
+    <total_estimated_days>0</total_estimated_days>
+    <completed>6</completed>
+    <in_progress>0</in_progress>
+    <todo>0</todo>
+    <blocked>0</blocked>
+  </summary>
+</plan>

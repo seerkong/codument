@@ -1,137 +1,142 @@
 /**
  * OpenCode command generator
- * Generates .opencode/command/*.md files
+ * Generates .opencode/skills/codument-workflow/ and .opencode/command/*.md files
  */
 
 import * as fs from 'fs';
 import * as path from 'path';
 import {
-  initPrompt, trackPrompt,
-  implementPrompt, validatePrompt,
-  archivePrompt, statusPrompt,
-  discussPrompt, planWavePrompt, executeWavePrompt,
-  verifyPrompt
-} from '../../prompts'
-import {
-  withTrackRequest,
-  withImplementRequest,
-  withChangeId,
-} from './prompt-builders';
+  CODUMENT_WORKFLOW_SKILL_NAME,
+  OPENCODE_WORKFLOW_SKILL_DISPLAY_PATH,
+  buildWorkflowSkillFiles,
+} from '../../skills/codument-workflow';
+import { buildSkillWrapperBody } from './prompt-builders';
+import { syncGeneratedSkillDirectory } from './skill-sync';
 
 const OPENCODE_COMMANDS_DIR = '.opencode/command';
+const OPENCODE_SKILL_DIR = path.join('.opencode', 'skills', CODUMENT_WORKFLOW_SKILL_NAME);
 
 const COMMANDS = {
   'codument-init': {
     description: 'Initialize Codument in the current project',
-    content: `---
-description: Initialize Codument in the current project
-allowed-tools: All
----
-${initPrompt}
-
-`,
+    content: buildSkillWrapperBody({
+      commandId: 'init',
+      skillDisplayPath: OPENCODE_WORKFLOW_SKILL_DISPLAY_PATH,
+      subskillName: 'init',
+      argsToken: '$ARGUMENTS',
+    }),
   },
   'codument-track': {
     description: 'Create a new change track',
-    content: `---
-description: Create a new change track for a feature or bug fix
-allowed-tools: All
----
-${withTrackRequest(trackPrompt)}
-
-`,
+    content: buildSkillWrapperBody({
+      commandId: 'track',
+      skillDisplayPath: OPENCODE_WORKFLOW_SKILL_DISPLAY_PATH,
+      subskillName: 'track',
+      argsToken: '$ARGUMENTS',
+    }),
   },
   'codument-implement': {
     description: 'Implement tasks from a track',
-    content: `---
-description: Implement tasks from a track following the workflow
-allowed-tools: All
----
-${withImplementRequest(implementPrompt)}
-
-`,
+    content: buildSkillWrapperBody({
+      commandId: 'implement',
+      skillDisplayPath: OPENCODE_WORKFLOW_SKILL_DISPLAY_PATH,
+      subskillName: 'implement',
+      argsToken: '$ARGUMENTS',
+    }),
   },
   'codument-validate': {
     description: 'Validate track or spec format',
-    content: `---
-description: Validate track or spec format
-allowed-tools: All
----
-${withChangeId(validatePrompt, '$ARGUMENTS')}
-
-`,
+    content: buildSkillWrapperBody({
+      commandId: 'validate',
+      skillDisplayPath: OPENCODE_WORKFLOW_SKILL_DISPLAY_PATH,
+      subskillName: 'validate',
+      argsToken: '$ARGUMENTS',
+    }),
   },
   'codument-archive': {
     description: 'Archive a completed track',
-    content: `---
-description: Archive a completed track
-allowed-tools: All
----
-${withChangeId(archivePrompt, '$ARGUMENTS')}
-
-`,
+    content: buildSkillWrapperBody({
+      commandId: 'archive',
+      skillDisplayPath: OPENCODE_WORKFLOW_SKILL_DISPLAY_PATH,
+      subskillName: 'archive',
+      argsToken: '$ARGUMENTS',
+    }),
   },
   'codument-status': {
     description: 'Show project status overview',
-    content: `---
-description: Show project status overview
-allowed-tools: All
----
-
-${statusPrompt}
-`,
+    content: buildSkillWrapperBody({
+      commandId: 'status',
+      skillDisplayPath: OPENCODE_WORKFLOW_SKILL_DISPLAY_PATH,
+      subskillName: 'status',
+    }),
   },
   'codument-discuss': {
     description: 'Discuss a phase for wave execution planning',
-    content: `---
-description: Discuss a phase for wave execution planning
-allowed-tools: All
----
-${discussPrompt}
-
-`,
+    content: buildSkillWrapperBody({
+      commandId: 'discuss',
+      skillDisplayPath: OPENCODE_WORKFLOW_SKILL_DISPLAY_PATH,
+      subskillName: 'discuss',
+      argsToken: '$ARGUMENTS',
+    }),
   },
   'codument-plan-wave': {
     description: 'Plan wave DAG for a track phase',
-    content: `---
-description: Plan wave DAG for a track phase
-allowed-tools: All
----
-${planWavePrompt}
-
-`,
+    content: buildSkillWrapperBody({
+      commandId: 'plan-wave',
+      skillDisplayPath: OPENCODE_WORKFLOW_SKILL_DISPLAY_PATH,
+      subskillName: 'plan-wave',
+      argsToken: '$ARGUMENTS',
+    }),
   },
   'codument-execute-wave': {
     description: 'Execute tasks by wave DAG scheduling',
-    content: `---
-description: Execute tasks by wave DAG scheduling
-allowed-tools: All
----
-${executeWavePrompt}
-
-`,
+    content: buildSkillWrapperBody({
+      commandId: 'execute-wave',
+      skillDisplayPath: OPENCODE_WORKFLOW_SKILL_DISPLAY_PATH,
+      subskillName: 'execute-wave',
+      argsToken: '$ARGUMENTS',
+    }),
   },
   'codument-verify': {
     description: 'Verify implementation with independent validation mode',
-    content: `---
-description: Verify implementation with independent validation mode
-allowed-tools: All
----
-${verifyPrompt}
-
-`,
+    content: buildSkillWrapperBody({
+      commandId: 'verify',
+      skillDisplayPath: OPENCODE_WORKFLOW_SKILL_DISPLAY_PATH,
+      subskillName: 'verify',
+      argsToken: '$ARGUMENTS',
+    }),
+  },
+  'codument-gap-loop': {
+    description: 'Run a fresh gap loop for a track or phase',
+    content: buildSkillWrapperBody({
+      commandId: 'gap-loop',
+      skillDisplayPath: OPENCODE_WORKFLOW_SKILL_DISPLAY_PATH,
+      subskillName: 'gap-loop',
+      argsToken: '$ARGUMENTS',
+      extraRules: [
+        'For OpenCode, the preferred fresh-child mechanism is a fresh task or fresh session.',
+        'Do not reuse a previous task ID when re-running a gap-loop round.',
+      ],
+    }),
   },
 };
 
 export async function generateOpenCodeCommands(): Promise<void> {
-  // Create directory
+  syncGeneratedSkillDirectory(OPENCODE_SKILL_DIR, buildWorkflowSkillFiles('opencode'));
+
   if (!fs.existsSync(OPENCODE_COMMANDS_DIR)) {
     fs.mkdirSync(OPENCODE_COMMANDS_DIR, { recursive: true });
   }
 
-  // Generate command files
   for (const [name, cmd] of Object.entries(COMMANDS)) {
     const filePath = path.join(OPENCODE_COMMANDS_DIR, `${name}.md`);
-    fs.writeFileSync(filePath, cmd.content);
+    const content = `---
+description: ${cmd.description}
+allowed-tools: All
+---
+${cmd.content}
+`;
+
+    fs.writeFileSync(filePath, content);
   }
 }

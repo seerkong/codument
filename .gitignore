@@ -3,6 +3,7 @@
 .gemini
 .eidolon
 .serena
+.theater
 data.sqlite
 bun.lock
 testdata/

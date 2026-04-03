@@ -2,7 +2,7 @@
 
 `codument upgrade-workspace` updates the Codument workspace files in the current directory to the latest versions embedded in the Codument binary.
 
-It is designed for projects that already have a `codument/` folder and want to pull in updates (new prompts, schema changes, new assistant commands) without rerunning the interactive `codument init` flow.
+It is designed for projects that already have a `codument/` folder and want to pull in updates (new prompts, schema changes, new assistant commands or skills) without rerunning the interactive `codument init` flow.
 
 ## What It Upgrades
 
@@ -13,8 +13,8 @@ It is designed for projects that already have a `codument/` folder and want to p
   - `protocols.md`
 - Assistant command files for the CLI tools selected in `codument/state.json` (`cli_tools`)
   - Claude Code: `.claude/commands/codument/`
-  - Codex CLI: `~/.codex/prompts/codument-*.md`
-  - Gemini: `.gemini/commands/codument/`
+  - Codex CLI: `~/.codex/skills/codument-workflow/`
+  - Sparrow: `.sparrow/skill/codument-workflow/`
   - Eidolon: `.eidolon/commands/codument/`
   - OpenCode: `.opencode/command/`
 
@@ -30,7 +30,7 @@ Before overwriting anything, the command creates a backup under:
 
 `./.tmp/codument/upgrade-workspace-<timestamp>/`
 
-The backup mirrors the original paths. Workspace files stay under relative workspace paths (for example `codument/std/workflow.md`). Codex prompt backups may appear under a user-home subtree because the source path is `~/.codex/prompts/`.
+The backup mirrors the original paths. Workspace files stay under relative workspace paths (for example `codument/std/workflow.md`). Codex skill backups may appear under a user-home subtree because the source path is `~/.codex/skills/codument-workflow/`. Sparrow skill backups stay under the workspace-relative `.sparrow/skill/codument-workflow/` path.
 
 To rollback, copy the files back from the backup directory to the workspace root. Example:
 

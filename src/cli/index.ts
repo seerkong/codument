@@ -1,6 +1,4 @@
 #!/usr/bin/env bun
-import { parseArgs } from 'util';
-import packageJson from '../../package.json';
 import { listCommand } from './commands/list';
 import { showCommand } from './commands/show';
 import { validateCommand } from './commands/validate';
@@ -10,8 +8,7 @@ import { archiveCommand } from './commands/archive';
 import { upgradeWorkspaceCommand } from './commands/upgrade-workspace';
 import { upgradeTrackCommand } from './commands/upgrade-track';
 import { setWorkspaceDir } from './utils';
-
-const VERSION = packageJson.version;
+import { VERSION } from '../version';
 
 const HELP = `
 codument v${VERSION} - Spec-driven development tool for AI coding assistants

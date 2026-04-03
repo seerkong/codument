@@ -332,14 +332,14 @@
     - 生成 plan.xml，包含 Phase、Task、Subtask 的层级结构
     - **关键：** 计划结构必须遵循 workflow.md 中的方法论（如 TDD 的"编写测试"和"实现"任务）
     - 每个任务包含 id、name、priority、status
-    - **可配置确认**：如需在阶段或任务执行前/后确认，可在 `<phase>` 或 `<task>` 下添加 `<confirm protocol="yield-human-confirm|yield-ai-confirm" when="before|after|both" [ai-agent] />`（见 `codument/std/protocols.md`）
+    - **可配置确认**：如需在阶段或任务执行前/后确认，可在 `<phase>` 或 `<task>` 下添加 `<confirm protocol="yield-human-confirm|yield-gap-loop" when="before|after|both" status="TODO" />`（见 `codument/std/protocols.md`）
     - **默认确认策略（重要）**：默认情况下，仅在**最后一个 phase** 下添加一个 `when="after"` 的 phase 级 `<confirm ... />`；中间 phase 默认**不添加** `<confirm>`，task 默认也**不添加** `<confirm>`
     - **例外**：只有在用户明确要求、存在高风险发布/迁移/安全检查、或确有必要在关键节点暂停审阅时，才为中间 phase 或 task 添加额外 `<confirm>`
 
 3. **写入文件：**
     - 将执行计划写入 `codument/tracks/<track_id>/plan.xml`
 
-4. **用户确认（合并提交模式选择）：** 展示起草的 plan.xml 供审查，并在同一轮确认中选择提交模式：
+4. **用户确认（合并提交模式与校验模式选择）：** 展示起草的 plan.xml 供审查，并在同一轮确认中选择提交模式与校验模式：
     > "我已起草了实现计划。请审查：
     > 文件路径在：codument/tracks/<track_id>/plan.xml
     > 此计划是否正确？如需修改请直接说明。
@@ -348,9 +348,29 @@
     > **A. 自动提交模式（auto）** — 任务完成后自动 commit + Git Notes
     > **B. 手动提交模式（manual）** — 由你自行控制提交时机
     >
-    > 你可以在同一条回复中同时给出「修改意见 + 模式选择（A/B）」。"
+    > 请选择本次 Track 的校验模式：
+    > **C. 人工确认（yield-human-confirm）** — 由用户在确认点审阅后继续
+    > **D. Gap Loop（yield-gap-loop）** — 当前 agent 到达确认点后结束，由父层 fresh-spawn 新的 gap-loop agent 做目标对比、gap 报告和修正
+    >
+    > 如果你选择 **D**，再选择校验粒度：
+    > **E. 仅最后一个 phase 校验（final_phase，默认）**
+    > **F. 每个 phase 都校验（every_phase）**
+    >
+    > 你可以在同一条回复中同时给出「修改意见 + 提交模式（A/B） + 校验模式（C/D） + 可选粒度（E/F）」。"
 
-    等待反馈并修改 plan.xml 直到确认，将模式写入 plan.xml 的 `<commit_mode>`（使用 **Protocol: ask-single-question-free**）。
+    等待反馈并修改 plan.xml 直到确认，并按以下规则写入：
+    - 将提交模式写入 `<commit_mode>`
+    - 将校验模式写入 `<validation_mode>`
+    - 如果用户选择 `yield-gap-loop`：
+      - 若未明确选择粒度，默认写入 `<validation_granularity>final_phase</validation_granularity>`
+      - 写入 `<gap_loop_round>0</gap_loop_round>`
+      - `final_phase`：仅在最后一个 `<phase>` 下插入 `<confirm protocol="yield-gap-loop" when="after" status="TODO" />`
+      - `every_phase`：在每个 `<phase>` 下都插入 `<confirm protocol="yield-gap-loop" when="after" status="TODO" />`
+    - 如果用户选择 `yield-human-confirm`：
+      - 不继续询问粒度
+      - 写入 `<validation_mode>yield-human-confirm</validation_mode>`
+      - 默认仅在最后一个 `<phase>` 下插入 `<confirm protocol="yield-human-confirm" when="after" status="TODO" />`
+    （使用 **Protocol: ask-single-question-free**）。
 
 ### 2.6 收尾
 
@@ -361,4 +381,5 @@
 2. **宣布完成：**
    > "新 track '<track_id>' 已创建并添加到 tracks 文件。
    > 提交模式：<auto|manual>
+   > 校验模式：<yield-human-confirm|yield-gap-loop>
    > 你现在可以运行 `/codument:implement` 开始实现。"

@@ -198,8 +198,15 @@ while 存在未完成的 wave:
 
 2. **阶段门控验证：** 与 implement.md 相同的门控逻辑（严格触发条件）
    - 检查 gate_criteria
-   - **仅当**该 `<phase>` 下存在 `<confirm protocol="yield-human-confirm" .../>` 或 `<confirm protocol="yield-ai-confirm" .../>` 且 `when` 包含 `after`（或 `both`）时：执行 `codument/std/workflow.md` 的“阶段完成验证协议”，并按 `codument/std/protocols.md` 等待确认完成
+   - **仅当**该 `<phase>` 下存在 `<confirm protocol="yield-human-confirm" .../>` 或 `<confirm protocol="yield-gap-loop" .../>` 且 `when` 包含 `after`（或 `both`）时：执行 `codument/std/workflow.md` 的“阶段完成验证协议”，并按 `codument/std/protocols.md` 等待确认完成
    - **否则：**跳过门控确认步骤，不要提问，并输出提示："当前 phase 未配置 confirm(after/both)，将自动进入下一 phase。"
+   - 如果协议为 `yield-gap-loop`：
+     - 当前波次执行编排器在 phase 完成后只负责结束当前轮并把控制权交回父层
+     - 父层编排者每次启动新一轮前，必须先更新 `plan.xml` metadata 中的 `<gap_loop_round>`
+     - 父层编排者必须 fresh-spawn 新的 gap-loop 子代理或等价的 fresh child context，并让其执行当前 scope 的 gap-loop 子流程
+     - 若返回 `NO_GAP`：若这是“首轮 + 无历史报告”的结果，父层仍必须再 fresh-spawn 一轮新的 gap-loop 子代理验证；否则才将 `<confirm>` 标记为 `DONE`
+     - 若返回 `FIX_APPLIED`：父层必须再次 fresh-spawn 新的 gap-loop 子代理复检，不得停止在这一轮
+     - 若返回 `BLOCKED`：将 `<confirm>` 标记为 `BLOCKED` 并停止
 
 3. **创建检查点：** auto 模式下 git commit
 

@@ -1,0 +1,8 @@
+{
+  "track_id": "add-gap-loop-orchestration-hardening",
+  "type": "feature",
+  "status": "completed",
+  "created_at": "2026-04-04T00:00:00Z",
+  "updated_at": "2026-04-04T12:00:00Z",
+  "description": "补齐 gap-loop 父层循环规则、首轮无历史报告的二次验证、gap_loop_round 元数据，并重构共享 prompt 的角色结构"
+}

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Codument Workflow"
+  short_description: "Codument lifecycle and track workflows"
+  default_prompt: "Use $codument-workflow to run the right Codument lifecycle step for this project."

@@ -16,11 +16,19 @@ import {
 
 import { generateClaudeCommands } from '../generators/claude';
 import { generateCodexCommands } from '../generators/codex';
-import { generateGeminiCommands } from '../generators/gemini';
 import { generateEidolonCommands } from '../generators/eidolon';
 import { generateOpenCodeCommands } from '../generators/opencode';
+import { generateSparrowCommands } from '../generators/sparrow';
+import {
+  CLAUDE_WORKFLOW_SKILL_DISPLAY_PATH,
+  CODEX_WORKFLOW_SKILL_DISPLAY_PATH,
+  EIDOLON_WORKFLOW_SKILL_DISPLAY_PATH,
+  OPENCODE_WORKFLOW_SKILL_DISPLAY_PATH,
+  SPARROW_WORKFLOW_SKILL_DISPLAY_PATH,
+  CODUMENT_WORKFLOW_SKILL_NAME,
+} from '../../skills/codument-workflow';
 
-type CLITool = 'claude' | 'codex' | 'eidolon' | 'gemini' | 'opencode';
+type CLITool = 'claude' | 'codex' | 'eidolon' | 'opencode' | 'sparrow';
 
 function safeTimestamp(): string {
   return new Date().toISOString().replace(/[:.]/g, '-');
@@ -112,22 +120,18 @@ export async function upgradeWorkspaceCommand(args: string[]): Promise<void> {
 
     // Backup assistant command directories (only if present)
     backupIfExists('.claude/commands/codument', backupRoot, '.claude/commands/codument');
-    backupIfExists('.gemini/commands/codument', backupRoot, '.gemini/commands/codument');
+    backupIfExists('.claude/skills/codument-workflow', backupRoot, '.claude/skills/codument-workflow');
     backupIfExists('.eidolon/commands/codument', backupRoot, '.eidolon/commands/codument');
+    backupIfExists('.eidolon/skills/codument-workflow', backupRoot, '.eidolon/skills/codument-workflow');
     backupIfExists('.opencode/command', backupRoot, '.opencode/command');
+    backupIfExists('.opencode/skills/codument-workflow', backupRoot, '.opencode/skills/codument-workflow');
+    backupIfExists('.sparrow/skill/codument-workflow', backupRoot, '.sparrow/skill/codument-workflow');
 
-    // Codex prompts directory may contain other prompts; backup only codument-*.md
-    const codexDir = path.join(os.homedir(), '.codex', 'prompts');
-    if (fs.existsSync(codexDir)) {
-      const entries = fs.readdirSync(codexDir, { withFileTypes: true });
-      for (const entry of entries) {
-        if (!entry.isFile()) continue;
-        if (!entry.name.startsWith('codument-') || !entry.name.endsWith('.md')) continue;
-        const src = path.join(codexDir, entry.name);
-        const dest = backupPath(backupRoot, src);
-        copyRecursive(src, dest);
-      }
-    }
+    backupIfExists(
+      path.join(os.homedir(), '.codex', 'skills', CODUMENT_WORKFLOW_SKILL_NAME),
+      backupRoot,
+      path.join('.codex', 'skills', CODUMENT_WORKFLOW_SKILL_NAME)
+    );
   }
 
   // Upgrade codument/std
@@ -166,22 +170,25 @@ export async function upgradeWorkspaceCommand(args: string[]): Promise<void> {
       case 'claude':
         await generateClaudeCommands();
         console.log('✓ Upgraded .claude/commands/codument');
+        console.log(`✓ Upgraded ${CLAUDE_WORKFLOW_SKILL_DISPLAY_PATH}`);
         break;
       case 'codex':
         await generateCodexCommands();
-        console.log('✓ Upgraded ~/.codex/prompts (codument-*.md)');
-        break;
-      case 'gemini':
-        await generateGeminiCommands();
-        console.log('✓ Upgraded .gemini/commands/codument');
+        console.log(`✓ Upgraded ${CODEX_WORKFLOW_SKILL_DISPLAY_PATH}`);
         break;
       case 'eidolon':
         await generateEidolonCommands();
         console.log('✓ Upgraded .eidolon/commands/codument');
+        console.log(`✓ Upgraded ${EIDOLON_WORKFLOW_SKILL_DISPLAY_PATH}`);
         break;
       case 'opencode':
         await generateOpenCodeCommands();
         console.log('✓ Upgraded .opencode/command (codument-*.md)');
+        console.log(`✓ Upgraded ${OPENCODE_WORKFLOW_SKILL_DISPLAY_PATH}`);
+        break;
+      case 'sparrow':
+        await generateSparrowCommands();
+        console.log(`✓ Upgraded ${SPARROW_WORKFLOW_SKILL_DISPLAY_PATH}`);
         break;
     }
   }

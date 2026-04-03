@@ -96,6 +96,7 @@ codument status                # 查看项目状态
 /codument:discuss <track-id>    # 阶段级讨论，生成 context.md
 /codument:plan-wave <track-id>  # 规划波次 DAG，更新 plan.xml
 /codument:execute-wave <track-id> [phase]  # 按波次 DAG 执行任务
+/codument:gap-loop <track-id> [--background <path>]... [--phase <phase-id>]  # fresh agent gap 分析与修正闭环
 /codument:verify <track-id>     # 独立验证子代理模式
 
 # 调试
@@ -465,6 +466,7 @@ codument archive <id>      # 标记完成
 /codument:discuss <id>      # 阶段讨论
 /codument:plan-wave <id>    # 规划波次 DAG
 /codument:execute-wave <id> # 执行波次
+/codument:gap-loop <id>     # fresh agent gap 分析与修正
 /codument:verify <id>       # 独立验证
 ```
 
@@ -529,15 +531,15 @@ Codument 使用三层确认机制确保重要决策得到用户认可。**默认
 
 在创建 track 时：
 1. **spec.md 确认**：展示起草的规范，等待用户确认或修改（使用 **ask-single-question-free**）
-2. **plan.xml + 提交模式确认**：在同一轮交互中确认任务计划并选择提交模式（auto/manual）（使用 **ask-single-question-free**）
+2. **plan.xml + 模式确认**：在同一轮交互中确认任务计划，并选择提交模式（auto/manual）与校验模式（`yield-human-confirm` 或 `yield-gap-loop`）；仅在 `yield-gap-loop` 下继续选择粒度（使用 **ask-single-question-free**）
 
 #### 第二层：阶段/任务确认（可配置）
 
 在实现过程中：
-1. **阶段完成确认**：仅当 `<phase>` 下存在 `<confirm protocol="yield-human-confirm" .../>` 或 `<confirm protocol="yield-ai-confirm" .../>` 且 when 包含 `after`
+1. **阶段完成确认**：仅当 `<phase>` 下存在 `<confirm protocol="yield-human-confirm" .../>` 或 `<confirm protocol="yield-gap-loop" .../>` 且 when 包含 `after`
 2. **任务执行前确认**：仅当 `<task>` 下存在 `<confirm ... when="before"/>` 或 `when="both"`
 3. **任务执行后确认**：仅当 `<task>` 下存在 `<confirm ... when="after"/>` 或 `when="both"`
-4. **确认行为**：见 `codument/std/protocols.md`（必须更新 `<confirm>` 的 `status`；未通过需修复并重复 review 直到 `DONE`）
+4. **确认行为**：见 `codument/std/protocols.md`（必须更新 `<confirm>` 的 `status`；`yield-gap-loop` 必须由父层 fresh-spawn 新子代理完成每一轮复检）
 
 #### 第三层：项目文档确认
 

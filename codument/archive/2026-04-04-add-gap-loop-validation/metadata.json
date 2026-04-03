@@ -1,0 +1,8 @@
+{
+  "track_id": "add-gap-loop-validation",
+  "type": "feature",
+  "status": "completed",
+  "created_at": "2026-04-03T12:00:00Z",
+  "updated_at": "2026-04-04T16:30:00Z",
+  "description": "为 Codument 引入 yield-gap-loop 协议与 /codument:gap-loop 命令，并将 track 创建、顺序执行和波次执行统一接入目标偏差闭环"
+}
