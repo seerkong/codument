@@ -80,6 +80,7 @@ bun run scripts/install.ts
 ```bash
 cd your-project
 codument init
+codument init --agent=claude,codex
 ```
 
 这将：
@@ -88,6 +89,8 @@ codument init
 - 生成 `codument/std/` 和 `codument/workflows/workflow.md`
 - 为你选择的 target 生成对应的 `codument-workflow` skill 目录
 - 对仍支持 command 的 target 额外生成 command wrapper
+
+当传入 `--agent=<tool>[,<tool>...]` 时，`codument init` 会跳过交互式 target 选择，也不会再提示输入 project / product 名称。支持的 tool id 为 `claude`、`codex`、`eidolon`、`opencode`、`sparrow`。
 
 ### 2. 创建变更追踪（Track）
 
@@ -167,7 +170,7 @@ codument upgrade-track <track-id-或-archive-id>
 
 | 命令 | 描述 |
 |------|------|
-| `codument init` | 交互式初始化当前项目中的 Codument |
+| `codument init [--agent <tool[,tool...]>]` | 初始化当前项目中的 Codument；传入 `--agent` 时跳过 target 提示 |
 | `codument list [--specs] [--json]` | 列出活跃 track 或 specs |
 | `codument show <id> [--type track\|spec] [--json]` | 显示 track 或 spec 详情 |
 | `codument status` | 显示项目状态概览 |

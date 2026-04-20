@@ -80,6 +80,7 @@ The install script places `codument` in `~/.local/bin` by default and prints PAT
 ```bash
 cd your-project
 codument init
+codument init --agent=claude,codex
 ```
 
 This will:
@@ -88,6 +89,8 @@ This will:
 - Generate `codument/std/` and `codument/workflows/workflow.md`
 - Generate the selected targets' `codument-workflow` skill directories
 - Generate command wrappers for the targets that support command entrypoints
+
+When `--agent=<tool>[,<tool>...]` is provided, `codument init` skips the interactive target picker and does not prompt for project or product names. Supported tool ids are `claude`, `codex`, `eidolon`, `opencode`, and `sparrow`.
 
 ### 2. Create a Change Track
 
@@ -168,7 +171,7 @@ See `UPGRADE_TRACK.md` for details.
 
 | Command | Description |
 |---------|-------------|
-| `codument init` | Interactively initialize Codument in the current project |
+| `codument init [--agent <tool[,tool...]>]` | Initialize Codument in the current project; `--agent` skips target prompts |
 | `codument list [--specs] [--json]` | List active tracks or specs |
 | `codument show <id> [--type track\|spec] [--json]` | Show track or spec details |
 | `codument status` | Show project status overview |

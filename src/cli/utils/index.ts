@@ -277,6 +277,13 @@ export function parseOptions(args: string[]): { positional: string[]; options: R
     const arg = args[i];
 
     if (arg.startsWith('--')) {
+      const equalsIndex = arg.indexOf('=');
+      if (equalsIndex !== -1) {
+        const key = arg.slice(2, equalsIndex);
+        options[key] = arg.slice(equalsIndex + 1);
+        continue;
+      }
+
       const key = arg.slice(2);
       const nextArg = args[i + 1];
 

@@ -26,6 +26,7 @@ Source: track `create-codument-prompts-20260101` (archived 2026-01-11)
 系统应当（SHALL）提供 `codument init` 命令，支持：
 - 检测项目类型（Brownfield/Greenfield）
 - 交互式收集项目信息
+- 支持 `--agent=<tool>[,<tool>...]` 非交互指定 AI coding 工具
 - 生成 `project.md`、`product.md`、`workflow.md`、`tech-stack.md`
 - 创建初始 track
 - 支持恢复中断的初始化流程
@@ -56,6 +57,14 @@ Source: track `create-codument-prompts-20260101` (archived 2026-01-11)
 - **WHEN** 初始化完成
 - **THEN** 系统输出的完成提示指向 `.sparrow/skill/codument-workflow/`
 - **AND** 该 skill 目录可被 Sparrow 作为本地资源根自动加载
+
+#### Scenario: 使用 --agent 跳过交互式 agent 与项目名称输入
+- **GIVEN** 用户运行 `codument init --agent=claude,codex`
+- **AND** 目录不存在 `codument/` 文件夹
+- **WHEN** 初始化开始
+- **THEN** 系统不再提示用户选择 AI coding 工具
+- **AND** 系统不再要求用户输入 project / product 名称
+- **AND** 系统为 `claude` 与 `codex` 生成对应产物
 
 ### Requirement: 创建变更追踪命令
 系统应当（SHALL）提供 /codument:track 命令，支持：
