@@ -15,7 +15,7 @@ import {
 
 export const CODUMENT_WORKFLOW_SKILL_NAME = "codument-workflow";
 
-export type WorkflowTarget = "claude" | "codex" | "eidolon" | "opencode" | "sparrow";
+export type WorkflowTarget = "claude" | "codeflicker" | "codex" | "eidolon" | "opencode" | "sparrow";
 
 export interface WorkflowTargetProfile {
   id: WorkflowTarget;
@@ -50,6 +50,8 @@ const SUBSKILL_SOURCES = [
 
 export const CLAUDE_WORKFLOW_SKILL_DISPLAY_PATH = `.claude/skills/${CODUMENT_WORKFLOW_SKILL_NAME}/`;
 export const CLAUDE_WORKFLOW_COMMAND_DISPLAY_PATH = ".claude/commands/codument/";
+export const CODEFLICKER_WORKFLOW_SKILL_DISPLAY_PATH = `.codeflicker/skills/${CODUMENT_WORKFLOW_SKILL_NAME}/`;
+export const CODEFLICKER_WORKFLOW_COMMAND_DISPLAY_PATH = ".codeflicker/commands/codument/";
 export const CODEX_WORKFLOW_SKILL_DISPLAY_PATH = `~/.codex/skills/${CODUMENT_WORKFLOW_SKILL_NAME}/`;
 export const EIDOLON_WORKFLOW_SKILL_DISPLAY_PATH = `.eidolon/skills/${CODUMENT_WORKFLOW_SKILL_NAME}/`;
 export const EIDOLON_WORKFLOW_COMMAND_DISPLAY_PATH = ".eidolon/commands/codument/";
@@ -63,6 +65,17 @@ const WORKFLOW_TARGET_PROFILES: Record<WorkflowTarget, WorkflowTargetProfile> = 
     displayName: "Claude Code",
     skillDisplayPath: CLAUDE_WORKFLOW_SKILL_DISPLAY_PATH,
     commandDisplayPath: CLAUDE_WORKFLOW_COMMAND_DISPLAY_PATH,
+    preferredFreshChildTerms: [
+      "a newly created child agent",
+      "a brand-new child agent for each review round",
+    ],
+    wrapperNote: "This target also keeps slash-command wrappers for compatibility.",
+  },
+  codeflicker: {
+    id: "codeflicker",
+    displayName: "CodeFlicker",
+    skillDisplayPath: CODEFLICKER_WORKFLOW_SKILL_DISPLAY_PATH,
+    commandDisplayPath: CODEFLICKER_WORKFLOW_COMMAND_DISPLAY_PATH,
     preferredFreshChildTerms: [
       "a newly created child agent",
       "a brand-new child agent for each review round",
@@ -172,7 +185,7 @@ description: Use when the user wants to initialize, operate, validate, inspect, 
 
 ## Overview
 
-This skill consolidates the old \`/codument:*\` lifecycle entrypoints into one workflow skill. Use it whenever the user's request maps to a Codument lifecycle action.
+This skill consolidates the old \`codument:*\` lifecycle entrypoints into one workflow skill. Use it whenever the user's request maps to a Codument lifecycle action.
 
 Keep the active instruction set small. First determine the user's intent, then load only the matching sub-skill from \`subskills/\`.
 
@@ -200,6 +213,12 @@ Choose the narrowest matching workflow:
 
 If a request spans multiple lifecycle steps, load only the current step first. Pull adjacent sub-skills only when the current step explicitly depends on them.
 
+## Command Routing Table
+
+If the user explicitly invokes a \`codument:*\` command, route directly to the matching sub-skill below instead of staying at the root skill layer.
+
+${buildCommandRoutingTable()}
+
 ## Working Rules
 
 - Treat the selected sub-skill as the authoritative procedure for that Codument action.
@@ -222,7 +241,7 @@ If a request spans multiple lifecycle steps, load only the current step first. P
 - For status/validation/verification, prefer concise structured results over narration.
 - For verification, keep an issues-first order.
 - For workflow steps that create or update files, explain what changed and what state transition happened.
-- When a workflow references commands like \`/codument:init\`, interpret that as "load the matching \`codument-workflow\` sub-skill or wrapper entrypoint for this target".
+- When a workflow references commands like \`codument:init\`, interpret that as "load the matching \`codument-workflow\` sub-skill or wrapper entrypoint for this target".
 `;
 }
 
@@ -260,6 +279,17 @@ The exact API differs by target, but the semantics do not. The following are equ
 
 - If the environment cannot create any fresh child context for the required workflow, return \`BLOCKED\` instead of collapsing the loop into the current top-level context.
 `;
+}
+
+function buildCommandRoutingTable(): string {
+  return [
+    "| Command | Route To | Purpose |",
+    "| --- | --- | --- |",
+    ...SUBSKILL_SOURCES.map(
+      (subskill) =>
+        `| \`codument:${subskill.name}\` | \`subskills/${subskill.name}/SKILL.md\` | ${subskill.description} |`
+    ),
+  ].join("\n");
 }
 
 function buildWorkflowRouting(): string {

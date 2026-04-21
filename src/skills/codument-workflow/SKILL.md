@@ -7,7 +7,7 @@ description: Use when the user wants to initialize, operate, validate, inspect, 
 
 ## Overview
 
-This skill consolidates the old `/codument:*` lifecycle entrypoints into one workflow skill. Use it whenever the user's request maps to a Codument lifecycle action.
+This skill consolidates the old `codument:*` lifecycle entrypoints into one workflow skill. Use it whenever the user's request maps to a Codument lifecycle action.
 
 Keep the active instruction set small. First determine the user's intent, then load only the matching sub-skill from `subskills/`.
 
@@ -35,6 +35,24 @@ Choose the narrowest matching workflow:
 
 If a request spans multiple lifecycle steps, load only the current step first. Pull adjacent sub-skills only when the current step explicitly depends on them.
 
+## Command Routing Table
+
+If the user explicitly invokes a `codument:*` command, route directly to the matching sub-skill below instead of staying at the root skill layer.
+
+| Command | Route To | Purpose |
+| --- | --- | --- |
+| `codument:archive` | `subskills/archive/SKILL.md` | Archive a completed track and merge spec deltas. |
+| `codument:discuss` | `subskills/discuss/SKILL.md` | Discuss a phase and persist implementation decisions into context.md. |
+| `codument:execute-wave` | `subskills/execute-wave/SKILL.md` | Execute tasks by wave DAG scheduling. |
+| `codument:gap-loop` | `subskills/gap-loop/SKILL.md` | Run a fresh gap analysis and repair loop for a track or phase. |
+| `codument:implement` | `subskills/implement/SKILL.md` | Implement a track sequentially from plan.xml. |
+| `codument:init` | `subskills/init/SKILL.md` | Initialize or resume Codument project setup. |
+| `codument:plan-wave` | `subskills/plan-wave/SKILL.md` | Convert a phase into wave DAG execution groups. |
+| `codument:status` | `subskills/status/SKILL.md` | Show project status and summarize tracks or tasks. |
+| `codument:track` | `subskills/track/SKILL.md` | Create a new track, proposal, spec, or plan. |
+| `codument:validate` | `subskills/validate/SKILL.md` | Validate track or spec structure and strict-mode checks. |
+| `codument:verify` | `subskills/verify/SKILL.md` | Verify implemented work with issues-first reporting. |
+
 ## Working Rules
 
 - Treat the selected sub-skill as the authoritative procedure for that Codument action.
@@ -57,4 +75,4 @@ If a request spans multiple lifecycle steps, load only the current step first. P
 - For status/validation/verification, prefer concise structured results over narration.
 - For verification, keep an issues-first order.
 - For workflow steps that create or update files, explain what changed and what state transition happened.
-- When a workflow references commands like `/codument:init`, interpret that as "load the matching `codument-workflow` sub-skill or wrapper entrypoint for this target".
+- When a workflow references commands like `codument:init`, interpret that as "load the matching `codument-workflow` sub-skill or wrapper entrypoint for this target".

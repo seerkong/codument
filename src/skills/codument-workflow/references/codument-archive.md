@@ -52,7 +52,9 @@ argument-hint: <track-id>
    - 从 `codument/tracks.md` 中移除已归档 track 的部分
 
 6. **验证：**
-   - 运行 `codument validate --strict` 确认归档后状态正确
+   - 优先运行 `codument validate --strict` 确认归档后状态正确
+   - 如果当前系统中找不到 `codument` 命令，则可跳过这个外部 CLI validate 步骤，不要因此阻塞归档流程
+   - 跳过时必须在最终结果中明确说明：外部 `codument validate --strict` 未执行，原因是系统中找不到 `codument` 命令
 
 7. **宣布完成：**
    > "Track '<track_id>' 已成功归档到 `archive/YYYY-MM-DD-<track_id>/`。"
@@ -85,10 +87,9 @@ argument-hint: <track-id>
 
 - 使用 `codument list` 确认 track ID
 - 使用 `codument list --specs` 查看更新后的规范
-- 检查归档后 `codument validate --strict` 通过
+- 检查归档后 `codument validate --strict` 通过；如果系统找不到 `codument` 命令，则记录该外部 CLI validate 步骤已跳过
 
 
 <ChangeId>
   $ARGUMENTS
 </ChangeId>
-

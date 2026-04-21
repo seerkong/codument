@@ -12,6 +12,11 @@
 - 验证：`codument validate [track-id] --strict`
 - 等待批准：提案获批前不要开始实现
 
+### 外部 CLI validate 回退规则
+
+- 当提示词要求运行外部 `codument validate ...` 命令时，如果当前系统中找不到 `codument` 可执行命令，则可跳过这个外部 CLI validate 步骤，不要因此阻塞当前工作流。
+- 跳过时需要在输出中明确说明：外部 `codument validate` 未执行，原因是系统中找不到 `codument` 命令。
+
 ## 工作阶段
 
 ### 阶段一：创建变更追踪
@@ -39,7 +44,7 @@
 6. 编写 `proposal.md` 说明背景和动机、变更什么、“要做”和“不做”、 变更内容、影响范围
 7. 按需编写 `design.md` 说明上下文、方案概览、影响范围与修改点、决策、风险/权衡、兼容性设计、迁移计划、待解决问题
 8. 编写 `plan.xml` 结构化任务清单
-9. 运行 `codument validate <id> --strict` 验证后再提交审批
+9. 尝试运行 `codument validate <id> --strict` 验证后再提交审批；如果系统找不到 `codument` 命令，可跳过该外部 CLI validate 步骤，并明确说明已跳过
 
 ### 阶段二：实现变更
 
@@ -58,7 +63,7 @@
 部署后，创建归档：
 - 将 `tracks/[id]/` 移动到 `archive/YYYY-MM-DD-[id]/`
 - 如果能力发生变化，更新 `specs/`
-- 运行 `codument validate --strict` 确认归档的变更通过检查
+- 尝试运行 `codument validate --strict` 确认归档的变更通过检查；如果系统找不到 `codument` 命令，可跳过该外部 CLI validate 步骤，并明确说明已跳过
 
 ## 开始任何任务前
 

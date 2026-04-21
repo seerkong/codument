@@ -217,4 +217,68 @@ describe('codument upgrade-workspace', () => {
     expect(fs.existsSync(path.join(skillRoot, 'subskills', 'implement', 'SKILL.md'))).toBe(true);
     expect(fs.existsSync(path.join(skillRoot, 'extra.md'))).toBe(false);
   });
+
+  it('backs up and upgrades the generated Codument workflow skill for CodeFlicker', async () => {
+    const repoRoot = path.resolve(__dirname, '../../..');
+    const cliEntry = path.join(repoRoot, 'src/cli/index.ts');
+
+    const ws = makeTempDir('codument-upgrade-codeflicker-ws-');
+
+    writeFile(path.join(ws, 'codument', 'project.md'), '# p\n');
+    writeFile(path.join(ws, 'codument', 'product.md'), '# p\n');
+    writeFile(path.join(ws, 'codument', 'workflows', 'workflow.md'), '# 项目级工作流\n');
+    writeFile(path.join(ws, 'codument', 'std', 'AGENTS.md'), 'OLD-AGENTS\n');
+    writeFile(path.join(ws, 'codument', 'std', 'workflow.md'), 'OLD-WORKFLOW\n');
+    writeFile(path.join(ws, 'codument', 'std', 'plan-xml-spec.md'), 'OLD-PLAN\n');
+    writeFile(path.join(ws, 'codument', 'std', 'protocols.md'), 'OLD-PROTOCOLS\n');
+    writeFile(path.join(ws, 'codument', 'state.json'), JSON.stringify({
+      active_track: null,
+      current_phase: null,
+      current_task: null,
+      last_action: 'init',
+      timestamp: new Date().toISOString(),
+      commit_mode: 'manual',
+      cli_tools: ['codeflicker'],
+      last_successful_step: '2.1_project',
+    }, null, 2));
+
+    const skillRoot = path.join(ws, '.codeflicker', 'skills', 'codument-workflow');
+    writeFile(path.join(skillRoot, 'SKILL.md'), 'OLD-CODEFLICKER-SKILL\n');
+    writeFile(path.join(skillRoot, 'extra.md'), 'REMOVE-ME\n');
+    writeFile(path.join(ws, '.codeflicker', 'commands', 'codument', 'gap-loop.md'), 'OLD-CODEFLICKER-COMMAND\n');
+
+    const backupDir = path.join(ws, '.tmp', 'codument', 'test-backup-codeflicker');
+
+    const proc = Bun.spawn([
+      'bun',
+      'run',
+      cliEntry,
+      '--workspace-dir',
+      ws,
+      'upgrade-workspace',
+      '--backup-dir',
+      backupDir,
+    ], {
+      cwd: repoRoot,
+      stdout: 'pipe',
+      stderr: 'pipe',
+    });
+
+    const exitCode = await proc.exited;
+    const out = await new Response(proc.stdout).text();
+    const err = await new Response(proc.stderr).text();
+
+    expect(err).toBe('');
+    expect(exitCode).toBe(0);
+    expect(out).toContain('Upgraded .codeflicker/commands/codument');
+    expect(out).toContain('Upgraded .codeflicker/skills/codument-workflow/');
+
+    expect(fs.readFileSync(path.join(backupDir, '.codeflicker', 'skills', 'codument-workflow', 'SKILL.md'), 'utf-8')).toBe('OLD-CODEFLICKER-SKILL\n');
+    expect(fs.readFileSync(path.join(backupDir, '.codeflicker', 'commands', 'codument', 'gap-loop.md'), 'utf-8')).toBe('OLD-CODEFLICKER-COMMAND\n');
+
+    expect(fs.readFileSync(path.join(skillRoot, 'shared', 'target-capabilities.md'), 'utf-8')).toContain('CodeFlicker');
+    expect(fs.existsSync(path.join(skillRoot, 'subskills', 'implement', 'SKILL.md'))).toBe(true);
+    expect(fs.existsSync(path.join(skillRoot, 'extra.md'))).toBe(false);
+    expect(fs.readFileSync(path.join(ws, '.codeflicker', 'commands', 'codument', 'gap-loop.md'), 'utf-8')).toContain('.codeflicker/skills/codument-workflow/subskills/gap-loop/SKILL.md');
+  });
 });

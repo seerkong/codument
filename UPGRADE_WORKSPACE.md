@@ -13,6 +13,7 @@ It is designed for projects that already have a `codument/` folder and want to p
   - `protocols.md`
 - Assistant command files for the CLI tools selected in `codument/state.json` (`cli_tools`)
   - Claude Code: `.claude/commands/codument/`
+  - CodeFlicker: `.codeflicker/commands/codument/`
   - Codex CLI: `~/.codex/skills/codument-workflow/`
   - Sparrow: `.sparrow/skill/codument-workflow/`
   - Eidolon: `.eidolon/commands/codument/`

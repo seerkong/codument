@@ -66,6 +66,12 @@ Source: track `create-codument-prompts-20260101` (archived 2026-01-11)
 - **AND** 系统不再要求用户输入 project / product 名称
 - **AND** 系统为 `claude` 与 `codex` 生成对应产物
 
+#### Scenario: 初始化时支持 CodeFlicker target
+- **GIVEN** 用户运行 `codument init`
+- **WHEN** 用户在交互式 target 列表中选择 CodeFlicker，或传入 `--agent=codeflicker`
+- **THEN** 系统将 Codument 工作流写入 `.codeflicker/skills/codument-workflow/`
+- **AND** 系统继续生成 `.codeflicker/commands/codument/`
+
 ### Requirement: 创建变更追踪命令
 系统应当（SHALL）提供 /codument:track 命令，支持：
 - 收集 track 描述
@@ -345,7 +351,7 @@ Source: track `create-codument-prompts-20260101` (archived 2026-01-11)
 - **AND** 随后用新的 skill 内容覆盖该目录
 
 #### Scenario: 升级时备份 command 型 target 的 workflow skill
-- **GIVEN** 用户已选择 Claude、Eidolon 或 OpenCode
+- **GIVEN** 用户已选择 Claude、CodeFlicker、Eidolon 或 OpenCode
 - **WHEN** 用户运行 `codument upgrade-workspace`
 - **THEN** 系统将对应工作区内的 `codument-workflow` skill 目录备份到升级备份目录
 - **AND** 随后用新的 skill 内容覆盖该目录
@@ -396,7 +402,7 @@ Source: track `create-codument-prompts-20260101` (archived 2026-01-11)
 - **AND** 会移除目标目录中不再属于模板的多余文件
 
 ### Requirement: command 型 target 共享 codument-workflow skill 并保留 wrapper command
-系统应当（SHALL）为 Claude、Eidolon 与 OpenCode 生成工作区内的 `codument-workflow` skill 目录，并继续生成对应 command wrapper，且 command wrapper 应引用同一套 sub-skill。
+系统应当（SHALL）为 Claude、CodeFlicker、Eidolon 与 OpenCode 生成工作区内的 `codument-workflow` skill 目录，并继续生成对应 command wrapper，且 command wrapper 应引用同一套 sub-skill。
 
 #### Scenario: 选择 Claude 时生成 skill 与 command wrapper
 - **GIVEN** 用户运行 `codument init`
@@ -404,6 +410,13 @@ Source: track `create-codument-prompts-20260101` (archived 2026-01-11)
 - **WHEN** 系统生成 Claude 相关产物
 - **THEN** 系统将 Codument 工作流写入 `.claude/skills/codument-workflow/`
 - **AND** 系统继续生成 `.claude/commands/codument/`
+
+#### Scenario: 选择 CodeFlicker 时生成 skill 与 command wrapper
+- **GIVEN** 用户运行 `codument init`
+- **AND** 用户选择支持 CodeFlicker
+- **WHEN** 系统生成 CodeFlicker 相关产物
+- **THEN** 系统将 Codument 工作流写入 `.codeflicker/skills/codument-workflow/`
+- **AND** 系统继续生成 `.codeflicker/commands/codument/`
 - **AND** command 内容引用 `codument-workflow/subskills/` 下的对应子技能
 
 #### Scenario: 选择 Eidolon 时生成 skill 与 command wrapper

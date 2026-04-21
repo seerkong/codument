@@ -45,6 +45,9 @@ describe("generateCodexCommands", () => {
     expect(fs.existsSync(path.join(skillRoot, "subskills", "gap-loop", "SKILL.md"))).toBe(true);
     expect(fs.readFileSync(path.join(skillRoot, "SKILL.md"), "utf-8")).toContain("Codument Workflow");
     expect(fs.readFileSync(path.join(skillRoot, "SKILL.md"), "utf-8")).toContain("subskills/gap-loop/SKILL.md");
+    expect(fs.readFileSync(path.join(skillRoot, "SKILL.md"), "utf-8")).toContain("## Command Routing Table");
+    expect(fs.readFileSync(path.join(skillRoot, "SKILL.md"), "utf-8")).toContain("| `codument:init` | `subskills/init/SKILL.md` |");
+    expect(fs.readFileSync(path.join(skillRoot, "SKILL.md"), "utf-8")).toContain("| `codument:gap-loop` | `subskills/gap-loop/SKILL.md` |");
     const gapLoopRef = fs.readFileSync(path.join(skillRoot, "subskills", "gap-loop", "SKILL.md"), "utf-8");
     expect(gapLoopRef.startsWith("---\nname: codument-workflow-gap-loop\n")).toBe(true);
     expect(gapLoopRef).toContain("prefer model `gpt-5.4` with `high` reasoning");

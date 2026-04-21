@@ -144,4 +144,4 @@
 
 宣布讨论完成：
 > "Phase <id> 讨论完成，context.md 已更新。
-> 你现在可以运行 `/codument:plan-wave` 生成波次计划，或 `/codument:execute-wave` 开始执行。"
+> 推荐的下一步是 `codument:implement` 开始实现；如需先进行波次规划，也可以运行 `codument:plan-wave`。"

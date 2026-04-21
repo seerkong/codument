@@ -15,7 +15,7 @@ When working with AI coding assistants, it's easy to lose track of what was plan
 - **Progress Tracking**: Track TODO / IN_PROGRESS / DONE / BLOCKED status from `plan.xml`
 - **Gap Loop Validation**: Run fresh verification-and-fix rounds before closing a track
 - **Wave Workflow Support**: Supports discuss / plan-wave / execute-wave / verify command flows
-- **Multi-Tool Support**: Works with Claude Code, OpenAI Codex CLI, Sparrow, Eidolon, and OpenCode
+- **Multi-Tool Support**: Works with Claude Code, CodeFlicker, OpenAI Codex CLI, Sparrow, Eidolon, and OpenCode
 
 ## Features
 
@@ -42,6 +42,7 @@ Track
 | Tool | Generated workflow entry location | Typical invocation |
 |------|-----------------------------------|--------------------|
 | Claude Code | `.claude/skills/codument-workflow/` + `.claude/commands/codument/` | `/codument:init`, `/codument:track`, `/codument:gap-loop` |
+| CodeFlicker | `.codeflicker/skills/codument-workflow/` + `.codeflicker/commands/codument/` | `/codument:init`, `/codument:track`, `/codument:gap-loop` |
 | OpenAI Codex CLI | `~/.codex/skills/codument-workflow/` | `Use $codument-workflow to initialize, track, implement, gap-loop, or archive` |
 | Sparrow | `.sparrow/skill/codument-workflow/` | `Load the codument-workflow skill and continue the matching Codument lifecycle step` |
 | Eidolon | `.eidolon/skills/codument-workflow/` + `.eidolon/commands/codument/` | `/codument:init`, `/codument:track`, `/codument:gap-loop` |
@@ -80,7 +81,7 @@ The install script places `codument` in `~/.local/bin` by default and prints PAT
 ```bash
 cd your-project
 codument init
-codument init --agent=claude,codex
+codument init --agent=claude,codeflicker,codex
 ```
 
 This will:
@@ -90,7 +91,7 @@ This will:
 - Generate the selected targets' `codument-workflow` skill directories
 - Generate command wrappers for the targets that support command entrypoints
 
-When `--agent=<tool>[,<tool>...]` is provided, `codument init` skips the interactive target picker and does not prompt for project or product names. Supported tool ids are `claude`, `codex`, `eidolon`, `opencode`, and `sparrow`.
+When `--agent=<tool>[,<tool>...]` is provided, `codument init` skips the interactive target picker and does not prompt for project or product names. Supported tool ids are `claude`, `codeflicker`, `codex`, `eidolon`, `opencode`, and `sparrow`.
 
 ### 2. Create a Change Track
 
@@ -98,12 +99,12 @@ Use the generated command for your selected AI tool.
 Examples:
 
 ```text
-Claude / Eidolon: /codument:track Add user authentication feature
+Claude / CodeFlicker / Eidolon: /codument:track Add user authentication feature
 Codex: Use $codument-workflow to create a track for "Add user authentication feature"
 Sparrow: Load `codument-workflow` and create a track for "Add user authentication feature"
 ```
 
-For Claude, Eidolon, and OpenCode, the generated command wrappers load the same shared `codument-workflow` sub-skills used by the other targets.
+For Claude, CodeFlicker, Eidolon, and OpenCode, the generated command wrappers load the same shared `codument-workflow` sub-skills used by the other targets.
 
 The assistant will guide you through:
 1. Discussing requirements
@@ -114,7 +115,7 @@ The assistant will guide you through:
 ### 3. Implement Tasks
 
 ```text
-Claude / Eidolon: /codument:implement <track-id>
+Claude / CodeFlicker / Eidolon: /codument:implement <track-id>
 Codex: Use $codument-workflow to implement track <track-id>
 Sparrow: Load `codument-workflow` and implement track <track-id>
 ```
@@ -131,7 +132,7 @@ For `yield-gap-loop`, use fresh rounds; if a higher-level orchestration app alre
 ### 4. Archive Completed Track
 
 ```text
-Claude / Eidolon: /codument:archive add-user-auth
+Claude / CodeFlicker / Eidolon: /codument:archive add-user-auth
 Codex: Use $codument-workflow to archive track add-user-auth
 Sparrow: Load `codument-workflow` and archive track add-user-auth
 ```
@@ -150,6 +151,7 @@ This updates `codument/std/` and regenerates assistant workflow entrypoints for 
 For command-first targets, the workspace skill directory is refreshed before command wrappers are regenerated.
 For Codex, the embedded skill template is synced to `~/.codex/skills/codument-workflow/`.
 For Claude, the embedded skill template is synced to `.claude/skills/codument-workflow/`.
+For CodeFlicker, the embedded skill template is synced to `.codeflicker/skills/codument-workflow/`.
 For Eidolon, the embedded skill template is synced to `.eidolon/skills/codument-workflow/`.
 For OpenCode, the embedded skill template is synced to `.opencode/skills/codument-workflow/`.
 For Sparrow, the embedded skill template is synced to `.sparrow/skill/codument-workflow/`.
@@ -222,6 +224,8 @@ your-project/
 │   └── archive/
 ├── .claude/skills/codument-workflow/  # if Claude Code was selected
 ├── .claude/commands/codument/    # if Claude Code was selected
+├── .codeflicker/skills/codument-workflow/  # if CodeFlicker was selected
+├── .codeflicker/commands/codument/    # if CodeFlicker was selected
 ├── .sparrow/skill/codument-workflow/  # if Sparrow was selected
 ├── .eidolon/skills/codument-workflow/ # if Eidolon was selected
 ├── .eidolon/commands/codument/   # if Eidolon was selected

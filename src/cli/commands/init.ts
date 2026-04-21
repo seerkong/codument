@@ -3,6 +3,7 @@ import * as path from 'path';
 import * as readline from 'readline';
 import { CODUMENT_DIR, codumentExists, parseOptions } from '../utils';
 import { generateClaudeCommands } from '../generators/claude';
+import { generateCodeFlickerCommands } from '../generators/codeflicker';
 import { generateCodexCommands } from '../generators/codex';
 import { generateEidolonCommands } from '../generators/eidolon';
 import { generateOpenCodeCommands } from '../generators/opencode';
@@ -10,6 +11,8 @@ import { generateSparrowCommands } from '../generators/sparrow';
 import {
   CLAUDE_WORKFLOW_COMMAND_DISPLAY_PATH,
   CLAUDE_WORKFLOW_SKILL_DISPLAY_PATH,
+  CODEFLICKER_WORKFLOW_COMMAND_DISPLAY_PATH,
+  CODEFLICKER_WORKFLOW_SKILL_DISPLAY_PATH,
   CODEX_WORKFLOW_SKILL_DISPLAY_PATH,
   EIDOLON_WORKFLOW_COMMAND_DISPLAY_PATH,
   EIDOLON_WORKFLOW_SKILL_DISPLAY_PATH,
@@ -29,7 +32,7 @@ import {
 
 let TASKS_XML_SPEC = planXmlSpec;
 
-type CLITool = 'claude' | 'codex' | 'eidolon' | 'opencode' | 'sparrow';
+type CLITool = 'claude' | 'codeflicker' | 'codex' | 'eidolon' | 'opencode' | 'sparrow';
 
 const CODUMENT_MARKERS = {
   start: '<!-- CODUMENT:START -->',
@@ -38,10 +41,11 @@ const CODUMENT_MARKERS = {
 
 const CLI_OPTIONS: { key: string; label: string; tool: CLITool }[] = [
   { key: '1', label: 'Claude Code', tool: 'claude' },
-  { key: '2', label: 'OpenAI Codex CLI', tool: 'codex' },
-  { key: '3', label: 'Eidolon', tool: 'eidolon' },
-  { key: '4', label: 'OpenCode', tool: 'opencode' },
-  { key: '5', label: 'Sparrow', tool: 'sparrow' },
+  { key: '2', label: 'CodeFlicker', tool: 'codeflicker' },
+  { key: '3', label: 'OpenAI Codex CLI', tool: 'codex' },
+  { key: '4', label: 'Eidolon', tool: 'eidolon' },
+  { key: '5', label: 'OpenCode', tool: 'opencode' },
+  { key: '6', label: 'Sparrow', tool: 'sparrow' },
 ];
 
 function isMarkerOnOwnLine(content: string, markerIndex: number, markerLength: number): boolean {
@@ -244,6 +248,11 @@ export async function initCommand(args: string[]): Promise<void> {
           await generateClaudeCommands();
           console.log(`  ✓ 安装 ${CLAUDE_WORKFLOW_SKILL_DISPLAY_PATH}`);
           console.log(`  ✓ 创建 ${CLAUDE_WORKFLOW_COMMAND_DISPLAY_PATH}*.md`);
+          break;
+        case 'codeflicker':
+          await generateCodeFlickerCommands();
+          console.log(`  ✓ 安装 ${CODEFLICKER_WORKFLOW_SKILL_DISPLAY_PATH}`);
+          console.log(`  ✓ 创建 ${CODEFLICKER_WORKFLOW_COMMAND_DISPLAY_PATH}*.md`);
           break;
         case 'codex':
           await generateCodexCommands();

@@ -15,12 +15,14 @@ import {
 } from '../../prompts';
 
 import { generateClaudeCommands } from '../generators/claude';
+import { generateCodeFlickerCommands } from '../generators/codeflicker';
 import { generateCodexCommands } from '../generators/codex';
 import { generateEidolonCommands } from '../generators/eidolon';
 import { generateOpenCodeCommands } from '../generators/opencode';
 import { generateSparrowCommands } from '../generators/sparrow';
 import {
   CLAUDE_WORKFLOW_SKILL_DISPLAY_PATH,
+  CODEFLICKER_WORKFLOW_SKILL_DISPLAY_PATH,
   CODEX_WORKFLOW_SKILL_DISPLAY_PATH,
   EIDOLON_WORKFLOW_SKILL_DISPLAY_PATH,
   OPENCODE_WORKFLOW_SKILL_DISPLAY_PATH,
@@ -28,7 +30,7 @@ import {
   CODUMENT_WORKFLOW_SKILL_NAME,
 } from '../../skills/codument-workflow';
 
-type CLITool = 'claude' | 'codex' | 'eidolon' | 'opencode' | 'sparrow';
+type CLITool = 'claude' | 'codeflicker' | 'codex' | 'eidolon' | 'opencode' | 'sparrow';
 
 function safeTimestamp(): string {
   return new Date().toISOString().replace(/[:.]/g, '-');
@@ -121,6 +123,8 @@ export async function upgradeWorkspaceCommand(args: string[]): Promise<void> {
     // Backup assistant command directories (only if present)
     backupIfExists('.claude/commands/codument', backupRoot, '.claude/commands/codument');
     backupIfExists('.claude/skills/codument-workflow', backupRoot, '.claude/skills/codument-workflow');
+    backupIfExists('.codeflicker/commands/codument', backupRoot, '.codeflicker/commands/codument');
+    backupIfExists('.codeflicker/skills/codument-workflow', backupRoot, '.codeflicker/skills/codument-workflow');
     backupIfExists('.eidolon/commands/codument', backupRoot, '.eidolon/commands/codument');
     backupIfExists('.eidolon/skills/codument-workflow', backupRoot, '.eidolon/skills/codument-workflow');
     backupIfExists('.opencode/command', backupRoot, '.opencode/command');
@@ -171,6 +175,11 @@ export async function upgradeWorkspaceCommand(args: string[]): Promise<void> {
         await generateClaudeCommands();
         console.log('✓ Upgraded .claude/commands/codument');
         console.log(`✓ Upgraded ${CLAUDE_WORKFLOW_SKILL_DISPLAY_PATH}`);
+        break;
+      case 'codeflicker':
+        await generateCodeFlickerCommands();
+        console.log('✓ Upgraded .codeflicker/commands/codument');
+        console.log(`✓ Upgraded ${CODEFLICKER_WORKFLOW_SKILL_DISPLAY_PATH}`);
         break;
       case 'codex':
         await generateCodexCommands();

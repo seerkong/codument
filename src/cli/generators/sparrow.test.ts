@@ -39,6 +39,9 @@ describe("generateSparrowCommands", () => {
     expect(fs.existsSync(path.join(skillRoot, "subskills", "gap-loop", "SKILL.md"))).toBe(true);
     expect(fs.existsSync(path.join(skillRoot, "agents", "openai.yaml"))).toBe(false);
     expect(fs.readFileSync(path.join(skillRoot, "manifest.yml"), "utf-8")).toContain("\"name\": \"codument-workflow\"");
+    expect(fs.readFileSync(path.join(skillRoot, "SKILL.md"), "utf-8")).toContain("## Command Routing Table");
+    expect(fs.readFileSync(path.join(skillRoot, "SKILL.md"), "utf-8")).toContain("| `codument:track` | `subskills/track/SKILL.md` |");
+    expect(fs.readFileSync(path.join(skillRoot, "SKILL.md"), "utf-8")).toContain("| `codument:verify` | `subskills/verify/SKILL.md` |");
     expect(fs.readFileSync(path.join(skillRoot, "shared", "target-capabilities.md"), "utf-8")).toContain("Sparrow");
     expect(fs.readFileSync(path.join(skillRoot, "shared", "target-capabilities.md"), "utf-8")).toContain("`task`");
     const gapLoopRef = fs.readFileSync(path.join(skillRoot, "subskills", "gap-loop", "SKILL.md"), "utf-8");
