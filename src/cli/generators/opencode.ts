@@ -1,20 +1,20 @@
 /**
  * OpenCode command generator
- * Generates .opencode/skills/codument-workflow/ and .opencode/command/*.md files
+ * Generates OpenCode skills and .opencode/command/*.md files.
  */
 
 import * as fs from 'fs';
 import * as path from 'path';
 import {
-  CODUMENT_WORKFLOW_SKILL_NAME,
+  LEGACY_CODUMENT_SKILL_NAME,
   OPENCODE_WORKFLOW_SKILL_DISPLAY_PATH,
-  buildWorkflowSkillFiles,
+  buildWorkflowSkillDirectories,
 } from '../../skills/codument-workflow';
 import { buildSkillWrapperBody } from './prompt-builders';
-import { syncGeneratedSkillDirectory } from './skill-sync';
+import { syncGeneratedSkillDirectories } from './skill-sync';
 
 const OPENCODE_COMMANDS_DIR = '.opencode/command';
-const OPENCODE_SKILL_DIR = path.join('.opencode', 'skills', CODUMENT_WORKFLOW_SKILL_NAME);
+const OPENCODE_SKILLS_DIR = path.join('.opencode', 'skills');
 
 const COMMANDS = {
   'codument-init': {
@@ -122,7 +122,11 @@ const COMMANDS = {
 };
 
 export async function generateOpenCodeCommands(): Promise<void> {
-  syncGeneratedSkillDirectory(OPENCODE_SKILL_DIR, buildWorkflowSkillFiles('opencode'));
+  syncGeneratedSkillDirectories(
+    OPENCODE_SKILLS_DIR,
+    buildWorkflowSkillDirectories('opencode'),
+    [LEGACY_CODUMENT_SKILL_NAME]
+  );
 
   if (!fs.existsSync(OPENCODE_COMMANDS_DIR)) {
     fs.mkdirSync(OPENCODE_COMMANDS_DIR, { recursive: true });

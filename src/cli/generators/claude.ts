@@ -1,20 +1,20 @@
 /**
  * Claude Code command generator
- * Generates .claude/skills/codument-workflow/ and .claude/commands/codument/*.md files
+ * Generates Claude skills and .claude/commands/codument/*.md files.
  */
 
 import * as fs from 'fs';
 import * as path from 'path';
 import {
   CLAUDE_WORKFLOW_SKILL_DISPLAY_PATH,
-  CODUMENT_WORKFLOW_SKILL_NAME,
-  buildWorkflowSkillFiles,
+  LEGACY_CODUMENT_SKILL_NAME,
+  buildWorkflowSkillDirectories,
 } from '../../skills/codument-workflow';
 import { buildSkillWrapperBody } from './prompt-builders';
-import { syncGeneratedSkillDirectory } from './skill-sync';
+import { syncGeneratedSkillDirectories } from './skill-sync';
 
 const CLAUDE_COMMANDS_DIR = '.claude/commands/codument';
-const CLAUDE_SKILL_DIR = path.join('.claude', 'skills', CODUMENT_WORKFLOW_SKILL_NAME);
+const CLAUDE_SKILLS_DIR = path.join('.claude', 'skills');
 
 const COMMANDS = {
   init: {
@@ -122,7 +122,11 @@ const COMMANDS = {
 };
 
 export async function generateClaudeCommands(): Promise<void> {
-  syncGeneratedSkillDirectory(CLAUDE_SKILL_DIR, buildWorkflowSkillFiles('claude'));
+  syncGeneratedSkillDirectories(
+    CLAUDE_SKILLS_DIR,
+    buildWorkflowSkillDirectories('claude'),
+    [LEGACY_CODUMENT_SKILL_NAME]
+  );
 
   if (!fs.existsSync(CLAUDE_COMMANDS_DIR)) {
     fs.mkdirSync(CLAUDE_COMMANDS_DIR, { recursive: true });

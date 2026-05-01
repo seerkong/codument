@@ -61,12 +61,12 @@ export function buildSkillWrapperBody(options: {
   const sections = [
     `# codument:${options.commandId}`,
     '',
-    'Use the generated `codument-workflow` skill as the single source of truth for this command.',
+    `Use the generated \`codument-${options.commandId}\` skill as the primary source of truth for this command. The root \`codument-workflow\` skill is the fallback router.`,
     '',
     'Load these files before acting:',
-    `- \`${options.skillDisplayPath}shared/target-capabilities.md\``,
-    `- \`${options.skillDisplayPath}shared/subagent-model.md\``,
-    `- \`${options.skillDisplayPath}subskills/${options.subskillName}/SKILL.md\``,
+    `- \`${options.skillDisplayPath}codument-${options.subskillName}/shared/target-capabilities.md\``,
+    `- \`${options.skillDisplayPath}codument-${options.subskillName}/shared/subagent-model.md\``,
+    `- \`${options.skillDisplayPath}codument-${options.subskillName}/SKILL.md\``,
     '',
     'Then execute the referenced sub-skill for the current workspace and treat the payload below as the user request for that sub-skill.',
   ];

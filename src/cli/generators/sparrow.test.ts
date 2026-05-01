@@ -8,7 +8,7 @@ function makeTempDir(prefix: string): string {
 }
 
 describe("generateSparrowCommands", () => {
-  it("installs the generated codument workflow skill into the workspace Sparrow skill directory", async () => {
+  it("installs generated codument skills into the workspace Sparrow skill directory", async () => {
     const repoRoot = path.resolve(__dirname, "../../..");
     const tempWorkspace = makeTempDir("sparrow-workspace-");
     const proc = Bun.spawn(
@@ -31,6 +31,9 @@ describe("generateSparrowCommands", () => {
     expect(stderr).toBe("");
 
     const skillRoot = path.join(tempWorkspace, ".sparrow", "skill", "codument-workflow");
+    const legacySkillRoot = path.join(tempWorkspace, ".sparrow", "skill", "codument");
+    const gapLoopSkillRoot = path.join(tempWorkspace, ".sparrow", "skill", "codument-gap-loop");
+    expect(fs.existsSync(legacySkillRoot)).toBe(false);
     expect(fs.existsSync(path.join(skillRoot, "manifest.yml"))).toBe(true);
     expect(fs.existsSync(path.join(skillRoot, "SKILL.md"))).toBe(true);
     expect(fs.existsSync(path.join(skillRoot, "shared", "subagent-model.md"))).toBe(true);
@@ -40,12 +43,15 @@ describe("generateSparrowCommands", () => {
     expect(fs.existsSync(path.join(skillRoot, "agents", "openai.yaml"))).toBe(false);
     expect(fs.readFileSync(path.join(skillRoot, "manifest.yml"), "utf-8")).toContain("\"name\": \"codument-workflow\"");
     expect(fs.readFileSync(path.join(skillRoot, "SKILL.md"), "utf-8")).toContain("## Command Routing Table");
-    expect(fs.readFileSync(path.join(skillRoot, "SKILL.md"), "utf-8")).toContain("| `codument:track` | `subskills/track/SKILL.md` |");
-    expect(fs.readFileSync(path.join(skillRoot, "SKILL.md"), "utf-8")).toContain("| `codument:verify` | `subskills/verify/SKILL.md` |");
+    expect(fs.readFileSync(path.join(skillRoot, "SKILL.md"), "utf-8")).toContain("| `codument:track` / `codument-track` |");
+    expect(fs.readFileSync(path.join(skillRoot, "SKILL.md"), "utf-8")).toContain("| `codument:verify` / `codument-verify` |");
     expect(fs.readFileSync(path.join(skillRoot, "shared", "target-capabilities.md"), "utf-8")).toContain("Sparrow");
     expect(fs.readFileSync(path.join(skillRoot, "shared", "target-capabilities.md"), "utf-8")).toContain("`task`");
     const gapLoopRef = fs.readFileSync(path.join(skillRoot, "subskills", "gap-loop", "SKILL.md"), "utf-8");
-    expect(gapLoopRef.startsWith("---\nname: codument-workflow-gap-loop\n")).toBe(true);
+    expect(gapLoopRef.startsWith("---\nname: codument-gap-loop\n")).toBe(true);
+    expect(fs.existsSync(path.join(gapLoopSkillRoot, "manifest.yml"))).toBe(true);
+    expect(fs.readFileSync(path.join(gapLoopSkillRoot, "manifest.yml"), "utf-8")).toContain("\"name\": \"codument-gap-loop\"");
+    expect(fs.readFileSync(path.join(gapLoopSkillRoot, "SKILL.md"), "utf-8")).toContain("Trigger aliases: `codument:gap-loop`, `codument-gap-loop`.");
     expect(gapLoopRef).toContain("上层封装运行环境优先级");
     expect(gapLoopRef).toContain("gap_loop_round");
     expect(gapLoopRef).toContain("首轮 + 无历史报告 + NO_GAP");

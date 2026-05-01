@@ -1,20 +1,20 @@
 /**
  * Eidolon CLI command generator
- * Generates .eidolon/skills/codument-workflow/ and .eidolon/commands/codument/*.toml files
+ * Generates Eidolon skills and .eidolon/commands/codument/*.toml files.
  */
 
 import * as fs from 'fs';
 import * as path from 'path';
 import {
-  CODUMENT_WORKFLOW_SKILL_NAME,
   EIDOLON_WORKFLOW_SKILL_DISPLAY_PATH,
-  buildWorkflowSkillFiles,
+  LEGACY_CODUMENT_SKILL_NAME,
+  buildWorkflowSkillDirectories,
 } from '../../skills/codument-workflow';
 import { buildSkillWrapperBody } from './prompt-builders';
-import { syncGeneratedSkillDirectory } from './skill-sync';
+import { syncGeneratedSkillDirectories } from './skill-sync';
 
 const EIDOLON_COMMANDS_DIR = '.eidolon/commands/codument';
-const EIDOLON_SKILL_DIR = path.join('.eidolon', 'skills', CODUMENT_WORKFLOW_SKILL_NAME);
+const EIDOLON_SKILLS_DIR = path.join('.eidolon', 'skills');
 
 const COMMANDS = {
   init: {
@@ -126,7 +126,11 @@ function escapeToml(str: string): string {
 }
 
 export async function generateEidolonCommands(): Promise<void> {
-  syncGeneratedSkillDirectory(EIDOLON_SKILL_DIR, buildWorkflowSkillFiles('eidolon'));
+  syncGeneratedSkillDirectories(
+    EIDOLON_SKILLS_DIR,
+    buildWorkflowSkillDirectories('eidolon'),
+    [LEGACY_CODUMENT_SKILL_NAME]
+  );
 
   if (!fs.existsSync(EIDOLON_COMMANDS_DIR)) {
     fs.mkdirSync(EIDOLON_COMMANDS_DIR, { recursive: true });

@@ -1,17 +1,21 @@
 /**
  * Codument workflow skill installer for Sparrow
- * Syncs the generated workflow skill into <workspace>/.sparrow/skill/codument-workflow/
+ * Syncs generated workflow skills into the workspace Sparrow skill directory.
  */
 
 import * as path from 'path';
 import { getWorkspaceDir } from '../utils';
 import {
-  CODUMENT_WORKFLOW_SKILL_NAME,
-  buildWorkflowSkillFiles,
+  LEGACY_CODUMENT_SKILL_NAME,
+  buildWorkflowSkillDirectories,
 } from '../../skills/codument-workflow';
-import { syncGeneratedSkillDirectory } from './skill-sync';
+import { syncGeneratedSkillDirectories } from './skill-sync';
 
 export async function generateSparrowCommands(): Promise<void> {
-  const skillDir = path.join(getWorkspaceDir(), '.sparrow', 'skill', CODUMENT_WORKFLOW_SKILL_NAME);
-  syncGeneratedSkillDirectory(skillDir, buildWorkflowSkillFiles('sparrow'));
+  const skillsRootDir = path.join(getWorkspaceDir(), '.sparrow', 'skill');
+  syncGeneratedSkillDirectories(
+    skillsRootDir,
+    buildWorkflowSkillDirectories('sparrow'),
+    [LEGACY_CODUMENT_SKILL_NAME]
+  );
 }

@@ -371,6 +371,7 @@ Source: track `create-codument-prompts-20260101` (archived 2026-01-11)
 - **AND** `codument/state.json` 中包含 `codex`
 - **WHEN** 系统升级 Codex 相关产物
 - **THEN** 系统备份并更新 `~/.codex/skills/codument-workflow/`
+- **AND** 系统移除 legacy `~/.codex/skills/codument/` 目录
 
 ### Requirement: Codex skill 内容与用户现有迁移版本一致
 系统应当（SHALL）以用户当前已迁移完成的 `codument-workflow` skill 结构作为新版 Codex 兼容基线，确保初始化和升级产生相同目录形态。
@@ -393,12 +394,14 @@ Source: track `create-codument-prompts-20260101` (archived 2026-01-11)
 - **WHEN** 系统生成 Sparrow 相关产物
 - **THEN** 系统将 Codument 工作流写入 `.sparrow/skill/codument-workflow/`
 - **AND** 目录至少包含 `manifest.yml`、`SKILL.md`、`shared/` 与 `subskills/` 下各工作流子技能
+- **AND** 不会生成 legacy `.sparrow/skill/codument/` 目录
 
 #### Scenario: 升级工作区时更新 Sparrow skill
 - **GIVEN** 用户运行 `codument upgrade-workspace`
 - **AND** `codument/state.json` 中包含 `sparrow`
 - **WHEN** 系统升级 Sparrow 相关产物
 - **THEN** 系统备份并更新 `.sparrow/skill/codument-workflow/`
+- **AND** 系统移除 legacy `.sparrow/skill/codument/` 目录
 - **AND** 会移除目标目录中不再属于模板的多余文件
 
 ### Requirement: command 型 target 共享 codument-workflow skill 并保留 wrapper command
@@ -410,6 +413,7 @@ Source: track `create-codument-prompts-20260101` (archived 2026-01-11)
 - **WHEN** 系统生成 Claude 相关产物
 - **THEN** 系统将 Codument 工作流写入 `.claude/skills/codument-workflow/`
 - **AND** 系统继续生成 `.claude/commands/codument/`
+- **AND** 不会生成 legacy `.claude/skills/codument/` 目录
 
 #### Scenario: 选择 CodeFlicker 时生成 skill 与 command wrapper
 - **GIVEN** 用户运行 `codument init`
@@ -417,6 +421,7 @@ Source: track `create-codument-prompts-20260101` (archived 2026-01-11)
 - **WHEN** 系统生成 CodeFlicker 相关产物
 - **THEN** 系统将 Codument 工作流写入 `.codeflicker/skills/codument-workflow/`
 - **AND** 系统继续生成 `.codeflicker/commands/codument/`
+- **AND** 不会生成 legacy `.codeflicker/skills/codument/` 目录
 - **AND** command 内容引用 `codument-workflow/subskills/` 下的对应子技能
 
 #### Scenario: 选择 Eidolon 时生成 skill 与 command wrapper
@@ -425,6 +430,7 @@ Source: track `create-codument-prompts-20260101` (archived 2026-01-11)
 - **WHEN** 系统生成 Eidolon 相关产物
 - **THEN** 系统将 Codument 工作流写入 `.eidolon/skills/codument-workflow/`
 - **AND** 系统继续生成 `.eidolon/commands/codument/`
+- **AND** 不会生成 legacy `.eidolon/skills/codument/` 目录
 - **AND** command 内容引用 `codument-workflow/subskills/` 下的对应子技能
 
 #### Scenario: 选择 OpenCode 时生成 skill 与 command wrapper
@@ -433,6 +439,7 @@ Source: track `create-codument-prompts-20260101` (archived 2026-01-11)
 - **WHEN** 系统生成 OpenCode 相关产物
 - **THEN** 系统将 Codument 工作流写入 `.opencode/skills/codument-workflow/`
 - **AND** 系统继续生成 `.opencode/command/`
+- **AND** 不会生成 legacy `.opencode/skills/codument/` 目录
 - **AND** command 内容引用 `codument-workflow/subskills/` 下的对应子技能
 
 ### Requirement: Plan XML 格式

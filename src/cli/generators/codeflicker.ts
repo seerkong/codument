@@ -1,6 +1,6 @@
 /**
  * CodeFlicker command generator
- * Generates .codeflicker/skills/codument-workflow/ and .codeflicker/commands/codument/*.md files
+ * Generates CodeFlicker skills and .codeflicker/commands/codument/*.md files.
  */
 
 import * as fs from 'fs';
@@ -8,14 +8,14 @@ import * as path from 'path';
 import {
   CODEFLICKER_WORKFLOW_COMMAND_DISPLAY_PATH,
   CODEFLICKER_WORKFLOW_SKILL_DISPLAY_PATH,
-  CODUMENT_WORKFLOW_SKILL_NAME,
-  buildWorkflowSkillFiles,
+  LEGACY_CODUMENT_SKILL_NAME,
+  buildWorkflowSkillDirectories,
 } from '../../skills/codument-workflow';
 import { buildSkillWrapperBody } from './prompt-builders';
-import { syncGeneratedSkillDirectory } from './skill-sync';
+import { syncGeneratedSkillDirectories } from './skill-sync';
 
 const CODEFLICKER_COMMANDS_DIR = '.codeflicker/commands/codument';
-const CODEFLICKER_SKILL_DIR = path.join('.codeflicker', 'skills', CODUMENT_WORKFLOW_SKILL_NAME);
+const CODEFLICKER_SKILLS_DIR = path.join('.codeflicker', 'skills');
 
 const COMMANDS = {
   init: {
@@ -123,7 +123,11 @@ const COMMANDS = {
 };
 
 export async function generateCodeFlickerCommands(): Promise<void> {
-  syncGeneratedSkillDirectory(CODEFLICKER_SKILL_DIR, buildWorkflowSkillFiles('codeflicker'));
+  syncGeneratedSkillDirectories(
+    CODEFLICKER_SKILLS_DIR,
+    buildWorkflowSkillDirectories('codeflicker'),
+    [LEGACY_CODUMENT_SKILL_NAME]
+  );
 
   if (!fs.existsSync(CODEFLICKER_COMMANDS_DIR)) {
     fs.mkdirSync(CODEFLICKER_COMMANDS_DIR, { recursive: true });

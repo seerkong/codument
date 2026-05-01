@@ -24,10 +24,11 @@ import {
   CLAUDE_WORKFLOW_SKILL_DISPLAY_PATH,
   CODEFLICKER_WORKFLOW_SKILL_DISPLAY_PATH,
   CODEX_WORKFLOW_SKILL_DISPLAY_PATH,
+  CODUMENT_WORKFLOW_SKILL_NAME,
   EIDOLON_WORKFLOW_SKILL_DISPLAY_PATH,
   OPENCODE_WORKFLOW_SKILL_DISPLAY_PATH,
   SPARROW_WORKFLOW_SKILL_DISPLAY_PATH,
-  CODUMENT_WORKFLOW_SKILL_NAME,
+  LEGACY_CODUMENT_SKILL_NAME,
 } from '../../skills/codument-workflow';
 
 type CLITool = 'claude' | 'codeflicker' | 'codex' | 'eidolon' | 'opencode' | 'sparrow';
@@ -94,6 +95,42 @@ function backupIfExists(src: string, backupRoot: string, rel: string): void {
   }
   const dest = backupPath(backupRoot, rel);
   copyRecursive(src, dest);
+}
+
+function removeLegacyCodumentSkill(skillsRootDir: string): void {
+  const legacySkillPath = path.join(skillsRootDir, LEGACY_CODUMENT_SKILL_NAME);
+  if (fs.existsSync(legacySkillPath) && fs.statSync(legacySkillPath).isDirectory()) {
+    fs.rmSync(legacySkillPath, { recursive: true, force: true });
+  }
+}
+
+function cleanupLegacyCodumentSkills(tools: CLITool[]): void {
+  for (const tool of tools) {
+    switch (tool) {
+      case 'claude':
+        removeLegacyCodumentSkill(path.join('.claude', 'skills'));
+        break;
+      case 'codeflicker':
+        removeLegacyCodumentSkill(path.join('.codeflicker', 'skills'));
+        break;
+      case 'codex':
+        removeLegacyCodumentSkill(path.join(os.homedir(), '.codex', 'skills'));
+        break;
+      case 'eidolon':
+        removeLegacyCodumentSkill(path.join('.eidolon', 'skills'));
+        break;
+      case 'opencode':
+        removeLegacyCodumentSkill(path.join('.opencode', 'skills'));
+        break;
+      case 'sparrow':
+        removeLegacyCodumentSkill(path.join('.sparrow', 'skill'));
+        break;
+    }
+  }
+}
+
+function workflowSkillDisplayPath(skillsDisplayPath: string): string {
+  return `${skillsDisplayPath}${CODUMENT_WORKFLOW_SKILL_NAME}/`;
 }
 
 export async function upgradeWorkspaceCommand(args: string[]): Promise<void> {
@@ -169,35 +206,37 @@ export async function upgradeWorkspaceCommand(args: string[]): Promise<void> {
     return;
   }
 
+  cleanupLegacyCodumentSkills(tools);
+
   for (const tool of tools) {
     switch (tool) {
       case 'claude':
         await generateClaudeCommands();
         console.log('✓ Upgraded .claude/commands/codument');
-        console.log(`✓ Upgraded ${CLAUDE_WORKFLOW_SKILL_DISPLAY_PATH}`);
+        console.log(`✓ Upgraded ${workflowSkillDisplayPath(CLAUDE_WORKFLOW_SKILL_DISPLAY_PATH)}`);
         break;
       case 'codeflicker':
         await generateCodeFlickerCommands();
         console.log('✓ Upgraded .codeflicker/commands/codument');
-        console.log(`✓ Upgraded ${CODEFLICKER_WORKFLOW_SKILL_DISPLAY_PATH}`);
+        console.log(`✓ Upgraded ${workflowSkillDisplayPath(CODEFLICKER_WORKFLOW_SKILL_DISPLAY_PATH)}`);
         break;
       case 'codex':
         await generateCodexCommands();
-        console.log(`✓ Upgraded ${CODEX_WORKFLOW_SKILL_DISPLAY_PATH}`);
+        console.log(`✓ Upgraded ${workflowSkillDisplayPath(CODEX_WORKFLOW_SKILL_DISPLAY_PATH)}`);
         break;
       case 'eidolon':
         await generateEidolonCommands();
         console.log('✓ Upgraded .eidolon/commands/codument');
-        console.log(`✓ Upgraded ${EIDOLON_WORKFLOW_SKILL_DISPLAY_PATH}`);
+        console.log(`✓ Upgraded ${workflowSkillDisplayPath(EIDOLON_WORKFLOW_SKILL_DISPLAY_PATH)}`);
         break;
       case 'opencode':
         await generateOpenCodeCommands();
         console.log('✓ Upgraded .opencode/command (codument-*.md)');
-        console.log(`✓ Upgraded ${OPENCODE_WORKFLOW_SKILL_DISPLAY_PATH}`);
+        console.log(`✓ Upgraded ${workflowSkillDisplayPath(OPENCODE_WORKFLOW_SKILL_DISPLAY_PATH)}`);
         break;
       case 'sparrow':
         await generateSparrowCommands();
-        console.log(`✓ Upgraded ${SPARROW_WORKFLOW_SKILL_DISPLAY_PATH}`);
+        console.log(`✓ Upgraded ${workflowSkillDisplayPath(SPARROW_WORKFLOW_SKILL_DISPLAY_PATH)}`);
         break;
     }
   }

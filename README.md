@@ -41,12 +41,12 @@ Track
 
 | Tool | Generated workflow entry location | Typical invocation |
 |------|-----------------------------------|--------------------|
-| Claude Code | `.claude/skills/codument-workflow/` + `.claude/commands/codument/` | `/codument:init`, `/codument:track`, `/codument:gap-loop` |
-| CodeFlicker | `.codeflicker/skills/codument-workflow/` + `.codeflicker/commands/codument/` | `/codument:init`, `/codument:track`, `/codument:gap-loop` |
-| OpenAI Codex CLI | `~/.codex/skills/codument-workflow/` | `Use $codument-workflow to initialize, track, implement, gap-loop, or archive` |
-| Sparrow | `.sparrow/skill/codument-workflow/` | `Load the codument-workflow skill and continue the matching Codument lifecycle step` |
-| Eidolon | `.eidolon/skills/codument-workflow/` + `.eidolon/commands/codument/` | `/codument:init`, `/codument:track`, `/codument:gap-loop` |
-| OpenCode | `.opencode/skills/codument-workflow/` + `.opencode/command/` | Generated from `codument-*.md` wrapper commands |
+| Claude Code | `.claude/skills/codument-workflow/` + `.claude/skills/codument-*/` + `.claude/commands/codument/` | `/codument:init`, `/codument:track`, `/codument:gap-loop` |
+| CodeFlicker | `.codeflicker/skills/codument-workflow/` + `.codeflicker/skills/codument-*/` + `.codeflicker/commands/codument/` | `/codument:init`, `/codument:track`, `/codument:gap-loop` |
+| OpenAI Codex CLI | `~/.codex/skills/codument-workflow/` + `~/.codex/skills/codument-*/` | `Use $codument-workflow, codument:track, or codument-track` |
+| Sparrow | `.sparrow/skill/codument-workflow/` + `.sparrow/skill/codument-*/` | `Load codument-workflow, codument:track, or codument-track` |
+| Eidolon | `.eidolon/skills/codument-workflow/` + `.eidolon/skills/codument-*/` + `.eidolon/commands/codument/` | `/codument:init`, `/codument:track`, `/codument:gap-loop` |
+| OpenCode | `.opencode/skills/codument-workflow/` + `.opencode/skills/codument-*/` + `.opencode/command/` | Generated from `codument-*.md` wrapper commands |
 
 ## Installation
 

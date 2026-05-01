@@ -49,13 +49,21 @@ describe("assistant command generators", () => {
       await generateOpenCodeCommands();
 
       expect(fs.existsSync(path.join(tempWorkspace, ".claude", "commands", "codument", "gap-loop.md"))).toBe(true);
-      expect(fs.existsSync(path.join(tempWorkspace, ".claude", "skills", "codument-workflow", "subskills", "gap-loop", "SKILL.md"))).toBe(true);
+      expect(fs.existsSync(path.join(tempWorkspace, ".claude", "skills", "codument"))).toBe(false);
+      expect(fs.existsSync(path.join(tempWorkspace, ".claude", "skills", "codument-workflow", "SKILL.md"))).toBe(true);
+      expect(fs.existsSync(path.join(tempWorkspace, ".claude", "skills", "codument-gap-loop", "SKILL.md"))).toBe(true);
       expect(fs.existsSync(path.join(tempWorkspace, ".codeflicker", "commands", "codument", "gap-loop.md"))).toBe(true);
-      expect(fs.existsSync(path.join(tempWorkspace, ".codeflicker", "skills", "codument-workflow", "subskills", "gap-loop", "SKILL.md"))).toBe(true);
+      expect(fs.existsSync(path.join(tempWorkspace, ".codeflicker", "skills", "codument"))).toBe(false);
+      expect(fs.existsSync(path.join(tempWorkspace, ".codeflicker", "skills", "codument-workflow", "SKILL.md"))).toBe(true);
+      expect(fs.existsSync(path.join(tempWorkspace, ".codeflicker", "skills", "codument-gap-loop", "SKILL.md"))).toBe(true);
       expect(fs.existsSync(path.join(tempWorkspace, ".eidolon", "commands", "codument", "gap-loop.toml"))).toBe(true);
-      expect(fs.existsSync(path.join(tempWorkspace, ".eidolon", "skills", "codument-workflow", "subskills", "gap-loop", "SKILL.md"))).toBe(true);
+      expect(fs.existsSync(path.join(tempWorkspace, ".eidolon", "skills", "codument"))).toBe(false);
+      expect(fs.existsSync(path.join(tempWorkspace, ".eidolon", "skills", "codument-workflow", "SKILL.md"))).toBe(true);
+      expect(fs.existsSync(path.join(tempWorkspace, ".eidolon", "skills", "codument-gap-loop", "SKILL.md"))).toBe(true);
       expect(fs.existsSync(path.join(tempWorkspace, ".opencode", "command", "codument-gap-loop.md"))).toBe(true);
-      expect(fs.existsSync(path.join(tempWorkspace, ".opencode", "skills", "codument-workflow", "subskills", "gap-loop", "SKILL.md"))).toBe(true);
+      expect(fs.existsSync(path.join(tempWorkspace, ".opencode", "skills", "codument"))).toBe(false);
+      expect(fs.existsSync(path.join(tempWorkspace, ".opencode", "skills", "codument-workflow", "SKILL.md"))).toBe(true);
+      expect(fs.existsSync(path.join(tempWorkspace, ".opencode", "skills", "codument-gap-loop", "SKILL.md"))).toBe(true);
 
       const generatedFiles = [
         ...collectFiles(path.join(tempWorkspace, ".claude")),
@@ -76,20 +84,20 @@ describe("assistant command generators", () => {
       const eidolonGapLoop = fs.readFileSync(path.join(tempWorkspace, ".eidolon", "commands", "codument", "gap-loop.toml"), "utf-8");
       const openCodeGapLoop = fs.readFileSync(path.join(tempWorkspace, ".opencode", "command", "codument-gap-loop.md"), "utf-8");
 
-      expect(claudeGapLoop).toContain(".claude/skills/codument-workflow/shared/target-capabilities.md");
-      expect(claudeGapLoop).toContain(".claude/skills/codument-workflow/subskills/gap-loop/SKILL.md");
+      expect(claudeGapLoop).toContain(".claude/skills/codument-gap-loop/shared/target-capabilities.md");
+      expect(claudeGapLoop).toContain(".claude/skills/codument-gap-loop/SKILL.md");
       expect(claudeGapLoop).toContain("preferred fresh-child mechanism is a newly created child agent");
       expect(claudeGapLoop).not.toContain("you MUST create a newly created child agent before reading code");
-      expect(codeFlickerGapLoop).toContain(".codeflicker/skills/codument-workflow/shared/target-capabilities.md");
-      expect(codeFlickerGapLoop).toContain(".codeflicker/skills/codument-workflow/subskills/gap-loop/SKILL.md");
+      expect(codeFlickerGapLoop).toContain(".codeflicker/skills/codument-gap-loop/shared/target-capabilities.md");
+      expect(codeFlickerGapLoop).toContain(".codeflicker/skills/codument-gap-loop/SKILL.md");
       expect(codeFlickerGapLoop).toContain("preferred fresh-child mechanism is a newly created child agent");
       expect(codeFlickerGapLoop).not.toContain("you MUST create a newly created child agent before reading code");
-      expect(eidolonGapLoop).toContain(".eidolon/skills/codument-workflow/shared/target-capabilities.md");
-      expect(eidolonGapLoop).toContain(".eidolon/skills/codument-workflow/subskills/gap-loop/SKILL.md");
+      expect(eidolonGapLoop).toContain(".eidolon/skills/codument-gap-loop/shared/target-capabilities.md");
+      expect(eidolonGapLoop).toContain(".eidolon/skills/codument-gap-loop/SKILL.md");
       expect(eidolonGapLoop).toContain("preferred fresh-child mechanism is a new agent or fresh session");
       expect(eidolonGapLoop).not.toContain("you MUST start a new agent or fresh session before any substantive review");
-      expect(openCodeGapLoop).toContain(".opencode/skills/codument-workflow/shared/target-capabilities.md");
-      expect(openCodeGapLoop).toContain(".opencode/skills/codument-workflow/subskills/gap-loop/SKILL.md");
+      expect(openCodeGapLoop).toContain(".opencode/skills/codument-gap-loop/shared/target-capabilities.md");
+      expect(openCodeGapLoop).toContain(".opencode/skills/codument-gap-loop/SKILL.md");
       expect(openCodeGapLoop).toContain("Do not reuse a previous task ID");
       expect(openCodeGapLoop).not.toContain("you MUST start a fresh task or fresh session before any substantive review");
     } finally {

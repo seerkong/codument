@@ -14,6 +14,8 @@ import {
 } from "../../prompts";
 
 export const CODUMENT_WORKFLOW_SKILL_NAME = "codument-workflow";
+export const LEGACY_CODUMENT_SKILL_NAME = "codument";
+export const CODUMENT_SKILL_PREFIX = "codument";
 
 export type WorkflowTarget = "claude" | "codeflicker" | "codex" | "eidolon" | "opencode" | "sparrow";
 
@@ -48,16 +50,16 @@ const SUBSKILL_SOURCES = [
   { name: "verify", prompt: verifyPrompt, description: "Verify implemented work with issues-first reporting." },
 ] as const;
 
-export const CLAUDE_WORKFLOW_SKILL_DISPLAY_PATH = `.claude/skills/${CODUMENT_WORKFLOW_SKILL_NAME}/`;
+export const CLAUDE_WORKFLOW_SKILL_DISPLAY_PATH = `.claude/skills/`;
 export const CLAUDE_WORKFLOW_COMMAND_DISPLAY_PATH = ".claude/commands/codument/";
-export const CODEFLICKER_WORKFLOW_SKILL_DISPLAY_PATH = `.codeflicker/skills/${CODUMENT_WORKFLOW_SKILL_NAME}/`;
+export const CODEFLICKER_WORKFLOW_SKILL_DISPLAY_PATH = `.codeflicker/skills/`;
 export const CODEFLICKER_WORKFLOW_COMMAND_DISPLAY_PATH = ".codeflicker/commands/codument/";
-export const CODEX_WORKFLOW_SKILL_DISPLAY_PATH = `~/.codex/skills/${CODUMENT_WORKFLOW_SKILL_NAME}/`;
-export const EIDOLON_WORKFLOW_SKILL_DISPLAY_PATH = `.eidolon/skills/${CODUMENT_WORKFLOW_SKILL_NAME}/`;
+export const CODEX_WORKFLOW_SKILL_DISPLAY_PATH = `~/.codex/skills/`;
+export const EIDOLON_WORKFLOW_SKILL_DISPLAY_PATH = `.eidolon/skills/`;
 export const EIDOLON_WORKFLOW_COMMAND_DISPLAY_PATH = ".eidolon/commands/codument/";
-export const OPENCODE_WORKFLOW_SKILL_DISPLAY_PATH = `.opencode/skills/${CODUMENT_WORKFLOW_SKILL_NAME}/`;
+export const OPENCODE_WORKFLOW_SKILL_DISPLAY_PATH = `.opencode/skills/`;
 export const OPENCODE_WORKFLOW_COMMAND_DISPLAY_PATH = ".opencode/command/";
-export const SPARROW_WORKFLOW_SKILL_DISPLAY_PATH = `.sparrow/skill/${CODUMENT_WORKFLOW_SKILL_NAME}/`;
+export const SPARROW_WORKFLOW_SKILL_DISPLAY_PATH = `.sparrow/skill/`;
 
 const WORKFLOW_TARGET_PROFILES: Record<WorkflowTarget, WorkflowTargetProfile> = {
   claude: {
@@ -91,7 +93,7 @@ const WORKFLOW_TARGET_PROFILES: Record<WorkflowTarget, WorkflowTargetProfile> = 
       "a fresh delegated subagent thread",
     ],
     gapLoopRoundPreference:
-      "When you spawn a fresh gap-loop child and the environment lets you choose model and reasoning explicitly, prefer model `gpt-5.4` with `high` reasoning.",
+      "When you spawn a fresh gap-loop child and the environment lets you choose model and reasoning explicitly, prefer model `gpt-5.5` or higher with `high` reasoning.",
   },
   eidolon: {
     id: "eidolon",
@@ -147,26 +149,33 @@ function buildSubskillSkill(
   preludeLines: string[]
 ): string {
   const prelude = preludeLines.map((line) => `> ${line}`).join("\n");
+  const commandName = `${CODUMENT_SKILL_PREFIX}:${subskill.name}`;
+  const aliasName = `${CODUMENT_SKILL_PREFIX}-${subskill.name}`;
   return `---
-name: codument-workflow-${subskill.name}
-description: ${subskill.description}
+name: ${aliasName}
+description: ${subskill.description} Trigger this skill for ${commandName} or ${aliasName} requests.
 ---
 
 ${prelude}
+
+> Trigger aliases: \`${commandName}\`, \`${aliasName}\`.
 
 ${subskill.prompt}
 `;
 }
 
-function buildSparrowManifest(): string {
+function buildSparrowManifest(
+  name: string = CODUMENT_WORKFLOW_SKILL_NAME,
+  description: string = "Codument lifecycle and track workflows for Sparrow local skill loading."
+): string {
   return `${JSON.stringify(
     {
-      name: CODUMENT_WORKFLOW_SKILL_NAME,
-      description: "Codument lifecycle and track workflows for Sparrow local skill loading.",
+      name,
+      description,
       entry_file: "SKILL.md",
       briefInfo: {
-        name: CODUMENT_WORKFLOW_SKILL_NAME,
-        description: "Codument lifecycle and track workflows",
+        name,
+        description,
         entry_file: "SKILL.md",
       },
     },
@@ -178,14 +187,16 @@ function buildSparrowManifest(): string {
 function buildRootSkillTemplate(): string {
   return `---
 name: codument-workflow
-description: Use when the user wants to initialize, operate, validate, inspect, discuss, plan, execute, verify, or archive a Codument-based project workflow. Trigger for requests involving \`codument/\` directories, tracks, \`tracks.md\`, \`plan.xml\`, \`spec.md\`, wave execution, track creation, Codument status, or migrating an existing repo onto the Codument methodology.
+description: Use when the user wants to initialize, operate, validate, inspect, discuss, plan, execute, verify, or archive a Codument-based project workflow. Trigger for requests involving \`codument/\` directories, tracks, \`tracks.md\`, \`plan.xml\`, \`spec.md\`, wave execution, track creation, Codument status, migrating an existing repo onto the Codument methodology, or explicit commands like \`codument:track\` and \`codument-track\`.
 ---
 
 # Codument Workflow
 
 ## Overview
 
-This skill consolidates the old \`codument:*\` lifecycle entrypoints into one workflow skill. Use it whenever the user's request maps to a Codument lifecycle action.
+This skill is the root Codument workflow router. Use it whenever the user's request maps to a Codument lifecycle action but no narrower standalone skill was loaded.
+
+Lifecycle steps are also installed as standalone skills named \`codument-<step>\`. Explicit command forms with either colon or dash separators should trigger the same step, for example \`codument:track\` and \`codument-track\`.
 
 Keep the active instruction set small. First determine the user's intent, then load only the matching sub-skill from \`subskills/\`.
 
@@ -215,7 +226,7 @@ If a request spans multiple lifecycle steps, load only the current step first. P
 
 ## Command Routing Table
 
-If the user explicitly invokes a \`codument:*\` command, route directly to the matching sub-skill below instead of staying at the root skill layer.
+If the user explicitly invokes a \`codument:*\` or \`codument-*\` command, route directly to the matching sub-skill below instead of staying at the root skill layer.
 
 ${buildCommandRoutingTable()}
 
@@ -241,7 +252,7 @@ ${buildCommandRoutingTable()}
 - For status/validation/verification, prefer concise structured results over narration.
 - For verification, keep an issues-first order.
 - For workflow steps that create or update files, explain what changed and what state transition happened.
-- When a workflow references commands like \`codument:init\`, interpret that as "load the matching \`codument-workflow\` sub-skill or wrapper entrypoint for this target".
+- When a workflow references commands like \`codument:init\`, interpret that as "load the matching standalone \`codument-init\` skill, \`codument-workflow\` sub-skill, or wrapper entrypoint for this target".
 `;
 }
 
@@ -249,7 +260,7 @@ function buildOpenAiAgentConfig(): string {
   return `interface:
   display_name: "Codument Workflow"
   short_description: "Codument lifecycle and track workflows"
-  default_prompt: "Use $codument-workflow to run the right Codument lifecycle step for this project."
+  default_prompt: "Use $codument-workflow, codument:<step>, or codument-<step> to run the right Codument lifecycle step for this project."
 `;
 }
 
@@ -287,7 +298,7 @@ function buildCommandRoutingTable(): string {
     "| --- | --- | --- |",
     ...SUBSKILL_SOURCES.map(
       (subskill) =>
-        `| \`codument:${subskill.name}\` | \`subskills/${subskill.name}/SKILL.md\` | ${subskill.description} |`
+        `| \`codument:${subskill.name}\` / \`codument-${subskill.name}\` | \`subskills/${subskill.name}/SKILL.md\` or standalone skill \`codument-${subskill.name}\` | ${subskill.description} |`
     ),
   ].join("\n");
 }
@@ -329,27 +340,62 @@ function buildTargetCapabilities(profile: WorkflowTargetProfile): string {
 function buildSubskillFiles(profile: WorkflowTargetProfile): Record<string, string> {
   return Object.fromEntries(
     SUBSKILL_SOURCES.map((subskill) => {
-      const preludeLines = [
-        "Shared fresh-child capability model: `../../shared/subagent-model.md`",
-        "Target-specific loading and child-agent guidance: `../../shared/target-capabilities.md`",
-      ];
-
-      if (
-        profile.gapLoopRoundPreference &&
-        (subskill.name === "gap-loop" ||
-          subskill.name === "implement" ||
-          subskill.name === "execute-wave")
-      ) {
-        preludeLines.push(
-          `Codex-specific gap-loop preference: ${profile.gapLoopRoundPreference}`
-        );
-      }
-
-      const withPrelude = buildSubskillSkill(subskill, preludeLines);
+      const withPrelude = buildSubskillSkill(
+        subskill,
+        getSubskillPreludeLines(profile, subskill, "../../")
+      );
 
       return [path.join("subskills", subskill.name, "SKILL.md"), withPrelude];
     })
   );
+}
+
+function getSubskillPreludeLines(
+  profile: WorkflowTargetProfile,
+  subskill: (typeof SUBSKILL_SOURCES)[number],
+  sharedPrefix: string
+): string[] {
+  const preludeLines = [
+    `Shared fresh-child capability model: \`${sharedPrefix}shared/subagent-model.md\``,
+    `Target-specific loading and child-agent guidance: \`${sharedPrefix}shared/target-capabilities.md\``,
+  ];
+
+  if (
+    profile.gapLoopRoundPreference &&
+    (subskill.name === "gap-loop" ||
+      subskill.name === "implement" ||
+      subskill.name === "execute-wave")
+  ) {
+    preludeLines.push(
+      `Codex-specific gap-loop preference: ${profile.gapLoopRoundPreference}`
+    );
+  }
+
+  return preludeLines;
+}
+
+function buildStandaloneSubskillSkillFiles(
+  target: WorkflowTarget,
+  subskill: (typeof SUBSKILL_SOURCES)[number]
+): Record<string, string> {
+  const profile = getWorkflowTargetProfile(target);
+  const aliasName = `${CODUMENT_SKILL_PREFIX}-${subskill.name}`;
+  const files: Record<string, string> = {
+    [SKILL_ENTRY_FILES.root]: buildSubskillSkill(subskill, [
+      ...getSubskillPreludeLines(profile, subskill, ""),
+      `Standalone Codument lifecycle skill for \`codument:${subskill.name}\` / \`${aliasName}\`.`,
+      `For root workflow routing, use the companion \`${CODUMENT_WORKFLOW_SKILL_NAME}\` skill.`,
+    ]),
+    [SKILL_ENTRY_FILES.sharedSubagentModel]: buildSharedSubagentModel(),
+    [SKILL_ENTRY_FILES.sharedTargetCapabilities]: buildTargetCapabilities(profile),
+    [SKILL_ENTRY_FILES.sharedWorkflowRouting]: buildWorkflowRouting(),
+  };
+
+  if (target === "sparrow") {
+    files["manifest.yml"] = buildSparrowManifest(aliasName, subskill.description);
+  }
+
+  return files;
 }
 
 function buildBaseSkillFiles(profile: WorkflowTargetProfile): Record<string, string> {
@@ -393,5 +439,17 @@ export function buildWorkflowSkillFiles(target: WorkflowTarget): Record<string, 
   return {
     ...buildBaseSkillFiles(profile),
     ...buildAdditionalFiles(profile),
+  };
+}
+
+export function buildWorkflowSkillDirectories(target: WorkflowTarget): Record<string, Record<string, string>> {
+  return {
+    [CODUMENT_WORKFLOW_SKILL_NAME]: buildWorkflowSkillFiles(target),
+    ...Object.fromEntries(
+      SUBSKILL_SOURCES.map((subskill) => [
+        `${CODUMENT_SKILL_PREFIX}-${subskill.name}`,
+        buildStandaloneSubskillSkillFiles(target, subskill),
+      ])
+    ),
   };
 }

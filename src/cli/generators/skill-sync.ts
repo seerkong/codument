@@ -54,3 +54,26 @@ export function syncGeneratedSkillDirectory(skillDir: string, files: Record<stri
 
   removeUnexpectedEntries(skillDir, '', new Set(Object.keys(files)));
 }
+
+export function syncGeneratedSkillDirectories(
+  skillsRootDir: string,
+  directories: Record<string, Record<string, string>>,
+  legacySkillNames: string[] = []
+): void {
+  ensureDir(skillsRootDir);
+
+  for (const legacySkillName of legacySkillNames) {
+    if (directories[legacySkillName]) {
+      continue;
+    }
+
+    const legacySkillPath = path.join(skillsRootDir, legacySkillName);
+    if (fs.existsSync(legacySkillPath) && fs.statSync(legacySkillPath).isDirectory()) {
+      fs.rmSync(legacySkillPath, { recursive: true, force: true });
+    }
+  }
+
+  for (const [skillName, files] of Object.entries(directories)) {
+    syncGeneratedSkillDirectory(path.join(skillsRootDir, skillName), files);
+  }
+}

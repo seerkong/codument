@@ -31,12 +31,8 @@ export async function archiveCommand(args: string[]) {
     console.log(`Warning: Track "${trackId}" is not marked as completed (status: ${track.metadata.status})`);
 
     if (!skipConfirm) {
-      console.log('Do you want to archive it anyway? (y/N)');
-      const response = await promptYesNo();
-      if (!response) {
-        console.log('Archive cancelled.');
-        process.exit(0);
-      }
+      console.warn('Warning: Archive requires explicit confirmation for non-completed tracks. Re-run with --yes/-y to archive anyway, or mark the track as completed first.');
+      process.exit(1);
     }
   }
 
@@ -88,20 +84,6 @@ export async function archiveCommand(args: string[]) {
   }
 
   console.log(`\n✓ Track "${trackId}" archived successfully!\n`);
-}
-
-async function promptYesNo(): Promise<boolean> {
-  // Simple stdin prompt for Bun
-  const stdin = Bun.stdin.stream();
-  const reader = stdin.getReader();
-
-  try {
-    const { value } = await reader.read();
-    const response = new TextDecoder().decode(value).trim().toLowerCase();
-    return response === 'y' || response === 'yes';
-  } finally {
-    reader.releaseLock();
-  }
 }
 
 function applySpecDeltas(specPath: string): string[] {
