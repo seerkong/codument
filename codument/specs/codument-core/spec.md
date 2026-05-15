@@ -28,9 +28,11 @@ Source: track `create-codument-prompts-20260101` (archived 2026-01-11)
 - 交互式收集项目信息
 - 支持 `--agent=<tool>[,<tool>...]` 非交互指定 AI coding 工具
 - 生成 `project.md`、`product.md`、`workflow.md`、`tech-stack.md`
+- 创建 `codument/tracks/`、`codument/specs/`、`codument/archive/` 等工作目录
 - 创建初始 track
 - 支持恢复中断的初始化流程
 - 根据用户选择的 AI coding 工具生成对应产物
+- 不再创建或依赖 `codument/tracks.md` 作为 track 注册表
 
 #### Scenario: 初始化新项目
 - **GIVEN** 用户在空目录中
@@ -38,6 +40,8 @@ Source: track `create-codument-prompts-20260101` (archived 2026-01-11)
 - **WHEN** 用户运行 `codument init`
 - **THEN** 系统引导用户完成项目设置
 - **AND** 系统生成初始 track
+- **AND** 系统创建 `codument/tracks/` 目录用于查看当前 tracks
+- **AND** 系统不创建 `codument/tracks.md`
 
 #### Scenario: 初始化现有项目
 - **GIVEN** 用户在现有代码库中
@@ -45,18 +49,21 @@ Source: track `create-codument-prompts-20260101` (archived 2026-01-11)
 - **WHEN** 用户运行 `codument init`
 - **THEN** 系统分析项目结构
 - **AND** 系统基于分析结果引导设置
+- **AND** 系统不创建 `codument/tracks.md`
 
-#### Scenario: 初始化时为 Codex 生成 skill 而非 prompts
+#### Scenario: 初始化时为 Codex 生成独立生命周期 skills 而非 prompts
 - **GIVEN** 用户在初始化过程中选择 Codex
 - **WHEN** 初始化完成
-- **THEN** 系统输出的完成提示指向 `~/.codex/skills/codument-workflow/`
+- **THEN** 系统输出的完成提示指向 `~/.codex/skills/codument-*/`
 - **AND** 不再声明生成 `~/.codex/prompts/codument-*.md`
+- **AND** 系统不生成 `~/.codex/skills/codument-workflow/`
 
-#### Scenario: 初始化时为 Sparrow 生成工作区 skill
+#### Scenario: 初始化时为 Sparrow 生成工作区 skills
 - **GIVEN** 用户在初始化过程中选择 Sparrow
 - **WHEN** 初始化完成
-- **THEN** 系统输出的完成提示指向 `.sparrow/skill/codument-workflow/`
-- **AND** 该 skill 目录可被 Sparrow 作为本地资源根自动加载
+- **THEN** 系统输出的完成提示指向 `.sparrow/skills/codument-*/`
+- **AND** 这些 skill 目录可被 Sparrow 作为本地资源根自动加载
+- **AND** 系统不生成 `.sparrow/skill/codument-workflow/`
 
 #### Scenario: 使用 --agent 跳过交互式 agent 与项目名称输入
 - **GIVEN** 用户运行 `codument init --agent=claude,codex`
@@ -65,12 +72,15 @@ Source: track `create-codument-prompts-20260101` (archived 2026-01-11)
 - **THEN** 系统不再提示用户选择 AI coding 工具
 - **AND** 系统不再要求用户输入 project / product 名称
 - **AND** 系统为 `claude` 与 `codex` 生成对应产物
+- **AND** 系统不创建 `codument/tracks.md`
 
 #### Scenario: 初始化时支持 CodeFlicker target
 - **GIVEN** 用户运行 `codument init`
 - **WHEN** 用户在交互式 target 列表中选择 CodeFlicker，或传入 `--agent=codeflicker`
-- **THEN** 系统将 Codument 工作流写入 `.codeflicker/skills/codument-workflow/`
+- **THEN** 系统将 Codument 生命周期 skills 写入 `.codeflicker/skills/codument-*/`
 - **AND** 系统继续生成 `.codeflicker/commands/codument/`
+- **AND** command wrapper 引用对应的 `.codeflicker/skills/codument-*/SKILL.md`
+- **AND** 系统不生成 `.codeflicker/skills/codument-workflow/`
 
 ### Requirement: 创建变更追踪命令
 系统应当（SHALL）提供 /codument:track 命令，支持：
@@ -80,7 +90,8 @@ Source: track `create-codument-prompts-20260101` (archived 2026-01-11)
 - 选择提交模式（auto/manual）
 - 选择校验模式（`yield-human-confirm` 或 `yield-gap-loop`）
 - 当校验模式为 `yield-gap-loop` 时，进一步选择校验粒度（`final_phase` 或 `every_phase`）
-- 创建 track 目录和元数据
+- 创建 track 目录和必要文件
+- 将 track 元数据写入 plan.xml 的 `<metadata>`，并以 plan.xml 作为 track 状态与元数据的唯一真相源
 
 ### Requirement: Track 创建时生成 analysis 产物
 系统应当（SHALL）在创建新的 track 目录后，自动在该 track 目录下生成用于持久化找到的内容、关键发现与知识上下文的 analysis 产物。
@@ -326,121 +337,123 @@ Source: track `create-codument-prompts-20260101` (archived 2026-01-11)
 系统应当（SHALL）提供 /codument:archive 命令，支持：
 - 移动 track 到 archive/
 - 更新 specs/ 中的规范
-- 清理 tracks.md
+- 不读取或更新 `codument/tracks.md`
+- 不要求 `metadata.json` 存在
 
 #### Scenario: 归档已完成 track
 - **GIVEN** 用户已完成某个 track
-- **AND** track 状态为 completed
+- **AND** track 的 plan.xml metadata.status 为 completed
 - **WHEN** 用户运行 /codument:archive <track-id>
 - **THEN** 系统将 track 移动到 archive/
 - **AND** 系统更新相关规范
+- **AND** 系统不读取或更新 `codument/tracks.md`
 
 ### Requirement: 升级工作区命令
 系统应当（SHALL）提供 `codument upgrade-workspace` 命令，支持升级工作区内嵌标准文件与所选 AI coding 工具产物。
 
-#### Scenario: 升级时备份 Codex skill
+#### Scenario: 升级时更新 Codex skills
 - **GIVEN** 用户已选择 Codex
 - **WHEN** 用户运行 `codument upgrade-workspace`
-- **THEN** 系统将 `~/.codex/skills/codument-workflow/` 备份到升级备份目录
-- **AND** 随后用新的 skill 内容覆盖该目录
+- **THEN** 系统将 `~/.codex/skills/codument-*/` 更新为内置独立生命周期 skills
+- **AND** 系统移除 legacy `~/.codex/skills/codument/` 与 `~/.codex/skills/codument-workflow/` 目录
 
-#### Scenario: 升级时备份 Sparrow skill
+#### Scenario: 升级时更新 Sparrow skills
 - **GIVEN** 用户已选择 Sparrow
 - **WHEN** 用户运行 `codument upgrade-workspace`
-- **THEN** 系统将 `.sparrow/skill/codument-workflow/` 备份到升级备份目录
-- **AND** 随后用新的 skill 内容覆盖该目录
+- **THEN** 系统将 `.sparrow/skills/codument-*/` 更新为内置独立生命周期 skills
+- **AND** 系统移除 legacy `.sparrow/skill/codument/`、`.sparrow/skill/codument-*` 与 `.sparrow/skill/codument-workflow/` 目录
 
-#### Scenario: 升级时备份 command 型 target 的 workflow skill
+#### Scenario: 升级时更新 command 型 target 的 lifecycle skills
 - **GIVEN** 用户已选择 Claude、CodeFlicker、Eidolon 或 OpenCode
 - **WHEN** 用户运行 `codument upgrade-workspace`
-- **THEN** 系统将对应工作区内的 `codument-workflow` skill 目录备份到升级备份目录
-- **AND** 随后用新的 skill 内容覆盖该目录
+- **THEN** 系统将对应工作区内的 `codument-*` lifecycle skill 目录更新为内置版本
+- **AND** 系统继续生成对应 command wrapper
+- **AND** 系统移除对应工作区内的 legacy `codument` 与 `codument-workflow` skill 目录
 
-### Requirement: Codex 使用 skill 目录分发 Codument 工作流
-系统应当（SHALL）对新版 Codex 通过 skill 目录分发 Codument 工作流，而不是继续生成 `~/.codex/prompts/codument-*.md`。
+### Requirement: Codex 使用独立 lifecycle skill 目录分发 Codument 工作流
+系统应当（SHALL）对新版 Codex 通过 `~/.codex/skills/codument-*/` 分发 Codument 生命周期技能，而不是继续生成 `~/.codex/prompts/codument-*.md` 或 `codument-workflow` 根 skill。
 
-#### Scenario: 选择 Codex 时安装 codument-workflow skill
+#### Scenario: 选择 Codex 时安装 codument-* skills
 - **GIVEN** 用户运行 `codument init`
 - **AND** 用户选择支持 Codex
 - **WHEN** 系统生成 Codex 相关产物
-- **THEN** 系统将 Codument 工作流写入 `~/.codex/skills/codument-workflow/`
+- **THEN** 系统将 Codument 生命周期技能写入 `~/.codex/skills/codument-*/`
 - **AND** 不再依赖 `~/.codex/prompts/codument-*.md`
+- **AND** 不生成 `~/.codex/skills/codument-workflow/`
 
-#### Scenario: 升级工作区时更新 Codex skill
+#### Scenario: 升级工作区时更新 Codex skills
 - **GIVEN** 用户运行 `codument upgrade-workspace`
 - **AND** `codument/state.json` 中包含 `codex`
 - **WHEN** 系统升级 Codex 相关产物
-- **THEN** 系统备份并更新 `~/.codex/skills/codument-workflow/`
-- **AND** 系统移除 legacy `~/.codex/skills/codument/` 目录
+- **THEN** 系统更新 `~/.codex/skills/codument-*/`
+- **AND** 系统移除 legacy `~/.codex/skills/codument/` 与 `~/.codex/skills/codument-workflow/` 目录
 
-### Requirement: Codex skill 内容与用户现有迁移版本一致
-系统应当（SHALL）以用户当前已迁移完成的 `codument-workflow` skill 结构作为新版 Codex 兼容基线，确保初始化和升级产生相同目录形态。
+### Requirement: Codex skill 内容与 standalone lifecycle 模型一致
+系统应当（SHALL）以独立 `codument-*` skill 结构作为新版 Codex 兼容基线，确保初始化和升级产生相同目录形态。
 
 #### Scenario: 初始化后 skill 目录结构完整
-- **GIVEN** 系统为 Codex 安装 `codument-workflow`
+- **GIVEN** 系统为 Codex 安装 `codument-*` skills
 - **WHEN** 用户检查目标目录
-- **THEN** 目录至少包含：
+- **THEN** 每个 lifecycle skill 目录至少包含：
   - `SKILL.md`
-  - `agents/openai.yaml`
   - `shared/` 下的公共说明文件
-  - `subskills/` 下各工作流子技能
 
-### Requirement: Sparrow 使用工作区 skill 目录分发 Codument 工作流
-系统应当（SHALL）对 Sparrow 通过工作区 `.sparrow/skill/` 目录分发 Codument 工作流，并通过显式 target profile 表达 Sparrow 特有的 skill 加载与 fresh-subagent 提示。
+### Requirement: Sparrow 使用工作区 skills 目录分发 Codument 工作流
+系统应当（SHALL）对 Sparrow 通过工作区 `.sparrow/skills/` 目录分发 Codument 生命周期技能，并通过显式 target profile 表达 Sparrow 特有的 skill 加载与 fresh-subagent 提示。
 
-#### Scenario: 选择 Sparrow 时安装 codument-workflow skill
+#### Scenario: 选择 Sparrow 时安装 codument-* skills
 - **GIVEN** 用户运行 `codument init`
 - **AND** 用户选择支持 Sparrow
 - **WHEN** 系统生成 Sparrow 相关产物
-- **THEN** 系统将 Codument 工作流写入 `.sparrow/skill/codument-workflow/`
-- **AND** 目录至少包含 `manifest.yml`、`SKILL.md`、`shared/` 与 `subskills/` 下各工作流子技能
-- **AND** 不会生成 legacy `.sparrow/skill/codument/` 目录
+- **THEN** 系统将 Codument 生命周期技能写入 `.sparrow/skills/codument-*/`
+- **AND** 每个目录至少包含 `manifest.yml`、`SKILL.md` 与 `shared/`
+- **AND** 不会生成 legacy `.sparrow/skill/codument/` 或 `.sparrow/skill/codument-workflow/` 目录
 
-#### Scenario: 升级工作区时更新 Sparrow skill
+#### Scenario: 升级工作区时更新 Sparrow skills
 - **GIVEN** 用户运行 `codument upgrade-workspace`
 - **AND** `codument/state.json` 中包含 `sparrow`
 - **WHEN** 系统升级 Sparrow 相关产物
-- **THEN** 系统备份并更新 `.sparrow/skill/codument-workflow/`
-- **AND** 系统移除 legacy `.sparrow/skill/codument/` 目录
+- **THEN** 系统更新 `.sparrow/skills/codument-*/`
+- **AND** 系统移除 legacy `.sparrow/skill/codument/`、`.sparrow/skill/codument-*` 与 `.sparrow/skill/codument-workflow/` 目录
 - **AND** 会移除目标目录中不再属于模板的多余文件
 
-### Requirement: command 型 target 共享 codument-workflow skill 并保留 wrapper command
-系统应当（SHALL）为 Claude、CodeFlicker、Eidolon 与 OpenCode 生成工作区内的 `codument-workflow` skill 目录，并继续生成对应 command wrapper，且 command wrapper 应引用同一套 sub-skill。
+### Requirement: command 型 target 使用 standalone lifecycle skills 并保留 wrapper command
+系统应当（SHALL）为 Claude、CodeFlicker、Eidolon 与 OpenCode 生成工作区内的 `codument-*` lifecycle skill 目录，并继续生成对应 command wrapper，且 command wrapper 应引用对应 lifecycle skill。
 
 #### Scenario: 选择 Claude 时生成 skill 与 command wrapper
 - **GIVEN** 用户运行 `codument init`
 - **AND** 用户选择支持 Claude
 - **WHEN** 系统生成 Claude 相关产物
-- **THEN** 系统将 Codument 工作流写入 `.claude/skills/codument-workflow/`
+- **THEN** 系统将 Codument 生命周期技能写入 `.claude/skills/codument-*/`
 - **AND** 系统继续生成 `.claude/commands/codument/`
-- **AND** 不会生成 legacy `.claude/skills/codument/` 目录
+- **AND** 不会生成 legacy `.claude/skills/codument/` 或 `.claude/skills/codument-workflow/` 目录
 
 #### Scenario: 选择 CodeFlicker 时生成 skill 与 command wrapper
 - **GIVEN** 用户运行 `codument init`
 - **AND** 用户选择支持 CodeFlicker
 - **WHEN** 系统生成 CodeFlicker 相关产物
-- **THEN** 系统将 Codument 工作流写入 `.codeflicker/skills/codument-workflow/`
+- **THEN** 系统将 Codument 生命周期技能写入 `.codeflicker/skills/codument-*/`
 - **AND** 系统继续生成 `.codeflicker/commands/codument/`
-- **AND** 不会生成 legacy `.codeflicker/skills/codument/` 目录
-- **AND** command 内容引用 `codument-workflow/subskills/` 下的对应子技能
+- **AND** 不会生成 legacy `.codeflicker/skills/codument/` 或 `.codeflicker/skills/codument-workflow/` 目录
+- **AND** command 内容引用对应的 `.codeflicker/skills/codument-*/SKILL.md`
 
 #### Scenario: 选择 Eidolon 时生成 skill 与 command wrapper
 - **GIVEN** 用户运行 `codument init`
 - **AND** 用户选择支持 Eidolon
 - **WHEN** 系统生成 Eidolon 相关产物
-- **THEN** 系统将 Codument 工作流写入 `.eidolon/skills/codument-workflow/`
+- **THEN** 系统将 Codument 生命周期技能写入 `.eidolon/skills/codument-*/`
 - **AND** 系统继续生成 `.eidolon/commands/codument/`
-- **AND** 不会生成 legacy `.eidolon/skills/codument/` 目录
-- **AND** command 内容引用 `codument-workflow/subskills/` 下的对应子技能
+- **AND** 不会生成 legacy `.eidolon/skills/codument/` 或 `.eidolon/skills/codument-workflow/` 目录
+- **AND** command 内容引用对应的 `.eidolon/skills/codument-*/SKILL.md`
 
 #### Scenario: 选择 OpenCode 时生成 skill 与 command wrapper
 - **GIVEN** 用户运行 `codument init`
 - **AND** 用户选择支持 OpenCode
 - **WHEN** 系统生成 OpenCode 相关产物
-- **THEN** 系统将 Codument 工作流写入 `.opencode/skills/codument-workflow/`
+- **THEN** 系统将 Codument 生命周期技能写入 `.opencode/skills/codument-*/`
 - **AND** 系统继续生成 `.opencode/command/`
-- **AND** 不会生成 legacy `.opencode/skills/codument/` 目录
-- **AND** command 内容引用 `codument-workflow/subskills/` 下的对应子技能
+- **AND** 不会生成 legacy `.opencode/skills/codument/` 或 `.opencode/skills/codument-workflow/` 目录
+- **AND** command 内容引用对应的 `.opencode/skills/codument-*/SKILL.md`
 
 ### Requirement: Plan XML 格式
 系统应当（SHALL）定义结构化的 plan.xml 格式，包含：

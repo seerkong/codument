@@ -33,7 +33,7 @@
 
 1. 识别 track：
    - 若 `{{args}}` 包含 `<track-id>`，优先做精确匹配；若精确且唯一匹配，直接使用；仅在无匹配或存在多个候选时请求澄清
-   - 否则从 `codument/tracks.md` 选择第一个活跃 track
+   - 否则从 `codument/tracks/` 目录与各 track 的 `plan.xml` 选择第一个活跃 track
 
 2. 识别验证范围（可选）：
    - `{{args}}` 可附带 `P{n}` 或 `WAVE-P{n}-{序号}`

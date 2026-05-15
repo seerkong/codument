@@ -1,10 +1,3 @@
----
-description: Plan wave DAG for a track phase
-argument-hint: <track-id>
----
-
-$ARGUMENTS
-
 # codument:plan-wave - 波次规划命令
 
 **描述：** 为 plan.xml 生成波次（wave）DAG 分组，优化并行执行
@@ -48,8 +41,8 @@ $ARGUMENTS
 
 1. **检查用户输入：** 检查用户是否提供了 track 名称作为参数
 
-2. **解析 tracks 文件：** 读取并理解 `codument/tracks.md`。查看"活跃 Tracks"中表格
-   - **关键：** 如果没有 track 部分，宣布"tracks 文件为空或格式错误"并停止
+2. **发现 tracks：** 扫描 `codument/tracks/` 目录并读取各 track 的 `plan.xml` metadata
+   - **关键：** 如果没有有效 track 目录或 plan.xml，宣布"没有可规划波次的活跃 track"并停止
 
 3. **选择 Track：**
     - **如果提供了名称：**
@@ -58,7 +51,7 @@ $ARGUMENTS
       - 无匹配或存在多个候选时请求澄清（使用 **Protocol: ask-single-question-free**）
 
    - **如果未提供名称：**
-     - 找到"活跃 Tracks"表格中第一个track
+     - 从 `codument/tracks/` 目录中选择第一个 plan.xml metadata.status 非 `completed`/`cancelled` 的 track
      - 宣布自动选择并继续
      - 如果都已完成，宣布并停止
 
@@ -175,5 +168,3 @@ $ARGUMENTS
 > - 总 Wave 数：<count>
 >
 > 你现在可以运行 `/codument:execute-wave` 开始波次执行。"
-
-

@@ -6,6 +6,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import {
+  CODUMENT_WORKFLOW_SKILL_NAME,
   EIDOLON_WORKFLOW_SKILL_DISPLAY_PATH,
   LEGACY_CODUMENT_SKILL_NAME,
   buildWorkflowSkillDirectories,
@@ -129,7 +130,7 @@ export async function generateEidolonCommands(): Promise<void> {
   syncGeneratedSkillDirectories(
     EIDOLON_SKILLS_DIR,
     buildWorkflowSkillDirectories('eidolon'),
-    [LEGACY_CODUMENT_SKILL_NAME]
+    [LEGACY_CODUMENT_SKILL_NAME, CODUMENT_WORKFLOW_SKILL_NAME]
   );
 
   if (!fs.existsSync(EIDOLON_COMMANDS_DIR)) {

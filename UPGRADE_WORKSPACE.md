@@ -14,10 +14,11 @@ It is designed for projects that already have a `codument/` folder and want to p
 - Assistant command files for the CLI tools selected in `codument/state.json` (`cli_tools`)
   - Claude Code: `.claude/commands/codument/`
   - CodeFlicker: `.codeflicker/commands/codument/`
-  - Codex CLI: `~/.codex/skills/codument-workflow/`
-  - Sparrow: `.sparrow/skill/codument-workflow/`
+  - Codex CLI: `~/.codex/skills/codument-*/`
   - Eidolon: `.eidolon/commands/codument/`
+  - Sparrow: `.sparrow/skills/codument-*/`
   - OpenCode: `.opencode/command/`
+  - Standalone lifecycle skills: `codument-*` under each selected tool's skill directory
 
 It does NOT modify:
 
@@ -31,7 +32,7 @@ Before overwriting anything, the command creates a backup under:
 
 `./.tmp/codument/upgrade-workspace-<timestamp>/`
 
-The backup mirrors the original paths. Workspace files stay under relative workspace paths (for example `codument/std/workflow.md`). Codex skill backups may appear under a user-home subtree because the source path is `~/.codex/skills/codument-workflow/`. Sparrow skill backups stay under the workspace-relative `.sparrow/skill/codument-workflow/` path.
+The backup mirrors the original paths. Workspace files stay under relative workspace paths (for example `codument/std/workflow.md`). Codex skill backups may appear under a user-home subtree because the source path is under `~/.codex/skills/`. Sparrow skill backups stay under workspace-relative `.sparrow/skills/` paths. Legacy `codument-workflow` directories may be backed up before being removed.
 
 To rollback, copy the files back from the backup directory to the workspace root. Example:
 

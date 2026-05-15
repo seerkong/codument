@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { getTrack, parseOptions, codumentExists, TRACKS_DIR, SPECS_DIR, ARCHIVE_DIR, CODUMENT_DIR } from '../utils';
+import { getTrack, parseOptions, codumentExists, TRACKS_DIR, SPECS_DIR, ARCHIVE_DIR } from '../utils';
 
 export async function archiveCommand(args: string[]) {
   if (!codumentExists()) {
@@ -66,21 +66,6 @@ export async function archiveCommand(args: string[]) {
     }
   } else {
     console.log('  Skipped spec updates (--skip-specs)');
-  }
-
-  // Update tracks.md
-  const tracksFilePath = path.join(CODUMENT_DIR, 'tracks.md');
-  if (fs.existsSync(tracksFilePath)) {
-    let content = fs.readFileSync(tracksFilePath, 'utf-8');
-
-    // Remove the track section
-    const regex = new RegExp(`---\\s*\\n\\s*##\\s*\\[[^\\]]*\\]\\s*Track:\\s*[^\\n]*${trackId}[^\\n]*\\n[^]*?(?=---\\n|$)`, 'g');
-    const newContent = content.replace(regex, '');
-
-    if (newContent !== content) {
-      fs.writeFileSync(tracksFilePath, newContent.trim() + '\n');
-      console.log('✓ Removed from tracks.md');
-    }
   }
 
   console.log(`\n✓ Track "${trackId}" archived successfully!\n`);

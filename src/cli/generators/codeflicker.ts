@@ -8,6 +8,7 @@ import * as path from 'path';
 import {
   CODEFLICKER_WORKFLOW_COMMAND_DISPLAY_PATH,
   CODEFLICKER_WORKFLOW_SKILL_DISPLAY_PATH,
+  CODUMENT_WORKFLOW_SKILL_NAME,
   LEGACY_CODUMENT_SKILL_NAME,
   buildWorkflowSkillDirectories,
 } from '../../skills/codument-workflow';
@@ -126,7 +127,7 @@ export async function generateCodeFlickerCommands(): Promise<void> {
   syncGeneratedSkillDirectories(
     CODEFLICKER_SKILLS_DIR,
     buildWorkflowSkillDirectories('codeflicker'),
-    [LEGACY_CODUMENT_SKILL_NAME]
+    [LEGACY_CODUMENT_SKILL_NAME, CODUMENT_WORKFLOW_SKILL_NAME]
   );
 
   if (!fs.existsSync(CODEFLICKER_COMMANDS_DIR)) {

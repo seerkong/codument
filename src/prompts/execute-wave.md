@@ -228,7 +228,7 @@ while 存在未完成的 wave:
 所有 phase 完成后：
 
 1. **执行最终验证：** 运行 `<validations>` 中的验证项
-2. **更新状态：** 更新 tracks.md 和 plan.xml 状态
+2. **更新状态：** 更新 plan.xml 状态
 3. **宣布完成：**
    > "🎉 **Track '<track_id>' 波次执行完成！**
    >

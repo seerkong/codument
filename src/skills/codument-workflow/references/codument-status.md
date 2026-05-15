@@ -1,8 +1,3 @@
----
-description: Show project status overview
-argument-hint: 
----
-
 # codument status - 状态命令
 
 **描述：** 显示项目当前进度
@@ -11,7 +6,7 @@ argument-hint:
 
 ## 1.0 系统指令
 
-你是 AI 代理，负责提供当前 tracks 文件的状态概览。这包括读取 `codument/tracks.md` 文件，解析内容，并总结任务进度。
+你是 AI 代理，负责通过扫描 `codument/tracks/` 目录并读取各 track 的 `plan.xml` metadata 与任务状态，提供当前项目状态概览。
 
 ---
 
@@ -19,8 +14,8 @@ argument-hint:
 
 **协议：验证 Codument 环境是否正确设置。**
 
-1. **验证 tracks 文件：** 检查 `codument/tracks.md` 是否存在且非空
-   - 如果不存在或为空，停止并提示："项目未设置或 tracks.md 已损坏。请提示用户运行 `/codument:init` 设置。"
+1. **验证 tracks 目录：** 检查 `codument/tracks/` 目录是否存在
+   - 如果不存在，停止并提示："项目未设置。请提示用户运行 `/codument:init` 设置。"
 
 2. **检查必需文件：** 验证以下文件存在：
    - `codument/project.md`
@@ -39,14 +34,14 @@ argument-hint:
 
 ### 2.1 读取项目计划
 
-1. **读取 tracks.md：** 读取 `codument/tracks.md` 内容
+1. **读取 active tracks：** 扫描 `codument/tracks/` 目录并读取各 track 的 `plan.xml` 内容
 2. **列出 tracks：** 使用 `ls codument/tracks` 列出所有 tracks
 3. **读取每个 track 的任务：** 对每个 track 读取 `codument/tracks/<track_id>/plan.xml`
 
 ### 2.2 解析和总结
 
 1. **解析内容：**
-   - 识别所有 tracks 及其状态（`[ ]` 待开始、`[~]` 进行中、`[x]` 已完成）
+   - 识别所有 tracks 及其 plan.xml metadata.status（new/in_progress/completed/cancelled）
    - 解析每个 track 的 plan.xml，统计任务数量和状态
    - 识别当前进行中的阶段和任务
 
@@ -114,4 +109,3 @@ Tracks:  3 总计 | 1 进行中 | 1 待开始 | 1 已完成
 - **Tracks（总计）：** Tracks 总数及其状态分布
 - **任务（总计）：** 任务总数及状态分布
 - **进度：** 整体进度，格式为 已完成/总计 (百分比%)
-

@@ -69,7 +69,7 @@ describe('codument upgrade-workspace', () => {
     expect(exitCode).toBe(0);
     expect(out).toContain('Updated codument/std');
     expect(out).toContain('Upgraded .opencode/command');
-    expect(out).toContain('Upgraded .opencode/skills/codument-workflow/');
+    expect(out).toContain('Upgraded .opencode/skills/codument-*/');
 
     // Backup created
     expect(fs.existsSync(path.join(backupDir, 'codument', 'std', 'AGENTS.md'))).toBe(true);
@@ -88,12 +88,12 @@ describe('codument upgrade-workspace', () => {
     const verifyCmd = fs.readFileSync(path.join(ws, '.opencode', 'command', 'codument-verify.md'), 'utf-8');
     expect(verifyCmd).toContain('# codument:verify');
     expect(verifyCmd).toContain('.opencode/skills/codument-verify/SKILL.md');
-    expect(fs.existsSync(path.join(ws, '.opencode', 'skills', 'codument-workflow', 'subskills', 'verify', 'SKILL.md'))).toBe(true);
+    expect(fs.existsSync(path.join(ws, '.opencode', 'skills', 'codument-workflow'))).toBe(false);
     expect(fs.existsSync(path.join(ws, '.opencode', 'skills', 'codument'))).toBe(false);
     expect(fs.existsSync(path.join(ws, '.opencode', 'skills', 'codument-gap-loop', 'SKILL.md'))).toBe(true);
   });
 
-  it('backs up and upgrades the generated Codument workflow skill for Codex', async () => {
+  it('backs up legacy Codument skills and upgrades standalone lifecycle skills for Codex', async () => {
     const repoRoot = path.resolve(__dirname, '../../..');
     const cliEntry = path.join(repoRoot, 'src/cli/index.ts');
 
@@ -118,9 +118,10 @@ describe('codument upgrade-workspace', () => {
       last_successful_step: '2.1_project',
     }, null, 2));
 
-    const skillRoot = path.join(homeDir, '.codex', 'skills', 'codument-workflow');
-    writeFile(path.join(skillRoot, 'SKILL.md'), 'OLD-SKILL\n');
-    writeFile(path.join(skillRoot, 'extra.md'), 'REMOVE-ME\n');
+    const workflowSkillRoot = path.join(homeDir, '.codex', 'skills', 'codument-workflow');
+    const gapLoopSkillRoot = path.join(homeDir, '.codex', 'skills', 'codument-gap-loop');
+    writeFile(path.join(workflowSkillRoot, 'SKILL.md'), 'OLD-SKILL\n');
+    writeFile(path.join(workflowSkillRoot, 'extra.md'), 'REMOVE-ME\n');
     writeFile(path.join(homeDir, '.codex', 'skills', 'codument', 'SKILL.md'), 'OLD-LEGACY-CODEX-SKILL\n');
 
     const backupDir = path.join(ws, '.tmp', 'codument', 'test-backup-codex');
@@ -150,20 +151,17 @@ describe('codument upgrade-workspace', () => {
 
     expect(err).toBe('');
     expect(exitCode).toBe(0);
-    expect(out).toContain('Upgraded ~/.codex/skills/codument-workflow/');
+    expect(out).toContain('Upgraded ~/.codex/skills/codument-*/');
 
     expect(fs.readFileSync(path.join(backupDir, '.codex', 'skills', 'codument-workflow', 'SKILL.md'), 'utf-8')).toBe('OLD-SKILL\n');
 
-    expect(fs.readFileSync(path.join(skillRoot, 'SKILL.md'), 'utf-8')).toContain('Codument Workflow');
-    expect(fs.existsSync(path.join(skillRoot, 'agents', 'openai.yaml'))).toBe(true);
-    expect(fs.existsSync(path.join(skillRoot, 'subskills', 'implement', 'SKILL.md'))).toBe(true);
-    expect(fs.existsSync(path.join(skillRoot, 'shared', 'target-capabilities.md'))).toBe(true);
-    expect(fs.existsSync(path.join(skillRoot, 'extra.md'))).toBe(false);
+    expect(fs.existsSync(workflowSkillRoot)).toBe(false);
     expect(fs.existsSync(path.join(homeDir, '.codex', 'skills', 'codument'))).toBe(false);
-    expect(fs.existsSync(path.join(homeDir, '.codex', 'skills', 'codument-gap-loop', 'SKILL.md'))).toBe(true);
+    expect(fs.existsSync(path.join(gapLoopSkillRoot, 'SKILL.md'))).toBe(true);
+    expect(fs.existsSync(path.join(gapLoopSkillRoot, 'shared', 'target-capabilities.md'))).toBe(true);
   });
 
-  it('backs up and upgrades the generated Codument workflow skill for Sparrow', async () => {
+  it('backs up legacy Codument skills and upgrades standalone lifecycle skills for Sparrow', async () => {
     const repoRoot = path.resolve(__dirname, '../../..');
     const cliEntry = path.join(repoRoot, 'src/cli/index.ts');
 
@@ -187,10 +185,12 @@ describe('codument upgrade-workspace', () => {
       last_successful_step: '2.1_project',
     }, null, 2));
 
-    const skillRoot = path.join(ws, '.sparrow', 'skill', 'codument-workflow');
-    writeFile(path.join(skillRoot, 'SKILL.md'), 'OLD-SPARROW-SKILL\n');
-    writeFile(path.join(skillRoot, 'extra.md'), 'REMOVE-ME\n');
+    const oldWorkflowSkillRoot = path.join(ws, '.sparrow', 'skill', 'codument-workflow');
+    const newGapLoopSkillRoot = path.join(ws, '.sparrow', 'skills', 'codument-gap-loop');
+    writeFile(path.join(oldWorkflowSkillRoot, 'SKILL.md'), 'OLD-SPARROW-SKILL\n');
+    writeFile(path.join(oldWorkflowSkillRoot, 'extra.md'), 'REMOVE-ME\n');
     writeFile(path.join(ws, '.sparrow', 'skill', 'codument', 'SKILL.md'), 'OLD-LEGACY-SPARROW-SKILL\n');
+    writeFile(path.join(ws, '.sparrow', 'skill', 'codument-gap-loop', 'SKILL.md'), 'OLD-OLDROOT-GAP-LOOP\n');
 
     const backupDir = path.join(ws, '.tmp', 'codument', 'test-backup-sparrow');
 
@@ -215,19 +215,18 @@ describe('codument upgrade-workspace', () => {
 
     expect(err).toBe('');
     expect(exitCode).toBe(0);
-    expect(out).toContain('Upgraded .sparrow/skill/codument-workflow/');
+    expect(out).toContain('Upgraded .sparrow/skills/codument-*/');
 
     expect(fs.readFileSync(path.join(backupDir, '.sparrow', 'skill', 'codument-workflow', 'SKILL.md'), 'utf-8')).toBe('OLD-SPARROW-SKILL\n');
 
-    expect(fs.readFileSync(path.join(skillRoot, 'shared', 'target-capabilities.md'), 'utf-8')).toContain('Sparrow');
-    expect(fs.existsSync(path.join(skillRoot, 'manifest.yml'))).toBe(true);
-    expect(fs.existsSync(path.join(skillRoot, 'subskills', 'implement', 'SKILL.md'))).toBe(true);
-    expect(fs.existsSync(path.join(skillRoot, 'extra.md'))).toBe(false);
+    expect(fs.existsSync(oldWorkflowSkillRoot)).toBe(false);
+    expect(fs.existsSync(path.join(ws, '.sparrow', 'skill', 'codument-gap-loop'))).toBe(false);
     expect(fs.existsSync(path.join(ws, '.sparrow', 'skill', 'codument'))).toBe(false);
-    expect(fs.existsSync(path.join(ws, '.sparrow', 'skill', 'codument-gap-loop', 'SKILL.md'))).toBe(true);
+    expect(fs.readFileSync(path.join(newGapLoopSkillRoot, 'shared', 'target-capabilities.md'), 'utf-8')).toContain('Sparrow');
+    expect(fs.existsSync(path.join(newGapLoopSkillRoot, 'manifest.yml'))).toBe(true);
   });
 
-  it('backs up and upgrades the generated Codument workflow skill for CodeFlicker', async () => {
+  it('backs up legacy Codument skills and upgrades standalone lifecycle skills for CodeFlicker', async () => {
     const repoRoot = path.resolve(__dirname, '../../..');
     const cliEntry = path.join(repoRoot, 'src/cli/index.ts');
 
@@ -251,9 +250,9 @@ describe('codument upgrade-workspace', () => {
       last_successful_step: '2.1_project',
     }, null, 2));
 
-    const skillRoot = path.join(ws, '.codeflicker', 'skills', 'codument-workflow');
-    writeFile(path.join(skillRoot, 'SKILL.md'), 'OLD-CODEFLICKER-SKILL\n');
-    writeFile(path.join(skillRoot, 'extra.md'), 'REMOVE-ME\n');
+    const workflowSkillRoot = path.join(ws, '.codeflicker', 'skills', 'codument-workflow');
+    writeFile(path.join(workflowSkillRoot, 'SKILL.md'), 'OLD-CODEFLICKER-SKILL\n');
+    writeFile(path.join(workflowSkillRoot, 'extra.md'), 'REMOVE-ME\n');
     writeFile(path.join(ws, '.codeflicker', 'skills', 'codument', 'SKILL.md'), 'OLD-LEGACY-CODEFLICKER-SKILL\n');
     writeFile(path.join(ws, '.codeflicker', 'commands', 'codument', 'gap-loop.md'), 'OLD-CODEFLICKER-COMMAND\n');
 
@@ -281,16 +280,15 @@ describe('codument upgrade-workspace', () => {
     expect(err).toBe('');
     expect(exitCode).toBe(0);
     expect(out).toContain('Upgraded .codeflicker/commands/codument');
-    expect(out).toContain('Upgraded .codeflicker/skills/codument-workflow/');
+    expect(out).toContain('Upgraded .codeflicker/skills/codument-*/');
 
     expect(fs.readFileSync(path.join(backupDir, '.codeflicker', 'skills', 'codument-workflow', 'SKILL.md'), 'utf-8')).toBe('OLD-CODEFLICKER-SKILL\n');
     expect(fs.readFileSync(path.join(backupDir, '.codeflicker', 'commands', 'codument', 'gap-loop.md'), 'utf-8')).toBe('OLD-CODEFLICKER-COMMAND\n');
 
-    expect(fs.readFileSync(path.join(skillRoot, 'shared', 'target-capabilities.md'), 'utf-8')).toContain('CodeFlicker');
-    expect(fs.existsSync(path.join(skillRoot, 'subskills', 'implement', 'SKILL.md'))).toBe(true);
-    expect(fs.existsSync(path.join(skillRoot, 'extra.md'))).toBe(false);
+    expect(fs.existsSync(workflowSkillRoot)).toBe(false);
     expect(fs.existsSync(path.join(ws, '.codeflicker', 'skills', 'codument'))).toBe(false);
     expect(fs.existsSync(path.join(ws, '.codeflicker', 'skills', 'codument-gap-loop', 'SKILL.md'))).toBe(true);
+    expect(fs.readFileSync(path.join(ws, '.codeflicker', 'skills', 'codument-gap-loop', 'shared', 'target-capabilities.md'), 'utf-8')).toContain('CodeFlicker');
     expect(fs.readFileSync(path.join(ws, '.codeflicker', 'commands', 'codument', 'gap-loop.md'), 'utf-8')).toContain('.codeflicker/skills/codument-gap-loop/SKILL.md');
   });
 });

@@ -29,11 +29,11 @@
 
 #### 2.2.1 结构验证
 
-- [ ] `metadata.json` 存在且格式正确
+- [ ] `plan.xml metadata` 存在且格式正确
 - [ ] `spec.md` 存在
 - [ ] `plan.xml` 存在且 XML 格式有效
 
-#### 2.2.2 metadata.json 验证
+#### 2.2.2 plan.xml metadata 验证
 
 ```json
 {
@@ -108,7 +108,7 @@
 
 ```
 ✓ codument/tracks/add-user-auth/
-  ✓ metadata.json - 有效
+  ✓ plan.xml metadata - 有效
   ✓ spec.md - 有效 (3 个需求, 5 个场景)
   ✓ plan.xml - 有效 (2 个阶段, 8 个任务)
 
@@ -119,7 +119,7 @@
 
 ```
 ✗ codument/tracks/add-user-auth/
-  ✓ metadata.json - 有效
+  ✓ plan.xml metadata - 有效
   ✗ spec.md - 错误
     - 第 15 行: Requirement "User Login" 缺少 Scenario
     - 第 28 行: Scenario 格式错误，应使用 "#### Scenario:" 而非 "- Scenario:"
@@ -163,7 +163,7 @@ Specs:
 | "Requirement must have at least one scenario" | 需求下没有场景 | 添加 `#### Scenario:` 部分 |
 | "Invalid scenario format" | 场景格式错误 | 使用 `#### Scenario: 名称` 格式 |
 | "Invalid XML format" | plan.xml 语法错误 | 检查 XML 标签闭合 |
-| "Missing required field in metadata" | metadata.json 缺少字段 | 添加所需字段 |
+| "Missing required field in metadata" | plan.xml metadata 缺少字段 | 添加所需字段 |
 | "Track must have at least one delta" | spec.md 没有增量操作 | 添加 ADDED/MODIFIED/REMOVED 部分 |
 
 ---

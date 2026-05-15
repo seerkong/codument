@@ -129,16 +129,16 @@
    |      |         |
    ```
 
-6. **创建 metadata.json：**
-    ```json
-    {
-      "track_id": "<track_id>",
-      "type": "feature",
-      "status": "new",
-      "created_at": "YYYY-MM-DDTHH:MM:SSZ",
-      "updated_at": "YYYY-MM-DDTHH:MM:SSZ",
-      "description": "<初始描述>"
-    }
+6. **在 plan.xml `<metadata>` 中写入：**
+    ```xml
+    <metadata>
+      <track_id>track-id</track_id>
+      <type>feature</type>
+      <status>new</status>
+      <created_at>YYYY-MM-DDTHH:MM:SSZ</created_at>
+      <updated_at>YYYY-MM-DDTHH:MM:SSZ</updated_at>
+      <description>初始描述</description>
+    </metadata>
     ```
 
 
@@ -374,12 +374,14 @@
 
 ### 2.6 收尾
 
-1. **更新 tracks.md：**
-   - 宣布正在更新 tracks 文件
-   - 在 `codument/tracks.md` 的“活跃 Tracks”表格，按格式，末尾追加记录
+1. **确认真相源：**
+   - 确保 `codument/tracks/<track_id>/plan.xml` 的 `<metadata>` 已包含 track 元数据与状态
+   - 不创建或更新 `codument/tracks.md`
+   - 不创建或更新 `metadata.json`
 
 2. **宣布完成：**
-   > "新 track '<track_id>' 已创建并添加到 tracks 文件。
+   > "新 track '<track_id>' 已创建。
+   > 状态真相源：codument/tracks/<track_id>/plan.xml
    > 提交模式：<auto|manual>
    > 校验模式：<yield-human-confirm|yield-gap-loop>
    > 你现在可以运行 `/codument:implement` 开始实现。"

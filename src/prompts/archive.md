@@ -26,7 +26,7 @@
 ### 2.2 执行归档
 
 1. **检查 Track 状态：**
-   - 读取 `codument/tracks.md` 确认 track 状态为 `[x]`（已完成）
+   - 读取 `codument/tracks/<track_id>/plan.xml` 的 metadata.status，确认 track 状态为 `completed`
    - 如果未完成，警告用户并询问是否仍要归档（使用 **ask-single-question-closed**）
 
 2. **创建归档目录：**
@@ -43,8 +43,8 @@
      - 创建能力目录（如不存在）
    - 如果是纯工具变更（无规范增量），跳过此步骤
 
-5. **更新 tracks.md：**
-   - 从 `codument/tracks.md` 中移除已归档 track 的部分
+5. **移除活跃目录入口：**
+   - 归档通过移动 `codument/tracks/<track_id>/` 完成；不维护额外 registry 文件
 
 6. **验证：**
    - 优先运行 `codument validate --strict` 确认归档后状态正确

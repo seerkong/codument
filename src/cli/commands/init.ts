@@ -26,13 +26,12 @@ import {
   rootAgentsPrompt,
   stdAgentsPrompt,
   techStackTemplate,
-  tracksTemplate,
   workflowTemplate,
 } from '../../prompts';
 
 let TASKS_XML_SPEC = planXmlSpec;
 
-type CLITool = 'claude' | 'codeflicker' | 'codex' | 'eidolon' | 'opencode' | 'sparrow';
+type CLITool = 'claude' | 'codeflicker' | 'codex' | 'eidolon' | 'sparrow' | 'opencode';
 
 const CODUMENT_MARKERS = {
   start: '<!-- CODUMENT:START -->',
@@ -44,8 +43,8 @@ const CLI_OPTIONS: { key: string; label: string; tool: CLITool }[] = [
   { key: '2', label: 'CodeFlicker', tool: 'codeflicker' },
   { key: '3', label: 'OpenAI Codex CLI', tool: 'codex' },
   { key: '4', label: 'Eidolon', tool: 'eidolon' },
-  { key: '5', label: 'OpenCode', tool: 'opencode' },
-  { key: '6', label: 'Sparrow', tool: 'sparrow' },
+  { key: '5', label: 'Sparrow', tool: 'sparrow' },
+  { key: '6', label: 'OpenCode', tool: 'opencode' },
 ];
 
 function isMarkerOnOwnLine(content: string, markerIndex: number, markerLength: number): boolean {
@@ -263,14 +262,14 @@ export async function initCommand(args: string[]): Promise<void> {
           console.log(`  ✓ 安装 ${EIDOLON_WORKFLOW_SKILL_DISPLAY_PATH}`);
           console.log(`  ✓ 创建 ${EIDOLON_WORKFLOW_COMMAND_DISPLAY_PATH}*.toml`);
           break;
+        case 'sparrow':
+          await generateSparrowCommands();
+          console.log(`  ✓ 安装 ${SPARROW_WORKFLOW_SKILL_DISPLAY_PATH}`);
+          break;
         case 'opencode':
           await generateOpenCodeCommands();
           console.log(`  ✓ 安装 ${OPENCODE_WORKFLOW_SKILL_DISPLAY_PATH}`);
           console.log(`  ✓ 创建 ${OPENCODE_WORKFLOW_COMMAND_DISPLAY_PATH}codument-*.md`);
-          break;
-        case 'sparrow':
-          await generateSparrowCommands();
-          console.log(`  ✓ 安装 ${SPARROW_WORKFLOW_SKILL_DISPLAY_PATH}`);
           break;
       }
     }
@@ -299,7 +298,7 @@ export async function initCommand(args: string[]): Promise<void> {
     console.log('='.repeat(60));
 
     if (initCodumentDir) {
-      console.log(`\n下一步:\n  1. 编辑 codument/project.md 完善项目配置\n  2. 编辑 codument/tech-stack.md 配置技术栈\n  3. 运行相应的 AI 命令或加载生成的 workflow skill 创建第一个变更追踪\n  4. 运行 codument status 查看项目状态\n`);
+      console.log(`\n下一步:\n  1. 编辑 codument/project.md 完善项目配置\n  2. 编辑 codument/tech-stack.md 配置技术栈\n  3. 运行相应的 AI 命令或加载生成的 codument-* skill 创建第一个变更追踪\n  4. 运行 codument status 查看项目状态\n`);
     } else {
       console.log(`\n已为以下 CLI 工具安装/生成工作流入口:\n${selectedLabels.map((label) => `  - ${label}`).join('\n')}\n\n现在可以使用对应 AI 工具入口了。\n`);
     }
@@ -372,10 +371,6 @@ ${projectDesc}
 
   fs.writeFileSync(path.join(CODUMENT_DIR, 'tech-stack.md'), techStackMd);
   console.log('  ✓ 创建 tech-stack.md');
-
-  const tracksMd = tracksTemplate;
-  fs.writeFileSync(path.join(CODUMENT_DIR, 'tracks.md'), tracksMd);
-  console.log('  ✓ 创建 tracks.md');
 
   const stateJson = {
     active_track: null,

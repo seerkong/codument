@@ -51,13 +51,13 @@ describe('codument init --agent', () => {
     expect(projectMd).toContain(`# ${path.basename(workspaceDir)}`);
     expect(productMd).toContain(`# ${path.basename(workspaceDir)} - 产品定义`);
     expect(state.cli_tools).toEqual(['claude', 'codeflicker', 'codex']);
-    expect(fs.existsSync(path.join(workspaceDir, '.claude', 'skills', 'codument-workflow', 'SKILL.md'))).toBe(true);
+    expect(fs.existsSync(path.join(workspaceDir, '.claude', 'skills', 'codument-workflow'))).toBe(false);
     expect(fs.existsSync(path.join(workspaceDir, '.claude', 'skills', 'codument'))).toBe(false);
     expect(fs.existsSync(path.join(workspaceDir, '.claude', 'skills', 'codument-init', 'SKILL.md'))).toBe(true);
-    expect(fs.existsSync(path.join(workspaceDir, '.codeflicker', 'skills', 'codument-workflow', 'SKILL.md'))).toBe(true);
+    expect(fs.existsSync(path.join(workspaceDir, '.codeflicker', 'skills', 'codument-workflow'))).toBe(false);
     expect(fs.existsSync(path.join(workspaceDir, '.codeflicker', 'skills', 'codument'))).toBe(false);
     expect(fs.existsSync(path.join(workspaceDir, '.codeflicker', 'commands', 'codument', 'gap-loop.md'))).toBe(true);
-    expect(fs.existsSync(path.join(homeDir, '.codex', 'skills', 'codument-workflow', 'SKILL.md'))).toBe(true);
+    expect(fs.existsSync(path.join(homeDir, '.codex', 'skills', 'codument-workflow'))).toBe(false);
     expect(fs.existsSync(path.join(homeDir, '.codex', 'skills', 'codument'))).toBe(false);
     expect(fs.existsSync(path.join(homeDir, '.codex', 'skills', 'codument-gap-loop', 'SKILL.md'))).toBe(true);
   });

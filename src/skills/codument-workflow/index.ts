@@ -17,7 +17,7 @@ export const CODUMENT_WORKFLOW_SKILL_NAME = "codument-workflow";
 export const LEGACY_CODUMENT_SKILL_NAME = "codument";
 export const CODUMENT_SKILL_PREFIX = "codument";
 
-export type WorkflowTarget = "claude" | "codeflicker" | "codex" | "eidolon" | "opencode" | "sparrow";
+export type WorkflowTarget = "claude" | "codeflicker" | "codex" | "eidolon" | "sparrow" | "opencode";
 
 export interface WorkflowTargetProfile {
   id: WorkflowTarget;
@@ -59,7 +59,7 @@ export const EIDOLON_WORKFLOW_SKILL_DISPLAY_PATH = `.eidolon/skills/`;
 export const EIDOLON_WORKFLOW_COMMAND_DISPLAY_PATH = ".eidolon/commands/codument/";
 export const OPENCODE_WORKFLOW_SKILL_DISPLAY_PATH = `.opencode/skills/`;
 export const OPENCODE_WORKFLOW_COMMAND_DISPLAY_PATH = ".opencode/command/";
-export const SPARROW_WORKFLOW_SKILL_DISPLAY_PATH = `.sparrow/skill/`;
+export const SPARROW_WORKFLOW_SKILL_DISPLAY_PATH = `.sparrow/skills/`;
 
 const WORKFLOW_TARGET_PROFILES: Record<WorkflowTarget, WorkflowTargetProfile> = {
   claude: {
@@ -106,6 +106,15 @@ const WORKFLOW_TARGET_PROFILES: Record<WorkflowTarget, WorkflowTargetProfile> = 
     ],
     wrapperNote: "This target also keeps TOML command wrappers for compatibility.",
   },
+  sparrow: {
+    id: "sparrow",
+    displayName: "Sparrow",
+    skillDisplayPath: SPARROW_WORKFLOW_SKILL_DISPLAY_PATH,
+    preferredFreshChildTerms: [
+      "`task`",
+      "a brand-new subagent task for each round",
+    ],
+  },
   opencode: {
     id: "opencode",
     displayName: "OpenCode",
@@ -117,32 +126,7 @@ const WORKFLOW_TARGET_PROFILES: Record<WorkflowTarget, WorkflowTargetProfile> = 
     ],
     wrapperNote: "This target also keeps markdown command wrappers for compatibility.",
   },
-  sparrow: {
-    id: "sparrow",
-    displayName: "Sparrow",
-    skillDisplayPath: SPARROW_WORKFLOW_SKILL_DISPLAY_PATH,
-    preferredFreshChildTerms: [
-      "`task`",
-      "a brand-new subagent task for each round",
-    ],
-  },
 };
-
-function injectSkillPrelude(content: string, lines: string[]): string {
-  if (lines.length === 0) {
-    return content;
-  }
-
-  const prelude = `${lines.map((line) => `> ${line}`).join("\n")}\n\n`;
-  const frontmatterMatch = content.match(/^---\n[\s\S]*?\n---\n?/);
-  if (!frontmatterMatch) {
-    return `${prelude}${content}`;
-  }
-
-  const frontmatter = frontmatterMatch[0];
-  const body = content.slice(frontmatter.length);
-  return `${frontmatter}\n${prelude}${body}`;
-}
 
 function buildSubskillSkill(
   subskill: (typeof SUBSKILL_SOURCES)[number],
@@ -182,86 +166,6 @@ function buildSparrowManifest(
     null,
     2
   )}\n`;
-}
-
-function buildRootSkillTemplate(): string {
-  return `---
-name: codument-workflow
-description: Use when the user wants to initialize, operate, validate, inspect, discuss, plan, execute, verify, or archive a Codument-based project workflow. Trigger for requests involving \`codument/\` directories, tracks, \`tracks.md\`, \`plan.xml\`, \`spec.md\`, wave execution, track creation, Codument status, migrating an existing repo onto the Codument methodology, or explicit commands like \`codument:track\` and \`codument-track\`.
----
-
-# Codument Workflow
-
-## Overview
-
-This skill is the root Codument workflow router. Use it whenever the user's request maps to a Codument lifecycle action but no narrower standalone skill was loaded.
-
-Lifecycle steps are also installed as standalone skills named \`codument-<step>\`. Explicit command forms with either colon or dash separators should trigger the same step, for example \`codument:track\` and \`codument-track\`.
-
-Keep the active instruction set small. First determine the user's intent, then load only the matching sub-skill from \`subskills/\`.
-
-Before loading a sub-skill, also check:
-
-- \`shared/workflow-routing.md\` for the generated routing map
-- \`shared/target-capabilities.md\` for target-specific loading and fresh-child guidance
-- \`shared/subagent-model.md\` for the common fresh-child capability model
-
-## Intent Router
-
-Choose the narrowest matching workflow:
-
-- Project bootstrap or resume Codument setup: read \`subskills/init/SKILL.md\`
-- Create a new track, proposal, spec, or plan: read \`subskills/track/SKILL.md\`
-- Show project progress or summarize tracks/tasks: read \`subskills/status/SKILL.md\`
-- Validate Codument track/spec structure or strict mode output: read \`subskills/validate/SKILL.md\`
-- Implement a track sequentially from \`plan.xml\`: read \`subskills/implement/SKILL.md\`
-- Discuss a phase and persist implementation decisions into \`context.md\`: read \`subskills/discuss/SKILL.md\`
-- Convert a phase into wave DAG execution groups: read \`subskills/plan-wave/SKILL.md\`
-- Orchestrate wave execution across phases/tasks: read \`subskills/execute-wave/SKILL.md\`
-- Independently verify completed work with issues-first reporting: read \`subskills/verify/SKILL.md\`
-- Run a fresh gap analysis and repair loop for a track or phase: read \`subskills/gap-loop/SKILL.md\`
-- Archive a completed track and merge spec deltas: read \`subskills/archive/SKILL.md\`
-
-If a request spans multiple lifecycle steps, load only the current step first. Pull adjacent sub-skills only when the current step explicitly depends on them.
-
-## Command Routing Table
-
-If the user explicitly invokes a \`codument:*\` or \`codument-*\` command, route directly to the matching sub-skill below instead of staying at the root skill layer.
-
-${buildCommandRoutingTable()}
-
-## Working Rules
-
-- Treat the selected sub-skill as the authoritative procedure for that Codument action.
-- Preserve Codument's explicit stop conditions. If required files are missing or the workflow says to stop, do not improvise hidden recovery logic.
-- Prefer direct file inspection over assumptions. Read the actual \`codument/\` files before proposing next steps.
-- Use the environment's structured question tools when the selected sub-skill requires user choice or confirmation.
-- Keep outputs aligned with the original workflow's intent. Do not silently collapse interactive checkpoints that were designed to capture requirements or approval.
-- When implementing or verifying, keep the user's repo changes intact and operate only on the target track or files the workflow requires.
-
-## Common Paths
-
-- Project root: \`codument/\`
-- Track registry: \`codument/tracks.md\`
-- Track folder: \`codument/tracks/<track_id>/\`
-- Shared workflow standards: \`codument/std/\`
-- Project-specific workflow config: \`codument/workflows/workflow.md\`
-
-## Output Expectations
-
-- For status/validation/verification, prefer concise structured results over narration.
-- For verification, keep an issues-first order.
-- For workflow steps that create or update files, explain what changed and what state transition happened.
-- When a workflow references commands like \`codument:init\`, interpret that as "load the matching standalone \`codument-init\` skill, \`codument-workflow\` sub-skill, or wrapper entrypoint for this target".
-`;
-}
-
-function buildOpenAiAgentConfig(): string {
-  return `interface:
-  display_name: "Codument Workflow"
-  short_description: "Codument lifecycle and track workflows"
-  default_prompt: "Use $codument-workflow, codument:<step>, or codument-<step> to run the right Codument lifecycle step for this project."
-`;
 }
 
 function buildSharedSubagentModel(): string {
@@ -384,7 +288,7 @@ function buildStandaloneSubskillSkillFiles(
     [SKILL_ENTRY_FILES.root]: buildSubskillSkill(subskill, [
       ...getSubskillPreludeLines(profile, subskill, ""),
       `Standalone Codument lifecycle skill for \`codument:${subskill.name}\` / \`${aliasName}\`.`,
-      `For root workflow routing, use the companion \`${CODUMENT_WORKFLOW_SKILL_NAME}\` skill.`,
+      "For lifecycle routing guidance, use `shared/workflow-routing.md`.",
     ]),
     [SKILL_ENTRY_FILES.sharedSubagentModel]: buildSharedSubagentModel(),
     [SKILL_ENTRY_FILES.sharedTargetCapabilities]: buildTargetCapabilities(profile),
@@ -398,58 +302,15 @@ function buildStandaloneSubskillSkillFiles(
   return files;
 }
 
-function buildBaseSkillFiles(profile: WorkflowTargetProfile): Record<string, string> {
-  const rootSkill = injectSkillPrelude(buildRootSkillTemplate(), [
-    `Generated for ${profile.displayName}.`,
-    `Target-specific guidance: \`shared/target-capabilities.md\``,
-    "Common fresh-child capability model: `shared/subagent-model.md`",
-  ]);
-
-  return {
-    [SKILL_ENTRY_FILES.root]: rootSkill,
-    [SKILL_ENTRY_FILES.sharedSubagentModel]: buildSharedSubagentModel(),
-    [SKILL_ENTRY_FILES.sharedTargetCapabilities]: buildTargetCapabilities(profile),
-    [SKILL_ENTRY_FILES.sharedWorkflowRouting]: buildWorkflowRouting(),
-    ...buildSubskillFiles(profile),
-  };
-}
-
-function buildAdditionalFiles(profile: WorkflowTargetProfile): Record<string, string> {
-  if (profile.id === "codex") {
-    return {
-      "agents/openai.yaml": buildOpenAiAgentConfig(),
-    };
-  }
-
-  if (profile.id === "sparrow") {
-    return {
-      "manifest.yml": buildSparrowManifest(),
-    };
-  }
-
-  return {};
-}
-
 export function getWorkflowTargetProfile(target: WorkflowTarget): WorkflowTargetProfile {
   return WORKFLOW_TARGET_PROFILES[target];
 }
 
-export function buildWorkflowSkillFiles(target: WorkflowTarget): Record<string, string> {
-  const profile = getWorkflowTargetProfile(target);
-  return {
-    ...buildBaseSkillFiles(profile),
-    ...buildAdditionalFiles(profile),
-  };
-}
-
 export function buildWorkflowSkillDirectories(target: WorkflowTarget): Record<string, Record<string, string>> {
-  return {
-    [CODUMENT_WORKFLOW_SKILL_NAME]: buildWorkflowSkillFiles(target),
-    ...Object.fromEntries(
-      SUBSKILL_SOURCES.map((subskill) => [
-        `${CODUMENT_SKILL_PREFIX}-${subskill.name}`,
-        buildStandaloneSubskillSkillFiles(target, subskill),
-      ])
-    ),
-  };
+  return Object.fromEntries(
+    SUBSKILL_SOURCES.map((subskill) => [
+      `${CODUMENT_SKILL_PREFIX}-${subskill.name}`,
+      buildStandaloneSubskillSkillFiles(target, subskill),
+    ])
+  );
 }

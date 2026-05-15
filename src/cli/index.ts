@@ -33,7 +33,8 @@ Options:
 
 Examples:
   codument init                          # Initialize Codument with CLI tool selection
-  codument init --agent=claude,codeflicker,codex    # Initialize without target prompts
+  codument init --agent=claude,codeflicker,codex,eidolon,sparrow,opencode
+                                         # Initialize without target prompts
   codument upgrade-workspace             # Upgrade codument/std + assistant commands
   codument upgrade-track add-user-auth    # Upgrade a track to wave-capable format
   codument list                          # List active tracks

@@ -6,6 +6,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import {
+  CODUMENT_WORKFLOW_SKILL_NAME,
   CLAUDE_WORKFLOW_SKILL_DISPLAY_PATH,
   LEGACY_CODUMENT_SKILL_NAME,
   buildWorkflowSkillDirectories,
@@ -125,7 +126,7 @@ export async function generateClaudeCommands(): Promise<void> {
   syncGeneratedSkillDirectories(
     CLAUDE_SKILLS_DIR,
     buildWorkflowSkillDirectories('claude'),
-    [LEGACY_CODUMENT_SKILL_NAME]
+    [LEGACY_CODUMENT_SKILL_NAME, CODUMENT_WORKFLOW_SKILL_NAME]
   );
 
   if (!fs.existsSync(CLAUDE_COMMANDS_DIR)) {

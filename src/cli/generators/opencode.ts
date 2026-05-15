@@ -6,6 +6,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import {
+  CODUMENT_WORKFLOW_SKILL_NAME,
   LEGACY_CODUMENT_SKILL_NAME,
   OPENCODE_WORKFLOW_SKILL_DISPLAY_PATH,
   buildWorkflowSkillDirectories,
@@ -125,7 +126,7 @@ export async function generateOpenCodeCommands(): Promise<void> {
   syncGeneratedSkillDirectories(
     OPENCODE_SKILLS_DIR,
     buildWorkflowSkillDirectories('opencode'),
-    [LEGACY_CODUMENT_SKILL_NAME]
+    [LEGACY_CODUMENT_SKILL_NAME, CODUMENT_WORKFLOW_SKILL_NAME]
   );
 
   if (!fs.existsSync(OPENCODE_COMMANDS_DIR)) {

@@ -50,19 +50,19 @@ describe("assistant command generators", () => {
 
       expect(fs.existsSync(path.join(tempWorkspace, ".claude", "commands", "codument", "gap-loop.md"))).toBe(true);
       expect(fs.existsSync(path.join(tempWorkspace, ".claude", "skills", "codument"))).toBe(false);
-      expect(fs.existsSync(path.join(tempWorkspace, ".claude", "skills", "codument-workflow", "SKILL.md"))).toBe(true);
+      expect(fs.existsSync(path.join(tempWorkspace, ".claude", "skills", "codument-workflow"))).toBe(false);
       expect(fs.existsSync(path.join(tempWorkspace, ".claude", "skills", "codument-gap-loop", "SKILL.md"))).toBe(true);
       expect(fs.existsSync(path.join(tempWorkspace, ".codeflicker", "commands", "codument", "gap-loop.md"))).toBe(true);
       expect(fs.existsSync(path.join(tempWorkspace, ".codeflicker", "skills", "codument"))).toBe(false);
-      expect(fs.existsSync(path.join(tempWorkspace, ".codeflicker", "skills", "codument-workflow", "SKILL.md"))).toBe(true);
+      expect(fs.existsSync(path.join(tempWorkspace, ".codeflicker", "skills", "codument-workflow"))).toBe(false);
       expect(fs.existsSync(path.join(tempWorkspace, ".codeflicker", "skills", "codument-gap-loop", "SKILL.md"))).toBe(true);
       expect(fs.existsSync(path.join(tempWorkspace, ".eidolon", "commands", "codument", "gap-loop.toml"))).toBe(true);
       expect(fs.existsSync(path.join(tempWorkspace, ".eidolon", "skills", "codument"))).toBe(false);
-      expect(fs.existsSync(path.join(tempWorkspace, ".eidolon", "skills", "codument-workflow", "SKILL.md"))).toBe(true);
+      expect(fs.existsSync(path.join(tempWorkspace, ".eidolon", "skills", "codument-workflow"))).toBe(false);
       expect(fs.existsSync(path.join(tempWorkspace, ".eidolon", "skills", "codument-gap-loop", "SKILL.md"))).toBe(true);
       expect(fs.existsSync(path.join(tempWorkspace, ".opencode", "command", "codument-gap-loop.md"))).toBe(true);
       expect(fs.existsSync(path.join(tempWorkspace, ".opencode", "skills", "codument"))).toBe(false);
-      expect(fs.existsSync(path.join(tempWorkspace, ".opencode", "skills", "codument-workflow", "SKILL.md"))).toBe(true);
+      expect(fs.existsSync(path.join(tempWorkspace, ".opencode", "skills", "codument-workflow"))).toBe(false);
       expect(fs.existsSync(path.join(tempWorkspace, ".opencode", "skills", "codument-gap-loop", "SKILL.md"))).toBe(true);
 
       const generatedFiles = [

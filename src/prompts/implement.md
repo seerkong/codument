@@ -34,8 +34,8 @@
 
 1. **检查用户输入：** 检查用户是否提供了 track 名称作为参数
 
-2. **解析 tracks 文件：** 读取并理解 `codument/tracks.md`。查看“活跃 Tracks”中表格
-   - **关键：** 如果没有 track 部分，宣布"tracks 文件为空或格式错误"并停止
+2. **发现 tracks：** 扫描 `codument/tracks/` 目录并读取每个 track 的 `plan.xml` metadata
+   - **关键：** 如果没有有效 track 目录或 plan.xml，宣布"没有可实现的活跃 track"并停止
 
 3. **选择 Track：**
     - **如果提供了名称：**
@@ -44,7 +44,7 @@
       - 无匹配或存在多个候选时请求澄清（使用 **Protocol: ask-single-question-free**）
 
    - **如果未提供名称：**
-     - 找到“活跃 Tracks”表格中第一个track
+     - 从 `codument/tracks/` 目录中选择第一个 plan.xml metadata.status 非 `completed`/`cancelled` 的 track
      - 宣布自动选择并继续
      - 如果都已完成，宣布并停止
 
@@ -61,16 +61,16 @@
 1. **宣布操作：** 宣布正在实现哪个 track
 
 2. **更新状态为"进行中"：**
-   - 开始工作前，更新 `codument/tracks.md` 中 “活跃 Tracks”表格选中 track 的状态
+   - 开始工作前，更新选中 track 的 `plan.xml` metadata.status 为 `in_progress` 并更新 metadata.updated_at
 
 3. **加载 Track 文件：**
-   a. **识别 Track 文件夹：** 从 tracks 文件获取 `<track_id>`
+   a. **识别 Track 文件夹：** 从 `codument/tracks/<track_id>/plan.xml` metadata 获取 `<track_id>`
    b. **读取必需文件：**
       - `codument/tracks/<track_id>/plan.xml`
       - `codument/tracks/<track_id>/spec.md`
       - `codument/std/workflow.md`
       - `codument/workflows/workflow.md`
-      - `codument/tracks/<track_id>/metadata.json`
+      - `codument/tracks/<track_id>/plan.xml` 的 `<metadata>`
    c. **识别提交模式：** 从 plan.xml 获取 `commit_mode`（auto/manual）
    d. **错误处理：** 如果无法读取任何文件，停止并通知用户
 
@@ -235,8 +235,8 @@
    - 更新每个验证项的状态（PASSED/FAILED）
 
 3. **更新状态：**
-   - 更新 tracks.md 中 track 状态为 `[x]`
-   - 更新 plan.xml 中 metadata 状态为 `completed`
+   - 更新 plan.xml 中 metadata.status 为 `completed`
+   - 更新 plan.xml 中 metadata.updated_at 为当前时间
 
 4. **宣布完成：**
    > "🎉 **Track '<track_id>' 实现完成！**
@@ -298,9 +298,9 @@
 
 2. **询问选择：**
     > "Track '<描述>' 已完成。你想做什么？
-    > A. **归档：** 移动到 `codument/archive/` 并从 tracks 文件中移除
-    > B. **删除：** 永久删除并从 tracks 文件中移除
-    > C. **跳过：** 保留在 tracks 文件中
+    > A. **归档：** 移动到 `codument/archive/`
+    > B. **删除：** 永久删除 track 文件夹
+    > C. **跳过：** 保留在 `codument/tracks/` 中
     > 请选择 A、B 或 C。"
     （使用 **Protocol: ask-single-question-closed**）
 
@@ -309,16 +309,14 @@
    - **如果选 A（归档）：**
      - 创建 `codument/archive/`（如不存在）
      - 将 track 文件夹移动到 `codument/archive/YYYY-MM-DD-<track_id>/`
-     - 从 tracks.md 中移除该部分
      - 宣布归档成功
     - **如果选 B（删除）：**
       - 请求最终确认（不可逆操作）（使用 **Protocol: ask-single-question-closed**）
       - 确认后永久删除文件夹
 
-     - 从 tracks.md 中移除
      - 宣布删除成功
    - **如果选 C（跳过）：**
-     - 宣布将保留在 tracks 文件中
+     - 宣布将保留在 `codument/tracks/` 中
 
 ---
 

@@ -36,7 +36,7 @@
 
 ### 2.1 选择 Track
 
-1. **解析 tracks.md：** 读取 `codument/tracks.md`，列出所有活跃 track
+1. **发现 active tracks：** 扫描 `codument/tracks/` 目录并读取各 track 的 `plan.xml` metadata，列出所有活跃 track
 2. **如果 `{{args}}` 包含 track ID：** 精确匹配该 track；若精确且唯一匹配，直接选择并继续，不需要用户确认；仅在无匹配或存在多个候选时请求澄清
 3. **如果只有一个活跃 track：** 自动选择该 track
 4. **如果有多个活跃 track 且未指定：** 列出所有活跃 track 供用户选择

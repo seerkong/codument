@@ -61,7 +61,7 @@ export function buildSkillWrapperBody(options: {
   const sections = [
     `# codument:${options.commandId}`,
     '',
-    `Use the generated \`codument-${options.commandId}\` skill as the primary source of truth for this command. The root \`codument-workflow\` skill is the fallback router.`,
+    `Use the generated \`codument-${options.commandId}\` skill as the primary source of truth for this command.`,
     '',
     'Load these files before acting:',
     `- \`${options.skillDisplayPath}codument-${options.subskillName}/shared/target-capabilities.md\``,

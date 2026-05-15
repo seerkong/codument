@@ -1,8 +1,3 @@
----
-description: Archive a completed track
-argument-hint: <track-id>
----
-
 # codument archive - 归档命令
 
 **描述：** 归档已完成的变更追踪
@@ -31,7 +26,7 @@ argument-hint: <track-id>
 ### 2.2 执行归档
 
 1. **检查 Track 状态：**
-   - 读取 `codument/tracks.md` 确认 track 状态为 `[x]`（已完成）
+   - 读取 `codument/tracks/<track_id>/plan.xml` 的 metadata.status，确认 track 状态为 `completed`
    - 如果未完成，警告用户并询问是否仍要归档（使用 **ask-single-question-closed**）
 
 2. **创建归档目录：**
@@ -48,8 +43,8 @@ argument-hint: <track-id>
      - 创建能力目录（如不存在）
    - 如果是纯工具变更（无规范增量），跳过此步骤
 
-5. **更新 tracks.md：**
-   - 从 `codument/tracks.md` 中移除已归档 track 的部分
+5. **移除活跃目录入口：**
+   - 归档通过移动 `codument/tracks/<track_id>/` 完成；不维护额外 registry 文件
 
 6. **验证：**
    - 优先运行 `codument validate --strict` 确认归档后状态正确
@@ -88,8 +83,3 @@ argument-hint: <track-id>
 - 使用 `codument list` 确认 track ID
 - 使用 `codument list --specs` 查看更新后的规范
 - 检查归档后 `codument validate --strict` 通过；如果系统找不到 `codument` 命令，则记录该外部 CLI validate 步骤已跳过
-
-
-<ChangeId>
-  $ARGUMENTS
-</ChangeId>

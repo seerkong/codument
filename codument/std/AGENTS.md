@@ -484,7 +484,7 @@ codument archive <id>      # 标记完成
 在开始任何 track 实现时，首先检查是否存在中断状态：
 
 1. **检查 plan.xml**：查找状态为 `IN_PROGRESS` 的任务
-2. **检查 tracks.md**：查找状态为 `[~]` 的 track
+2. **检查 track metadata**：扫描 `codument/tracks/` 并查找 plan.xml metadata.status 为 `in_progress` 的 track
 3. **检查 state.json**：查找保存的恢复点
 
 ### 恢复流程

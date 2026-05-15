@@ -31,7 +31,7 @@ import {
   LEGACY_CODUMENT_SKILL_NAME,
 } from '../../skills/codument-workflow';
 
-type CLITool = 'claude' | 'codeflicker' | 'codex' | 'eidolon' | 'opencode' | 'sparrow';
+type CLITool = 'claude' | 'codeflicker' | 'codex' | 'eidolon' | 'sparrow' | 'opencode';
 
 function safeTimestamp(): string {
   return new Date().toISOString().replace(/[:.]/g, '-');
@@ -119,18 +119,19 @@ function cleanupLegacyCodumentSkills(tools: CLITool[]): void {
       case 'eidolon':
         removeLegacyCodumentSkill(path.join('.eidolon', 'skills'));
         break;
-      case 'opencode':
-        removeLegacyCodumentSkill(path.join('.opencode', 'skills'));
-        break;
       case 'sparrow':
         removeLegacyCodumentSkill(path.join('.sparrow', 'skill'));
+        removeLegacyCodumentSkill(path.join('.sparrow', 'skills'));
+        break;
+      case 'opencode':
+        removeLegacyCodumentSkill(path.join('.opencode', 'skills'));
         break;
     }
   }
 }
 
-function workflowSkillDisplayPath(skillsDisplayPath: string): string {
-  return `${skillsDisplayPath}${CODUMENT_WORKFLOW_SKILL_NAME}/`;
+function lifecycleSkillsDisplayPath(skillsDisplayPath: string): string {
+  return `${skillsDisplayPath}codument-*/`;
 }
 
 export async function upgradeWorkspaceCommand(args: string[]): Promise<void> {
@@ -167,6 +168,8 @@ export async function upgradeWorkspaceCommand(args: string[]): Promise<void> {
     backupIfExists('.opencode/command', backupRoot, '.opencode/command');
     backupIfExists('.opencode/skills/codument-workflow', backupRoot, '.opencode/skills/codument-workflow');
     backupIfExists('.sparrow/skill/codument-workflow', backupRoot, '.sparrow/skill/codument-workflow');
+    backupIfExists('.sparrow/skills/codument-workflow', backupRoot, '.sparrow/skills/codument-workflow');
+    backupIfExists('.sparrow/skills', backupRoot, '.sparrow/skills');
 
     backupIfExists(
       path.join(os.homedir(), '.codex', 'skills', CODUMENT_WORKFLOW_SKILL_NAME),
@@ -213,30 +216,30 @@ export async function upgradeWorkspaceCommand(args: string[]): Promise<void> {
       case 'claude':
         await generateClaudeCommands();
         console.log('✓ Upgraded .claude/commands/codument');
-        console.log(`✓ Upgraded ${workflowSkillDisplayPath(CLAUDE_WORKFLOW_SKILL_DISPLAY_PATH)}`);
+        console.log(`✓ Upgraded ${lifecycleSkillsDisplayPath(CLAUDE_WORKFLOW_SKILL_DISPLAY_PATH)}`);
         break;
       case 'codeflicker':
         await generateCodeFlickerCommands();
         console.log('✓ Upgraded .codeflicker/commands/codument');
-        console.log(`✓ Upgraded ${workflowSkillDisplayPath(CODEFLICKER_WORKFLOW_SKILL_DISPLAY_PATH)}`);
+        console.log(`✓ Upgraded ${lifecycleSkillsDisplayPath(CODEFLICKER_WORKFLOW_SKILL_DISPLAY_PATH)}`);
         break;
       case 'codex':
         await generateCodexCommands();
-        console.log(`✓ Upgraded ${workflowSkillDisplayPath(CODEX_WORKFLOW_SKILL_DISPLAY_PATH)}`);
+        console.log(`✓ Upgraded ${lifecycleSkillsDisplayPath(CODEX_WORKFLOW_SKILL_DISPLAY_PATH)}`);
         break;
       case 'eidolon':
         await generateEidolonCommands();
         console.log('✓ Upgraded .eidolon/commands/codument');
-        console.log(`✓ Upgraded ${workflowSkillDisplayPath(EIDOLON_WORKFLOW_SKILL_DISPLAY_PATH)}`);
+        console.log(`✓ Upgraded ${lifecycleSkillsDisplayPath(EIDOLON_WORKFLOW_SKILL_DISPLAY_PATH)}`);
+        break;
+      case 'sparrow':
+        await generateSparrowCommands();
+        console.log(`✓ Upgraded ${lifecycleSkillsDisplayPath(SPARROW_WORKFLOW_SKILL_DISPLAY_PATH)}`);
         break;
       case 'opencode':
         await generateOpenCodeCommands();
         console.log('✓ Upgraded .opencode/command (codument-*.md)');
-        console.log(`✓ Upgraded ${workflowSkillDisplayPath(OPENCODE_WORKFLOW_SKILL_DISPLAY_PATH)}`);
-        break;
-      case 'sparrow':
-        await generateSparrowCommands();
-        console.log(`✓ Upgraded ${workflowSkillDisplayPath(SPARROW_WORKFLOW_SKILL_DISPLAY_PATH)}`);
+        console.log(`✓ Upgraded ${lifecycleSkillsDisplayPath(OPENCODE_WORKFLOW_SKILL_DISPLAY_PATH)}`);
         break;
     }
   }

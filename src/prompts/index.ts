@@ -42,7 +42,6 @@ export const workflowTemplate = loadTemplate("workflow.md");
 export const projectTemplate = loadTemplate("project.md");
 export const productTemplate = loadTemplate("product.md");
 export const techStackTemplate = loadTemplate("tech-stack.md");
-export const tracksTemplate = loadTemplate("tracks.md");
 
 // Export all prompts as a map
 export const prompts = {

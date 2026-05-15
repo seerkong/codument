@@ -29,6 +29,8 @@ export interface TrackMetadata {
   type: 'feature' | 'bug' | 'chore' | 'refactor';
   status: 'new' | 'in_progress' | 'completed' | 'cancelled';
   commit_mode?: 'auto' | 'manual';
+  track_name?: string;
+  goal?: string;
   created_at: string;
   updated_at: string;
   description: string;
@@ -70,6 +72,92 @@ function getPlanTrackStatus(planPath: string): TrackMetadata['status'] | undefin
   }
 }
 
+function getTagText(content: string, tag: string): string | undefined {
+  const match = content.match(new RegExp(`<${tag}>([\\s\\S]*?)</${tag}>`));
+  return match ? match[1].trim() : undefined;
+}
+
+function getMetadataBlock(content: string): string | undefined {
+  return content.match(/<metadata>([\s\S]*?)<\/metadata>/)?.[1];
+}
+
+function xmlEscape(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
+function insertMetadataField(content: string, tag: string, value: string): string {
+  const metadataEndIdx = content.indexOf('</metadata>');
+  if (metadataEndIdx === -1) {
+    return content;
+  }
+
+  return content.slice(0, metadataEndIdx) + `    <${tag}>${xmlEscape(value)}</${tag}>\n` + content.slice(metadataEndIdx);
+}
+
+function mergeLegacyMetadataIntoPlan(planPath: string, metadataPath: string): void {
+  if (!fs.existsSync(metadataPath)) {
+    return;
+  }
+
+  try {
+    const legacy = JSON.parse(fs.readFileSync(metadataPath, 'utf-8')) as Partial<TrackMetadata>;
+    let content = fs.readFileSync(planPath, 'utf-8');
+
+    for (const field of ['track_id', 'type', 'created_at', 'updated_at', 'description'] as const) {
+      const legacyValue = legacy[field];
+      const metadataBlock = getMetadataBlock(content) || '';
+      if (legacyValue && !getTagText(metadataBlock, field)) {
+        content = insertMetadataField(content, field, String(legacyValue));
+      }
+    }
+
+    fs.writeFileSync(planPath, content, 'utf-8');
+  } catch (e) {
+    // Invalid legacy metadata should not prevent reading plan.xml.
+  }
+}
+
+export function parsePlanMetadata(planPath: string, trackIdFallback?: string): TrackMetadata | null {
+  try {
+    const content = fs.readFileSync(planPath, 'utf-8');
+    const metadataBlock = content.match(/<metadata>([\s\S]*?)<\/metadata>/)?.[1];
+    if (!metadataBlock) {
+      return null;
+    }
+
+    const status = getTagText(metadataBlock, 'status');
+    const type = getTagText(metadataBlock, 'type');
+    const commitMode = getTagText(metadataBlock, 'commit_mode');
+    const trackId = getTagText(metadataBlock, 'track_id') || trackIdFallback;
+    const createdAt = getTagText(metadataBlock, 'created_at');
+    const updatedAt = getTagText(metadataBlock, 'updated_at') || createdAt;
+    const description = getTagText(metadataBlock, 'description') || getTagText(metadataBlock, 'goal');
+
+    if (!trackId || !type || !status || !createdAt || !updatedAt || !description) {
+      return null;
+    }
+
+    return {
+      track_id: trackId,
+      track_name: getTagText(metadataBlock, 'track_name'),
+      goal: getTagText(metadataBlock, 'goal'),
+      type: type as TrackMetadata['type'],
+      status: status as TrackMetadata['status'],
+      commit_mode: commitMode === 'auto' || commitMode === 'manual' ? commitMode : undefined,
+      created_at: createdAt,
+      updated_at: updatedAt,
+      description,
+    };
+  } catch (e) {
+    return null;
+  }
+}
+
 /**
  * Check if codument directory exists
  */
@@ -78,39 +166,37 @@ export function codumentExists(): boolean {
 }
 
 /**
- * Get all tracks from tracks directory
+ * Get track directory IDs that contain a plan.xml, regardless of metadata validity.
  */
-export function getTracks(): Track[] {
+export function getTrackIds(): string[] {
   if (!fs.existsSync(TRACKS_DIR)) {
     return [];
   }
 
-  const trackDirs = fs.readdirSync(TRACKS_DIR, { withFileTypes: true })
+  return fs.readdirSync(TRACKS_DIR, { withFileTypes: true })
     .filter(dirent => dirent.isDirectory())
-    .map(dirent => dirent.name);
+    .map(dirent => dirent.name)
+    .filter(trackId => fs.existsSync(path.join(TRACKS_DIR, trackId, 'plan.xml')));
+}
 
+/**
+ * Get all tracks from tracks directory
+ */
+export function getTracks(): Track[] {
   const tracks: Track[] = [];
 
-  for (const trackId of trackDirs) {
-    const metadataPath = path.join(TRACKS_DIR, trackId, 'metadata.json');
-    if (fs.existsSync(metadataPath)) {
-      try {
-        const metadata = JSON.parse(fs.readFileSync(metadataPath, 'utf-8')) as TrackMetadata;
-        const track: Track = { id: trackId, metadata };
+  for (const trackId of getTrackIds()) {
+    const trackDir = path.join(TRACKS_DIR, trackId);
+    const planPath = path.join(trackDir, 'plan.xml');
 
-        const planPath = path.join(TRACKS_DIR, trackId, 'plan.xml');
-        if (fs.existsSync(planPath)) {
-          track.taskSummary = parsePlanSummary(planPath);
-          const planStatus = getPlanTrackStatus(planPath);
-          if (planStatus) {
-            track.metadata.status = planStatus;
-          }
-        }
-
-        tracks.push(track);
-      } catch (e) {
-        // Skip invalid tracks
-      }
+    mergeLegacyMetadataIntoPlan(planPath, path.join(trackDir, 'metadata.json'));
+    const metadata = parsePlanMetadata(planPath, trackId);
+    if (metadata) {
+      tracks.push({
+        id: trackId,
+        metadata,
+        taskSummary: parsePlanSummary(planPath),
+      });
     }
   }
 
@@ -241,29 +327,23 @@ export function parsePlanSummary(planPath: string): TaskSummary | undefined {
  */
 export function getTrack(trackId: string): Track | null {
   const trackDir = path.join(TRACKS_DIR, trackId);
-  const metadataPath = path.join(trackDir, 'metadata.json');
+  const planPath = path.join(trackDir, 'plan.xml');
 
-  if (!fs.existsSync(metadataPath)) {
+  if (!fs.existsSync(planPath)) {
     return null;
   }
 
-  try {
-    const metadata = JSON.parse(fs.readFileSync(metadataPath, 'utf-8')) as TrackMetadata;
-    const track: Track = { id: trackId, metadata };
-
-    const planPath = path.join(trackDir, 'plan.xml');
-    if (fs.existsSync(planPath)) {
-      track.taskSummary = parsePlanSummary(planPath);
-      const planStatus = getPlanTrackStatus(planPath);
-      if (planStatus) {
-        track.metadata.status = planStatus;
-      }
-    }
-
-    return track;
-  } catch (e) {
+  mergeLegacyMetadataIntoPlan(planPath, path.join(trackDir, 'metadata.json'));
+  const metadata = parsePlanMetadata(planPath, trackId);
+  if (!metadata) {
     return null;
   }
+
+  return {
+    id: trackId,
+    metadata,
+    taskSummary: parsePlanSummary(planPath),
+  };
 }
 
 /**

@@ -1,11 +1,12 @@
 /**
- * Codument workflow skill installer for Codex
- * Syncs generated workflow skills into the Codex skills directory.
+ * Codument standalone lifecycle skill installer for Codex.
+ * Syncs generated codument-* skills into the Codex skills directory.
  */
 
 import * as os from 'os';
 import * as path from 'path';
 import {
+  CODUMENT_WORKFLOW_SKILL_NAME,
   LEGACY_CODUMENT_SKILL_NAME,
   buildWorkflowSkillDirectories,
 } from '../../skills/codument-workflow';
@@ -17,6 +18,6 @@ export async function generateCodexCommands(): Promise<void> {
   syncGeneratedSkillDirectories(
     CODEX_SKILLS_DIR,
     buildWorkflowSkillDirectories('codex'),
-    [LEGACY_CODUMENT_SKILL_NAME]
+    [LEGACY_CODUMENT_SKILL_NAME, CODUMENT_WORKFLOW_SKILL_NAME]
   );
 }

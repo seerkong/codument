@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { getTracks, getSpecs, parseOptions, codumentExists, TRACKS_DIR, SPECS_DIR } from '../utils';
+import { getTrack, getTrackIds, getSpecs, parseOptions, codumentExists, TRACKS_DIR, SPECS_DIR } from '../utils';
 
 interface ValidationError {
   file: string;
@@ -58,11 +58,11 @@ export async function validateCommand(args: string[]) {
     }
   } else {
     // Validate all
-    const tracks = getTracks();
+    const trackIds = getTrackIds();
     const specs = getSpecs();
 
-    for (const track of tracks) {
-      results.push(validateTrack(track.id, strict));
+    for (const trackId of trackIds) {
+      results.push(validateTrack(trackId, strict));
     }
 
     for (const spec of specs) {
@@ -106,23 +106,8 @@ function validateTrack(trackId: string, strict: boolean): ValidationResult {
   const errors: ValidationError[] = [];
   const warnings: ValidationError[] = [];
 
-  // Check metadata.json
-  const metadataPath = path.join(trackDir, 'metadata.json');
-  if (!fs.existsSync(metadataPath)) {
-    errors.push({ file: 'metadata.json', message: 'File not found' });
-  } else {
-    try {
-      const metadata = JSON.parse(fs.readFileSync(metadataPath, 'utf-8'));
-      const requiredFields = ['track_id', 'type', 'status', 'created_at', 'updated_at', 'description'];
-      for (const field of requiredFields) {
-        if (!metadata[field]) {
-          errors.push({ file: 'metadata.json', message: `Missing required field: ${field}` });
-        }
-      }
-    } catch (e) {
-      errors.push({ file: 'metadata.json', message: 'Invalid JSON format' });
-    }
-  }
+  // Trigger legacy metadata.json -> plan.xml metadata migration when possible.
+  getTrack(trackId);
 
   // Check spec.md
   const specPath = path.join(trackDir, 'spec.md');
@@ -180,13 +165,33 @@ function validateTrack(trackId: string, strict: boolean): ValidationResult {
 
     const metadataBlockMatch = content.match(/<metadata>([\s\S]*?)<\/metadata>/);
     if (metadataBlockMatch) {
-      const metadataStatus = metadataBlockMatch[1].match(/<status>([^<]+)<\/status>/)?.[1]?.trim();
+      const metadataBlock = metadataBlockMatch[1];
+      const requiredMetadataFields = ['track_id', 'type', 'status', 'created_at', 'updated_at', 'description'];
+      for (const field of requiredMetadataFields) {
+        const value = metadataBlock.match(new RegExp(`<${field}>([\\s\\S]*?)</${field}>`))?.[1]?.trim();
+        if (!value) {
+          errors.push({ file: 'plan.xml', message: `Missing metadata field: ${field}` });
+        }
+      }
+
+      const metadataStatus = metadataBlock.match(/<status>([^<]+)<\/status>/)?.[1]?.trim();
       if (metadataStatus) {
         const validMetadataStatuses = new Set(['new', 'in_progress', 'completed', 'cancelled']);
         if (!validMetadataStatuses.has(metadataStatus)) {
           errors.push({
             file: 'plan.xml',
             message: `Invalid metadata status value: ${metadataStatus}`,
+          });
+        }
+      }
+
+      const metadataType = metadataBlock.match(/<type>([^<]+)<\/type>/)?.[1]?.trim();
+      if (metadataType) {
+        const validMetadataTypes = new Set(['feature', 'bug', 'chore', 'refactor']);
+        if (!validMetadataTypes.has(metadataType)) {
+          errors.push({
+            file: 'plan.xml',
+            message: `Invalid metadata type value: ${metadataType}`,
           });
         }
       }

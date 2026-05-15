@@ -47,17 +47,7 @@
 
 1. **说明目标：** Track 获批后，宣布将创建产物
 
-2. **初始化 tracks.md：** 创建 `codument/tracks.md`：
-   ```markdown
-   # 项目变更追踪
-
-   此文件追踪项目的所有变更。每个 track 在各自的文件夹中有详细计划。
-
-   ---
-
-   ## [ ] Track: <Track 描述>
-   *Link: [./tracks/<track_id>/](./tracks/<track_id>/)*
-   ```
+2. **初始化 tracks 目录：** 创建 `codument/tracks/` 目录；active tracks 通过该目录发现，track 元数据与状态写入各自 `plan.xml` 的 `<metadata>`。
 
 3. **生成 Track 产物：**
    a. **定义 Track：** 批准的标题是 track 描述
@@ -68,7 +58,7 @@
    c. **创建产物：**
       - 生成 Track ID：格式 `shortname-YYYYMMDD`
       - 创建目录：`codument/tracks/<track_id>/`
-      - 创建 `metadata.json`：
+      - 在 `plan.xml` 的 `<metadata>` 中写入：
         ```json
         {
           "track_id": "<track_id>",

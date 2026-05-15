@@ -7,6 +7,7 @@ import {
   parseTaskDetails,
   getExecutionMode,
   getTrack,
+  getTrackIds,
   getTracks,
   setWorkspaceDir,
 } from './index';
@@ -58,7 +59,10 @@ function createTempWorkspaceTrack(
     <track_id>${trackId}</track_id>
     <track_name>test</track_name>
     <goal>g</goal>
+    <type>feature</type>
+    <description>test track</description>
     <created_at>2026-03-01T00:00:00Z</created_at>
+    <updated_at>2026-03-01T00:00:00Z</updated_at>
     <status>${planStatus}</status>
     <commit_mode>manual</commit_mode>
   </metadata>
@@ -600,5 +604,72 @@ describe('track 状态读取', () => {
     const target = tracks.find((t) => t.id === 'status-override-list');
     expect(target).toBeDefined();
     expect(target!.metadata.status).toBe('in_progress');
+  });
+
+  it('getTrack 不需要 metadata.json', () => {
+    const ws = createTempWorkspaceTrack('plan-only', 'new', 'in_progress');
+    fs.rmSync(path.join(ws, 'codument', 'tracks', 'plan-only', 'metadata.json'));
+    setWorkspaceDir(ws);
+
+    const track = getTrack('plan-only');
+    expect(track).toBeDefined();
+    expect(track!.metadata.type).toBe('feature');
+    expect(track!.metadata.description).toBe('test track');
+    expect(track!.metadata.status).toBe('in_progress');
+  });
+
+  it('getTrack 将旧 metadata.json 中 plan.xml 缺失的字段合入 plan.xml', () => {
+    const ws = createTempWorkspaceTrack('legacy-merge', 'cancelled', 'completed');
+    const planPath = path.join(ws, 'codument', 'tracks', 'legacy-merge', 'plan.xml');
+    let content = fs.readFileSync(planPath, 'utf-8');
+    content = content
+      .replace(/\n    <type>feature<\/type>/, '')
+      .replace(/\n    <description>test track<\/description>/, '')
+      .replace(/\n    <updated_at>2026-03-01T00:00:00Z<\/updated_at>/, '');
+    fs.writeFileSync(planPath, content, 'utf-8');
+    setWorkspaceDir(ws);
+
+    const track = getTrack('legacy-merge');
+    expect(track).toBeDefined();
+    expect(track!.metadata.type).toBe('feature');
+    expect(track!.metadata.description).toBe('test track');
+    expect(track!.metadata.status).toBe('completed');
+
+    const updatedPlan = fs.readFileSync(planPath, 'utf-8');
+    expect(updatedPlan).toContain('<type>feature</type>');
+    expect(updatedPlan).toContain('<description>test track</description>');
+    expect(updatedPlan).toContain('<updated_at>2026-03-01T00:00:00Z</updated_at>');
+    expect(updatedPlan).toContain('<status>completed</status>');
+  });
+
+  it('getTrack 合并旧 description 时只检查 metadata 区块', () => {
+    const ws = createTempWorkspaceTrack('legacy-description-merge', 'new', 'new');
+    const planPath = path.join(ws, 'codument', 'tracks', 'legacy-description-merge', 'plan.xml');
+    let content = fs.readFileSync(planPath, 'utf-8');
+    content = content.replace(/\n    <description>test track<\/description>/, '');
+    content = content.replace('<task id="T1.1" name="t" status="DONE" priority="P0">d</task>', '<task id="T1.1" name="t" status="DONE" priority="P0"><description>task description</description></task>');
+    fs.writeFileSync(planPath, content, 'utf-8');
+    setWorkspaceDir(ws);
+
+    const track = getTrack('legacy-description-merge');
+    expect(track).toBeDefined();
+    expect(track!.metadata.description).toBe('test track');
+
+    const updatedPlan = fs.readFileSync(planPath, 'utf-8');
+    const metadataBlock = updatedPlan.match(/<metadata>([\s\S]*?)<\/metadata>/)?.[1] || '';
+    expect(metadataBlock).toContain('<description>test track</description>');
+  });
+
+  it('getTrackIds returns plan.xml tracks even when metadata is incomplete', () => {
+    const ws = createTempWorkspaceTrack('invalid-metadata', 'new', 'new');
+    fs.rmSync(path.join(ws, 'codument', 'tracks', 'invalid-metadata', 'metadata.json'));
+    const planPath = path.join(ws, 'codument', 'tracks', 'invalid-metadata', 'plan.xml');
+    const content = fs.readFileSync(planPath, 'utf-8').replace(/\n    <type>feature<\/type>/, '');
+    fs.writeFileSync(planPath, content, 'utf-8');
+    setWorkspaceDir(ws);
+
+    expect(getTrack('invalid-metadata')).toBeNull();
+    expect(getTracks().map(track => track.id)).not.toContain('invalid-metadata');
+    expect(getTrackIds()).toContain('invalid-metadata');
   });
 });

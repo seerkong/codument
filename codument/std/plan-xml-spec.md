@@ -26,7 +26,9 @@ plan.xml 是 Codument 中用于追踪变更实现进度的结构化任务文件�
   <metadata>
     <track_id>add-user-auth</track_id>
     <track_name>添加用户认证功能</track_name>
+    <type>feature</type>
     <goal>实现用户登录和注册功能</goal>
+    <description>为产品添加用户登录和注册能力</description>
     <created_at>2026-01-01T10:00:00Z</created_at>
     <updated_at>2026-01-01T15:30:00Z</updated_at>
     <status>in_progress</status>
