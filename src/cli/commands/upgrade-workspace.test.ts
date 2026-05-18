@@ -29,6 +29,7 @@ describe('codument upgrade-workspace', () => {
     writeFile(path.join(ws, 'codument', 'std', 'workflow.md'), 'OLD-WORKFLOW\n');
     writeFile(path.join(ws, 'codument', 'std', 'plan-xml-spec.md'), 'OLD-PLAN\n');
     writeFile(path.join(ws, 'codument', 'std', 'protocols.md'), 'OLD-PROTOCOLS\n');
+    writeFile(path.join(ws, 'codument', 'tracks.md'), 'OLD-TRACKS\n');
     writeFile(path.join(ws, 'codument', 'state.json'), JSON.stringify({
       active_track: null,
       current_phase: null,
@@ -74,6 +75,7 @@ describe('codument upgrade-workspace', () => {
     // Backup created
     expect(fs.existsSync(path.join(backupDir, 'codument', 'std', 'AGENTS.md'))).toBe(true);
     expect(fs.readFileSync(path.join(backupDir, 'codument', 'std', 'AGENTS.md'), 'utf-8')).toBe('OLD-AGENTS\n');
+    expect(fs.readFileSync(path.join(backupDir, 'codument', 'tracks.md'), 'utf-8')).toBe('OLD-TRACKS\n');
     expect(fs.readFileSync(path.join(backupDir, '.opencode', 'command', 'codument-init.md'), 'utf-8')).toBe('OLD-OPENCODE-INIT\n');
     expect(fs.readFileSync(path.join(backupDir, '.opencode', 'skills', 'codument-workflow', 'SKILL.md'), 'utf-8')).toBe('OLD-OPENCODE-SKILL\n');
 
@@ -82,6 +84,7 @@ describe('codument upgrade-workspace', () => {
     expect(upgradedAgents).not.toBe('OLD-AGENTS\n');
     expect(upgradedAgents).toContain('Codument');
     expect(upgradedAgents).toContain('upgrade-workspace');
+    expect(fs.existsSync(path.join(ws, 'codument', 'tracks.md'))).toBe(false);
 
     // OpenCode commands regenerated
     expect(fs.existsSync(path.join(ws, '.opencode', 'command', 'codument-verify.md'))).toBe(true);

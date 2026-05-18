@@ -6,7 +6,8 @@
   "timestamp": "2026-02-28T17:17:41.390Z",
   "commit_mode": "manual",
   "cli_tools": [
-    "opencode"
+    "eidolon",
+    "sparrow"
   ],
   "last_successful_step": "2.1_project"
 }

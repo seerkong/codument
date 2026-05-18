@@ -157,6 +157,7 @@ export async function upgradeWorkspaceCommand(args: string[]): Promise<void> {
     // Backup codument/std and relevant command directories/files
     backupIfExists(path.join(CODUMENT_DIR, 'std'), backupRoot, path.join(CODUMENT_DIR, 'std'));
     backupIfExists(path.join(CODUMENT_DIR, 'workflows'), backupRoot, path.join(CODUMENT_DIR, 'workflows'));
+    backupIfExists(path.join(CODUMENT_DIR, 'tracks.md'), backupRoot, path.join(CODUMENT_DIR, 'tracks.md'));
 
     // Backup assistant command directories (only if present)
     backupIfExists('.claude/commands/codument', backupRoot, '.claude/commands/codument');
@@ -176,6 +177,12 @@ export async function upgradeWorkspaceCommand(args: string[]): Promise<void> {
       backupRoot,
       path.join('.codex', 'skills', CODUMENT_WORKFLOW_SKILL_NAME)
     );
+  }
+
+  const legacyTracksPath = path.join(CODUMENT_DIR, 'tracks.md');
+  if (fs.existsSync(legacyTracksPath)) {
+    fs.rmSync(legacyTracksPath, { force: true });
+    console.log('✓ Removed legacy codument/tracks.md');
   }
 
   // Upgrade codument/std

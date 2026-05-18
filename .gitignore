@@ -4,10 +4,16 @@
 .eidolon
 .sparrow
 .serena
+.opencode
 .theater
 data.sqlite
 bun.lock
 testdata/
+
+codument/tracks/*/analysis/
+codument/tracks/*/reports/
+codument/archive/*/analysis/
+codument/archive/*/reports/
 
 # Logs
 logs

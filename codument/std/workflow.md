@@ -118,7 +118,7 @@
 
 5. **等待用户反馈：**
    - 若协议为 `yield-human-confirm`：请求确认："这是否符合预期？请回复 'yes' 确认，或直接给出需要修改的反馈点。"（必须使用 **ask-single-question-free**；如支持则用 ToolCall 发起该问题）
-   - 若协议为 `yield-gap-loop`：不要在当前 agent 内继续修正；当前 agent 结束并把控制权交回父层，由父层 fresh-spawn 新的 `/codument:gap-loop` 子代理
+   - 若协议为 `yield-gap-loop`：不要在当前 agent 内继续修正；当前 agent 结束并把控制权交回父层，由父层 fresh-spawn 新的 gap-loop 子代理或等价的 fresh child context
 
 6. **创建检查点提交：**
    - 暂存所有更改

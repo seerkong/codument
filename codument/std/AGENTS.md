@@ -530,7 +530,7 @@ codument archive <id>      # 标记完成
 
 ### 确认层级
 
-Codument 使用三层确认机制确保重要决策得到用户认可。**默认生成 plan.xml 时，仅建议在最后一个 phase 添加一个 phase-after confirm；中间 phase 和 task 默认不添加 confirm，除非用户明确要求或存在高风险节点。**
+Codument 使用三层确认机制确保重要决策得到用户认可：
 
 #### 第一层：规范确认
 
