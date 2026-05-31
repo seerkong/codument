@@ -29,6 +29,8 @@
 - 引入可选 `codument/memory/` 作为长期项目记忆，使用 `memory://` URI，并按 `lessons/incidents/patterns/summaries/YYYY-MM/` 组织。
 - 修改 archive 命名：使用 track 最后更新时间的分钟级前缀，目录形态为 `codument/archive/YYYY-MM/YYYY-MM-DD-HHmm-<track-id>/`。
 - 当启用 knowledge sync 时，允许同步到 `docs/` 或配置中的其他 workspace 内/外知识目录。
+- 新增手动 docs 同步 lifecycle skills：一个用于将现存项目总结到 `docs/modeling` 与 `docs/impl`，一个用于将指定 track 的改动同步到这两个 docs 目录。
+- 新增旧项目迁移 lifecycle skills：一个用于将旧 `archive` 布局转换为新的 `YYYY-MM/YYYY-MM-DD-HHmm-track-id` 目录规范，一个用于将旧 Markdown specs 迁移为新的 XML specs 文件/目录规范。
 - 更新 track 生成提示词：大型需求必须能够创建 `proposal/` 和 `design/` 子目录，`proposal.md` 和 `design.md` 作为总览引用子文件。
 
 **非目标:**
@@ -53,6 +55,7 @@
 - 新增 `codument/config/feature.json`，控制 `knowledgeSync` 和 `projectMemory`。
 - 更新 track/archive/implement/plan-wave 等提示词，使启用 knowledge sync 时计划中包含 docs 同步任务。
 - 更新 codument-track 提示词，使大需求可创建 `proposal/`、`design/` 子目录。
+- 新增 `codument-docs-bootstrap`、`codument-docs-sync-track`、`codument-migrate-archive`、`codument-migrate-specs` 四个 standalone lifecycle skills。
 
 ## 影响范围（Impact）
 
@@ -67,6 +70,10 @@
   - `src/cli/utils/index.ts`
   - `src/prompts/track.md`
   - `src/prompts/archive.md`
+  - `src/prompts/docs-bootstrap.md`
+  - `src/prompts/docs-sync-track.md`
+  - `src/prompts/migrate-archive.md`
+  - `src/prompts/migrate-specs.md`
   - `src/prompts/implement.md`
   - `src/prompts/plan-wave.md`
   - `src/prompts/std_agents.md`

@@ -157,3 +157,50 @@ Bad：
 - 子文件必须被根级 proposal/design 引用。
 - 需要给出 good/bad examples。
 
+## Manual Docs And Legacy Migration Skills
+
+新增四个 standalone lifecycle skills，和现有 `codument-*` skill 一样由 prompt source 生成，安装后是多个独立 skill，而不是聚合 skill。
+
+### codument-docs-bootstrap
+
+用途：把一个现存项目按 Codument docs fractal 规范总结到 `docs/modeling` 与 `docs/impl`。
+
+规则：
+
+- 读取 `codument/attractors/`、`codument/config/feature.json`、README、现有 docs、specs、代码入口和测试。
+- `docs/modeling` 只写领域模型、能力边界、用户/系统行为、约束与业务术语。
+- `docs/impl` 只写实现结构、模块职责、数据流、运行方式、测试策略、集成点。
+- 不确定信息写为待确认，不写成事实。
+- 允许先做 inventory，再分批写入文档。
+
+### codument-docs-sync-track
+
+用途：将指定 active 或 archived track 的改动同步到 `docs/modeling` 与 `docs/impl`。
+
+规则：
+
+- 读取指定 track 的 proposal、design、spec delta、plan、reports、archive summary 和相关代码 diff。
+- 只同步该 track 实际造成的知识变化，不重写整套 docs。
+- 同步后记录更新过的文档路径、未更新原因和待确认项。
+
+### codument-migrate-archive
+
+用途：迁移旧 Codument archive 布局到 `codument/archive/YYYY-MM/YYYY-MM-DD-HHmm-track-id/`。
+
+规则：
+
+- 先 inventory 旧 archive 目录，识别旧 `YYYY-MM-DD-track-id`、缺失 `plan.xml`、旧 spec/summary 文件。
+- 迁移前创建备份或迁移记录。
+- 能确定时间时使用 track metadata 或文件 mtime 生成分钟级路径；不能确定时保留原文并记录原因。
+- 不删除无法安全解释的旧内容。
+
+### codument-migrate-specs
+
+用途：迁移旧 Markdown specs 到 XML spec registry。
+
+规则：
+
+- 读取 `codument/specs/**/*.md`、旧 track `spec.md` 和 `codument/legacy/specs`。
+- 可安全转换时生成 `codument/specs/<capability>.xml`。
+- 大 spec 使用 `codument/specs/<capability>/index.xml` 与 `<include>` 拆分。
+- 无法保证语义等价的原文保留到 `codument/legacy/specs` 并标记人工确认。

@@ -5,12 +5,12 @@
     <type>feature</type>
     <status>completed</status>
     <created_at>2026-05-30T05:57:32Z</created_at>
-    <updated_at>2026-05-31T19:44:57+08:00</updated_at>
+    <updated_at>2026-06-01T00:36:35+08:00</updated_at>
     <description>Refactor Codument around XML specs, VFS URI selectors, project attractors, feature-gated knowledge sync, durable decisions, optional memory, minute-level archive paths, and large-track proposal/design subdirectories.</description>
     <commit_mode>manual</commit_mode>
     <validation_mode>yield-gap-loop</validation_mode>
     <validation_granularity>final_phase</validation_granularity>
-    <gap_loop_round>15</gap_loop_round>
+    <gap_loop_round>16</gap_loop_round>
   </metadata>
 
   <phases>
@@ -188,6 +188,58 @@
         <criterion checked="true">Automated tests pass</criterion>
         <criterion checked="true">TypeScript typecheck passes if available</criterion>
         <criterion checked="true">Generated Codument workflow skills include updated prompt behavior</criterion>
+      </acceptance_criteria>
+    </task>
+  </phase>
+  <phase id="P7" name="Manual docs and legacy migration lifecycle skills" status="DONE">
+    <task id="P7-T1" name="Add docs bootstrap skill prompt" priority="P0" status="DONE">
+      <description>Add a standalone lifecycle skill that summarizes an existing project into docs/modeling and docs/impl.</description>
+      <acceptance_criteria>
+        <criterion checked="true">Generated skills include codument-docs-bootstrap</criterion>
+        <criterion checked="true">Prompt separates docs/modeling from docs/impl responsibilities</criterion>
+        <criterion checked="true">Prompt requires uncertainty tracking instead of inventing facts</criterion>
+      </acceptance_criteria>
+    </task>
+    <task id="P7-T2" name="Add track docs sync skill prompt" priority="P0" status="DONE">
+      <description>Add a standalone lifecycle skill that syncs a specified active or archived track into docs/modeling and docs/impl.</description>
+      <acceptance_criteria>
+        <criterion checked="true">Generated skills include codument-docs-sync-track</criterion>
+        <criterion checked="true">Prompt reads track proposal/design/spec/plan/reports/archive context</criterion>
+        <criterion checked="true">Prompt limits updates to the specified track's actual changes</criterion>
+      </acceptance_criteria>
+    </task>
+    <task id="P7-T3" name="Add legacy archive migration skill prompt" priority="P1" status="DONE">
+      <description>Add a standalone lifecycle skill for migrating old archive layouts into the new YYYY-MM/YYYY-MM-DD-HHmm-track-id format.</description>
+      <acceptance_criteria>
+        <criterion checked="true">Generated skills include codument-migrate-archive</criterion>
+        <criterion checked="true">Prompt requires backup or migration record before moving content</criterion>
+        <criterion checked="true">Prompt preserves unsafe legacy content instead of deleting it</criterion>
+      </acceptance_criteria>
+    </task>
+    <task id="P7-T4" name="Add legacy specs migration skill prompt" priority="P1" status="DONE">
+      <description>Add a standalone lifecycle skill for migrating old Markdown specs into XML registry files or folders.</description>
+      <acceptance_criteria>
+        <criterion checked="true">Generated skills include codument-migrate-specs</criterion>
+        <criterion checked="true">Prompt describes single-file XML and folder/index.xml include layouts</criterion>
+        <criterion checked="true">Prompt preserves unsafe conversions in codument/legacy/specs</criterion>
+      </acceptance_criteria>
+    </task>
+    <task id="P7-T5" name="Verify generated lifecycle skills" priority="P0" status="DONE">
+      <description>Update lifecycle skill generation tests and run typecheck/test validation for the new standalone skills.</description>
+      <acceptance_criteria>
+        <criterion checked="true">Lifecycle generation tests cover all four new skill names</criterion>
+        <criterion checked="true">TypeScript typecheck passes</criterion>
+        <criterion checked="true">Relevant tests pass</criterion>
+      </acceptance_criteria>
+    </task>
+    <task id="P7-T6" name="Incorporate field-test findings for manual skills" priority="P0" status="DONE">
+      <description>Update the four manual lifecycle skill prompts based on live testing in an upgraded legacy project.</description>
+      <acceptance_criteria>
+        <criterion checked="true">docs-bootstrap clarifies minimal index bootstrap and no fresh-child requirement</criterion>
+        <criterion checked="true">docs-sync-track clarifies local docs creation and validation diff checks</criterion>
+        <criterion checked="true">migrate-archive requires layout scanning and date-conflict risk recording</criterion>
+        <criterion checked="true">migrate-specs supports old CLI fallback validation and folder index.xml migration</criterion>
+        <criterion checked="true">migrate-specs requires globally unique requirement, suite, and case ids in generated XML</criterion>
       </acceptance_criteria>
     </task>
     <confirm protocol="yield-gap-loop" when="after" status="DONE" />

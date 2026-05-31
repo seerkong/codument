@@ -36,6 +36,10 @@ export const planWavePrompt = loadPrompt("plan-wave.md");
 export const executeWavePrompt = loadPrompt("execute-wave.md");
 export const verifyPrompt = loadPrompt("verify.md");
 export const gapLoopPrompt = loadPrompt("gap-loop.md");
+export const docsBootstrapPrompt = loadPrompt("docs-bootstrap.md");
+export const docsSyncTrackPrompt = loadPrompt("docs-sync-track.md");
+export const migrateArchivePrompt = loadPrompt("migrate-archive.md");
+export const migrateSpecsPrompt = loadPrompt("migrate-specs.md");
 
 // Templates
 export const workflowTemplate = loadTemplate("workflow.md");
@@ -62,6 +66,10 @@ export const prompts = {
   executeWave: executeWavePrompt,
   verify: verifyPrompt,
   gapLoop: gapLoopPrompt,
+  docsBootstrap: docsBootstrapPrompt,
+  docsSyncTrack: docsSyncTrackPrompt,
+  migrateArchive: migrateArchivePrompt,
+  migrateSpecs: migrateSpecsPrompt,
 };
 
 // Export all templates as a map

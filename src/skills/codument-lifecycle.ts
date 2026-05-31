@@ -4,6 +4,10 @@ import {
   discussPrompt,
   executeWavePrompt,
   gapLoopPrompt,
+  docsBootstrapPrompt,
+  docsSyncTrackPrompt,
+  migrateArchivePrompt,
+  migrateSpecsPrompt,
   implementPrompt,
   initPrompt,
   planWavePrompt,
@@ -41,7 +45,11 @@ const SUBSKILL_SOURCES = [
   { name: "discuss", prompt: discussPrompt, description: "Discuss a phase and persist implementation decisions into context.md." },
   { name: "execute-wave", prompt: executeWavePrompt, description: "Execute tasks by wave DAG scheduling." },
   { name: "gap-loop", prompt: gapLoopPrompt, description: "Run a fresh gap analysis and repair loop for a track or phase." },
+  { name: "docs-bootstrap", prompt: docsBootstrapPrompt, description: "Summarize an existing project into docs/modeling and docs/impl." },
+  { name: "docs-sync-track", prompt: docsSyncTrackPrompt, description: "Sync a specified track's changes into docs/modeling and docs/impl." },
   { name: "implement", prompt: implementPrompt, description: "Implement a track sequentially from plan.xml." },
+  { name: "migrate-archive", prompt: migrateArchivePrompt, description: "Migrate legacy Codument archive layouts to the current archive directory convention." },
+  { name: "migrate-specs", prompt: migrateSpecsPrompt, description: "Migrate legacy Markdown specs to XML spec registry files or folders." },
   { name: "init", prompt: initPrompt, description: "Initialize or resume Codument project setup." },
   { name: "plan-wave", prompt: planWavePrompt, description: "Convert a phase into wave DAG execution groups." },
   { name: "status", prompt: statusPrompt, description: "Show project status and summarize tracks or tasks." },
@@ -49,6 +57,13 @@ const SUBSKILL_SOURCES = [
   { name: "validate", prompt: validatePrompt, description: "Validate track or spec structure and strict-mode checks." },
   { name: "verify", prompt: verifyPrompt, description: "Verify implemented work with issues-first reporting." },
 ] as const;
+
+const NO_FRESH_CHILD_PRELUDE = new Set<string>([
+  "docs-bootstrap",
+  "docs-sync-track",
+  "migrate-archive",
+  "migrate-specs",
+]);
 
 export const CLAUDE_WORKFLOW_SKILL_DISPLAY_PATH = `.claude/skills/`;
 export const CLAUDE_WORKFLOW_COMMAND_DISPLAY_PATH = ".claude/commands/codument/";
@@ -260,6 +275,10 @@ function getSubskillPreludeLines(
   subskill: (typeof SUBSKILL_SOURCES)[number],
   sharedPrefix: string
 ): string[] {
+  if (NO_FRESH_CHILD_PRELUDE.has(subskill.name)) {
+    return [];
+  }
+
   const preludeLines = [
     `Shared fresh-child capability model: \`${sharedPrefix}shared/subagent-model.md\``,
     `Target-specific loading and child-agent guidance: \`${sharedPrefix}shared/target-capabilities.md\``,

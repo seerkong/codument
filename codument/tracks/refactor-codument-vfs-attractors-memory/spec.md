@@ -202,6 +202,43 @@
 - **THEN** 不生成 `knowledge://` hint
 - **AND** 不要求更新 docs
 
+### Requirement: Codument MUST provide manual docs lifecycle skills
+系统应当（SHALL）提供手动触发的 docs lifecycle skills，将项目知识同步到 `docs/modeling` 与 `docs/impl`，且不依赖 archive 自动流程。
+
+#### Scenario: Bootstrap existing project docs
+- **GIVEN** 一个现存项目缺少符合 Codument docs fractal 规范的 `docs/modeling` 或 `docs/impl`
+- **WHEN** 用户触发 `codument-docs-bootstrap`
+- **THEN** skill 指导 AI 读取项目结构、attractors、specs、README、代码与测试
+- **AND** skill 指导 AI 创建或更新 `docs/modeling` 的领域/能力/行为模型文档
+- **AND** skill 指导 AI 创建或更新 `docs/impl` 的实现结构、入口、数据流、运行和测试文档
+- **AND** skill 要求保留不确定项为待确认事项，不把猜测写成事实
+
+#### Scenario: Sync a specific track to docs
+- **GIVEN** 用户指定一个 active 或 archived track
+- **WHEN** 用户触发 `codument-docs-sync-track`
+- **THEN** skill 指导 AI 读取该 track 的 proposal、spec delta、design、plan、archive summary 与相关 diff
+- **AND** skill 指导 AI 仅同步该 track 造成的建模与实现变化到 `docs/modeling` 与 `docs/impl`
+- **AND** skill 要求记录未同步原因或待确认事项
+
+### Requirement: Codument MUST provide manual legacy migration lifecycle skills
+系统应当（SHALL）提供手动触发的旧项目迁移 lifecycle skills，将旧 Codument archive 与 specs 逐步转换为新目录和文件规范。
+
+#### Scenario: Migrate old archive layout
+- **GIVEN** 旧项目存在 `codument/archive/YYYY-MM-DD-track-id/` 或缺少 `plan.xml` 的归档目录
+- **WHEN** 用户触发 `codument-migrate-archive`
+- **THEN** skill 指导 AI 建立备份或迁移记录
+- **AND** skill 指导 AI 将归档目录转换为 `codument/archive/YYYY-MM/YYYY-MM-DD-HHmm-track-id/`
+- **AND** skill 指导 AI 补齐可验证的 `plan.xml`、summary 与 legacy preservation 信息
+- **AND** skill 不删除无法安全解释的旧内容
+
+#### Scenario: Migrate old Markdown specs
+- **GIVEN** 旧项目存在 Markdown specs 或旧 `spec.md` delta
+- **WHEN** 用户触发 `codument-migrate-specs`
+- **THEN** skill 指导 AI 将可安全迁移的 capability specs 转换为 XML spec registry
+- **AND** skill 指导 AI 对大 capability 使用同名目录和 `index.xml`/`include`
+- **AND** skill 指导 AI 将不安全转换的原文保留到 `codument/legacy/specs`
+- **AND** skill 要求迁移后运行 validate/list/show 相关验证
+
 ### Requirement: codument-track MUST support proposal and design subdirectories for large tracks
 系统应当（SHALL）在创建设计点多、内容大的 track 时，允许并鼓励创建 `proposal/` 和 `design/` 子目录，根级 `proposal.md` 与 `design.md` 作为总览引用子文件。
 

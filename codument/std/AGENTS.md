@@ -104,6 +104,10 @@ codument status                # 查看项目状态
 请使用 codument-execute-wave skill, 执行track: <track-id>
 请使用 codument-gap-loop skill, 检查track: <track-id>
 请使用 codument-verify skill, 验证track: <track-id>
+请使用 codument-docs-bootstrap skill, 将现存项目总结到 docs/modeling 和 docs/impl
+请使用 codument-docs-sync-track skill, 将指定track改动同步到 docs/modeling 和 docs/impl
+请使用 codument-migrate-archive skill, 迁移旧 archive 目录到新规范
+请使用 codument-migrate-specs skill, 迁移旧 Markdown specs 到 XML registry
 
 # 调试
 codument show [track] --json
@@ -478,6 +482,10 @@ codument archive <id>      # 标记完成
 请使用 codument-execute-wave skill, 执行track: <id>
 请使用 codument-gap-loop skill, 检查track: <id>
 请使用 codument-verify skill, 验证track: <id>
+请使用 codument-docs-bootstrap skill, 将现存项目总结到 docs/modeling 和 docs/impl
+请使用 codument-docs-sync-track skill, 将指定track改动同步到 docs/modeling 和 docs/impl
+请使用 codument-migrate-archive skill, 迁移旧 archive 目录到新规范
+请使用 codument-migrate-specs skill, 迁移旧 Markdown specs 到 XML registry
 ```
 
 记住：规范是真相，变更追踪是提案。保持同步。
