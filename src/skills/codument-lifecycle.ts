@@ -11,7 +11,7 @@ import {
   trackPrompt,
   validatePrompt,
   verifyPrompt,
-} from "../../prompts";
+} from "../prompts";
 
 export const CODUMENT_WORKFLOW_SKILL_NAME = "codument-workflow";
 export const LEGACY_CODUMENT_SKILL_NAME = "codument";

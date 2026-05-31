@@ -70,7 +70,7 @@ describe('codument upgrade-workspace', () => {
     expect(err).toBe('');
     expect(exitCode).toBe(0);
     expect(out).toContain('Updated codument/std');
-    expect(out).toContain('Removed legacy root context files: project.md, product.md, tech-stack.md');
+    expect(out).not.toContain('Removed legacy root context files');
     expect(out).toContain('Upgraded .opencode/command');
     expect(out).toContain('Upgraded .opencode/skills/codument-*/');
 
@@ -93,10 +93,11 @@ describe('codument upgrade-workspace', () => {
     expect(fs.existsSync(path.join(ws, 'codument', 'tracks.md'))).toBe(false);
     expect(fs.readFileSync(path.join(ws, 'codument', 'attractors', 'product.md'), 'utf-8')).toBe('# p\n');
     expect(fs.readFileSync(path.join(ws, 'codument', 'attractors', 'project.md'), 'utf-8')).toBe('# p\n');
-    expect(fs.existsSync(path.join(ws, 'codument', 'project.md'))).toBe(false);
-    expect(fs.existsSync(path.join(ws, 'codument', 'product.md'))).toBe(false);
-    expect(fs.existsSync(path.join(ws, 'codument', 'tech-stack.md'))).toBe(false);
+    expect(fs.readFileSync(path.join(ws, 'codument', 'project.md'), 'utf-8')).toBe('# p\n');
+    expect(fs.readFileSync(path.join(ws, 'codument', 'product.md'), 'utf-8')).toBe('# p\n');
+    expect(fs.readFileSync(path.join(ws, 'codument', 'tech-stack.md'), 'utf-8')).toBe('# tech\n');
     expect(fs.existsSync(path.join(ws, 'codument', 'config', 'feature.json'))).toBe(true);
+    expect(fs.existsSync(path.join(ws, 'codument', 'memory'))).toBe(false);
     expect(fs.readFileSync(path.join(ws, 'codument', 'legacy', 'project-context', 'product.md'), 'utf-8')).toBe('# p\n');
     expect(fs.readFileSync(path.join(ws, 'codument', 'legacy', 'project-context', 'project.md'), 'utf-8')).toBe('# p\n');
     expect(fs.readFileSync(path.join(ws, 'codument', 'legacy', 'project-context', 'tech-stack.md'), 'utf-8')).toBe('# tech\n');

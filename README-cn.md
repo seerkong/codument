@@ -11,7 +11,7 @@ Codument 是一个 CLI 工具，为 AI 辅助软件开发带来结构化和可�
 在使用 AI 编程助手时，很容易忘记计划了什么、实现了什么、还有什么待完成。Codument 通过以下方式解决这个问题：
 
 - **结构化规划**：把工作拆解到 `plan.xml` 的阶段、任务和子任务
-- **规范优先**：先在 `spec.md` 中定义需求，再编码
+- **规范优先**：先用 XML spec delta 定义需求，再编码
 - **进度追踪**：从 `plan.xml` 读取 TODO / IN_PROGRESS / DONE / BLOCKED 状态
 - **Gap Loop 校验**：在收口前用 fresh 轮次做目标偏差复检与修正
 - **支持波次工作流**：支持 discuss / plan-wave / execute-wave / verify 命令流
@@ -23,9 +23,10 @@ Codument 是一个 CLI 工具，为 AI 辅助软件开发带来结构化和可�
 
 每个功能或 Bug 修复作为一个 "track" 进行管理，通常包含：
 - **proposal.md** - 变更提案，包含背景和范围
-- **spec.md** - 行为规范和需求增量
+- **spec_deltas/** - XML 行为规范和需求增量
 - **plan.xml** - 阶段 / 任务 / 子任务计划、状态、提交模式以及可选的 wave DAG
-- **metadata.json** - Track 元数据和状态快照
+- **proposal/** 和 **design/** - 大型 track 可选的子目录
+- **decisions/** 和 **memory/** - 可选的 track 内长期决策和记忆候选
 - **design.md** - 可选的技术设计
 
 ### 层级化任务管理
@@ -86,7 +87,7 @@ codument init --agent=claude,codeflicker,codex,eidolon,sparrow,opencode
 
 这将：
 - 创建 `codument/` 目录结构
-- 生成 `project.md`、`product.md`、`tech-stack.md`、`state.json`
+- 生成 `codument/attractors/project.md`、`codument/attractors/product.md`、`codument/config/feature.json` 和 `state.json`
 - 生成 `codument/std/` 和 `codument/workflows/workflow.md`
 - 为你选择的 target 生成对应的独立 `codument-*` skill 目录
 - 对仍支持 command 的 target 额外生成 command wrapper
@@ -107,7 +108,7 @@ Sparrow：使用 codument:track 或 codument-track 创建“添加用户认证�
 
 助手会引导你完成：
 1. 讨论需求
-2. 创建 `spec.md`、`proposal.md` 和 `plan.xml`
+2. 创建 XML spec delta、`proposal.md` 和 `plan.xml`
 3. 将工作拆解为阶段、任务和子任务
 4. 选择提交模式（`auto` / `manual`）
 
@@ -136,7 +137,7 @@ Codex：使用 codument:archive 或 codument-archive 归档 track add-user-auth
 Sparrow：使用 codument:archive 或 codument-archive 归档 track add-user-auth
 ```
 
-将 track 移动到 `codument/archive/YYYY-MM-DD-add-user-auth/`。
+将 track 移动到 `codument/archive/YYYY-MM/YYYY-MM-DD-HHmm-add-user-auth/`，时间来自 track 的最后更新时间。
 
 ## 升级已有工作区
 
@@ -195,11 +196,12 @@ codument upgrade-track <track-id-或-archive-id>
 ```text
 your-project/
 ├── codument/
-│   ├── project.md
-│   ├── product.md
-│   ├── tech-stack.md
-│   ├── tracks.md
 │   ├── state.json
+│   ├── attractors/
+│   │   ├── project.md
+│   │   └── product.md
+│   ├── config/
+│   │   └── feature.json
 │   ├── std/
 │   │   ├── AGENTS.md
 │   │   ├── plan-xml-spec.md
@@ -209,16 +211,21 @@ your-project/
 │   │   └── workflow.md
 │   ├── tracks/
 │   │   └── <track-id>/          # 由 AI 命令后续创建
+│   │       ├── spec_deltas/
 │   │       ├── proposal.md
-│   │       ├── spec.md
 │   │       ├── plan.xml
-│   │       ├── metadata.json
 │   │       ├── design.md        # 可选
+│   │       ├── proposal/        # 可选，大型 track
+│   │       ├── design/          # 可选，大型 track
+│   │       ├── decisions/       # 可选，决策记录
+│   │       ├── memory/          # 可选，记忆候选
 │   │       ├── analysis/        # 可选，规划产物
 │   │       ├── context.md       # 可选，wave 工作流
 │   │       ├── state.md         # 可选，wave 工作流
 │   │       ├── phases/          # 可选，wave 工作流
 │   │       └── waves/           # 可选，wave 工作流
+│   ├── decisions/
+│   ├── legacy/
 │   ├── specs/
 │   └── archive/
 ├── .claude/skills/codument-*/    # 选择 Claude Code 时生成
@@ -313,7 +320,7 @@ your-project/
 
 ## 最佳实践
 
-1. **规范优先**：始终在实现前定义 spec.md
+1. **规范优先**：始终在实现前定义 XML spec delta
 2. **小任务**：将任务分解为 1-4 小时的小块
 3. **TDD 工作流**：实现前先编写测试
 4. **阶段门控**：在进入下一阶段前验证门控标准
@@ -332,7 +339,7 @@ Codument 强制先定义规范再实现代码。通过 GIVEN/WHEN/THEN 格式，
 
 每个变更都有完整的文档记录：
 - 变更背景和动机（proposal.md）
-- 行为规范（spec.md）
+- 行为规范（XML spec delta）
 - 任务分解和进度（plan.xml）
 - 相关实现记录与状态追踪
 

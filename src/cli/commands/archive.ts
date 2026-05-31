@@ -10,7 +10,7 @@ import {
   getTrack,
   parseOptions,
 } from '../utils';
-import { loadFeatureConfig } from '../utils/feature-config';
+import { loadFeatureConfig, resolveKnowledgeTargetRoot, type KnowledgeSyncTarget } from '../utils/feature-config';
 import { applySpecXmlPatchToRegistry } from '../utils/spec-xml';
 import { buildArchiveDestination, formatLocalMinutePrefix, resolveTrackUpdatedDate } from '../utils/track-time';
 
@@ -53,6 +53,17 @@ export async function archiveCommand(args: string[]) {
   const archiveDir = buildArchiveDestination(trackDir, trackId, ARCHIVE_DIR);
   const archiveId = path.basename(archiveDir);
 
+  const featureConfig = loadFeatureConfig();
+  let knowledgeTargets: Array<{ target: KnowledgeSyncTarget; root: string }> = [];
+  if (featureConfig.knowledgeSync.enabled) {
+    try {
+      knowledgeTargets = prepareKnowledgeSyncTargets(featureConfig.knowledgeSync.targets);
+    } catch (error) {
+      console.error(error instanceof Error ? error.message : 'Knowledge sync target validation failed.');
+      process.exit(1);
+    }
+  }
+
   console.log(`\nArchiving track: ${trackId}`);
   console.log(`Destination: ${archiveDir}`);
 
@@ -88,7 +99,11 @@ export async function archiveCommand(args: string[]) {
     console.log(`✓ Promoted decision record: ${promotedDecision}`);
   }
 
-  const featureConfig = loadFeatureConfig();
+  const summaryPath = generateArchiveSummary(archiveDir, trackId);
+  if (summaryPath) {
+    console.log(`✓ Generated archive summary: ${summaryPath}`);
+  }
+
   if (featureConfig.projectMemory.enabled) {
     const promotedMemory = promoteMemoryRecords(archiveDir, archiveId, trackId, updatedDate);
     if (promotedMemory.length > 0) {
@@ -97,11 +112,41 @@ export async function archiveCommand(args: string[]) {
   }
 
   if (featureConfig.knowledgeSync.enabled) {
-    const targetNames = featureConfig.knowledgeSync.targets.map((target) => target.name).join(', ') || '(no targets configured)';
-    console.log(`  Knowledge sync enabled; configured targets: ${targetNames}`);
+    const syncResults: string[] = [];
+    for (const { target, root } of knowledgeTargets) {
+      syncDecisionsToTarget(archiveDir, root, target.name, trackId, updatedDate);
+      syncResults.push(target.name);
+    }
+    if (syncResults.length > 0) {
+      console.log(`✓ Knowledge synced to targets: ${syncResults.join(', ')}`);
+    } else {
+      console.log('  Knowledge sync enabled but no targets configured');
+    }
   }
 
   console.log(`\n✓ Track "${trackId}" archived successfully!\n`);
+}
+
+function prepareKnowledgeSyncTargets(targets: KnowledgeSyncTarget[]): Array<{ target: KnowledgeSyncTarget; root: string }> {
+  return targets.map((target) => {
+    const root = resolveKnowledgeTargetRoot(target);
+    if (!fs.existsSync(root)) {
+      throw new Error(`Knowledge sync target root does not exist: ${root}. Create the target directory first or disable knowledgeSync for this archive run.`);
+    }
+    if (!fs.statSync(root).isDirectory()) {
+      throw new Error(`Knowledge sync target root is not a directory: ${root}`);
+    }
+    if (target.attractor) {
+      const attractorPath = path.isAbsolute(target.attractor)
+        ? target.attractor
+        : path.resolve(process.cwd(), target.attractor);
+      if (!fs.existsSync(attractorPath)) {
+        throw new Error(`Knowledge sync target attractor does not exist: ${attractorPath}`);
+      }
+      fs.readFileSync(attractorPath, 'utf-8');
+    }
+    return { target, root };
+  });
 }
 
 function applyArchivedSpecDeltas(archiveDir: string): string[] {
@@ -185,32 +230,103 @@ function writePromotedArtifact(
   return filePath;
 }
 
+function decisionUriForSlug(slug: string): string {
+  return `decision://${slug}`;
+}
+
 function promoteDecisionRecord(archiveDir: string, archiveId: string, trackId: string, updatedDate: Date): string | null {
-  const decisionsPath = path.join(archiveDir, 'decisions.md');
-  if (!fs.existsSync(decisionsPath)) {
+  const decisionsDir = path.join(archiveDir, 'decisions');
+  if (!fs.existsSync(decisionsDir) || !fs.statSync(decisionsDir).isDirectory()) {
+    // legacy fallback: single decisions.md file
+    const legacyPath = path.join(archiveDir, 'decisions.md');
+    if (!fs.existsSync(legacyPath)) {
+      return null;
+    }
+    const source = fs.readFileSync(legacyPath, 'utf-8').trim();
+    if (!source || source === '# Decisions') {
+      return null;
+    }
+    if (!hasDurableDecision(source)) {
+      return null;
+    }
+    const content = [
+      `# Decision: ${trackId}`,
+      '',
+      `Decision URI: ${decisionUriForSlug(trackId)}`,
+      `Source: archive://${archiveId}`,
+      '',
+      source,
+      '',
+    ].join('\n');
+    return writePromotedArtifact(DECISIONS_DIR, 'decision.md', trackId, updatedDate, content);
+  }
+
+  const decisionFiles = fs.readdirSync(decisionsDir)
+    .filter(f => f.endsWith('.md') && f !== 'summary.md');
+
+  if (decisionFiles.length === 0) {
     return null;
   }
 
-  const source = fs.readFileSync(decisionsPath, 'utf-8').trim();
-  if (!source || source === '# Decisions') {
+  let promoted: string | null = null;
+  for (const fileName of decisionFiles) {
+    const source = fs.readFileSync(path.join(decisionsDir, fileName), 'utf-8').trim();
+    if (!source) {
+      continue;
+    }
+    if (!hasDurableDecision(source)) {
+      continue;
+    }
+    const slug = path.basename(fileName, '.md');
+    const content = [
+      `# Decision: ${slug}`,
+      '',
+      `Decision URI: ${decisionUriForSlug(slug)}`,
+      `Source: archive://${archiveId}`,
+      '',
+      source,
+      '',
+    ].join('\n');
+    promoted = writePromotedArtifact(DECISIONS_DIR, 'decision.md', slug, updatedDate, content);
+  }
+
+  return promoted;
+}
+
+function generateArchiveSummary(archiveDir: string, trackId: string): string | null {
+  const decisionsDir = path.join(archiveDir, 'decisions');
+  if (!fs.existsSync(decisionsDir) || !fs.statSync(decisionsDir).isDirectory()) {
+    const legacyPath = path.join(archiveDir, 'decisions.md');
+    if (!fs.existsSync(legacyPath)) {
+      return null;
+    }
+    const source = fs.readFileSync(legacyPath, 'utf-8').trim();
+    if (!source) {
+      return null;
+    }
+    const title = source.match(/^# (.+)$/m)?.[1] ?? trackId;
+    const lines = [`# Archive Summary: ${trackId}`, '', `- ${title}`, ''];
+    const summaryPath = path.join(archiveDir, 'summary.md');
+    fs.writeFileSync(summaryPath, lines.join('\n'), 'utf-8');
+    return summaryPath;
+  }
+
+  const decisionFiles = fs.readdirSync(decisionsDir)
+    .filter(f => f.endsWith('.md') && f !== 'summary.md');
+
+  if (decisionFiles.length === 0) {
     return null;
   }
 
-  if (!hasDurableDecision(source)) {
-    return null;
+  const lines = [`# Archive Summary: ${trackId}`, ''];
+  for (const fileName of decisionFiles) {
+    const source = fs.readFileSync(path.join(decisionsDir, fileName), 'utf-8').trim();
+    const title = source.match(/^# (.+)$/m)?.[1] ?? fileName.replace('.md', '');
+    lines.push(`- ${title}`);
   }
-
-  const content = [
-    `# Decision: ${trackId}`,
-    '',
-    `Decision URI: decision://${trackId}`,
-    `Source: archive://${archiveId}`,
-    '',
-    source,
-    '',
-  ].join('\n');
-
-  return writePromotedArtifact(DECISIONS_DIR, 'decision.md', trackId, updatedDate, content);
+  const summaryPath = path.join(archiveDir, 'summary.md');
+  fs.writeFileSync(summaryPath, lines.join('\n'), 'utf-8');
+  return summaryPath;
 }
 
 function hasDurableDecision(source: string): boolean {
@@ -295,4 +411,59 @@ function applySpecDeltas(specPath: string): string[] {
   }
 
   return updatedSpecs;
+}
+
+function syncDecisionsToTarget(
+  archiveDir: string,
+  targetRoot: string,
+  targetName: string,
+  trackId: string,
+  updatedDate: Date,
+): void {
+  const decisionsDir = path.join(archiveDir, 'decisions');
+  if (!fs.existsSync(decisionsDir) || !fs.statSync(decisionsDir).isDirectory()) {
+    const legacyPath = path.join(archiveDir, 'decisions.md');
+    if (!fs.existsSync(legacyPath)) {
+      return;
+    }
+    const source = fs.readFileSync(legacyPath, 'utf-8').trim();
+    if (!source || source === '# Decisions') {
+      return;
+    }
+    if (!hasDurableDecision(source)) {
+      return;
+    }
+    const content = [
+      `# Decision: ${trackId}`,
+      '',
+      `Decision URI: ${decisionUriForSlug(trackId)}`,
+      `Target: knowledge://${targetName}`,
+      '',
+      source,
+      '',
+    ].join('\n');
+    writePromotedArtifact(targetRoot, 'decision.md', trackId, updatedDate, content);
+    return;
+  }
+
+  const decisionFiles = fs.readdirSync(decisionsDir)
+    .filter(f => f.endsWith('.md') && f !== 'summary.md');
+
+  for (const fileName of decisionFiles) {
+    const source = fs.readFileSync(path.join(decisionsDir, fileName), 'utf-8').trim();
+    if (!source || !hasDurableDecision(source)) {
+      continue;
+    }
+    const slug = path.basename(fileName, '.md');
+    const content = [
+      `# Decision: ${slug}`,
+      '',
+      `Decision URI: ${decisionUriForSlug(slug)}`,
+      `Target: knowledge://${targetName}`,
+      '',
+      source,
+      '',
+    ].join('\n');
+    writePromotedArtifact(targetRoot, 'decision.md', slug, updatedDate, content);
+  }
 }

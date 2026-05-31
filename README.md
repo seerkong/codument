@@ -11,7 +11,7 @@ Codument is a CLI tool that brings structure and traceability to AI-assisted sof
 When working with AI coding assistants, it's easy to lose track of what was planned, what's been implemented, and what still needs to be done. Codument solves this by:
 
 - **Structured Planning**: Break down work into phases, tasks, and subtasks in `plan.xml`
-- **Specification First**: Define requirements in `spec.md` before coding
+- **Specification First**: Define requirements in XML spec deltas before coding
 - **Progress Tracking**: Track TODO / IN_PROGRESS / DONE / BLOCKED status from `plan.xml`
 - **Gap Loop Validation**: Run fresh verification-and-fix rounds before closing a track
 - **Wave Workflow Support**: Supports discuss / plan-wave / execute-wave / verify command flows
@@ -23,9 +23,10 @@ When working with AI coding assistants, it's easy to lose track of what was plan
 
 Each feature or bug fix is managed as a "track" with:
 - **proposal.md** - Change proposal with background and scope
-- **spec.md** - Behavioral specifications and requirement deltas
+- **spec_deltas/** - XML behavioral specifications and requirement deltas
 - **plan.xml** - Phase / task / subtask plan, status, commit mode, and optional wave DAG
-- **metadata.json** - Track metadata and status snapshot
+- **proposal/** and **design/** - Optional subdirectories for large tracks
+- **decisions/** and **memory/** - Optional track-local durable decision and memory candidates
 - **design.md** - Optional technical design
 
 ### Hierarchical Task Management
@@ -86,7 +87,7 @@ codument init --agent=claude,codeflicker,codex,eidolon,sparrow,opencode
 
 This will:
 - Create the `codument/` directory structure
-- Generate `project.md`, `product.md`, `tech-stack.md`, `state.json`
+- Generate `codument/attractors/project.md`, `codument/attractors/product.md`, `codument/config/feature.json`, and `state.json`
 - Generate `codument/std/` and `codument/workflows/workflow.md`
 - Generate the selected targets' standalone `codument-*` skill directories
 - Generate command wrappers for the targets that support command entrypoints
@@ -108,7 +109,7 @@ For Claude, CodeFlicker, Eidolon, and OpenCode, the generated command wrappers l
 
 The assistant will guide you through:
 1. Discussing requirements
-2. Creating `spec.md`, `proposal.md`, and `plan.xml`
+2. Creating XML spec deltas, `proposal.md`, and `plan.xml`
 3. Breaking down work into phases, tasks, and subtasks
 4. Choosing commit mode (`auto` / `manual`)
 
@@ -137,7 +138,7 @@ Codex: Use codument:archive or codument-archive to archive track add-user-auth
 Sparrow: Use codument:archive or codument-archive to archive track add-user-auth
 ```
 
-Moves the track to `codument/archive/YYYY-MM-DD-add-user-auth/`.
+Moves the track to `codument/archive/YYYY-MM/YYYY-MM-DD-HHmm-add-user-auth/`, using the track's last updated time.
 
 ## Upgrade An Existing Workspace
 
@@ -196,11 +197,12 @@ After initialization:
 ```text
 your-project/
 ├── codument/
-│   ├── project.md
-│   ├── product.md
-│   ├── tech-stack.md
-│   ├── tracks.md
 │   ├── state.json
+│   ├── attractors/
+│   │   ├── project.md
+│   │   └── product.md
+│   ├── config/
+│   │   └── feature.json
 │   ├── std/
 │   │   ├── AGENTS.md
 │   │   ├── plan-xml-spec.md
@@ -210,16 +212,21 @@ your-project/
 │   │   └── workflow.md
 │   ├── tracks/
 │   │   └── <track-id>/          # Created later by the AI commands
+│   │       ├── spec_deltas/
 │   │       ├── proposal.md
-│   │       ├── spec.md
 │   │       ├── plan.xml
-│   │       ├── metadata.json
 │   │       ├── design.md        # optional
+│   │       ├── proposal/        # optional, large tracks
+│   │       ├── design/          # optional, large tracks
+│   │       ├── decisions/       # optional decision records
+│   │       ├── memory/          # optional memory candidates
 │   │       ├── analysis/        # optional planning artifacts
 │   │       ├── context.md       # optional, wave workflow
 │   │       ├── state.md         # optional, wave workflow
 │   │       ├── phases/          # optional, wave workflow
 │   │       └── waves/           # optional, wave workflow
+│   ├── decisions/
+│   ├── legacy/
 │   ├── specs/
 │   └── archive/
 ├── .claude/skills/codument-*/    # if Claude Code was selected
@@ -314,7 +321,7 @@ your-project/
 
 ## Best Practices
 
-1. **Start with Spec**: Always define spec.md before implementing
+1. **Start with Spec**: Always define XML spec deltas before implementing
 2. **Small Tasks**: Break down tasks into 1-4 hour chunks
 3. **TDD Workflow**: Write tests before implementation
 4. **Phase Gates**: Verify gate criteria before moving to next phase

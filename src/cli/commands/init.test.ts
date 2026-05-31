@@ -52,6 +52,8 @@ describe('codument init --agent', () => {
     expect(productMd).toContain(`# ${path.basename(workspaceDir)} - 产品定义`);
     expect(state.cli_tools).toEqual(['claude', 'codeflicker', 'codex']);
     expect(fs.existsSync(path.join(workspaceDir, 'codument', 'config', 'feature.json'))).toBe(true);
+    expect(fs.existsSync(path.join(workspaceDir, 'codument', 'decisions'))).toBe(true);
+    expect(fs.existsSync(path.join(workspaceDir, 'codument', 'memory'))).toBe(false);
     expect(fs.existsSync(path.join(workspaceDir, 'codument', 'std', 'docs-modeling-fractal', 'index.md'))).toBe(true);
     expect(fs.existsSync(path.join(workspaceDir, 'codument', 'std', 'docs-impl-fractal', 'index.md'))).toBe(true);
     expect(fs.readFileSync(path.join(workspaceDir, 'codument', 'std', 'docs-modeling-fractal', 'index.md'), 'utf-8')).toContain('docs/modeling/');

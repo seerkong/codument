@@ -123,6 +123,180 @@ describe('codument archive', () => {
     expect(fs.existsSync(path.join(ws, 'codument', 'memory'))).toBe(false);
   });
 
+  it('promotes decision directory entries with stable decision.md files and unique decision URIs', async () => {
+    const repoRoot = path.resolve(__dirname, '../../..');
+    const cliEntry = path.join(repoRoot, 'src/cli/index.ts');
+    const ws = makeTempDir('codument-archive-decision-dir-ws-');
+    const trackId = 'archive-decision-dir';
+    const trackDir = path.join(ws, 'codument', 'tracks', trackId);
+
+    writeFile(path.join(ws, 'codument', 'config', 'feature.json'), JSON.stringify({
+      knowledgeSync: { enabled: false, targets: [] },
+      projectMemory: { enabled: false },
+    }, null, 2));
+    writeFile(path.join(trackDir, 'plan.xml'), `<?xml version="1.0"?>
+<plan><metadata>
+  <track_id>${trackId}</track_id>
+  <type>feature</type>
+  <status>completed</status>
+  <created_at>2026-05-30T01:00:00Z</created_at>
+  <updated_at>2026-05-30T14:32:00+08:00</updated_at>
+  <description>decision directory archive test</description>
+</metadata><phases></phases></plan>`);
+    writeFile(path.join(trackDir, 'proposal.md'), '# Proposal\n\nDecision directory behavior.\n');
+    writeFile(path.join(trackDir, 'decisions', 'use-xml-specs.md'), '# Use XML Specs\n\n### Durable\nUse XML specs as the registry format.\n');
+    writeFile(path.join(trackDir, 'decisions', 'keep-markdown-compat.md'), '# Keep Markdown Compat\n\n### Durable\nKeep Markdown specs readable during migration.\n');
+
+    const proc = Bun.spawn([
+      'bun',
+      'run',
+      cliEntry,
+      '--workspace-dir',
+      ws,
+      'archive',
+      trackId,
+      '--yes',
+      '--skip-specs',
+    ], {
+      cwd: repoRoot,
+      stdout: 'pipe',
+      stderr: 'pipe',
+    });
+
+    const exitCode = await proc.exited;
+    const err = await new Response(proc.stderr).text();
+    expect(err).toBe('');
+    expect(exitCode).toBe(0);
+
+    const decisionRoot = path.join(ws, 'codument', 'decisions', '2026-05');
+    const promotedDirs = fs.readdirSync(decisionRoot).sort();
+    expect(promotedDirs).toHaveLength(2);
+    for (const dirName of promotedDirs) {
+      expect(fs.existsSync(path.join(decisionRoot, dirName, 'decision.md'))).toBe(true);
+    }
+    const xmlDecision = fs.readFileSync(path.join(
+      decisionRoot,
+      promotedDirs.find((dirName) => dirName.endsWith('use-xml-specs'))!,
+      'decision.md'
+    ), 'utf-8');
+    const markdownDecision = fs.readFileSync(path.join(
+      decisionRoot,
+      promotedDirs.find((dirName) => dirName.endsWith('keep-markdown-compat'))!,
+      'decision.md'
+    ), 'utf-8');
+    expect(xmlDecision).toContain('Decision URI: decision://use-xml-specs');
+    expect(markdownDecision).toContain('Decision URI: decision://keep-markdown-compat');
+  });
+
+  it('syncs durable decisions to configured knowledge targets when enabled', async () => {
+    const repoRoot = path.resolve(__dirname, '../../..');
+    const cliEntry = path.join(repoRoot, 'src/cli/index.ts');
+    const ws = makeTempDir('codument-archive-knowledge-sync-ws-');
+    const trackId = 'archive-knowledge-sync';
+    const trackDir = path.join(ws, 'codument', 'tracks', trackId);
+
+    writeFile(path.join(ws, 'docs', '.gitkeep'), '');
+    writeFile(path.join(ws, 'codument', 'attractors', 'docs-knowledge.md'), '# Docs Knowledge\n');
+    writeFile(path.join(ws, 'codument', 'config', 'feature.json'), JSON.stringify({
+      knowledgeSync: {
+        enabled: true,
+        targets: [{ name: 'main-docs', root: 'docs', attractor: 'codument/attractors/docs-knowledge.md' }],
+      },
+      projectMemory: { enabled: false },
+    }, null, 2));
+    writeFile(path.join(trackDir, 'plan.xml'), `<?xml version="1.0"?>
+<plan><metadata>
+  <track_id>${trackId}</track_id>
+  <type>feature</type>
+  <status>completed</status>
+  <created_at>2026-05-30T01:00:00Z</created_at>
+  <updated_at>2026-05-30T14:32:00+08:00</updated_at>
+  <description>knowledge sync archive test</description>
+</metadata><phases></phases></plan>`);
+    writeFile(path.join(trackDir, 'proposal.md'), '# Proposal\n\nArchive knowledge sync behavior.\n');
+    writeFile(path.join(trackDir, 'decisions', 'use-docs-sync.md'), '# Use Docs Sync\n\n### Durable\nSync durable decisions to configured knowledge targets.\n');
+
+    const proc = Bun.spawn([
+      'bun',
+      'run',
+      cliEntry,
+      '--workspace-dir',
+      ws,
+      'archive',
+      trackId,
+      '--yes',
+      '--skip-specs',
+    ], {
+      cwd: repoRoot,
+      stdout: 'pipe',
+      stderr: 'pipe',
+    });
+
+    const exitCode = await proc.exited;
+    const err = await new Response(proc.stderr).text();
+    expect(err).toBe('');
+    expect(exitCode).toBe(0);
+
+    const knowledgeRoot = path.join(ws, 'docs', '2026-05');
+    expect(fs.existsSync(knowledgeRoot)).toBe(true);
+    const knowledgeDir = fs.readdirSync(knowledgeRoot)[0];
+    const syncedDecision = fs.readFileSync(path.join(knowledgeRoot, knowledgeDir, 'decision.md'), 'utf-8');
+    expect(syncedDecision).toContain('Decision URI: decision://use-docs-sync');
+    expect(syncedDecision).toContain('Target: knowledge://main-docs');
+    expect(syncedDecision).toContain('Sync durable decisions to configured knowledge targets.');
+  });
+
+  it('fails before moving the track when a configured knowledge target root is missing', async () => {
+    const repoRoot = path.resolve(__dirname, '../../..');
+    const cliEntry = path.join(repoRoot, 'src/cli/index.ts');
+    const ws = makeTempDir('codument-archive-missing-knowledge-target-ws-');
+    const externalRoot = path.join(os.tmpdir(), `codument-missing-target-${Date.now()}`);
+    const trackId = 'archive-missing-knowledge-target';
+    const trackDir = path.join(ws, 'codument', 'tracks', trackId);
+
+    writeFile(path.join(ws, 'codument', 'config', 'feature.json'), JSON.stringify({
+      knowledgeSync: {
+        enabled: true,
+        targets: [{ name: 'external-docs', root: externalRoot }],
+      },
+      projectMemory: { enabled: false },
+    }, null, 2));
+    writeFile(path.join(trackDir, 'plan.xml'), `<?xml version="1.0"?>
+<plan><metadata>
+  <track_id>${trackId}</track_id>
+  <type>feature</type>
+  <status>completed</status>
+  <created_at>2026-05-30T01:00:00Z</created_at>
+  <updated_at>2026-05-30T14:32:00+08:00</updated_at>
+  <description>missing knowledge target test</description>
+</metadata><phases></phases></plan>`);
+    writeFile(path.join(trackDir, 'proposal.md'), '# Proposal\n\nArchive missing knowledge target behavior.\n');
+    writeFile(path.join(trackDir, 'decisions', 'external-docs.md'), '# External Docs\n\n### Durable\nDo not create missing external roots silently.\n');
+
+    const proc = Bun.spawn([
+      'bun',
+      'run',
+      cliEntry,
+      '--workspace-dir',
+      ws,
+      'archive',
+      trackId,
+      '--yes',
+      '--skip-specs',
+    ], {
+      cwd: repoRoot,
+      stdout: 'pipe',
+      stderr: 'pipe',
+    });
+
+    const exitCode = await proc.exited;
+    const err = await new Response(proc.stderr).text();
+    expect(exitCode).toBe(1);
+    expect(err).toContain('Knowledge sync target root does not exist');
+    expect(fs.existsSync(externalRoot)).toBe(false);
+    expect(fs.existsSync(trackDir)).toBe(true);
+  });
+
   it('applies XML spec patches from archived tracks to the spec registry', async () => {
     const repoRoot = path.resolve(__dirname, '../../..');
     const cliEntry = path.join(repoRoot, 'src/cli/index.ts');

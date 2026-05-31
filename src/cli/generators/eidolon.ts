@@ -10,7 +10,7 @@ import {
   EIDOLON_WORKFLOW_SKILL_DISPLAY_PATH,
   LEGACY_CODUMENT_SKILL_NAME,
   buildWorkflowSkillDirectories,
-} from '../../skills/codument-workflow';
+} from '../../skills/codument-lifecycle';
 import { buildSkillWrapperBody } from './prompt-builders';
 import { syncGeneratedSkillDirectories } from './skill-sync';
 

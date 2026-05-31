@@ -148,6 +148,8 @@ codument/
 │       │       └── delta.xml
 │       ├── plan.xml        # 结构化任务清单
 │       ├── decisions.md    # 决策问题、选项、结论与理由（需要决策时创建）
+│       ├── decisions/      # 可提升为 decision:// 的 durable 单文件决策
+│       ├── memory/         # 可选长期记忆候选，按类型分子目录
 │       ├── design.md       # 技术决策（可选）
 │       ├── context.md      # 波次执行上下文（波次模式）
 │       ├── state.md        # 波次执行状态追踪（波次模式）
@@ -456,6 +458,8 @@ codument show [track] --json
 - `proposal.md` - 为什么和是什么
 - `plan.xml` - 结构化实现步骤
 - `decisions.md` - 决策问题、选项、用户答复、最终结论与理由
+- `decisions/` - archive-ready 的 durable 单文件决策；归档时可提升为 `decision://`
+- `memory/` - 可选长期记忆候选；仅在 `projectMemory.enabled=true` 时可提升为 `memory://`
 - `design.md` - 方案设计与决策摘要
 - `spec_deltas/` - XML 规范增量；旧 track 可兼容 `spec.md`
 - `context.md` - 波次执行上下文（波次模式）

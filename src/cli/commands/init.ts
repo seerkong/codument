@@ -27,7 +27,7 @@ import {
   OPENCODE_WORKFLOW_COMMAND_DISPLAY_PATH,
   OPENCODE_WORKFLOW_SKILL_DISPLAY_PATH,
   SPARROW_WORKFLOW_SKILL_DISPLAY_PATH,
-} from '../../skills/codument-workflow';
+} from '../../skills/codument-lifecycle';
 import {
   docsImplFractalTemplate,
   docsModelingFractalTemplate,

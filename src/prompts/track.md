@@ -127,7 +127,13 @@
    |      |         |
    ```
 
-6. **在 plan.xml `<metadata>` 中写入：**
+6. **创建决策和记忆目录：** 在 track 目录下创建 `decisions/` 和 `memory/` 子目录
+   - `codument/tracks/<track_id>/decisions/` -- 存放 archive-ready 的 durable 单文件决策（每个长期决策一个 .md 文件）
+   - 需要用户确认的过程决策仍使用根级 `decisions.md` 作为评审入口
+   - `codument/tracks/<track_id>/memory/` -- 存放记忆上下文（按类型分子目录：`lessons/`、`incidents/`、`patterns/`、`summaries/`）
+   - 如果目录已存在则跳过
+
+7. **在 plan.xml `<metadata>` 中写入：**
     ```xml
     <metadata>
       <track_id>track-id</track_id>
@@ -273,6 +279,7 @@ Bad：
 1. **识别是否需要决策记录：**
    - 如果存在需要用户确认的技术/产品/交互决策，创建 `codument/tracks/<track_id>/decisions.md`
    - `decisions.md` 是决策评审的主入口；无论在创建/设计阶段还是后续执行阶段，只要出现新的决策补充，都必须追加并回写到该文件
+   - 如果某个决策属于未来仍需遵守的 durable 长期项目决策，同时在 `codument/tracks/<track_id>/decisions/<slug>.md` 创建单文件记录，并明确写出 `Durable` / `长期项目决策` 标记，供 archive 提升到 `decision://<slug>`
    - 问题标题必须避免使用字母作为标题前缀；字母仅用于选项
    - 每个问题标题使用 `【Pn】` 表示重要程度，例如：`### 1. 【P0】文件内容来源`
 
@@ -377,6 +384,18 @@ Bad：
     - **可配置确认**：如需在阶段或任务执行前/后确认，可在 `<phase>` 或 `<task>` 下添加 `<confirm protocol="yield-human-confirm|yield-gap-loop" when="before|after|both" status="TODO" />`（见 `codument/std/protocols.md`）
     - **默认确认策略（重要）**：默认情况下，仅在**最后一个 phase** 下添加一个 `when="after"` 的 phase 级 `<confirm ... />`；中间 phase 默认**不添加** `<confirm>`，task 默认也**不添加** `<confirm>`
     - **例外**：只有在用户明确要求、存在高风险发布/迁移/安全检查、或确有必要在关键节点暂停审阅时，才为中间 phase 或 task 添加额外 `<confirm>`
+    - **知识同步任务（可选）**：如果 `codument/config/feature.json` 中 `knowledgeSync.enabled=true`，在 tasks 中添加一个文档同步任务：
+      ```xml
+      <task id="T-sync-knowledge-docs" name="同步项目知识文档" priority="P1" status="TODO">
+        <description>根据 feature.json 中配置的 knowledgeSync targets 和对应 attractor，判断并同步受影响的知识目录。</description>
+        <acceptance_criteria>
+          <criterion id="AC-read-attractor" checked="false">已读取目标 knowledge attractor</criterion>
+          <criterion id="AC-decide-sync" checked="false">已判断是否需要同步 docs 或外部知识目录</criterion>
+          <criterion id="AC-log-reason" checked="false">已记录未同步的理由或已完成同步</criterion>
+        </acceptance_criteria>
+      </task>
+      ```
+    - 如果 `knowledgeSync.enabled=false` 或配置缺失，不生成该任务，也不生成 docs 联动信息
 
 3. **写入文件：**
     - 将执行计划写入 `codument/tracks/<track_id>/plan.xml`

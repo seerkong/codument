@@ -5,6 +5,7 @@ import {
   ATTRACTORS_DIR,
   CODUMENT_DIR,
   CONFIG_DIR,
+  DECISIONS_DIR,
   LEGACY_DIR,
   codumentExists,
   parseOptions,
@@ -38,7 +39,7 @@ import {
   OPENCODE_WORKFLOW_SKILL_DISPLAY_PATH,
   SPARROW_WORKFLOW_SKILL_DISPLAY_PATH,
   LEGACY_CODUMENT_SKILL_NAME,
-} from '../../skills/codument-workflow';
+} from '../../skills/codument-lifecycle';
 
 type CLITool = 'claude' | 'codeflicker' | 'codex' | 'eidolon' | 'sparrow' | 'opencode';
 
@@ -138,19 +139,6 @@ function preserveLegacyIfExists(src: string, relativeLegacyPath: string): boolea
     return false;
   }
   copyRecursive(src, dest);
-  return true;
-}
-
-function removeFileIfExists(filePath: string): boolean {
-  if (!fs.existsSync(filePath)) {
-    return false;
-  }
-
-  if (!fs.statSync(filePath).isFile()) {
-    return false;
-  }
-
-  fs.rmSync(filePath, { force: true });
   return true;
 }
 
@@ -265,6 +253,10 @@ export async function upgradeWorkspaceCommand(args: string[]): Promise<void> {
     console.log('✓ Created codument/legacy');
   }
 
+  if (!fs.existsSync(DECISIONS_DIR)) {
+    fs.mkdirSync(DECISIONS_DIR, { recursive: true });
+  }
+
   const legacyCopies: string[] = [];
   if (preserveLegacyIfExists(path.join(CODUMENT_DIR, 'product.md'), path.join('project-context', 'product.md'))) {
     legacyCopies.push('project-context/product.md');
@@ -295,16 +287,6 @@ export async function upgradeWorkspaceCommand(args: string[]): Promise<void> {
   }
   if (attractorCopies.length > 0) {
     console.log(`✓ Created attractors from legacy context: ${attractorCopies.join(', ')}`);
-  }
-
-  const removedRootContextFiles: string[] = [];
-  for (const fileName of ['project.md', 'product.md', 'tech-stack.md']) {
-    if (removeFileIfExists(path.join(CODUMENT_DIR, fileName))) {
-      removedRootContextFiles.push(fileName);
-    }
-  }
-  if (removedRootContextFiles.length > 0) {
-    console.log(`✓ Removed legacy root context files: ${removedRootContextFiles.join(', ')}`);
   }
 
   const featureConfig = ensureFeatureConfig(CODUMENT_DIR);

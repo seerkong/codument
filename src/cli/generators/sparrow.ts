@@ -10,7 +10,7 @@ import {
   CODUMENT_WORKFLOW_SKILL_NAME,
   LEGACY_CODUMENT_SKILL_NAME,
   buildWorkflowSkillDirectories,
-} from '../../skills/codument-workflow';
+} from '../../skills/codument-lifecycle';
 import { syncGeneratedSkillDirectories } from './skill-sync';
 
 function cleanupOldSparrowSkillRoot(oldSkillsRootDir: string): void {

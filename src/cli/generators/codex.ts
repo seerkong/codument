@@ -9,7 +9,7 @@ import {
   CODUMENT_WORKFLOW_SKILL_NAME,
   LEGACY_CODUMENT_SKILL_NAME,
   buildWorkflowSkillDirectories,
-} from '../../skills/codument-workflow';
+} from '../../skills/codument-lifecycle';
 import { syncGeneratedSkillDirectories } from './skill-sync';
 
 const CODEX_SKILLS_DIR = path.join(os.homedir(), '.codex', 'skills');

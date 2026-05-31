@@ -50,7 +50,8 @@
    - 如果是纯工具变更（无规范增量），跳过此步骤
 
 5. **提升长期知识（可选/按配置）：**
-   - 如果 `decisions.md` 中有明确标记为 durable / 长期项目决策的内容，将其提升到 `codument/decisions/YYYY-MM/YYYY-MM-DD-HHmm-slug/decision.md`，并使用 `decision://...` 作为长期引用；普通过程决策只保留在 archive
+   - 优先读取 `decisions/*.md` 中明确标记为 durable / 长期项目决策的单文件决策；旧 track 可兼容读取 `decisions.md`
+   - 将 durable 决策提升到 `codument/decisions/YYYY-MM/YYYY-MM-DD-HHmm-slug/decision.md`，并使用 `decision://<slug>` 作为长期引用；普通过程决策只保留在 archive
    - 仅当 `codument/config/feature.json` 中 `projectMemory.enabled=true` 且 track 中显式存在 `memory/lessons|incidents|patterns|summaries/*.md` 时，才提升 `memory://` 内容；不要从 proposal 或普通日志自动合成 memory
    - 仅当 `knowledgeSync.enabled=true` 时，才同步 docs 或其他配置 target
 

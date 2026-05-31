@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'bun:test';
-import { stdAgentsPrompt, workflowTemplate } from '../../prompts';
-import { buildWorkflowSkillDirectories } from './index';
+import {
+  stdAgentsPrompt,
+  workflowTemplate,
+} from '../prompts';
+import { buildWorkflowSkillDirectories } from './codument-lifecycle';
 
 describe('generated Codument workflow skills', () => {
   it('include attractor, large-track, and knowledge-sync guidance from updated prompts', () => {
@@ -37,6 +40,8 @@ describe('generated Codument workflow skills', () => {
 
     expect(stdAgentsPrompt).toContain('codument/attractors/');
     expect(stdAgentsPrompt).toContain('[capability].xml');
+    expect(stdAgentsPrompt).toContain('decisions/');
+    expect(stdAgentsPrompt).toContain('memory/');
     expect(stdAgentsPrompt).toContain('workflows/');
     expect(workflowTemplate).toContain('codument/attractors/');
   });

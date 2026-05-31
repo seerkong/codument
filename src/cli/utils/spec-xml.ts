@@ -7,6 +7,7 @@ export interface SpecXmlNode {
   attrs: Record<string, string>;
   children: SpecXmlNode[];
   text?: string;
+  sourcePath?: string;
 }
 
 export interface SpecXmlStats {
@@ -204,6 +205,30 @@ function findParentForUpsert(root: SpecXmlNode, selector: string): { parent: Spe
   return { parent, pair: pairs[pairs.length - 1] };
 }
 
+function findOrCreateParentForUpsert(root: SpecXmlNode, selector: string): { parent: SpecXmlNode; pair: { tag: string; id: string } } {
+  const { capability, pairs } = selectorPairs(selector);
+  if (root.tag !== 'capability' || root.attrs.id !== capability) {
+    throw new Error(`Selector capability does not match root capability: ${selector}`);
+  }
+  if (pairs.length === 0) {
+    throw new Error('Cannot upsert the capability root.');
+  }
+
+  let parent = root;
+  for (const pair of pairs.slice(0, -1)) {
+    let index = findChildIndex(parent, pair);
+    if (index === -1) {
+      const child: SpecXmlNode = { tag: pair.tag, attrs: { id: pair.id }, children: [] };
+      setSourcePath(child, parent.sourcePath);
+      parent.children.push(child);
+      index = parent.children.length - 1;
+    }
+    parent = parent.children[index];
+  }
+
+  return { parent, pair: pairs[pairs.length - 1] };
+}
+
 function cleanPatchNode(node: SpecXmlNode): SpecXmlNode {
   const attrs = { ...node.attrs };
   delete attrs.op;
@@ -215,6 +240,17 @@ function cleanPatchNode(node: SpecXmlNode): SpecXmlNode {
     text: node.text,
     children: node.children.map(cleanPatchNode),
   };
+}
+
+function setSourcePath(node: SpecXmlNode, sourcePath: string | undefined): void {
+  if (sourcePath) {
+    node.sourcePath = sourcePath;
+  } else {
+    delete node.sourcePath;
+  }
+  for (const child of node.children) {
+    setSourcePath(child, sourcePath);
+  }
 }
 
 export function applySpecXmlPatchContent(specContent: string, patchContent: string): string {
@@ -293,38 +329,6 @@ export function getSpecPatchCapabilities(patchContent: string): string[] {
   return [...capabilities];
 }
 
-function filterPatchForCapability(patchContent: string, capability: string): string {
-  const patchRoot = parseSpecXmlContent(patchContent);
-  if (patchRoot.tag !== 'spec-patch') {
-    throw new Error('Patch root must be <spec-patch>.');
-  }
-
-  const filtered: SpecXmlNode = {
-    tag: patchRoot.tag,
-    attrs: patchRoot.attrs,
-    children: [],
-  };
-
-  for (const mutation of patchRoot.children) {
-    const selector = mutation.attrs.selector;
-    if (!selector) {
-      continue;
-    }
-
-    const selectorCapability = getSpecSelectorCapability(selector);
-    const to = mutation.attrs.to;
-    const toCapability = to ? getSpecSelectorCapability(to) : selectorCapability;
-    if (selectorCapability !== toCapability) {
-      throw new Error(`Cross-capability spec XML mutation is not supported yet: ${selector} -> ${to}`);
-    }
-    if (selectorCapability === capability) {
-      filtered.children.push(mutation);
-    }
-  }
-
-  return `${serializeSpecXml(filtered)}\n`;
-}
-
 function resolveRegistrySpecEntry(specsDir: string, capability: string): { loadPath: string; writePath: string } {
   const filePath = path.join(specsDir, `${capability}.xml`);
   if (fs.existsSync(filePath)) {
@@ -340,69 +344,259 @@ function resolveRegistrySpecEntry(specsDir: string, capability: string): { loadP
   throw new Error(`Spec XML registry entry not found for capability: ${capability}`);
 }
 
-function createCapabilityFromPatch(patchContent: string, capability: string): string {
+interface RegistryMutationEntry {
+  root: SpecXmlNode;
+  writePath: string;
+  includedRootByPath?: Map<string, SpecXmlNode>;
+  includeNodeByPath?: Map<string, SpecXmlNode>;
+}
+
+function loadRegistryEntry(specsDir: string, capability: string): RegistryMutationEntry {
+  const entry = resolveRegistrySpecEntry(specsDir, capability);
+  if (fs.statSync(entry.loadPath).isDirectory()) {
+    return loadFolderRegistryEntry(entry.writePath);
+  }
+  return {
+    root: loadSpecXml(entry.loadPath),
+    writePath: entry.writePath,
+  };
+}
+
+function cloneNodeWithoutSource(node: SpecXmlNode): SpecXmlNode {
+  return {
+    tag: node.tag,
+    attrs: { ...node.attrs },
+    text: node.text,
+    children: node.children.map(cloneNodeWithoutSource),
+  };
+}
+
+function markSourcePath(node: SpecXmlNode, sourcePath: string): void {
+  node.sourcePath = sourcePath;
+  for (const child of node.children) {
+    markSourcePath(child, sourcePath);
+  }
+}
+
+function expandRegistryIncludes(
+  node: SpecXmlNode,
+  baseDir: string,
+  includedRootByPath: Map<string, SpecXmlNode>,
+  includeNodeByPath: Map<string, SpecXmlNode>,
+): SpecXmlNode[] {
+  if (node.tag === 'include') {
+    const href = node.attrs.href;
+    if (!href) {
+      return [];
+    }
+    const includePath = path.resolve(baseDir, href);
+    const included = parseSpecXmlContent(fs.readFileSync(includePath, 'utf-8'));
+    markSourcePath(included, includePath);
+    included.children = included.children.flatMap((child) => expandRegistryIncludes(
+      child,
+      path.dirname(includePath),
+      includedRootByPath,
+      includeNodeByPath,
+    ));
+    includedRootByPath.set(includePath, included);
+    includeNodeByPath.set(includePath, cloneNodeWithoutSource(node));
+    return [included];
+  }
+
+  node.children = node.children.flatMap((child) => expandRegistryIncludes(
+    child,
+    node.sourcePath ? path.dirname(node.sourcePath) : baseDir,
+    includedRootByPath,
+    includeNodeByPath,
+  ));
+  return [node];
+}
+
+function loadFolderRegistryEntry(indexPath: string): RegistryMutationEntry {
+  const includedRootByPath = new Map<string, SpecXmlNode>();
+  const includeNodeByPath = new Map<string, SpecXmlNode>();
+  const root = parseSpecXmlContent(fs.readFileSync(indexPath, 'utf-8'));
+  expandRegistryIncludes(root, path.dirname(indexPath), includedRootByPath, includeNodeByPath);
+  return {
+    root,
+    writePath: indexPath,
+    includedRootByPath,
+    includeNodeByPath,
+  };
+}
+
+function createRegistryEntry(specsDir: string, capability: string): RegistryMutationEntry {
+  return {
+    root: { tag: 'capability', attrs: { id: capability, version: '1' }, children: [] },
+    writePath: path.join(specsDir, `${capability}.xml`),
+  };
+}
+
+export function applySpecXmlPatchToRegistry(patchContent: string, specsDir: string): string[] {
   const patchRoot = parseSpecXmlContent(patchContent);
-  const root: SpecXmlNode = {
-    tag: 'capability',
-    attrs: { id: capability, version: '1' },
-    children: [],
+  if (patchRoot.tag !== 'spec-patch') {
+    throw new Error('Patch root must be <spec-patch>.');
+  }
+  if (!fs.existsSync(specsDir)) {
+    fs.mkdirSync(specsDir, { recursive: true });
+  }
+
+  const entries = new Map<string, RegistryMutationEntry>();
+  const updated = new Set<string>();
+
+  const getExistingEntry = (capability: string): RegistryMutationEntry => {
+    const existing = entries.get(capability);
+    if (existing) {
+      return existing;
+    }
+    const entry = loadRegistryEntry(specsDir, capability);
+    entries.set(capability, entry);
+    return entry;
   };
 
-  for (const mutation of patchRoot.children) {
-    const op = mutation.attrs.op;
-    const selector = mutation.attrs.selector;
-    if (op !== 'upsert' || !selector || getSpecSelectorCapability(selector) !== capability) {
-      continue;
+  const getOrCreateEntry = (capability: string): RegistryMutationEntry => {
+    const existing = entries.get(capability);
+    if (existing) {
+      return existing;
     }
-
-    const pairs = selectorPairs(selector).pairs;
-    let parent = root;
-    for (const pair of pairs.slice(0, -1)) {
-      let child = parent.children.find((candidate) => candidate.tag === pair.tag && candidate.attrs.id === pair.id);
-      if (!child) {
-        child = { tag: pair.tag, attrs: { id: pair.id }, children: [] };
-        parent.children.push(child);
+    try {
+      const entry = loadRegistryEntry(specsDir, capability);
+      entries.set(capability, entry);
+      return entry;
+    } catch (error) {
+      if (!(error instanceof Error) || !error.message.includes('Spec XML registry entry not found')) {
+        throw error;
       }
-      parent = child;
+      const entry = createRegistryEntry(specsDir, capability);
+      entries.set(capability, entry);
+      return entry;
     }
+  };
 
-    const clean = cleanPatchNode(mutation);
-    const index = parent.children.findIndex((child) => child.tag === clean.tag && child.attrs.id === clean.attrs.id);
+  const upsertNode = (root: SpecXmlNode, selector: string, node: SpecXmlNode): void => {
+    const { parent, pair } = findOrCreateParentForUpsert(root, selector);
+    const clean = cleanPatchNode(node);
+    if (!clean.attrs.id) {
+      clean.attrs.id = pair.id;
+    }
+    const index = findChildIndex(parent, pair);
+    const inheritedSourcePath = index === -1
+      ? parent.sourcePath
+      : parent.children[index].sourcePath ?? parent.sourcePath;
+    setSourcePath(clean, inheritedSourcePath);
     if (index === -1) {
       parent.children.push(clean);
     } else {
       parent.children[index] = clean;
     }
+  };
+
+  for (const mutation of patchRoot.children) {
+    const op = mutation.attrs.op;
+    const selector = mutation.attrs.selector;
+    if (!op || !selector) {
+      continue;
+    }
+
+    const sourceCapability = getSpecSelectorCapability(selector);
+    if (op === 'upsert') {
+      const entry = getOrCreateEntry(sourceCapability);
+      upsertNode(entry.root, selector, mutation);
+      updated.add(sourceCapability);
+      continue;
+    }
+
+    if (op === 'delete') {
+      const entry = getExistingEntry(sourceCapability);
+      const target = findNode(entry.root, selector);
+      if (!target.parent) {
+        throw new Error('Cannot delete capability root.');
+      }
+      target.parent.children.splice(target.index, 1);
+      updated.add(sourceCapability);
+      continue;
+    }
+
+    if (op === 'move') {
+      const to = mutation.attrs.to;
+      if (!to) {
+        throw new Error('Move operation requires a to attribute.');
+      }
+      const sourceEntry = getExistingEntry(sourceCapability);
+      const target = findNode(sourceEntry.root, selector);
+      if (!target.parent) {
+        throw new Error('Cannot move capability root.');
+      }
+      const [removed] = target.parent.children.splice(target.index, 1);
+      const destinationCapability = getSpecSelectorCapability(to);
+      const destinationEntry = getOrCreateEntry(destinationCapability);
+      const { parent, pair } = findOrCreateParentForUpsert(destinationEntry.root, to);
+      removed.tag = pair.tag;
+      removed.attrs.id = pair.id;
+      setSourcePath(removed, parent.sourcePath);
+      const existingIndex = findChildIndex(parent, pair);
+      if (existingIndex === -1) {
+        parent.children.push(removed);
+      } else {
+        parent.children[existingIndex] = removed;
+      }
+      updated.add(sourceCapability);
+      updated.add(destinationCapability);
+      continue;
+    }
+
+    throw new Error(`Unsupported spec XML patch operation: ${op}`);
   }
 
-  return `${serializeSpecXml(root)}\n`;
+  for (const [capability, entry] of [...entries.entries()].sort(([a], [b]) => a.localeCompare(b))) {
+    if (updated.has(capability)) {
+      writeRegistryEntry(entry);
+    }
+  }
+
+  return [...updated];
 }
 
-export function applySpecXmlPatchToRegistry(patchContent: string, specsDir: string): string[] {
-  const updated: string[] = [];
-  for (const capability of getSpecPatchCapabilities(patchContent)) {
-    let writePath: string;
-    let nextContent: string;
-    try {
-      const entry = resolveRegistrySpecEntry(specsDir, capability);
-      const root = loadSpecXml(entry.loadPath);
-      const filteredPatch = filterPatchForCapability(patchContent, capability);
-      writePath = entry.writePath;
-      nextContent = applySpecXmlPatchContent(serializeSpecXml(root), filteredPatch);
-    } catch (error) {
-      if (!(error instanceof Error) || !error.message.includes('Spec XML registry entry not found')) {
-        throw error;
-      }
-      if (!fs.existsSync(specsDir)) {
-        fs.mkdirSync(specsDir, { recursive: true });
-      }
-      writePath = path.join(specsDir, `${capability}.xml`);
-      nextContent = createCapabilityFromPatch(patchContent, capability);
+function cloneForIndex(node: SpecXmlNode, entry: RegistryMutationEntry, parentSourcePath?: string): SpecXmlNode {
+  const nodeSourcePath = node.sourcePath;
+  if (nodeSourcePath && nodeSourcePath !== parentSourcePath) {
+    const includeNode = entry.includeNodeByPath?.get(nodeSourcePath);
+    if (includeNode) {
+      return cloneNodeWithoutSource(includeNode);
     }
-    fs.writeFileSync(writePath, nextContent, 'utf-8');
-    updated.push(capability);
   }
-  return updated;
+
+  const nextParentSourcePath = nodeSourcePath ?? parentSourcePath;
+  return {
+    tag: node.tag,
+    attrs: { ...node.attrs },
+    text: node.text,
+    children: node.children.map((child) => cloneForIndex(child, entry, nextParentSourcePath)),
+  };
+}
+
+function writeRegistryEntry(entry: RegistryMutationEntry): void {
+  if (!entry.includedRootByPath || !entry.includeNodeByPath) {
+    fs.writeFileSync(entry.writePath, `${serializeSpecXml(entry.root)}\n`, 'utf-8');
+    return;
+  }
+
+  const reachableSourcePaths = new Set<string>();
+  const collect = (node: SpecXmlNode): void => {
+    if (node.sourcePath) {
+      reachableSourcePaths.add(node.sourcePath);
+    }
+    node.children.forEach(collect);
+  };
+  collect(entry.root);
+
+  for (const [sourcePath, sourceRoot] of entry.includedRootByPath.entries()) {
+    if (reachableSourcePaths.has(sourcePath)) {
+      fs.writeFileSync(sourcePath, `${serializeSpecXml(cloneForIndex(sourceRoot, entry, sourcePath))}\n`, 'utf-8');
+    }
+  }
+
+  fs.writeFileSync(entry.writePath, `${serializeSpecXml(cloneForIndex(entry.root, entry))}\n`, 'utf-8');
 }
 
 export function serializeSpecXml(node: SpecXmlNode, indent = 0): string {
