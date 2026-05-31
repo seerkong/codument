@@ -1,52 +1,50 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<plan>
-  <metadata>
-    <track_id>refactor-prompt-question-protocols</track_id>
-    <track_name>统一提问协议并同步归档 XML 规范</track_name>
-    <goal>将提示词提问规范统一抽象，并修正归档 XML 为 plan.xml 规范</goal>
-    <created_at>2026-01-22T20:00:00Z</created_at>
-    <updated_at>2026-01-22T20:00:00Z</updated_at>
-    <status>completed</status>
-    <commit_mode>manual</commit_mode>
-  </metadata>
-
-  <phases>
-    <phase id="P1" name="协议与提示词" >
-      <goal>统一提问协议并替换提示词引用</goal>
-      <tasks>
-        <task id="T1.1" name="抽取提问协议" status="DONE" priority="P0">
-          在 protocols 中定义单问/多问 × 可自由输入/不可自由输入的四类协议
-          <acceptance_criteria>
-            <criterion id="T1.1-AC1" checked="true">protocols.md 包含四类协议</criterion>
-          </acceptance_criteria>
-        </task>
-        <task id="T1.2" name="替换提示词引用" status="DONE" priority="P0">
-          将 src/prompts 内所有提问场景改为引用可复用协议
-          <dependencies>T1.1</dependencies>
-          <acceptance_criteria>
-            <criterion id="T1.2-AC1" checked="true">所有提问场景均引用协议</criterion>
-          </acceptance_criteria>
-        </task>
-        <task id="T1.3" name="归档 XML 同步" status="DONE" priority="P1">
-          将归档中的旧任务 XML（早期格式）迁移为 plan.xml 并修正引用
-          <dependencies>T1.2</dependencies>
-          <acceptance_criteria>
-            <criterion id="T1.3-AC1" checked="true">归档中不存在旧格式任务文件引用</criterion>
-          </acceptance_criteria>
-        </task>
-      </tasks>
-      <gate_criteria>
-        <criterion>所有 P0 任务完成</criterion>
-      </gate_criteria>
-    </phase>
-  </phases>
-
-  <summary>
-    <total_phases>1</total_phases>
-    <total_tasks>3</total_tasks>
-    <completed>3</completed>
-    <in_progress>0</in_progress>
-    <todo>0</todo>
-    <blocked>0</blocked>
-  </summary>
+<plan status="active">
+  
+  <phase id="P1" name="Refactor Prompt Protocols">
+    
+    <task id="P1-T1" name="Extract Question protocol" status="DONE">
+      <description>Extract the question protocol from the old prompt format.</description>
+      
+      <dependencies>
+        
+      </dependencies>
+      
+    </task>
+    
+    
+    
+    <task id="P1-T2" name="Define Question type variants" status="DONE">
+      <description>Define variants for yes_no, text, number, single_select, multi_select question types.</description>
+      
+      <dependencies>
+        
+        <dependency task_id="P1-T1" kind="waits_for"/>
+        
+      </dependencies>
+      
+    </task>
+    
+    
+    
+    <task id="P1-T3" name="Implement Message overloads" status="DONE">
+      <description>Implement Message overloads for each question type variant.</description>
+      
+      <dependencies>
+        
+        <dependency task_id="P1-T1" kind="waits_for"/>
+        
+        
+        <dependency task_id="P1-T2" kind="waits_for"/>
+        
+        
+      </dependencies>
+      
+    </task>
+    
+    
+  </phase>
+  
+  
+  
 </plan>
