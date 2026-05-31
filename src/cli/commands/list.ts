@@ -24,14 +24,15 @@ export async function listCommand(args: string[]) {
     }
 
     console.log('\nSpecifications:\n');
-    console.log('  ID                          Requirements  Scenarios');
-    console.log('  ' + '-'.repeat(60));
+    console.log('  ID                          Format      Requirements  Scenarios');
+    console.log('  ' + '-'.repeat(72));
 
     for (const spec of specs) {
       const id = spec.id.padEnd(28);
+      const format = (spec.format || 'markdown').padEnd(12);
       const reqs = String(spec.requirements).padStart(8);
       const scenarios = String(spec.scenarios).padStart(10);
-      console.log(`  ${id}${reqs}${scenarios}`);
+      console.log(`  ${id}${format}${reqs}${scenarios}`);
     }
 
     console.log(`\nTotal: ${specs.length} spec(s)\n`);

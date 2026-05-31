@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { getTrack, getTrackIds, getSpecs, parseOptions, codumentExists, TRACKS_DIR, SPECS_DIR } from '../utils';
+import { getSpecPatchCapabilities, getSpecXmlStats, loadSpecXml, parseSpecXmlContent } from '../utils/spec-xml';
 
 interface ValidationError {
   file: string;
@@ -38,10 +39,11 @@ export async function validateCommand(args: string[]) {
     } else {
       const trackDir = path.join(TRACKS_DIR, itemId);
       const specDir = path.join(SPECS_DIR, itemId);
+      const specXmlFile = path.join(SPECS_DIR, `${itemId}.xml`);
 
       if (fs.existsSync(trackDir)) {
         foundType = 'track';
-      } else if (fs.existsSync(specDir)) {
+      } else if (fs.existsSync(specDir) || fs.existsSync(specXmlFile)) {
         foundType = 'spec';
       }
     }
@@ -109,11 +111,35 @@ function validateTrack(trackId: string, strict: boolean): ValidationResult {
   // Trigger legacy metadata.json -> plan.xml metadata migration when possible.
   getTrack(trackId);
 
-  // Check spec.md
+  const xmlDeltaFiles = collectTrackXmlSpecDeltas(trackDir);
+  for (const deltaPath of xmlDeltaFiles) {
+    try {
+      const content = fs.readFileSync(deltaPath, 'utf-8');
+      const patchRoot = parseSpecXmlContent(content);
+      if (patchRoot.tag !== 'spec-patch') {
+        errors.push({ file: path.relative(trackDir, deltaPath), message: 'XML spec delta root must be <spec-patch>' });
+      } else if (getSpecPatchCapabilities(content).length === 0) {
+        errors.push({ file: path.relative(trackDir, deltaPath), message: 'XML spec delta must contain at least one mutation with a spec:// selector' });
+      }
+    } catch (error) {
+      errors.push({
+        file: path.relative(trackDir, deltaPath),
+        message: error instanceof Error ? error.message : 'Invalid XML spec delta',
+      });
+    }
+  }
+
+  // Legacy Markdown spec delta is still accepted for old tracks.
   const specPath = path.join(trackDir, 'spec.md');
-  if (!fs.existsSync(specPath)) {
-    errors.push({ file: 'spec.md', message: 'File not found' });
+  if (!fs.existsSync(specPath) && xmlDeltaFiles.length === 0) {
+    errors.push({ file: 'spec_deltas/*.xml|spec.md', message: 'No XML spec delta found (legacy spec.md also missing)' });
   } else {
+    if (xmlDeltaFiles.length > 0 && fs.existsSync(specPath)) {
+      warnings.push({ file: 'spec.md', message: 'Legacy Markdown spec.md is ignored when XML spec deltas exist' });
+    }
+  }
+
+  if (fs.existsSync(specPath) && xmlDeltaFiles.length === 0) {
     const content = fs.readFileSync(specPath, 'utf-8');
     const lines = content.split('\n');
 
@@ -379,14 +405,68 @@ function validateTrack(trackId: string, strict: boolean): ValidationResult {
   };
 }
 
+function collectTrackXmlSpecDeltas(trackDir: string): string[] {
+  const results: string[] = [];
+  const roots = [
+    path.join(trackDir, 'spec_deltas'),
+    path.join(trackDir, 'spec-deltas'),
+  ];
+
+  const visit = (dir: string) => {
+    if (!fs.existsSync(dir)) {
+      return;
+    }
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const entryPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        visit(entryPath);
+      } else if (entry.isFile() && entry.name.endsWith('.xml')) {
+        results.push(entryPath);
+      }
+    }
+  };
+
+  for (const root of roots) {
+    visit(root);
+  }
+  return results.sort();
+}
+
 function validateSpec(specId: string, _strict: boolean): ValidationResult {
   const specDir = path.join(SPECS_DIR, specId);
   const errors: ValidationError[] = [];
   const warnings: ValidationError[] = [];
 
   const specPath = path.join(specDir, 'spec.md');
-  if (!fs.existsSync(specPath)) {
-    errors.push({ file: 'spec.md', message: 'File not found' });
+  const specXmlFilePath = path.join(SPECS_DIR, `${specId}.xml`);
+  const specXmlIndexPath = path.join(specDir, 'index.xml');
+  const isXml = fs.existsSync(specXmlFilePath) || fs.existsSync(specXmlIndexPath);
+
+  if (!fs.existsSync(specPath) && !isXml) {
+    errors.push({ file: 'spec.md|index.xml', message: 'Spec file not found' });
+  } else if (isXml) {
+    try {
+      const xmlEntryPath = fs.existsSync(specXmlFilePath) ? specXmlFilePath : specDir;
+      const root = loadSpecXml(xmlEntryPath);
+      if (root.tag !== 'capability') {
+        errors.push({ file: 'index.xml', message: 'XML spec root must be <capability>' });
+      }
+      if (!root.attrs.id) {
+        errors.push({ file: 'index.xml', message: 'XML capability must have an id attribute' });
+      }
+      const stats = getSpecXmlStats(root);
+      if (stats.requirements === 0) {
+        errors.push({ file: 'index.xml', message: 'XML spec must have at least one requirement' });
+      }
+      if (stats.scenarios === 0) {
+        errors.push({ file: 'index.xml', message: 'XML spec must have at least one case' });
+      }
+    } catch (error) {
+      errors.push({
+        file: fs.existsSync(specXmlFilePath) ? `${specId}.xml` : 'index.xml',
+        message: error instanceof Error ? error.message : 'Invalid XML spec',
+      });
+    }
   } else {
     const content = fs.readFileSync(specPath, 'utf-8');
 

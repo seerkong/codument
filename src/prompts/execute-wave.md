@@ -1,4 +1,4 @@
-# codument:execute-wave - 波次执行命令
+# codument-execute-wave skill - 波次执行
 
 **描述：** 按波次 DAG 调度执行 plan.xml 中的任务
 
@@ -22,8 +22,8 @@
 
 ## 1.2 交互式问答
 
-**协议：验证当前运行的环境对交互式问答的能力支持**
-**重要** 若环境支持向用户提出澄清/确认问题的 ToolCall，则在“必须提问”的场景下必须使用 ToolCall。
+**协议：引用 `codument/std/protocols.md` 中的 ask-* 问答协议。**
+**重要** 若环境支持向用户提出澄清/确认问题的 ToolCall，则仅在“必须提问”的场景下使用 ToolCall。禁止为了测试运行环境能力而发起占位问题。
 
 **必须提问的场景仅包括：**
 - 需要用户选择（如 track 选择模糊、phase 选择）
@@ -44,7 +44,7 @@
 
 1. **检查 execution_mode：** 必须为 `wave`
    - 如果为 `sequential` 或缺失：
-     > "当前 plan.xml 的执行模式为 sequential。请先运行 `/codument:plan-wave` 生成波次规划。"
+     > "当前 plan.xml 的执行模式为 sequential。请先使用 `codument-plan-wave` skill 生成波次规划。"
      停止执行。
 
 2. **验证 waves 声明：** 每个 phase 必须包含 `<waves>` 声明
@@ -238,4 +238,4 @@ while 存在未完成的 wave:
    > - 任务：<n>/<n> 完成
    >
    > 建议下一步：
-   > - 运行 `/codument:archive` 归档此 track"
+   > - 使用 `请使用 codument-archive skill, 归档track: <track_id>` 归档此 track"

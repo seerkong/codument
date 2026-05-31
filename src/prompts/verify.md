@@ -15,17 +15,16 @@
 
 ## 1.1 设置检查
 
-1. 检查以下文件存在：
-   - `codument/project.md`
+1. 检查以下入口存在：
+   - 项目上下文：优先使用 `codument/attractors/`；如果该目录不存在，旧项目必须同时存在 `codument/project.md` 和 `codument/product.md`
    - `codument/std/workflow.md`
    - `codument/workflows/workflow.md`
-   - `codument/product.md`
-2. 如缺失，停止并提示：
-   - "Codument 未设置。请先运行 `/codument:init`。"
+2. 如果标准工作流文件缺失，或既没有 `codument/attractors/` 也没有旧项目 `project.md`/`product.md` 组合，停止并提示：
+   - "Codument 未设置。请先使用 `codument-init` skill。"
 
 ## 1.2 交互式问答
 
-如果当前环境支持提问 ToolCall，优先使用该能力提出等价问题。
+所有用户澄清、选择、确认问题都必须遵循 `codument/std/protocols.md` 中的 ask-* 协议。问答 ToolCall 只能用于真实问题；禁止为了测试运行环境能力而发起占位问题。
 
 ---
 
@@ -41,7 +40,7 @@
 
 3. 读取上下文文件：
    - `codument/tracks/<track_id>/plan.xml`
-   - `codument/tracks/<track_id>/spec.md`
+   - `codument/tracks/<track_id>/spec_deltas/**/*.xml`；旧 track 可兼容 `codument/tracks/<track_id>/spec.md`
    - `codument/tracks/<track_id>/proposal.md`
    - `codument/tracks/<track_id>/design.md`（如存在）
    - `codument/tracks/<track_id>/context.md`（如存在）

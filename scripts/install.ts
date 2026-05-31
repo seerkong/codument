@@ -10,8 +10,11 @@ import { homedir, platform } from "os";
 
 const isWindows = platform() === "win32";
 const projectRoot = resolve(import.meta.dir, "..");
-const exeName = isWindows ? "codument.exe" : "codument";
+const requestedBinName = process.argv[2] || process.env.CODUMENT_BIN_NAME || "codument";
+const binBaseName = requestedBinName.replace(/\.exe$/i, "");
+const exeName = isWindows ? `${binBaseName}.exe` : binBaseName;
 const sourcePath = join(projectRoot, "dist", exeName);
+const buildScript = binBaseName === "codument" ? "bun run build" : `bun run build:${binBaseName.replace(/^codument-/, "")}`;
 
 // Determine target bin directory
 function getTargetBinDir(): string {
@@ -50,14 +53,14 @@ function install(): void {
   // Verify source exists
   if (!existsSync(sourcePath)) {
     console.error(`Error: Source file not found: ${sourcePath}`);
-    console.error("Please run 'bun run build' first.");
+    console.error(`Please run '${buildScript}' first.`);
     process.exit(1);
   }
 
   const targetDir = getTargetBinDir();
   const targetPath = join(targetDir, exeName);
 
-  console.log(`Installing codument...`);
+  console.log(`Installing ${binBaseName}...`);
   console.log(`  Source: ${sourcePath}`);
   console.log(`  Target: ${targetPath}`);
 
@@ -104,9 +107,9 @@ function install(): void {
 
   console.log();
   if (isInPath) {
-    console.log(`Done! You can now run 'codument' from anywhere.`);
+    console.log(`Done! You can now run '${binBaseName}' from anywhere.`);
   } else {
-    console.log(`Done! Add this directory to your PATH to use 'codument' globally:`);
+    console.log(`Done! Add this directory to your PATH to use '${binBaseName}' globally:`);
     console.log();
     if (isWindows) {
       console.log(`  PowerShell (current session):`);

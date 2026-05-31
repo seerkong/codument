@@ -10,12 +10,15 @@
   "scripts": {
     "dev": "bun run src/cli/index.ts",
     "build": "bun build src/cli/index.ts --compile --outfile=dist/codument",
+    "build:dev": "bun build src/cli/index.ts --compile --outfile=dist/codument-dev",
+    "build:all": "bun run build && bun run build:dev",
     "test": "bun test",
     "test:coverage": "bun test --coverage",
     "lint": "bunx eslint src",
     "typecheck": "bunx tsc --noEmit",
     "check": "bun run typecheck && bun run lint && bun run test",
-    "install:local": "bun run scripts/install.ts"
+    "install:local": "bun run scripts/install.ts",
+    "install:local:dev": "bun run scripts/install.ts codument-dev"
   },
   "keywords": [
     "spec-driven",

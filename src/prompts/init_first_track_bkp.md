@@ -9,7 +9,7 @@
 
 2. **保存文件：** 添加并提交所有文件，消息为 `codument(init): Add codument setup files`
 
-3. **后续步骤：** 通知用户可以运行 `/codument:implement` 开始工作
+3. **后续步骤：** 通知用户可以使用 `请使用 codument-implement skill, 实现track: <track_id>` 开始工作
 
 ## 3.0 初始变更追踪生成
 

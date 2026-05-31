@@ -1,7 +1,15 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as readline from 'readline';
-import { CODUMENT_DIR, codumentExists, parseOptions } from '../utils';
+import {
+  ATTRACTORS_DIR,
+  CODUMENT_DIR,
+  CONFIG_DIR,
+  DECISIONS_DIR,
+  LEGACY_DIR,
+  codumentExists,
+  parseOptions,
+} from '../utils';
 import { generateClaudeCommands } from '../generators/claude';
 import { generateCodeFlickerCommands } from '../generators/codeflicker';
 import { generateCodexCommands } from '../generators/codex';
@@ -21,13 +29,15 @@ import {
   SPARROW_WORKFLOW_SKILL_DISPLAY_PATH,
 } from '../../skills/codument-workflow';
 import {
+  docsImplFractalTemplate,
+  docsModelingFractalTemplate,
   planXmlSpec,
   protocolsPrompt,
   rootAgentsPrompt,
   stdAgentsPrompt,
-  techStackTemplate,
   workflowTemplate,
 } from '../../prompts';
+import { DEFAULT_FEATURE_CONFIG } from '../utils/feature-config';
 
 let TASKS_XML_SPEC = planXmlSpec;
 
@@ -96,6 +106,11 @@ function question(rl: readline.Interface, prompt: string): Promise<string> {
       resolve(answer.trim());
     });
   });
+}
+
+function writeTextFile(filePath: string, content: string): void {
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  fs.writeFileSync(filePath, content.endsWith('\n') ? content : `${content}\n`, 'utf-8');
 }
 
 function multiSelect(rl: readline.Interface, prompt: string, options: { key: string; label: string }[]): Promise<string[]> {
@@ -224,6 +239,10 @@ export async function initCommand(args: string[]): Promise<void> {
         path.join(CODUMENT_DIR, 'tracks'),
         path.join(CODUMENT_DIR, 'specs'),
         path.join(CODUMENT_DIR, 'archive'),
+        ATTRACTORS_DIR,
+        CONFIG_DIR,
+        DECISIONS_DIR,
+        LEGACY_DIR,
         path.join(CODUMENT_DIR, 'std'),
         path.join(CODUMENT_DIR, 'workflows'),
       ];
@@ -246,12 +265,12 @@ export async function initCommand(args: string[]): Promise<void> {
         case 'claude':
           await generateClaudeCommands();
           console.log(`  ✓ 安装 ${CLAUDE_WORKFLOW_SKILL_DISPLAY_PATH}`);
-          console.log(`  ✓ 创建 ${CLAUDE_WORKFLOW_COMMAND_DISPLAY_PATH}*.md`);
+          console.log(`  ✓ 创建 .claude/commands/codument/*.md`);
           break;
         case 'codeflicker':
           await generateCodeFlickerCommands();
           console.log(`  ✓ 安装 ${CODEFLICKER_WORKFLOW_SKILL_DISPLAY_PATH}`);
-          console.log(`  ✓ 创建 ${CODEFLICKER_WORKFLOW_COMMAND_DISPLAY_PATH}*.md`);
+          console.log(`  ✓ 创建 .codeflicker/commands/codument/*.md`);
           break;
         case 'codex':
           await generateCodexCommands();
@@ -260,7 +279,7 @@ export async function initCommand(args: string[]): Promise<void> {
         case 'eidolon':
           await generateEidolonCommands();
           console.log(`  ✓ 安装 ${EIDOLON_WORKFLOW_SKILL_DISPLAY_PATH}`);
-          console.log(`  ✓ 创建 ${EIDOLON_WORKFLOW_COMMAND_DISPLAY_PATH}*.toml`);
+          console.log(`  ✓ 创建 .eidolon/commands/codument/*.toml`);
           break;
         case 'sparrow':
           await generateSparrowCommands();
@@ -298,7 +317,7 @@ export async function initCommand(args: string[]): Promise<void> {
     console.log('='.repeat(60));
 
     if (initCodumentDir) {
-      console.log(`\n下一步:\n  1. 编辑 codument/project.md 完善项目配置\n  2. 编辑 codument/tech-stack.md 配置技术栈\n  3. 运行相应的 AI 命令或加载生成的 codument-* skill 创建第一个变更追踪\n  4. 运行 codument status 查看项目状态\n`);
+      console.log(`\n下一步:\n  1. 编辑 codument/attractors/project.md 完善项目配置\n  2. 编辑 codument/attractors/product.md 完善产品定义\n  3. 运行相应的 AI 命令或加载生成的 codument-* skill 创建第一个变更追踪\n  4. 运行 codument status 查看项目状态\n`);
     } else {
       console.log(`\n已为以下 CLI 工具安装/生成工作流入口:\n${selectedLabels.map((label) => `  - ${label}`).join('\n')}\n\n现在可以使用对应 AI 工具入口了。\n`);
     }
@@ -327,8 +346,8 @@ ${projectDesc}
 *初始化时间: ${new Date().toISOString()}*
 `;
 
-  fs.writeFileSync(path.join(CODUMENT_DIR, 'project.md'), projectMd);
-  console.log('  ✓ 创建 project.md');
+  fs.writeFileSync(path.join(ATTRACTORS_DIR, 'project.md'), projectMd);
+  console.log('  ✓ 创建 attractors/project.md');
 
   const productMd = `# ${projectName} - 产品定义
 
@@ -353,8 +372,8 @@ ${projectDesc}
 *最后更新: ${new Date().toISOString()}*
 `;
 
-  fs.writeFileSync(path.join(CODUMENT_DIR, 'product.md'), productMd);
-  console.log('  ✓ 创建 product.md');
+  fs.writeFileSync(path.join(ATTRACTORS_DIR, 'product.md'), productMd);
+  console.log('  ✓ 创建 attractors/product.md');
 
   const workflowMd = `# 项目级工作流
 
@@ -363,14 +382,11 @@ ${projectDesc}
   fs.writeFileSync(path.join(CODUMENT_DIR, 'workflows', 'workflow.md'), workflowMd);
   console.log('  ✓ 创建 workflow.md');
 
-  const techStackMd = `${techStackTemplate}
----
-
-*最后更新: ${new Date().toISOString()}*
-`;
-
-  fs.writeFileSync(path.join(CODUMENT_DIR, 'tech-stack.md'), techStackMd);
-  console.log('  ✓ 创建 tech-stack.md');
+  fs.writeFileSync(
+    path.join(CONFIG_DIR, 'feature.json'),
+    `${JSON.stringify(DEFAULT_FEATURE_CONFIG, null, 2)}\n`
+  );
+  console.log('  ✓ 创建 config/feature.json');
 
   const stateJson = {
     active_track: null,
@@ -389,29 +405,41 @@ ${projectDesc}
   );
   console.log('  ✓ 创建 state.json');
 
-  fs.writeFileSync(
+  writeTextFile(
     path.join(CODUMENT_DIR, 'std', 'plan-xml-spec.md'),
     TASKS_XML_SPEC
   );
   console.log('  ✓ 创建 std/plan-xml-spec.md');
 
-  fs.writeFileSync(
+  writeTextFile(
     path.join(CODUMENT_DIR, 'std', 'AGENTS.md'),
     stdAgentsPrompt
   );
   console.log('  ✓ 创建 std/AGENTS.md');
 
-  fs.writeFileSync(
+  writeTextFile(
     path.join(CODUMENT_DIR, 'std', 'workflow.md'),
     workflowTemplate
   );
   console.log('  ✓ 创建 std/workflow.md');
 
-  fs.writeFileSync(
+  writeTextFile(
     path.join(CODUMENT_DIR, 'std', 'protocols.md'),
     protocolsPrompt
   );
   console.log('  ✓ 创建 std/protocols.md');
+
+  writeTextFile(
+    path.join(CODUMENT_DIR, 'std', 'docs-modeling-fractal', 'index.md'),
+    docsModelingFractalTemplate
+  );
+  console.log('  ✓ 创建 std/docs-modeling-fractal/index.md');
+
+  writeTextFile(
+    path.join(CODUMENT_DIR, 'std', 'docs-impl-fractal', 'index.md'),
+    docsImplFractalTemplate
+  );
+  console.log('  ✓ 创建 std/docs-impl-fractal/index.md');
 }
 
 async function generateAgentsMd(

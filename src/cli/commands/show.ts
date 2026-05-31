@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { getTrack, getSpecs, parseOptions, formatStatus, codumentExists, TRACKS_DIR, SPECS_DIR } from '../utils';
+import { getSpecXmlStats, loadSpecXml } from '../utils/spec-xml';
 
 export async function showCommand(args: string[]) {
   if (!codumentExists()) {
@@ -28,10 +29,11 @@ export async function showCommand(args: string[]) {
     // Auto-detect
     const trackDir = path.join(TRACKS_DIR, itemId);
     const specDir = path.join(SPECS_DIR, itemId);
+    const specXmlFile = path.join(SPECS_DIR, `${itemId}.xml`);
 
     if (fs.existsSync(trackDir)) {
       foundType = 'track';
-    } else if (fs.existsSync(specDir)) {
+    } else if (fs.existsSync(specDir) || fs.existsSync(specXmlFile)) {
       foundType = 'spec';
     }
   }
@@ -60,17 +62,22 @@ function showTrack(trackId: string, jsonOutput: boolean) {
   if (jsonOutput) {
     // Include file contents in JSON output
     const trackDir = path.join(TRACKS_DIR, trackId);
+    const specDeltaFiles = collectTrackXmlSpecDeltas(trackDir);
     const result: Record<string, unknown> = {
       ...track,
       files: {},
     };
 
-    const files = ['proposal.md', 'spec.md', 'plan.xml', 'design.md'];
+    const files = ['proposal.md', 'plan.xml', 'design.md', 'decisions.md', 'spec.md'];
     for (const file of files) {
       const filePath = path.join(trackDir, file);
       if (fs.existsSync(filePath)) {
         (result.files as Record<string, string>)[file] = fs.readFileSync(filePath, 'utf-8');
       }
+    }
+    for (const filePath of specDeltaFiles) {
+      const relativePath = path.relative(trackDir, filePath);
+      (result.files as Record<string, string>)[relativePath] = fs.readFileSync(filePath, 'utf-8');
     }
 
     console.log(JSON.stringify(result, null, 2));
@@ -78,6 +85,7 @@ function showTrack(trackId: string, jsonOutput: boolean) {
   }
 
   const trackDir = path.join(TRACKS_DIR, trackId);
+  const specDeltaFiles = collectTrackXmlSpecDeltas(trackDir);
 
   console.log('\n' + '='.repeat(60));
   console.log(`Track: ${trackId}`);
@@ -101,24 +109,97 @@ function showTrack(trackId: string, jsonOutput: boolean) {
   }
 
   console.log('\nFiles:');
-  const files = ['proposal.md', 'spec.md', 'plan.xml', 'design.md'];
+  const files = ['proposal.md', 'plan.xml', 'design.md', 'decisions.md'];
   for (const file of files) {
     const filePath = path.join(trackDir, file);
     const exists = fs.existsSync(filePath);
     const status = exists ? '✓' : '✗';
     console.log(`  ${status} ${file}`);
   }
+  if (specDeltaFiles.length > 0) {
+    for (const filePath of specDeltaFiles) {
+      console.log(`  ✓ ${path.relative(trackDir, filePath)}`);
+    }
+  } else {
+    const legacySpecPath = path.join(trackDir, 'spec.md');
+    const legacyStatus = fs.existsSync(legacySpecPath) ? '✓' : '✗';
+    console.log(`  ${legacyStatus} spec_deltas/**/*.xml`);
+    if (fs.existsSync(legacySpecPath)) {
+      console.log('  ✓ spec.md (legacy)');
+    }
+  }
 
   console.log('');
+}
+
+function collectTrackXmlSpecDeltas(trackDir: string): string[] {
+  const results: string[] = [];
+  const roots = [
+    path.join(trackDir, 'spec_deltas'),
+    path.join(trackDir, 'spec-deltas'),
+  ];
+
+  const visit = (dir: string) => {
+    if (!fs.existsSync(dir)) {
+      return;
+    }
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const entryPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        visit(entryPath);
+      } else if (entry.isFile() && entry.name.endsWith('.xml')) {
+        results.push(entryPath);
+      }
+    }
+  };
+
+  for (const root of roots) {
+    visit(root);
+  }
+  return results.sort();
 }
 
 function showSpec(specId: string, jsonOutput: boolean) {
   const specDir = path.join(SPECS_DIR, specId);
   const specPath = path.join(specDir, 'spec.md');
+  const specXmlFilePath = path.join(SPECS_DIR, `${specId}.xml`);
+  const specXmlIndexPath = path.join(specDir, 'index.xml');
 
-  if (!fs.existsSync(specPath)) {
+  const isXml = fs.existsSync(specXmlFilePath) || fs.existsSync(specXmlIndexPath);
+  if (!fs.existsSync(specPath) && !isXml) {
     console.error(`Spec not found: ${specId}`);
     process.exit(1);
+  }
+
+  if (isXml) {
+    const xmlEntryPath = fs.existsSync(specXmlFilePath) ? specXmlFilePath : specDir;
+    const xmlDisplayPath = fs.existsSync(specXmlFilePath) ? specXmlFilePath : specXmlIndexPath;
+    const content = fs.readFileSync(xmlDisplayPath, 'utf-8');
+    const root = loadSpecXml(xmlEntryPath);
+    const stats = getSpecXmlStats(root);
+
+    if (jsonOutput) {
+      console.log(JSON.stringify({
+        id: specId,
+        path: xmlDisplayPath,
+        format: 'xml',
+        requirements: stats.requirements,
+        scenarios: stats.scenarios,
+        content,
+      }, null, 2));
+      return;
+    }
+
+    console.log('\n' + '='.repeat(60));
+    console.log(`Spec: ${specId}`);
+    console.log('='.repeat(60));
+    console.log('\nFormat: XML');
+    console.log(`Requirements: ${stats.requirements}`);
+    console.log(`Scenarios: ${stats.scenarios}`);
+    console.log('\nFiles:');
+    console.log(`  ✓ ${path.relative(specDir, xmlDisplayPath) || path.basename(xmlDisplayPath)}`);
+    console.log('');
+    return;
   }
 
   const content = fs.readFileSync(specPath, 'utf-8');
@@ -129,6 +210,7 @@ function showSpec(specId: string, jsonOutput: boolean) {
     console.log(JSON.stringify({
       id: specId,
       path: specPath,
+      format: 'markdown',
       requirements: requirements.map(r => r.replace('### Requirement: ', '')),
       scenarios: scenarios.map(s => s.replace('#### Scenario: ', '')),
       content,

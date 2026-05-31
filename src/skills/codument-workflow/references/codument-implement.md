@@ -23,7 +23,7 @@
 
 2. **处理缺失文件：**
    - 如果任何必需文件缺失，立即停止
-   - 宣布："Codument 未设置。请运行 `/codument:init` 设置环境。"
+   - 宣布："Codument 未设置。请使用 `codument-init` skill 设置环境。"
    - 不要继续 track 选择
 
 ---
@@ -67,7 +67,7 @@
    a. **识别 Track 文件夹：** 从 `codument/tracks/<track_id>/plan.xml` metadata 获取 `<track_id>`
    b. **读取必需文件：**
       - `codument/tracks/<track_id>/plan.xml`
-      - `codument/tracks/<track_id>/spec.md`
+      - `codument/tracks/<track_id>/spec_deltas/**/*.xml`；旧 track 可兼容 `codument/tracks/<track_id>/spec.md`
       - `codument/std/workflow.md`
       - `codument/workflows/workflow.md`
       - `codument/tracks/<track_id>/plan.xml` 的 `<metadata>`
@@ -247,7 +247,7 @@
    > - 验证：全部通过
    >
    > 建议下一步：
-   > - 运行 `/codument:archive` 归档此 track"
+   > - 使用 `请使用 codument-archive skill, 归档track: <track_id>` 归档此 track"
 
 ---
 
@@ -259,7 +259,7 @@
 
 2. **宣布同步：** 宣布正在同步项目文档
 
-3. **加载 Track 规范：** 读取已完成 track 的 spec.md
+3. **加载 Track 规范：** 读取已完成 track 的 `spec_deltas/**/*.xml`；旧 track 可兼容读取 `spec.md`
 
 4. **加载项目文档：** 读取：
    - `codument/product.md`
@@ -267,7 +267,7 @@
    - `codument/tech-stack.md`
 
 5. **分析和更新：**
-   a. **分析 spec.md：** 识别新功能、行为变化或技术栈更新
+   a. **分析 XML spec deltas：** 识别新功能、行为变化或技术栈更新
    b. **更新 product.md：**
       - 确定已完成功能是否显著影响产品描述
       - 如需更新，生成提议更改并请求确认：

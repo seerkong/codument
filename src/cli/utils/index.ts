@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { getSpecXmlStats, loadSpecXml } from './spec-xml';
 
 // Workspace directory (can be changed via --workspace-dir)
 let workspaceDir = process.cwd();
@@ -23,6 +24,11 @@ export const CODUMENT_DIR = 'codument';
 export const TRACKS_DIR = path.join(CODUMENT_DIR, 'tracks');
 export const SPECS_DIR = path.join(CODUMENT_DIR, 'specs');
 export const ARCHIVE_DIR = path.join(CODUMENT_DIR, 'archive');
+export const ATTRACTORS_DIR = path.join(CODUMENT_DIR, 'attractors');
+export const CONFIG_DIR = path.join(CODUMENT_DIR, 'config');
+export const DECISIONS_DIR = path.join(CODUMENT_DIR, 'decisions');
+export const MEMORY_DIR = path.join(CODUMENT_DIR, 'memory');
+export const LEGACY_DIR = path.join(CODUMENT_DIR, 'legacy');
 
 export interface TrackMetadata {
   track_id: string;
@@ -60,6 +66,7 @@ export interface Spec {
   path: string;
   requirements: number;
   scenarios: number;
+  format?: 'markdown' | 'xml';
 }
 
 function getPlanTrackStatus(planPath: string): TrackMetadata['status'] | undefined {
@@ -211,25 +218,51 @@ export function getSpecs(): Spec[] {
     return [];
   }
 
-  const specDirs = fs.readdirSync(SPECS_DIR, { withFileTypes: true })
-    .filter(dirent => dirent.isDirectory())
-    .map(dirent => dirent.name);
-
   const specs: Spec[] = [];
 
-  for (const specId of specDirs) {
-    const specPath = path.join(SPECS_DIR, specId, 'spec.md');
-    if (fs.existsSync(specPath)) {
-      const content = fs.readFileSync(specPath, 'utf-8');
+  for (const entry of fs.readdirSync(SPECS_DIR, { withFileTypes: true })) {
+    const specId = entry.isFile() && entry.name.endsWith('.xml')
+      ? entry.name.slice(0, -'.xml'.length)
+      : entry.name;
+    const entryPath = path.join(SPECS_DIR, entry.name);
+    const markdownSpecPath = path.join(entryPath, 'spec.md');
+    const folderXmlPath = path.join(entryPath, 'index.xml');
+
+    if (entry.isDirectory() && fs.existsSync(markdownSpecPath)) {
+      const content = fs.readFileSync(markdownSpecPath, 'utf-8');
       const requirements = (content.match(/^### Requirement:/gm) || []).length;
       const scenarios = (content.match(/^#### Scenario:/gm) || []).length;
 
       specs.push({
         id: specId,
-        path: specPath,
+        path: markdownSpecPath,
         requirements,
         scenarios,
+        format: 'markdown',
       });
+      continue;
+    }
+
+    if ((entry.isFile() && entry.name.endsWith('.xml')) || (entry.isDirectory() && fs.existsSync(folderXmlPath))) {
+      try {
+        const xmlPath = entry.isFile() ? entryPath : entryPath;
+        const stats = getSpecXmlStats(loadSpecXml(xmlPath));
+        specs.push({
+          id: specId,
+          path: entry.isFile() ? entryPath : folderXmlPath,
+          requirements: stats.requirements,
+          scenarios: stats.scenarios,
+          format: 'xml',
+        });
+      } catch {
+        specs.push({
+          id: specId,
+          path: entry.isFile() ? entryPath : folderXmlPath,
+          requirements: 0,
+          scenarios: 0,
+          format: 'xml',
+        });
+      }
     }
   }
 

@@ -1,4 +1,4 @@
-# codument:plan-wave - 波次规划命令
+# codument-plan-wave skill - 波次规划
 
 **描述：** 为 plan.xml 生成波次（wave）DAG 分组，优化并行执行
 
@@ -23,15 +23,15 @@
 
 2. **处理缺失文件：**
    - 如果任何必需文件缺失，立即停止
-   - 宣布："Codument 未设置。请运行 `/codument:init` 设置环境。"
+   - 宣布："Codument 未设置。请使用 `codument-init` skill 设置环境。"
    - 不要继续 track 选择
 
 ---
 
 ## 1.2 交互式问答
 
-**协议：验证当前运行的环境对交互式问答的能力支持**
-**重要** 如果当前运行的环境，支持直接向用户提出澄清、确认问题的ToolCall，则需要使用这类ToolCall, 提出下文中等价问题。
+**协议：引用 `codument/std/protocols.md` 中的 ask-* 问答协议。**
+**重要** 问答 ToolCall 只能用于真实澄清、选择或确认问题；禁止为了测试运行环境能力而发起占位问题。当前步骤没有需要立即提问的内容时，直接继续后续流程。
 
 ---
 
@@ -65,7 +65,7 @@
 
 1. **读取 track 文件：**
    - `plan.xml` — 当前任务计划
-   - `spec.md` — 需求规范
+   - `spec_deltas/**/*.xml` — XML 需求规范增量；旧 track 可兼容 `spec.md`
    - `design.md` — 方案设计（如存在）
    - `context.md` — 讨论记录（如存在）
    - `codument/std/plan-xml-spec.md` — plan.xml schema 规范
@@ -135,7 +135,7 @@
 4. **添加 context_files（如适用）：**
 ```xml
 <context_files>
-  <file>codument/tracks/<track_id>/spec.md</file>
+  <file>codument/tracks/<track_id>/spec_deltas/**/*.xml</file>
   <file>codument/tracks/<track_id>/design.md</file>
   <file>codument/tracks/<track_id>/context.md</file>
 </context_files>
@@ -167,4 +167,4 @@
 > - Phase 数：<count>
 > - 总 Wave 数：<count>
 >
-> 你现在可以运行 `/codument:execute-wave` 开始波次执行。"
+> 你现在可以运行 `请使用 codument-execute-wave skill, 执行track: <track_id>` 开始波次执行。"

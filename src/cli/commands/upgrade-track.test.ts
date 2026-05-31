@@ -116,4 +116,62 @@ describe('codument upgrade-track', () => {
     expect(fs.existsSync(path.join(trackDir, 'phases'))).toBe(true);
     expect(fs.existsSync(path.join(trackDir, 'waves'))).toBe(true);
   });
+
+  it('finds archived tracks in the new YYYY-MM archive bucket layout', async () => {
+    const repoRoot = path.resolve(__dirname, '../../..');
+    const cliEntry = path.join(repoRoot, 'src/cli/index.ts');
+
+    const ws = makeTempDir('codument-upgrade-track-archive-ws-');
+    const trackId = 'archived-track';
+    const archiveId = `2026-05-30-1432-${trackId}`;
+    const archiveDir = path.join(ws, 'codument', 'archive', '2026-05', archiveId);
+
+    writeFile(path.join(ws, 'codument', 'state.json'), JSON.stringify({
+      cli_tools: [],
+    }, null, 2));
+    writeFile(path.join(archiveDir, 'plan.xml'), `<?xml version="1.0"?>
+<plan>
+  <metadata>
+    <track_id>${trackId}</track_id>
+    <track_name>t</track_name>
+    <goal>g</goal>
+    <created_at>2026-05-30</created_at>
+    <updated_at>2026-05-30</updated_at>
+    <description>d</description>
+    <status>completed</status>
+    <commit_mode>manual</commit_mode>
+  </metadata>
+  <phases>
+    <phase id="P1" name="p1">
+      <task id="T1.1" name="a" status="TODO" priority="P0">desc a</task>
+    </phase>
+  </phases>
+</plan>`);
+
+    const proc = Bun.spawn([
+      'bun',
+      'run',
+      cliEntry,
+      '--workspace-dir',
+      ws,
+      'upgrade-track',
+      trackId,
+      '--no-backup',
+    ], {
+      cwd: repoRoot,
+      stdout: 'pipe',
+      stderr: 'pipe',
+    });
+
+    const exitCode = await proc.exited;
+    const out = await new Response(proc.stdout).text();
+    const err = await new Response(proc.stderr).text();
+    expect(err).toBe('');
+    expect(exitCode).toBe(0);
+    expect(out).toContain(path.join('codument', 'archive', '2026-05', archiveId));
+
+    const upgradedText = fs.readFileSync(path.join(archiveDir, 'plan.xml'), 'utf-8');
+    expect(upgradedText).toContain('<execution_mode>wave</execution_mode>');
+    expect(fs.existsSync(path.join(archiveDir, 'context.md'))).toBe(true);
+  });
 });

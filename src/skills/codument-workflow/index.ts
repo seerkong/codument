@@ -149,7 +149,7 @@ ${subskill.prompt}
 }
 
 function buildSparrowManifest(
-  name: string = CODUMENT_WORKFLOW_SKILL_NAME,
+  name: string,
   description: string = "Codument lifecycle and track workflows for Sparrow local skill loading."
 ): string {
   return `${JSON.stringify(
@@ -197,12 +197,13 @@ The exact API differs by target, but the semantics do not. The following are equ
 }
 
 function buildCommandRoutingTable(): string {
+  const skillPrefix = CODUMENT_SKILL_PREFIX;
   return [
     "| Command | Route To | Purpose |",
     "| --- | --- | --- |",
     ...SUBSKILL_SOURCES.map(
       (subskill) =>
-        `| \`codument:${subskill.name}\` / \`codument-${subskill.name}\` | \`subskills/${subskill.name}/SKILL.md\` or standalone skill \`codument-${subskill.name}\` | ${subskill.description} |`
+        `| \`${skillPrefix}:${subskill.name}\` / \`${skillPrefix}-${subskill.name}\` | \`subskills/${subskill.name}/SKILL.md\` or standalone skill \`${skillPrefix}-${subskill.name}\` | ${subskill.description} |`
     ),
   ].join("\n");
 }
@@ -287,7 +288,7 @@ function buildStandaloneSubskillSkillFiles(
   const files: Record<string, string> = {
     [SKILL_ENTRY_FILES.root]: buildSubskillSkill(subskill, [
       ...getSubskillPreludeLines(profile, subskill, ""),
-      `Standalone Codument lifecycle skill for \`codument:${subskill.name}\` / \`${aliasName}\`.`,
+      `Standalone Codument lifecycle skill for \`${CODUMENT_SKILL_PREFIX}:${subskill.name}\` / \`${aliasName}\`.`,
       "For lifecycle routing guidance, use `shared/workflow-routing.md`.",
     ]),
     [SKILL_ENTRY_FILES.sharedSubagentModel]: buildSharedSubagentModel(),

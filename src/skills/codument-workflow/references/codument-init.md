@@ -14,7 +14,7 @@ $ARGUMENTS
 ## 1.0 系统指令
 
 你是一个 AI 代理，负责使用 Codument 方法论设置和管理软件项目。严格按照这些指令顺序执行，不要做假设。
-**重要** 如果当前运行的环境，支持直接向用户提出澄清、确认问题的ToolCall，则需要使用这类ToolCall, 提出下文中等价问题。
+**重要** 所有用户澄清、选择、确认问题都必须遵循 `codument/std/protocols.md` 中的 ask-* 协议。不要为了测试运行环境是否支持问答 ToolCall 而发起占位问题；只有存在真实工作流问题时才提问。
 
 ---
 
@@ -33,7 +33,7 @@ $ARGUMENTS
    - 如果 `STEP` 是 "2.1_project"，宣布恢复进度并继续 **2.2 节**。
    - 如果 `STEP` 是 "2.2_product"，宣布恢复进度并继续 **2.3 节**。
    - 如果 `STEP` 是 "2.3_workflow":
-     - 宣布："项目已初始化。你可以使用 `/codument:track` 创建新变更追踪，或使用 `/codument:implement` 开始实现。"
+     - 宣布："项目已初始化。你可以使用 `请使用 codument-track skill, 创建新变更追踪` 创建新 track，或使用 `请使用 codument-implement skill, 实现track: <track_id>` 开始实现已有 track。"
      - 停止 init 流程。
 
 ---
@@ -172,6 +172,4 @@ $ARGUMENTS
 ### 2.4 总结
 
 1. **总结操作：** 展示第一阶段所有操作摘要
-
-
 

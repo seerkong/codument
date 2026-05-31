@@ -7,7 +7,7 @@
 ## 1.0 系统指令
 
 你是一个 AI 代理，负责使用 Codument 方法论设置和管理软件项目。严格按照这些指令顺序执行，不要做假设。
-**重要** 如果当前运行的环境，支持直接向用户提出澄清、确认问题的ToolCall，则需要使用这类ToolCall, 提出下文中等价问题。
+**重要** 所有用户澄清、选择、确认问题都必须遵循 `codument/std/protocols.md` 中的 ask-* 协议。不要为了测试运行环境是否支持问答 ToolCall 而发起占位问题；只有存在真实工作流问题时才提问。
 
 ---
 
@@ -26,7 +26,7 @@
    - 如果 `STEP` 是 "2.1_project"，宣布恢复进度并继续 **2.2 节**。
    - 如果 `STEP` 是 "2.2_product"，宣布恢复进度并继续 **2.3 节**。
    - 如果 `STEP` 是 "2.3_workflow":
-     - 宣布："项目已初始化。你可以使用 `/codument:track` 创建新变更追踪，或使用 `/codument:implement` 开始实现。"
+     - 宣布："项目已初始化。你可以使用 `请使用 codument-track skill, 创建新变更追踪` 创建新 track，或使用 `请使用 codument-implement skill, 实现track: <track_id>` 开始实现已有 track。"
      - 停止 init 流程。
 
 ---
@@ -78,14 +78,16 @@
       - **询问：** "你想构建什么？" 等待用户回复（使用 **Protocol: ask-single-question-free**）
       - 创建 `codument/` 目录
 
+     - 创建 `codument/attractors/` 和 `codument/config/`
      - 初始化状态文件：创建 `codument/state.json`，内容为 `{"last_successful_step": ""}`
-     - 将用户回复写入 `codument/product.md` 的 `# 初始概念` 部分
+     - 将用户回复写入 `codument/attractors/product.md` 的 `# 初始概念` 部分
+     - 创建 `codument/config/feature.json`，默认关闭 `knowledgeSync` 和 `projectMemory`
 
 3. **继续：** 立即进入下一节
 
 ### 2.1 生成项目上下文（交互式）
 
-1. **介绍：** 宣布将帮助创建 `project.md`
+1. **介绍：** 宣布将帮助创建 `codument/attractors/project.md`
 
 2. **批量提问（加速）：** 每轮可提出 2-4 个问题，每个问题前添加 `Q1`/`Q2`... 标识，等待用户按标识逐条回答
    - 使用 `protocols.md` 中的 **ask-multi-question-free** 协议
@@ -98,7 +100,7 @@
    - **自动生成逻辑：** 如果用户选 E，停止提问，根据已有信息推断剩余细节
    
 
-3. **起草文档：** 对话完成后生成 `project.md` 内容
+3. **起草文档：** 对话完成后生成 `codument/attractors/project.md` 内容
    - **关键：** 生成来源仅是用户选择的答案，忽略未选择的选项
    - 不要在最终文件中包含对话选项
 
@@ -109,7 +111,7 @@
    ```
    根据回复修改或批准后退出循环（使用 **Protocol: ask-single-question-closed**）
 
-5. **写入文件：** 批准后写入 `codument/project.md`
+5. **写入文件：** 批准后写入 `codument/attractors/project.md`
 
 6. **提交状态：** 写入 `codument/state.json`：`{"last_successful_step": "2.1_project"}`
 
@@ -117,7 +119,7 @@
 
 ### 2.2 生成产品定义（交互式）
 
-1. **介绍：** 宣布将帮助创建或完善 `product.md`
+1. **介绍：** 宣布将帮助创建或完善 `codument/attractors/product.md`
 
 2. **顺序提问：** 一次问一个问题
    - **加速：** 每轮可并行提出 2-4 个问题并用 `Q1`/`Q2`... 标识，等待用户按标识逐条回复。保持总问题数不超过 7 个
@@ -130,7 +132,7 @@
 
 4. **用户确认：** 展示并确认（使用 **Protocol: ask-single-question-free**）
 
-5. **写入文件：** 批准后写入 `codument/product.md`
+5. **写入文件：** 批准后写入 `codument/attractors/product.md`
 
 6. **提交状态：** 写入 `{"last_successful_step": "2.2_product"}`
 
@@ -165,4 +167,3 @@
 ### 2.4 总结
 
 1. **总结操作：** 展示第一阶段所有操作摘要
-

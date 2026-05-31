@@ -233,7 +233,7 @@
 必须读取：
 
 - `codument/tracks/<track-id>/proposal.md`
-- `codument/tracks/<track-id>/spec.md`
+- `codument/tracks/<track-id>/spec_deltas/**/*.xml`；旧 track 可兼容 `codument/tracks/<track-id>/spec.md`
 - `codument/tracks/<track-id>/design.md`（如存在）
 - `codument/tracks/<track-id>/plan.xml`
 - `codument/tracks/<track-id>/reports/` 下已有的历史报告（如存在）
@@ -262,12 +262,12 @@
 8. 若存在 gap：
    - 先更新 `plan.xml`
    - 必要时更新 `design.md`
-   - 必要时更新 `spec.md`
+   - 必要时更新 `spec_deltas/**/*.xml`；旧 track 才更新 `spec.md`
    - 再修正实现
    - 返回 `FIX_APPLIED`
 9. 若依赖用户决策、外部输入或无法继续自动修正：
    - 记录 gap 报告
-   - 必要时更新 `plan.xml/spec.md/design.md`
+   - 必要时更新 `plan.xml`、`spec_deltas/**/*.xml`、`design.md`；旧 track 才更新 `spec.md`
    - 返回 `BLOCKED`
 
 ### 2.4 这一轮结束时你不能做什么

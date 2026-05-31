@@ -10,7 +10,8 @@ import { upgradeTrackCommand } from './commands/upgrade-track';
 import { setWorkspaceDir } from './utils';
 import { VERSION } from '../version';
 
-const HELP = `
+function helpText(): string {
+  return `
 codument v${VERSION} - Spec-driven development tool for AI coding assistants
 
 Usage:
@@ -44,6 +45,7 @@ Examples:
   codument status                         # Show project status
   codument status -w /path/to/project    # Show status for specific project
 `;
+}
 
 async function main() {
   const args = process.argv.slice(2);
@@ -67,7 +69,7 @@ async function main() {
   }
 
   if (filteredArgs.length === 0 || filteredArgs[0] === '-h' || filteredArgs[0] === '--help') {
-    console.log(HELP);
+    console.log(helpText());
     process.exit(0);
   }
 
@@ -107,7 +109,7 @@ async function main() {
         break;
       default:
         console.error(`Unknown command: ${command}`);
-        console.log(HELP);
+        console.log(helpText());
         process.exit(1);
     }
     process.exit(0);

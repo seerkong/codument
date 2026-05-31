@@ -15,7 +15,7 @@
 **协议：验证 Codument 环境是否正确设置。**
 
 1. **验证 tracks 目录：** 检查 `codument/tracks/` 目录是否存在
-   - 如果不存在，停止并提示："项目未设置。请提示用户运行 `/codument:init` 设置。"
+   - 如果不存在，停止并提示："项目未设置。请提示用户使用 `codument-init` skill 设置。"
 
 2. **检查必需文件：** 验证以下文件存在：
    - `codument/project.md`
@@ -24,7 +24,7 @@
    - `codument/product.md`
 
 3. **处理缺失文件：**
-   - 如果任何文件缺失，停止并提示用户运行 `/codument:init`
+   - 如果任何文件缺失，停止并提示用户使用 `codument-init` skill
 
 ---
 

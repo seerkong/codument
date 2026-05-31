@@ -2,12 +2,21 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import {
+  ATTRACTORS_DIR,
   CODUMENT_DIR,
+  CONFIG_DIR,
+  LEGACY_DIR,
   codumentExists,
   parseOptions,
+  SPECS_DIR,
 } from '../utils';
+import { ensureFeatureConfig } from '../utils/feature-config';
 
 import {
+  docsImplFractalTemplate,
+  docsKnowledgeTemplate,
+  docsModelingFractalTemplate,
+  projectMemoryTemplate,
   stdAgentsPrompt,
   planXmlSpec,
   workflowTemplate,
@@ -97,34 +106,93 @@ function backupIfExists(src: string, backupRoot: string, rel: string): void {
   copyRecursive(src, dest);
 }
 
-function removeLegacyCodumentSkill(skillsRootDir: string): void {
-  const legacySkillPath = path.join(skillsRootDir, LEGACY_CODUMENT_SKILL_NAME);
+function copyIfMissing(src: string, dest: string): boolean {
+  if (!fs.existsSync(src) || fs.existsSync(dest)) {
+    return false;
+  }
+  copyRecursive(src, dest);
+  return true;
+}
+
+function writeIfMissing(filePath: string, content: string): boolean {
+  if (fs.existsSync(filePath)) {
+    return false;
+  }
+
+  ensureParentDir(filePath);
+  fs.writeFileSync(filePath, content.endsWith('\n') ? content : `${content}\n`, 'utf-8');
+  return true;
+}
+
+function writeTextFile(filePath: string, content: string): void {
+  ensureParentDir(filePath);
+  fs.writeFileSync(filePath, content.endsWith('\n') ? content : `${content}\n`, 'utf-8');
+}
+
+function preserveLegacyIfExists(src: string, relativeLegacyPath: string): boolean {
+  if (!fs.existsSync(src)) {
+    return false;
+  }
+  const dest = path.join(LEGACY_DIR, relativeLegacyPath);
+  if (fs.existsSync(dest)) {
+    return false;
+  }
+  copyRecursive(src, dest);
+  return true;
+}
+
+function removeFileIfExists(filePath: string): boolean {
+  if (!fs.existsSync(filePath)) {
+    return false;
+  }
+
+  if (!fs.statSync(filePath).isFile()) {
+    return false;
+  }
+
+  fs.rmSync(filePath, { force: true });
+  return true;
+}
+
+function removeSkillIfDirectory(skillsRootDir: string, skillName: string): void {
+  const legacySkillPath = path.join(skillsRootDir, skillName);
   if (fs.existsSync(legacySkillPath) && fs.statSync(legacySkillPath).isDirectory()) {
     fs.rmSync(legacySkillPath, { recursive: true, force: true });
   }
 }
 
 function cleanupLegacyCodumentSkills(tools: CLITool[]): void {
+  const cleanupNames = [
+    LEGACY_CODUMENT_SKILL_NAME,
+    CODUMENT_WORKFLOW_SKILL_NAME,
+  ];
+
   for (const tool of tools) {
+    const removeFrom = (skillsRootDir: string) => {
+      for (const skillName of cleanupNames) {
+        removeSkillIfDirectory(skillsRootDir, skillName);
+      }
+    };
+
     switch (tool) {
       case 'claude':
-        removeLegacyCodumentSkill(path.join('.claude', 'skills'));
+        removeFrom(path.join('.claude', 'skills'));
         break;
       case 'codeflicker':
-        removeLegacyCodumentSkill(path.join('.codeflicker', 'skills'));
+        removeFrom(path.join('.codeflicker', 'skills'));
         break;
       case 'codex':
-        removeLegacyCodumentSkill(path.join(os.homedir(), '.codex', 'skills'));
+        removeFrom(path.join(os.homedir(), '.codex', 'skills'));
         break;
       case 'eidolon':
-        removeLegacyCodumentSkill(path.join('.eidolon', 'skills'));
+        removeFrom(path.join('.eidolon', 'skills'));
         break;
       case 'sparrow':
-        removeLegacyCodumentSkill(path.join('.sparrow', 'skill'));
-        removeLegacyCodumentSkill(path.join('.sparrow', 'skills'));
+        removeFrom(path.join('.sparrow', 'skill'));
+        removeFrom(path.join('.sparrow', 'skills'));
         break;
       case 'opencode':
-        removeLegacyCodumentSkill(path.join('.opencode', 'skills'));
+        removeFrom(path.join('.opencode', 'skills'));
         break;
     }
   }
@@ -158,6 +226,10 @@ export async function upgradeWorkspaceCommand(args: string[]): Promise<void> {
     backupIfExists(path.join(CODUMENT_DIR, 'std'), backupRoot, path.join(CODUMENT_DIR, 'std'));
     backupIfExists(path.join(CODUMENT_DIR, 'workflows'), backupRoot, path.join(CODUMENT_DIR, 'workflows'));
     backupIfExists(path.join(CODUMENT_DIR, 'tracks.md'), backupRoot, path.join(CODUMENT_DIR, 'tracks.md'));
+    backupIfExists(path.join(CODUMENT_DIR, 'project.md'), backupRoot, path.join(CODUMENT_DIR, 'project.md'));
+    backupIfExists(path.join(CODUMENT_DIR, 'product.md'), backupRoot, path.join(CODUMENT_DIR, 'product.md'));
+    backupIfExists(path.join(CODUMENT_DIR, 'tech-stack.md'), backupRoot, path.join(CODUMENT_DIR, 'tech-stack.md'));
+    backupIfExists(SPECS_DIR, backupRoot, SPECS_DIR);
 
     // Backup assistant command directories (only if present)
     backupIfExists('.claude/commands/codument', backupRoot, '.claude/commands/codument');
@@ -179,6 +251,80 @@ export async function upgradeWorkspaceCommand(args: string[]): Promise<void> {
     );
   }
 
+  if (!fs.existsSync(ATTRACTORS_DIR)) {
+    fs.mkdirSync(ATTRACTORS_DIR, { recursive: true });
+    console.log('✓ Created codument/attractors');
+  }
+
+  if (!fs.existsSync(CONFIG_DIR)) {
+    fs.mkdirSync(CONFIG_DIR, { recursive: true });
+  }
+
+  if (!fs.existsSync(LEGACY_DIR)) {
+    fs.mkdirSync(LEGACY_DIR, { recursive: true });
+    console.log('✓ Created codument/legacy');
+  }
+
+  const legacyCopies: string[] = [];
+  if (preserveLegacyIfExists(path.join(CODUMENT_DIR, 'product.md'), path.join('project-context', 'product.md'))) {
+    legacyCopies.push('project-context/product.md');
+  }
+  if (preserveLegacyIfExists(path.join(CODUMENT_DIR, 'project.md'), path.join('project-context', 'project.md'))) {
+    legacyCopies.push('project-context/project.md');
+  }
+  if (preserveLegacyIfExists(path.join(CODUMENT_DIR, 'tech-stack.md'), path.join('project-context', 'tech-stack.md'))) {
+    legacyCopies.push('project-context/tech-stack.md');
+  }
+  if (preserveLegacyIfExists(SPECS_DIR, 'specs')) {
+    legacyCopies.push('specs');
+  }
+  if (preserveLegacyIfExists(path.join(CODUMENT_DIR, 'tracks.md'), path.join('workspace', 'tracks.md'))) {
+    legacyCopies.push('workspace/tracks.md');
+  }
+
+  if (legacyCopies.length > 0) {
+    console.log(`✓ Preserved legacy content: ${legacyCopies.join(', ')}`);
+  }
+
+  const attractorCopies: string[] = [];
+  if (copyIfMissing(path.join(CODUMENT_DIR, 'product.md'), path.join(ATTRACTORS_DIR, 'product.md'))) {
+    attractorCopies.push('product.md');
+  }
+  if (copyIfMissing(path.join(CODUMENT_DIR, 'project.md'), path.join(ATTRACTORS_DIR, 'project.md'))) {
+    attractorCopies.push('project.md');
+  }
+  if (attractorCopies.length > 0) {
+    console.log(`✓ Created attractors from legacy context: ${attractorCopies.join(', ')}`);
+  }
+
+  const removedRootContextFiles: string[] = [];
+  for (const fileName of ['project.md', 'product.md', 'tech-stack.md']) {
+    if (removeFileIfExists(path.join(CODUMENT_DIR, fileName))) {
+      removedRootContextFiles.push(fileName);
+    }
+  }
+  if (removedRootContextFiles.length > 0) {
+    console.log(`✓ Removed legacy root context files: ${removedRootContextFiles.join(', ')}`);
+  }
+
+  const featureConfig = ensureFeatureConfig(CODUMENT_DIR);
+  console.log('✓ Ensured codument/config/feature.json');
+
+  const featureAttractors: string[] = [];
+  if (featureConfig.knowledgeSync.enabled) {
+    if (writeIfMissing(path.join(ATTRACTORS_DIR, 'docs-knowledge.md'), docsKnowledgeTemplate)) {
+      featureAttractors.push('docs-knowledge.md');
+    }
+  }
+  if (featureConfig.projectMemory.enabled) {
+    if (writeIfMissing(path.join(ATTRACTORS_DIR, 'project-memory.md'), projectMemoryTemplate)) {
+      featureAttractors.push('project-memory.md');
+    }
+  }
+  if (featureAttractors.length > 0) {
+    console.log(`✓ Created feature attractors: ${featureAttractors.join(', ')}`);
+  }
+
   const legacyTracksPath = path.join(CODUMENT_DIR, 'tracks.md');
   if (fs.existsSync(legacyTracksPath)) {
     fs.rmSync(legacyTracksPath, { force: true });
@@ -191,11 +337,13 @@ export async function upgradeWorkspaceCommand(args: string[]): Promise<void> {
     fs.mkdirSync(stdDir, { recursive: true });
   }
 
-  fs.writeFileSync(path.join(stdDir, 'AGENTS.md'), stdAgentsPrompt);
-  fs.writeFileSync(path.join(stdDir, 'plan-xml-spec.md'), planXmlSpec);
-  fs.writeFileSync(path.join(stdDir, 'workflow.md'), workflowTemplate);
-  fs.writeFileSync(path.join(stdDir, 'protocols.md'), protocolsPrompt);
-  console.log('✓ Updated codument/std (AGENTS.md, plan-xml-spec.md, workflow.md, protocols.md)');
+  writeTextFile(path.join(stdDir, 'AGENTS.md'), stdAgentsPrompt);
+  writeTextFile(path.join(stdDir, 'plan-xml-spec.md'), planXmlSpec);
+  writeTextFile(path.join(stdDir, 'workflow.md'), workflowTemplate);
+  writeTextFile(path.join(stdDir, 'protocols.md'), protocolsPrompt);
+  writeTextFile(path.join(stdDir, 'docs-modeling-fractal', 'index.md'), docsModelingFractalTemplate);
+  writeTextFile(path.join(stdDir, 'docs-impl-fractal', 'index.md'), docsImplFractalTemplate);
+  console.log('✓ Updated codument/std (AGENTS.md, plan-xml-spec.md, workflow.md, protocols.md, docs-modeling-fractal, docs-impl-fractal)');
 
   // Ensure codument/workflows/workflow.md exists (required by prompts)
   const workflowsDir = path.join(CODUMENT_DIR, 'workflows');
@@ -222,12 +370,12 @@ export async function upgradeWorkspaceCommand(args: string[]): Promise<void> {
     switch (tool) {
       case 'claude':
         await generateClaudeCommands();
-        console.log('✓ Upgraded .claude/commands/codument');
+        console.log(`✓ Upgraded .claude/commands/codument`);
         console.log(`✓ Upgraded ${lifecycleSkillsDisplayPath(CLAUDE_WORKFLOW_SKILL_DISPLAY_PATH)}`);
         break;
       case 'codeflicker':
         await generateCodeFlickerCommands();
-        console.log('✓ Upgraded .codeflicker/commands/codument');
+        console.log(`✓ Upgraded .codeflicker/commands/codument`);
         console.log(`✓ Upgraded ${lifecycleSkillsDisplayPath(CODEFLICKER_WORKFLOW_SKILL_DISPLAY_PATH)}`);
         break;
       case 'codex':
@@ -236,7 +384,7 @@ export async function upgradeWorkspaceCommand(args: string[]): Promise<void> {
         break;
       case 'eidolon':
         await generateEidolonCommands();
-        console.log('✓ Upgraded .eidolon/commands/codument');
+        console.log(`✓ Upgraded .eidolon/commands/codument`);
         console.log(`✓ Upgraded ${lifecycleSkillsDisplayPath(EIDOLON_WORKFLOW_SKILL_DISPLAY_PATH)}`);
         break;
       case 'sparrow':
@@ -245,7 +393,7 @@ export async function upgradeWorkspaceCommand(args: string[]): Promise<void> {
         break;
       case 'opencode':
         await generateOpenCodeCommands();
-        console.log('✓ Upgraded .opencode/command (codument-*.md)');
+        console.log(`✓ Upgraded .opencode/command (codument-*.md)`);
         console.log(`✓ Upgraded ${lifecycleSkillsDisplayPath(OPENCODE_WORKFLOW_SKILL_DISPLAY_PATH)}`);
         break;
     }

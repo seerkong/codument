@@ -69,24 +69,40 @@ function findTrackDir(identifier: string): { kind: 'track' | 'archive'; dir: str
     return null;
   }
 
-  const archiveCandidates: string[] = [];
-  const entries = fs.readdirSync(ARCHIVE_DIR, { withFileTypes: true });
-  for (const entry of entries) {
-    if (!entry.isDirectory()) {
-      continue;
+  const archiveCandidates: Array<{ id: string; dir: string }> = [];
+  const visitArchiveDir = (dir: string, depth: number): void => {
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    for (const entry of entries) {
+      if (!entry.isDirectory()) {
+        continue;
+      }
+
+      const entryDir = path.join(dir, entry.name);
+      const name = entry.name;
+      if (fs.existsSync(path.join(entryDir, 'plan.xml')) && isArchiveIdMatch(identifier, name)) {
+        archiveCandidates.push({ id: name, dir: entryDir });
+        continue;
+      }
+
+      // New archive layout nests archive IDs one level under YYYY-MM buckets.
+      if (depth < 1 && /^\d{4}-\d{2}$/.test(name)) {
+        visitArchiveDir(entryDir, depth + 1);
+      }
     }
-    const name = entry.name;
-    if (name === identifier || name.endsWith(`-${identifier}`)) {
-      archiveCandidates.push(name);
-    }
-  }
+  };
+
+  visitArchiveDir(ARCHIVE_DIR, 0);
 
   if (archiveCandidates.length === 1) {
-    const archiveId = archiveCandidates[0];
-    return { kind: 'archive', dir: path.join(ARCHIVE_DIR, archiveId), id: archiveId };
+    const archive = archiveCandidates[0];
+    return { kind: 'archive', dir: archive.dir, id: archive.id };
   }
 
   return null;
+}
+
+function isArchiveIdMatch(identifier: string, name: string): boolean {
+  return name === identifier || name.endsWith(`-${identifier}`);
 }
 
 function escapeXmlText(text: string): string {

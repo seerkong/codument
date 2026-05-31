@@ -42,8 +42,8 @@ describe('codument init --agent', () => {
     expect(out).not.toContain('项目名称: ');
     expect(out).not.toContain('项目描述: ');
 
-    const projectMd = fs.readFileSync(path.join(workspaceDir, 'codument', 'project.md'), 'utf-8');
-    const productMd = fs.readFileSync(path.join(workspaceDir, 'codument', 'product.md'), 'utf-8');
+    const projectMd = fs.readFileSync(path.join(workspaceDir, 'codument', 'attractors', 'project.md'), 'utf-8');
+    const productMd = fs.readFileSync(path.join(workspaceDir, 'codument', 'attractors', 'product.md'), 'utf-8');
     const state = JSON.parse(fs.readFileSync(path.join(workspaceDir, 'codument', 'state.json'), 'utf-8')) as {
       cli_tools: string[];
     };
@@ -51,6 +51,13 @@ describe('codument init --agent', () => {
     expect(projectMd).toContain(`# ${path.basename(workspaceDir)}`);
     expect(productMd).toContain(`# ${path.basename(workspaceDir)} - 产品定义`);
     expect(state.cli_tools).toEqual(['claude', 'codeflicker', 'codex']);
+    expect(fs.existsSync(path.join(workspaceDir, 'codument', 'config', 'feature.json'))).toBe(true);
+    expect(fs.existsSync(path.join(workspaceDir, 'codument', 'std', 'docs-modeling-fractal', 'index.md'))).toBe(true);
+    expect(fs.existsSync(path.join(workspaceDir, 'codument', 'std', 'docs-impl-fractal', 'index.md'))).toBe(true);
+    expect(fs.readFileSync(path.join(workspaceDir, 'codument', 'std', 'docs-modeling-fractal', 'index.md'), 'utf-8')).toContain('docs/modeling/');
+    expect(fs.readFileSync(path.join(workspaceDir, 'codument', 'std', 'docs-impl-fractal', 'index.md'), 'utf-8')).toContain('docs/impl/');
+    expect(fs.existsSync(path.join(workspaceDir, 'codument', 'attractors', 'docs-knowledge.md'))).toBe(false);
+    expect(fs.existsSync(path.join(workspaceDir, 'codument', 'tech-stack.md'))).toBe(false);
     expect(fs.existsSync(path.join(workspaceDir, '.claude', 'skills', 'codument-workflow'))).toBe(false);
     expect(fs.existsSync(path.join(workspaceDir, '.claude', 'skills', 'codument'))).toBe(false);
     expect(fs.existsSync(path.join(workspaceDir, '.claude', 'skills', 'codument-init', 'SKILL.md'))).toBe(true);

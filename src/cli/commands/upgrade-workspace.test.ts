@@ -24,6 +24,7 @@ describe('codument upgrade-workspace', () => {
     // Minimal initialized workspace
     writeFile(path.join(ws, 'codument', 'project.md'), '# p\n');
     writeFile(path.join(ws, 'codument', 'product.md'), '# p\n');
+    writeFile(path.join(ws, 'codument', 'tech-stack.md'), '# tech\n');
     writeFile(path.join(ws, 'codument', 'workflows', 'workflow.md'), '# 项目级工作流\n');
     writeFile(path.join(ws, 'codument', 'std', 'AGENTS.md'), 'OLD-AGENTS\n');
     writeFile(path.join(ws, 'codument', 'std', 'workflow.md'), 'OLD-WORKFLOW\n');
@@ -69,6 +70,7 @@ describe('codument upgrade-workspace', () => {
     expect(err).toBe('');
     expect(exitCode).toBe(0);
     expect(out).toContain('Updated codument/std');
+    expect(out).toContain('Removed legacy root context files: project.md, product.md, tech-stack.md');
     expect(out).toContain('Upgraded .opencode/command');
     expect(out).toContain('Upgraded .opencode/skills/codument-*/');
 
@@ -84,7 +86,21 @@ describe('codument upgrade-workspace', () => {
     expect(upgradedAgents).not.toBe('OLD-AGENTS\n');
     expect(upgradedAgents).toContain('Codument');
     expect(upgradedAgents).toContain('upgrade-workspace');
+    expect(fs.existsSync(path.join(ws, 'codument', 'std', 'docs-modeling-fractal', 'index.md'))).toBe(true);
+    expect(fs.existsSync(path.join(ws, 'codument', 'std', 'docs-impl-fractal', 'index.md'))).toBe(true);
+    expect(fs.readFileSync(path.join(ws, 'codument', 'std', 'docs-modeling-fractal', 'index.md'), 'utf-8')).toContain('docs/modeling/');
+    expect(fs.readFileSync(path.join(ws, 'codument', 'std', 'docs-impl-fractal', 'index.md'), 'utf-8')).toContain('docs/impl/');
     expect(fs.existsSync(path.join(ws, 'codument', 'tracks.md'))).toBe(false);
+    expect(fs.readFileSync(path.join(ws, 'codument', 'attractors', 'product.md'), 'utf-8')).toBe('# p\n');
+    expect(fs.readFileSync(path.join(ws, 'codument', 'attractors', 'project.md'), 'utf-8')).toBe('# p\n');
+    expect(fs.existsSync(path.join(ws, 'codument', 'project.md'))).toBe(false);
+    expect(fs.existsSync(path.join(ws, 'codument', 'product.md'))).toBe(false);
+    expect(fs.existsSync(path.join(ws, 'codument', 'tech-stack.md'))).toBe(false);
+    expect(fs.existsSync(path.join(ws, 'codument', 'config', 'feature.json'))).toBe(true);
+    expect(fs.readFileSync(path.join(ws, 'codument', 'legacy', 'project-context', 'product.md'), 'utf-8')).toBe('# p\n');
+    expect(fs.readFileSync(path.join(ws, 'codument', 'legacy', 'project-context', 'project.md'), 'utf-8')).toBe('# p\n');
+    expect(fs.readFileSync(path.join(ws, 'codument', 'legacy', 'project-context', 'tech-stack.md'), 'utf-8')).toBe('# tech\n');
+    expect(fs.existsSync(path.join(ws, 'codument', 'legacy', 'workspace', 'tracks.md'))).toBe(true);
 
     // OpenCode commands regenerated
     expect(fs.existsSync(path.join(ws, '.opencode', 'command', 'codument-verify.md'))).toBe(true);
@@ -94,6 +110,128 @@ describe('codument upgrade-workspace', () => {
     expect(fs.existsSync(path.join(ws, '.opencode', 'skills', 'codument-workflow'))).toBe(false);
     expect(fs.existsSync(path.join(ws, '.opencode', 'skills', 'codument'))).toBe(false);
     expect(fs.existsSync(path.join(ws, '.opencode', 'skills', 'codument-gap-loop', 'SKILL.md'))).toBe(true);
+  });
+
+  it('creates feature attractors when knowledge sync or project memory is enabled', async () => {
+    const repoRoot = path.resolve(__dirname, '../../..');
+    const cliEntry = path.join(repoRoot, 'src/cli/index.ts');
+
+    const ws = makeTempDir('codument-upgrade-feature-attractors-ws-');
+
+    writeFile(path.join(ws, 'codument', 'attractors', 'project.md'), '# project\n');
+    writeFile(path.join(ws, 'codument', 'attractors', 'product.md'), '# product\n');
+    writeFile(path.join(ws, 'codument', 'config', 'feature.json'), JSON.stringify({
+      knowledgeSync: {
+        enabled: true,
+        targets: [],
+      },
+      projectMemory: {
+        enabled: true,
+      },
+    }, null, 2));
+    writeFile(path.join(ws, 'codument', 'workflows', 'workflow.md'), '# 项目级工作流\n');
+    writeFile(path.join(ws, 'codument', 'std', 'AGENTS.md'), 'OLD-AGENTS\n');
+    writeFile(path.join(ws, 'codument', 'std', 'workflow.md'), 'OLD-WORKFLOW\n');
+    writeFile(path.join(ws, 'codument', 'std', 'plan-xml-spec.md'), 'OLD-PLAN\n');
+    writeFile(path.join(ws, 'codument', 'std', 'protocols.md'), 'OLD-PROTOCOLS\n');
+    writeFile(path.join(ws, 'codument', 'state.json'), JSON.stringify({
+      active_track: null,
+      current_phase: null,
+      current_task: null,
+      last_action: 'init',
+      timestamp: new Date().toISOString(),
+      commit_mode: 'manual',
+      cli_tools: [],
+      last_successful_step: '2.1_project',
+    }, null, 2));
+
+    const proc = Bun.spawn([
+      'bun',
+      'run',
+      cliEntry,
+      '--workspace-dir',
+      ws,
+      'upgrade-workspace',
+      '--no-backup',
+    ], {
+      cwd: repoRoot,
+      stdout: 'pipe',
+      stderr: 'pipe',
+    });
+
+    const exitCode = await proc.exited;
+    const out = await new Response(proc.stdout).text();
+    const err = await new Response(proc.stderr).text();
+
+    expect(err).toBe('');
+    expect(exitCode).toBe(0);
+    expect(out).toContain('Created feature attractors: docs-knowledge.md, project-memory.md');
+    expect(fs.readFileSync(path.join(ws, 'codument', 'attractors', 'docs-knowledge.md'), 'utf-8')).toContain('Docs Knowledge Attractor');
+    expect(fs.readFileSync(path.join(ws, 'codument', 'attractors', 'docs-knowledge.md'), 'utf-8')).toContain('codument/std/docs-modeling-fractal/index.md');
+    expect(fs.existsSync(path.join(ws, 'codument', 'std', 'docs-modeling-fractal', 'index.md'))).toBe(true);
+    expect(fs.existsSync(path.join(ws, 'codument', 'std', 'docs-impl-fractal', 'index.md'))).toBe(true);
+    expect(fs.readFileSync(path.join(ws, 'codument', 'attractors', 'project-memory.md'), 'utf-8')).toContain('Project Memory Attractor');
+    expect(fs.readFileSync(path.join(ws, 'codument', 'config', 'feature.json'), 'utf-8')).toContain('"enabled": true');
+  });
+
+  it('does not overwrite an existing docs knowledge attractor during upgrade', async () => {
+    const repoRoot = path.resolve(__dirname, '../../..');
+    const cliEntry = path.join(repoRoot, 'src/cli/index.ts');
+
+    const ws = makeTempDir('codument-upgrade-preserve-docs-attractor-ws-');
+
+    writeFile(path.join(ws, 'codument', 'attractors', 'project.md'), '# project\n');
+    writeFile(path.join(ws, 'codument', 'attractors', 'product.md'), '# product\n');
+    writeFile(path.join(ws, 'codument', 'attractors', 'docs-knowledge.md'), 'CUSTOM DOCS KNOWLEDGE\n');
+    writeFile(path.join(ws, 'codument', 'config', 'feature.json'), JSON.stringify({
+      knowledgeSync: {
+        enabled: true,
+        targets: [],
+      },
+      projectMemory: {
+        enabled: false,
+      },
+    }, null, 2));
+    writeFile(path.join(ws, 'codument', 'workflows', 'workflow.md'), '# 项目级工作流\n');
+    writeFile(path.join(ws, 'codument', 'std', 'AGENTS.md'), 'OLD-AGENTS\n');
+    writeFile(path.join(ws, 'codument', 'std', 'workflow.md'), 'OLD-WORKFLOW\n');
+    writeFile(path.join(ws, 'codument', 'std', 'plan-xml-spec.md'), 'OLD-PLAN\n');
+    writeFile(path.join(ws, 'codument', 'std', 'protocols.md'), 'OLD-PROTOCOLS\n');
+    writeFile(path.join(ws, 'codument', 'state.json'), JSON.stringify({
+      active_track: null,
+      current_phase: null,
+      current_task: null,
+      last_action: 'init',
+      timestamp: new Date().toISOString(),
+      commit_mode: 'manual',
+      cli_tools: [],
+      last_successful_step: '2.1_project',
+    }, null, 2));
+
+    const proc = Bun.spawn([
+      'bun',
+      'run',
+      cliEntry,
+      '--workspace-dir',
+      ws,
+      'upgrade-workspace',
+      '--no-backup',
+    ], {
+      cwd: repoRoot,
+      stdout: 'pipe',
+      stderr: 'pipe',
+    });
+
+    const exitCode = await proc.exited;
+    const out = await new Response(proc.stdout).text();
+    const err = await new Response(proc.stderr).text();
+
+    expect(err).toBe('');
+    expect(exitCode).toBe(0);
+    expect(out).not.toContain('Created feature attractors: docs-knowledge.md');
+    expect(fs.readFileSync(path.join(ws, 'codument', 'attractors', 'docs-knowledge.md'), 'utf-8')).toBe('CUSTOM DOCS KNOWLEDGE\n');
+    expect(fs.existsSync(path.join(ws, 'codument', 'std', 'docs-modeling-fractal', 'index.md'))).toBe(true);
+    expect(fs.existsSync(path.join(ws, 'codument', 'std', 'docs-impl-fractal', 'index.md'))).toBe(true);
   });
 
   it('backs up legacy Codument skills and upgrades standalone lifecycle skills for Codex', async () => {
@@ -293,5 +431,45 @@ describe('codument upgrade-workspace', () => {
     expect(fs.existsSync(path.join(ws, '.codeflicker', 'skills', 'codument-gap-loop', 'SKILL.md'))).toBe(true);
     expect(fs.readFileSync(path.join(ws, '.codeflicker', 'skills', 'codument-gap-loop', 'shared', 'target-capabilities.md'), 'utf-8')).toContain('CodeFlicker');
     expect(fs.readFileSync(path.join(ws, '.codeflicker', 'commands', 'codument', 'gap-loop.md'), 'utf-8')).toContain('.codeflicker/skills/codument-gap-loop/SKILL.md');
+  });
+  it('preserves unsafe Markdown specs in codument/legacy while keeping originals readable', async () => {
+    const repoRoot = path.resolve(__dirname, '../../..');
+    const cliEntry = path.join(repoRoot, 'src/cli/index.ts');
+
+    const ws = makeTempDir('codument-upgrade-legacy-specs-ws-');
+    writeFile(path.join(ws, 'codument', 'project.md'), '# project\n');
+    writeFile(path.join(ws, 'codument', 'product.md'), '# product\n');
+    writeFile(path.join(ws, 'codument', 'workflows', 'workflow.md'), '# 项目级工作流\n');
+    writeFile(path.join(ws, 'codument', 'std', 'AGENTS.md'), 'OLD-AGENTS\n');
+    writeFile(path.join(ws, 'codument', 'std', 'workflow.md'), 'OLD-WORKFLOW\n');
+    writeFile(path.join(ws, 'codument', 'std', 'plan-xml-spec.md'), 'OLD-PLAN\n');
+    writeFile(path.join(ws, 'codument', 'std', 'protocols.md'), 'OLD-PROTOCOLS\n');
+    writeFile(path.join(ws, 'codument', 'specs', 'codument-core', 'spec.md'), '### Requirement: Keep old spec\n\n#### Scenario: Still readable\n');
+    writeFile(path.join(ws, 'codument', 'state.json'), JSON.stringify({
+      cli_tools: [],
+      last_action: 'init',
+    }, null, 2));
+
+    const proc = Bun.spawn([
+      'bun',
+      'run',
+      cliEntry,
+      '--workspace-dir',
+      ws,
+      'upgrade-workspace',
+      '--backup-dir',
+      path.join(ws, '.tmp', 'codument', 'legacy-specs'),
+    ], {
+      cwd: repoRoot,
+      stdout: 'pipe',
+      stderr: 'pipe',
+    });
+
+    const exitCode = await proc.exited;
+    const err = await new Response(proc.stderr).text();
+    expect(err).toBe('');
+    expect(exitCode).toBe(0);
+    expect(fs.existsSync(path.join(ws, 'codument', 'specs', 'codument-core', 'spec.md'))).toBe(true);
+    expect(fs.readFileSync(path.join(ws, 'codument', 'legacy', 'specs', 'codument-core', 'spec.md'), 'utf-8')).toContain('Keep old spec');
   });
 });

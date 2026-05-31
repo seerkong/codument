@@ -15,15 +15,15 @@
 **协议：验证 Codument 环境是否正确设置。**
 
 1. **检查必需文件：** 验证 `codument` 目录中以下文件是否存在：
-   - `codument/project.md`
+   - `codument/attractors/`（项目级吸引子目录）
    - `codument/std/workflow.md`
    - `codument/workflows/workflow.md`
-   - `codument/product.md`
-   - `codument/tech-stack.md`（可选，但推荐）
+   - 旧项目没有 `codument/attractors/` 时，兼容读取 `codument/project.md` 和 `codument/product.md`
+   - `codument/tech-stack.md` 是旧项目兼容文件，不再是新项目必需文件
 
 2. **处理缺失文件：**
    - 如果任何必需文件缺失，立即停止
-   - 宣布："Codument 未设置。请运行 `/codument:init` 设置环境。"
+   - 宣布："Codument 未设置。请使用 `codument-init` skill 设置环境。"
    - 不要继续 track 选择
 
 ---
@@ -67,7 +67,7 @@
    a. **识别 Track 文件夹：** 从 `codument/tracks/<track_id>/plan.xml` metadata 获取 `<track_id>`
    b. **读取必需文件：**
       - `codument/tracks/<track_id>/plan.xml`
-      - `codument/tracks/<track_id>/spec.md`
+      - `codument/tracks/<track_id>/spec_deltas/**/*.xml`；旧 track 可兼容 `codument/tracks/<track_id>/spec.md`
       - `codument/std/workflow.md`
       - `codument/workflows/workflow.md`
       - `codument/tracks/<track_id>/plan.xml` 的 `<metadata>`
@@ -247,7 +247,7 @@
    > - 验证：全部通过
    >
    > 建议下一步：
-   > - 运行 `/codument:archive` 归档此 track"
+   > - 使用 `请使用 codument-archive skill, 归档track: <track_id>` 归档此 track"
 
 ---
 
@@ -259,31 +259,31 @@
 
 2. **宣布同步：** 宣布正在同步项目文档
 
-3. **加载 Track 规范：** 读取已完成 track 的 spec.md
+3. **加载 Track 规范：** 读取已完成 track 的 `spec_deltas/**/*.xml`；旧 track 可兼容读取 `spec.md`
 
-4. **加载项目文档：** 读取：
-   - `codument/product.md`
-   - `codument/project.md`
-   - `codument/tech-stack.md`
+4. **加载项目文档：** 优先读取：
+   - `codument/attractors/` 下与已完成 track 相关的文件
+   - `codument/config/feature.json`
+   - 旧项目可兼容读取 `codument/product.md`、`codument/project.md`、`codument/tech-stack.md`
 
 5. **分析和更新：**
-   a. **分析 spec.md：** 识别新功能、行为变化或技术栈更新
-   b. **更新 product.md：**
+   a. **分析 XML spec deltas：** 识别新功能、行为变化或技术栈更新
+   b. **更新 product/project 类 attractor：**
       - 确定已完成功能是否显著影响产品描述
       - 如需更新，生成提议更改并请求确认：
-        > "根据已完成的 track，我提议对 product.md 进行以下更新：
+        > "根据已完成的 track，我提议对相关 attractor 进行以下更新：
         > ```diff
         > [提议的更改]
         > ```
         > 你批准这些更改吗？"
         （使用 **Protocol: ask-single-question-closed**）
       - 仅在明确确认后执行编辑
-    c. **更新 project.md：**
+    c. **更新 project 类 attractor：**
        - 同样，确定是否需要更新架构决策
        - 提议并确认后更新（使用 **Protocol: ask-single-question-closed**）
-    d. **更新 tech-stack.md：**
-       - 如果引入了新技术或依赖
-       - 提议并确认后更新（使用 **Protocol: ask-single-question-closed**）
+    d. **按配置执行 knowledge sync：**
+       - 仅当 `knowledgeSync.enabled=true` 时，才向配置 target 生成 docs/knowledge 同步步骤
+       - 同步时必须读取 target 对应 attractor
 
 
 6. **最终报告：** 宣布同步完成并总结操作
@@ -308,7 +308,7 @@
 3. **处理响应：**
    - **如果选 A（归档）：**
      - 创建 `codument/archive/`（如不存在）
-     - 将 track 文件夹移动到 `codument/archive/YYYY-MM-DD-<track_id>/`
+     - 将 track 文件夹移动到 `codument/archive/YYYY-MM/YYYY-MM-DD-HHmm-<track_id>/`
      - 宣布归档成功
     - **如果选 B（删除）：**
       - 请求最终确认（不可逆操作）（使用 **Protocol: ask-single-question-closed**）

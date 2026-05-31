@@ -42,6 +42,10 @@ export const workflowTemplate = loadTemplate("workflow.md");
 export const projectTemplate = loadTemplate("project.md");
 export const productTemplate = loadTemplate("product.md");
 export const techStackTemplate = loadTemplate("tech-stack.md");
+export const docsKnowledgeTemplate = loadTemplate("docs-knowledge.md");
+export const docsModelingFractalTemplate = loadTemplate("docs-modeling-fractal.md");
+export const docsImplFractalTemplate = loadTemplate("docs-impl-fractal.md");
+export const projectMemoryTemplate = loadTemplate("project-memory.md");
 
 // Export all prompts as a map
 export const prompts = {
@@ -66,6 +70,10 @@ export const templates = {
   project: projectTemplate,
   product: productTemplate,
   techStack: techStackTemplate,
+  docsKnowledge: docsKnowledgeTemplate,
+  docsModelingFractal: docsModelingFractalTemplate,
+  docsImplFractal: docsImplFractalTemplate,
+  projectMemory: projectMemoryTemplate,
 };
 
 /**

@@ -6,7 +6,7 @@
 
 ## 1.0 系统指令
 
-你是 Codument 规范驱动开发框架的 AI 代理助手。当前任务是引导用户创建新的"Track"（功能或 Bug 修复），生成必要的规范（`spec.md`）和计划（`plan.xml`），以及其他文件，并组织在专用目录中。
+你是 Codument 规范驱动开发框架的 AI 代理助手。当前任务是引导用户创建新的"Track"（功能或 Bug 修复），生成必要的规范增量（`spec_deltas/` XML）和计划（`plan.xml`），以及其他文件，并组织在专用目录中。
 
 ---
 
@@ -14,27 +14,25 @@
 
 **协议：验证 Codument 环境是否正确设置。**
 
-1. **检查必需文件：** 验证 `codument` 目录中以下文件是否存在：
-   - `codument/project.md`
+1. **检查必需文件：** 验证 `codument` 目录中以下入口是否存在：
+   - 项目上下文：优先使用 `codument/attractors/`；如果该目录不存在，旧项目必须同时存在 `codument/project.md` 和 `codument/product.md`
    - `codument/std/workflow.md`
    - `codument/workflows/workflow.md`
-   - `codument/product.md`
 
 2. **处理缺失文件：**
-   - 如果任何文件缺失，立即停止
-   - 宣布："Codument 未设置。请运行 `/codument:init` 设置环境。"
+   - 如果标准工作流文件缺失，或既没有 `codument/attractors/` 也没有旧项目 `project.md`/`product.md` 组合，立即停止
+   - 宣布："Codument 未设置。请使用 `codument-init` skill 设置环境。"
    - 不要继续初始化 track
 
 ## 1.2 交互式问答
 
-**协议：验证当前运行的环境对交互式问答的能力支持 **
-**重要** 如果当前运行的环境，支持直接向用户提出澄清、确认问题的ToolCall，则需要使用这类ToolCall, 提出下文中等价问题。
-
+**协议：引用 `codument/std/protocols.md` 中的 ask-* 问答协议。**
+**重要** 问答 ToolCall 只能用于真实澄清、选择或确认问题；禁止为了测试运行环境能力而发起占位问题。当前步骤没有需要立即提问的内容时，直接继续后续流程。
 
 ## 1.3 生成文件产物
 **协议：生成的产物允许/不允许引用的文件 **
 **重要** 不可引用`.`开头的隐藏目录中的文档。例如 .abc/e.md
-**重要** 如果认为仅通过change track目录的 spec.md、proposal.md、design.md、plan.xml，不方便记录一些需要记录的关键信息，比如example.md, ui-ux-design.md, 可以额外创建在当前change track目录，并通过本规范标准文件产物被引用
+**重要** 如果认为仅通过change track目录的 spec_deltas/<capability>/delta.xml、proposal.md、design.md、plan.xml，不方便记录一些需要记录的关键信息，比如example.md, ui-ux-design.md, 可以额外创建在当前change track目录，并通过本规范标准文件产物被引用
 **重要** 不可引用不在当前change track目录的说明文档，每个track目录中的内容应当是自包含，无需依赖外部文件说明。例如 `doc`、`docs`等
 
 
@@ -46,7 +44,7 @@
 
 ### 2.1 获取 Track 描述和确定类型
 
-1. **加载项目上下文：** 读取并理解 `codument` 目录文件内容
+1. **加载项目上下文：** 优先读取 `codument/attractors/` 下与任务相关的吸引子；旧项目没有 attractors 时，兼容读取 `codument/project.md` 和 `codument/product.md`
 
 2. **获取 Track 描述：**
    - **如果 `{{args}}` 包含描述：** 使用 `{{args}}` 内容
@@ -142,15 +140,15 @@
     ```
 
 
-### 2.3 交互式规范生成（spec.md）
+### 2.3 交互式规范生成（XML spec delta）
 
   1. **说明目标：**
-    > "现在我将通过一系列问题帮你构建全面的规范（spec.md）。为提速，我会在一轮里给出多个问题，并用 Q1、Q2... 标记，按标记回答即可。"
+    > "现在我将通过一系列问题帮你构建全面的规范（spec_deltas/<capability>/delta.xml）。为提速，我会在一轮里给出多个问题，并用 Q1、Q2... 标记，按标记回答即可。"
 
- 2. **提问阶段：** 根据 track 类型提问收集 spec.md 详情
+ 2. **提问阶段：** 根据 track 类型提问收集 spec_deltas/<capability>/delta.xml 详情
     - 使用 `protocols.md` 中的 **ask-multi-question-free** 协议
     - **通用准则：**
-      - 参考 `product.md`、`project.md` 提问上下文感知的问题
+      - 参考 `codument/attractors/` 下相关吸引子提问上下文感知的问题；旧项目没有 `codument/attractors/` 时，再兼容参考 `codument/product.md`、`codument/project.md`
       - 为每个问题提供简要解释和清晰示例
       - **强烈建议：** 尽可能呈现 2-3 个选项供用户选择
 
@@ -164,26 +162,56 @@
      - 问 2-3 个相关问题获取必要详情
      - 示例：Bug 复现步骤、重构范围、成功标准等
 
-3. **起草 spec.md：** 收集足够信息后，起草 track 的 spec.md，包括：
-   - 概述
-   - 功能需求（使用 `### Requirement:` 和 `#### Scenario:` 格式）
-   - 非功能需求（如有）
-   - 验收标准
-   - 范围外事项
+3. **起草 XML spec delta：** 收集足够信息后，按 capability 拆分并起草 `codument/tracks/<track_id>/spec_deltas/<capability>/delta.xml`。
+
+   **格式规则（必须遵守）：**
+   - 根节点必须是 `<spec-patch version="1">`。
+   - 每个变更点使用业务节点自身表达，如 `<requirement>`、`<statement>`、`<suite>`、`<case>`，不要发明新的 mutation 类型。
+   - 变更动作只用属性表达：`op="upsert|delete|move"`。
+   - 定位只用 `selector="spec://<capability>/requirement/<id>/suite/<id>/case/<id>"` 形式表达；移动使用 `to="spec://..."`。
+   - 新增或修改节点用 `op="upsert"`，节点正文和子结构直接写在该 XML 节点内部。
+   - 删除节点用 `op="delete"`，不需要正文。
+   - 移动节点用 `op="move"`，必须提供 `to`。
+   - BDD/测试场景使用可嵌套的 `<suite>` 和 `<case>` 表达；`<case>` 内使用 `<given>`、`<when>`、`<then>`、可选 `<and>`。
+   - 需求正文使用 `<statement>`，不要再使用 Markdown 的 `## ADDED Requirements` / `### Requirement:` / `#### Scenario:`。
+   - 如果 `codument/config/feature.json` 中 `knowledgeSync.enabled=true`，可在相关 `<requirement>`、`<suite>` 或 `<case>` 内添加可选 `<knowledge-hint target="..." href="knowledge://..." strength="hint" />`，帮助后续 docs/knowledge sync 定位候选文档；该 hint 是弱链接，不是强外键。
+   - 如果 `knowledgeSync.enabled=false` 或配置缺失，不要生成 `<knowledge-hint>`，也不要生成 docs 联动信息。
+
+   **示例：**
+   ```xml
+   <spec-patch version="1">
+     <requirement op="upsert" selector="spec://provider.deepseek/requirement/cache-support" id="cache-support">
+       <statement>系统 SHALL 支持 DeepSeek provider 的前缀缓存能力。</statement>
+       <suite id="request-build" name="请求构建">
+         <case id="inject-cache-control">
+           <given>provider 为 deepseek 且 model 声明 supports_context_cache</given>
+           <when>系统构造 chat completion 请求</when>
+         <then>系统 SHALL 在静态系统提示末尾插入 cache_control 块</then>
+         <knowledge-hint target="main-docs" href="knowledge://main-docs/provider.deepseek/cache-support" strength="hint" />
+       </case>
+     </suite>
+   </requirement>
+   </spec-patch>
+   ```
+
+   **拆分规则：**
+   - 每个 capability 一个目录：`spec_deltas/<capability>/delta.xml`。
+   - capability 很大时，可拆成 `spec_deltas/<capability>/requirements/<topic>.xml`，并保留 `delta.xml` 作为索引说明或主 patch；所有 patch 文件都必须是 `<spec-patch>`。
+   - 不要引用当前 track 外的说明文档作为理解本 track 的必要条件。
 
 4. **写入文件：**
-   - 将确认的规范写入 `codument/tracks/<track_id>/spec.md`
+   - 将确认的规范写入 `codument/tracks/<track_id>/spec_deltas/<capability>/delta.xml`
 
-5. **用户确认：** 展示起草的 spec.md 供审查
+5. **用户确认：** 展示起草的 spec_deltas/<capability>/delta.xml 供审查
    > "我已起草了规范。请审查：
-   > 文件路径在：codument/tracks/<track_id>/spec.md
+   > 文件路径在：codument/tracks/<track_id>/spec_deltas/<capability>/delta.xml
    > 这是否准确捕获了需求？请建议更改或确认。"
 
    等待反馈并修改直到确认（使用 **Protocol: ask-single-question-free**）
 
 ### 2.3 交互式提案生成（proposal.md）
 
-1. **说明目标：** spec.md 确认无误后：
+1. **说明目标：** spec delta 确认无误后：
    > "现在我将创建完成的变更提案"
    需要按照如下格式，基于用户描述生成变更提案
    ```markdown
@@ -212,6 +240,9 @@
    ```
 2. **创建 proposal.md：** 基于用户描述生成变更提案
    - 将变更提案入 `codument/tracks/<track_id>/proposal.md`
+   - 如果背景、范围、兼容性、迁移或 rollout 内容较多，创建 `codument/tracks/<track_id>/proposal/` 子目录，把子方向写入子文件，并在 `proposal.md` 中作为总览引用。
+   - Good：`proposal.md` 概述目标并链接 `proposal/problem-statement.md`、`proposal/scope-and-compatibility.md`。
+   - Bad：把 200 行兼容性分析全部塞进 `proposal.md`，或引用 track 外部文档才能读懂提案。
 
 3. **用户确认：** 展示起草的 proposal.md 供审查
    > "我已起草了变更提案。请审查：
@@ -227,6 +258,17 @@
 - 新的外部依赖或重大数据模型变更
 - 安全、性能或迁移复杂性
 - 在编码前需要技术决策来消除歧义
+- 设计点很多，需要按子方向拆分
+
+如果设计内容较大，创建 `codument/tracks/<track_id>/design/` 子目录，并让根级 `design.md` 作为总览引用子设计。
+
+Good：
+- `design.md` 总览方案和影响面。
+- `design/spec-vfs-and-xml.md`、`design/archive-memory.md` 等文件承载子方向细节。
+
+Bad：
+- `design.md` 变成难以维护的超长文档。
+- 子设计文件放在 track 目录外，导致 track 不能自包含。
 
 1. **识别是否需要决策记录：**
    - 如果存在需要用户确认的技术/产品/交互决策，创建 `codument/tracks/<track_id>/decisions.md`
@@ -326,7 +368,7 @@
 
 2. **生成任务计划：**
     - 读取确认的 proposal.md 内容
-    - 读取确认的 spec.md 内容
+    - 读取确认的 spec_deltas/<capability>/delta.xml 内容
     - 读取确认的 design.md 内容
     - 读取`codument/std/workflow.md`, `codument/workflows/workflow.md`
     - 生成 plan.xml，包含 Phase、Task、Subtask 的层级结构
@@ -384,4 +426,4 @@
    > 状态真相源：codument/tracks/<track_id>/plan.xml
    > 提交模式：<auto|manual>
    > 校验模式：<yield-human-confirm|yield-gap-loop>
-   > 你现在可以运行 `/codument:implement` 开始实现。"
+   > 你现在可以运行 `请使用 codument-implement skill, 实现track: <track_id>` 开始实现。"

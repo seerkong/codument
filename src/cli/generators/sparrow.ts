@@ -9,7 +9,6 @@ import { getWorkspaceDir } from '../utils';
 import {
   CODUMENT_WORKFLOW_SKILL_NAME,
   LEGACY_CODUMENT_SKILL_NAME,
-  CODUMENT_SKILL_PREFIX,
   buildWorkflowSkillDirectories,
 } from '../../skills/codument-workflow';
 import { syncGeneratedSkillDirectories } from './skill-sync';
@@ -27,7 +26,7 @@ function cleanupOldSparrowSkillRoot(oldSkillsRootDir: string): void {
     if (
       entry.name === LEGACY_CODUMENT_SKILL_NAME ||
       entry.name === CODUMENT_WORKFLOW_SKILL_NAME ||
-      entry.name.startsWith(`${CODUMENT_SKILL_PREFIX}-`)
+      entry.name.startsWith('codument-')
     ) {
       fs.rmSync(path.join(oldSkillsRootDir, entry.name), { recursive: true, force: true });
     }

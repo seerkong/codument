@@ -30,7 +30,7 @@
 #### 2.2.1 结构验证
 
 - [ ] `plan.xml metadata` 存在且格式正确
-- [ ] `spec.md` 存在
+- [ ] `spec_deltas/**/*.xml` 存在；旧 track 可兼容 `spec.md`
 - [ ] `plan.xml` 存在且 XML 格式有效
 
 #### 2.2.2 plan.xml metadata 验证
@@ -46,16 +46,14 @@
 }
 ```
 
-#### 2.2.3 spec.md 验证
+#### 2.2.3 XML spec delta 验证
 
-- [ ] 至少包含一个增量操作部分：
-  - `## ADDED Requirements`
-  - `## MODIFIED Requirements`
-  - `## REMOVED Requirements`
-  - `## RENAMED Requirements`
-- [ ] 每个 `### Requirement:` 至少有一个 `#### Scenario:`
-- [ ] Scenario 格式正确（使用 `#### Scenario:`，不是列表项）
-- [ ] 需求使用规范性语言（SHALL/MUST）
+- [ ] 至少存在一个 `spec_deltas/**/*.xml` 文件
+- [ ] 每个 XML delta 根节点是 `<spec-patch version="1">`
+- [ ] 每个 mutation 使用 `op="upsert|delete|move"` 和 `selector="spec://..."`
+- [ ] 新增/修改内容使用 `<requirement>`、`<statement>`、`<suite>`、`<case>` 等业务节点表达
+- [ ] BDD 场景使用可嵌套 `<suite>` / `<case>`，case 内使用 `<given>`、`<when>`、`<then>`
+- [ ] 旧 track 的 `spec.md` 仅作为兼容格式验证
 
 #### 2.2.4 plan.xml 验证
 
@@ -73,15 +71,14 @@
 
 #### 2.3.1 结构验证
 
-- [ ] `spec.md` 存在
+- [ ] `specs/<capability>.xml` 或 `specs/<capability>/index.xml` 存在；旧 registry 可兼容 `specs/<capability>/spec.md`
 
-#### 2.3.2 spec.md 验证
+#### 2.3.2 XML spec 验证
 
-- [ ] 包含 `# <能力名称>` 一级标题
-- [ ] 至少包含一个 `### Requirement:` 部分
-- [ ] 每个需求至少有一个 `#### Scenario:`
-- [ ] Scenario 格式正确
-- [ ] 需求使用规范性语言
+- [ ] XML 根节点是 `<capability id="...">`
+- [ ] 至少包含一个 `<requirement>`
+- [ ] 至少包含一个 `<case>`
+- [ ] include 拆分路径可解析
 
 ### 2.4 严格模式 (--strict)
 
@@ -92,7 +89,7 @@
 - [ ] proposal.md 存在（如果是新 track）
 - [ ] proposal.md 包含必需部分：背景、变更内容、影响范围
 - [ ] design.md 格式正确（如果存在）
-- [ ] 所有 Scenario 的 WHEN/THEN 格式正确
+- [ ] 所有 `<case>` 的 `<when>` / `<then>` 语义完整
 - [ ] 无重复的需求名称
 - [ ] 任务 ID 唯一且符合命名规范
 
@@ -109,7 +106,7 @@
 ```
 ✓ codument/tracks/add-user-auth/
   ✓ plan.xml metadata - 有效
-  ✓ spec.md - 有效 (3 个需求, 5 个场景)
+  ✓ spec_deltas - 有效 (2 个 patch, 3 个 capability)
   ✓ plan.xml - 有效 (2 个阶段, 8 个任务)
 
 验证通过！
@@ -120,9 +117,9 @@
 ```
 ✗ codument/tracks/add-user-auth/
   ✓ plan.xml metadata - 有效
-  ✗ spec.md - 错误
-    - 第 15 行: Requirement "User Login" 缺少 Scenario
-    - 第 28 行: Scenario 格式错误，应使用 "#### Scenario:" 而非 "- Scenario:"
+  ✗ spec_deltas/deepseek/delta.xml - 错误
+    - XML spec delta root must be <spec-patch>
+    - XML spec delta must contain at least one mutation with a spec:// selector
   ✓ plan.xml - 有效
 
 验证失败！请修复以上错误后重试。
@@ -160,17 +157,17 @@ Specs:
 
 | 错误 | 原因 | 修复 |
 |------|------|------|
-| "Requirement must have at least one scenario" | 需求下没有场景 | 添加 `#### Scenario:` 部分 |
-| "Invalid scenario format" | 场景格式错误 | 使用 `#### Scenario: 名称` 格式 |
+| "XML spec delta root must be <spec-patch>" | 新 track 误写成 Markdown 或 XML 根节点错误 | 改为 `<spec-patch version="1">` |
+| "XML spec delta must contain at least one mutation" | patch 中没有 selector mutation | 添加带 `op` 与 `selector="spec://..."` 的节点 |
 | "Invalid XML format" | plan.xml 语法错误 | 检查 XML 标签闭合 |
 | "Missing required field in metadata" | plan.xml metadata 缺少字段 | 添加所需字段 |
-| "Track must have at least one delta" | spec.md 没有增量操作 | 添加 ADDED/MODIFIED/REMOVED 部分 |
+| "Track must have at least one delta" | 没有 XML spec delta | 添加 `spec_deltas/<capability>/delta.xml` |
 
 ---
 
 ## 4.0 独立验证子代理模式
 
-当本命令被 `/codument:execute-wave` 作为验证子代理调用时，执行以下独立验证流程。
+当本 skill 被 `codument-execute-wave` skill 作为验证子代理调用时，执行以下独立验证流程。
 
 ### 4.1 触发条件
 
