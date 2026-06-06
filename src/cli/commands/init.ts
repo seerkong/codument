@@ -37,7 +37,7 @@ import {
   stdAgentsPrompt,
   workflowTemplate,
 } from '../../prompts';
-import { DEFAULT_FEATURE_CONFIG } from '../utils/feature-config';
+import { DEFAULT_FEATURE_CONFIG_FILE } from '../utils/feature-config';
 
 let TASKS_XML_SPEC = planXmlSpec;
 
@@ -384,7 +384,7 @@ ${projectDesc}
 
   fs.writeFileSync(
     path.join(CONFIG_DIR, 'feature.json'),
-    `${JSON.stringify(DEFAULT_FEATURE_CONFIG, null, 2)}\n`
+    `${JSON.stringify(DEFAULT_FEATURE_CONFIG_FILE, null, 2)}\n`
   );
   console.log('  ✓ 创建 config/feature.json');
 

@@ -10,7 +10,7 @@
 
 **重要：优先调用 Codument CLI 完成归档。**
 - 归档动作优先执行 `codument archive <track_id> --yes`。
-- 不要手工 `mv` track 目录来代替 CLI 归档；CLI 会统一处理 archive 路径、spec registry、decisions、projectMemory 与 knowledgeSync 提示。
+- 不要手工 `mv` track 目录来代替 CLI 归档；CLI 会统一处理 archive 路径、spec registry、decisions、projectMemory 与 artifact-sync 提示。
 - 仅当 CLI 不存在或执行失败，才按下文手工归档流程作为 fallback，并在最终结果中明确说明 fallback 原因。
 
 ---
@@ -33,6 +33,7 @@
 1. **检查 Track 状态：**
    - 读取 `codument/tracks/<track_id>/plan.xml` 的 metadata.status，确认 track 状态为 `completed`
    - 如果未完成，警告用户并询问是否仍要归档（使用 **ask-single-question-closed**）
+   - 如果 `codument/config/operation-hooks.xml` 为 `operation name="archive"` 配置了 `before-archive`，先执行该 hook；常见用途是用 docs profile 做归档吸引子校验
 
 2. **创建归档目录：**
    - 如果 `codument/archive/` 不存在，创建它
@@ -49,11 +50,13 @@
    - 旧 track 若只有 `spec.md`，可按兼容逻辑读取 Markdown delta；新 track 不应再生成 Markdown spec delta
    - 如果是纯工具变更（无规范增量），跳过此步骤
 
-5. **提升长期知识（可选/按配置）：**
+5. **提升长期知识与执行显式 artifact sync（可选/按配置）：**
    - 优先读取 `decisions/*.md` 中明确标记为 durable / 长期项目决策的单文件决策；旧 track 可兼容读取 `decisions.md`
    - 将 durable 决策提升到 `codument/decisions/YYYY-MM/YYYY-MM-DD-HHmm-slug/decision.md`，并使用 `decision://<slug>` 作为长期引用；普通过程决策只保留在 archive
    - 仅当 `codument/config/feature.json` 中 `projectMemory.enabled=true` 且 track 中显式存在 `memory/lessons|incidents|patterns|summaries/*.md` 时，才提升 `memory://` 内容；不要从 proposal 或普通日志自动合成 memory
-   - 仅当 `knowledgeSync.enabled=true` 时，才同步 docs 或其他配置 target
+   - `knowledgeSync.enabled=true` 不代表复制 durable decision 记录，也不触发隐式 docs/knowledge sync；旧 `knowledgeSync.targets` 应由 `upgrade-workspace` 迁移到 `codument/config/artifacts.xml`
+   - 如果 `operation-hooks.xml` 为 `archive` 的当前 hook point（通常是 `after-archive`）显式配置 `<artifact-sync artifact="..." />`，按 `codument/std/protocols.md` 的 artifact-sync 协议读取 `codument/config/artifacts.xml` 并执行
+   - artifact sync 只同步 hook 引用的 artifact，并按该 artifact 的 `resources`、`targets` 和 `policy` 更新目标；缺失显式 hook 时不要因为 `knowledgeSync.enabled=true` 或 `artifacts.xml` 存在而同步
 
 6. **移除活跃目录入口：**
    - 归档通过移动 `codument/tracks/<track_id>/` 完成；不维护额外 registry 文件
@@ -88,4 +91,5 @@
 
 - 使用 `codument list` 确认 track ID
 - 使用 `codument list --specs` 查看更新后的 XML registry
+- 如果 archive hook 配置了 artifact sync，读取 `codument/config/artifacts.xml`；其中 `skill` resource 只是规则来源，不是 artifact 输出
 - 检查归档后 `codument validate --strict` 通过；如果系统找不到 `codument` 命令，则记录该外部 CLI validate 步骤已跳过

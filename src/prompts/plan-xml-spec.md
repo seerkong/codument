@@ -20,6 +20,12 @@ plan.xml 是 Codument 中用于追踪变更实现进度的结构化任务文件�
 
 ## 完整结构
 
+**硬性结构约束：**
+- `<plan>` 根节点下的 phase 列表必须由 `<phases>` 包裹。
+- `<phase>` 只能作为 `<phases>` 的直接子节点；禁止把 `<phase>` 直接放在 `<plan>` 下。
+- `<task>` 只能作为 `<tasks>` 的直接子节点；禁止把 `<task>` 直接放在 `<phase>` 下。
+- 生成或修改 plan.xml 后必须检查这三个结构约束，再运行 `codument validate ... --strict`。
+
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <plan>
@@ -223,6 +229,157 @@ plan.xml 的根元素为 `<plan>`。Track 的唯一标识符在 `<metadata><trac
 </task>
 ```
 
+### `<attractor-check>` - 吸引子校验 Hook（可选）
+
+用于让流程在 track、phase 或 task 的执行前/后，按指定 attractor profile 校验当前 scope 是否符合项目级吸引子。它是 hook，不替代 `<confirm>`；校验结果之后可以通过 `<result-policy>` 复用 `<confirm>`。
+
+- **可放置位置**：`<plan>`、`<phase>` 或 `<task>` 节点下
+- **profile**：引用 `codument/config/attractor-profiles.json` 中的 profile；缺省为 `default`
+- **when**：`before` | `after` | `both`
+- **status**：`TODO` | `IN_PROGRESS` | `DONE` | `BLOCKED` | `CANCELLED`
+- **executor**：`main-agent` | `subagent` | `fresh-subagent`；缺省为 `subagent`
+- **结果状态**：校验执行器返回 `PASS` | `GAP` | `BLOCKED`
+- **重试规则**：`GAP` 被修复后必须重新运行该 check，直到 `PASS` 或 `BLOCKED`
+- **无隐式等待**：未配置 `<attractor-check>` 时，不因 workspace 存在 attractors 而额外暂停
+
+`<result-policy>` 支持：
+
+- `on-gap="fix-immediately"`：可安全修复时立即修复并复检
+- `on-gap="confirm-before-fix"`：先执行子节点中的 `<confirm>`，确认后再修复
+- `on-gap="block"`：发现 gap 即标记 `BLOCKED` 并等待用户输入
+
+**示例：**
+```xml
+<phase id="P2" name="Implementation" status="TODO">
+  <goal>Implement phase-level behavior.</goal>
+  <attractor-check profile="default" when="after" status="TODO" executor="subagent">
+    <result-policy on-gap="fix-immediately" />
+  </attractor-check>
+  <tasks>
+    ...
+  </tasks>
+</phase>
+
+<phase id="P4" name="Archive readiness" status="TODO">
+  <goal>Validate archive and docs sync behavior.</goal>
+  <attractor-check profile="docs" when="after" status="TODO" executor="fresh-subagent">
+    <result-policy on-gap="confirm-before-fix">
+      <confirm protocol="yield-human-confirm" when="after" status="TODO" />
+    </result-policy>
+  </attractor-check>
+  <tasks>
+    ...
+  </tasks>
+</phase>
+```
+
+### `codument/config/operation-hooks.xml` - Operation Hook Overlay（可选）
+
+用于给没有独立 `plan.xml` 的 Codument operation（命令或 skill）配置稀疏 hook。该文件只声明需要显性化的 operation 和 hook point，不预先展开所有 Codument 命令。
+
+**示例：**
+```xml
+<operation-hooks version="1">
+  <operation name="track">
+    <hook id="track-design-attractor-check" point="after-design" status="TODO">
+      <attractor-check profile="default" when="after" status="TODO" executor="subagent">
+        <result-policy on-gap="confirm-before-fix">
+          <confirm protocol="yield-human-confirm" when="after" status="TODO" />
+        </result-policy>
+      </attractor-check>
+    </hook>
+  </operation>
+
+  <operation name="archive">
+    <hook id="archive-docs-attractor-check" point="before-archive" status="TODO">
+      <attractor-check profile="docs" when="before" status="TODO" executor="fresh-subagent">
+        <result-policy on-gap="block" />
+      </attractor-check>
+    </hook>
+  </operation>
+
+  <operation name="archive">
+    <hook id="sync-atm-cli-doc-after-archive" point="after-archive" status="TODO">
+      <artifact-sync artifact="atm-cli-usage-doc" status="TODO" executor="fresh-subagent" />
+    </hook>
+  </operation>
+
+  <operation name="revise-track">
+    <hook id="revise-track-before-attractor-check" point="before-revise" status="TODO">
+      <attractor-check profile="default" when="before" status="TODO" executor="subagent">
+        <result-policy on-gap="confirm-before-fix">
+          <confirm protocol="yield-human-confirm" when="after" status="TODO" />
+        </result-policy>
+      </attractor-check>
+    </hook>
+  </operation>
+</operation-hooks>
+```
+
+### `codument/config/artifacts.xml` - Artifact Sync Registry（可选）
+
+用于声明 hook 触发的 artifact 同步规则。该文件不是 pipeline 编排器，不包含 `pipelines` 节点；执行顺序由 `operation-hooks.xml` 中显式配置的 hook 顺序决定。
+
+根节点为 `<artifact-config version="1">`，只包含：
+
+- `<resources>`：可复用执行资源，只允许 `workflow`、`skill`、`attractor-profile`、`agent`
+- `<artifacts>`：可同步 artifact 定义
+
+`<artifact>` 子节点只允许：
+
+- `<uses>`：引用 resources 中的资源
+- `<targets>`：列出一个或多个同步目标
+- `<policy>`：配置 dry-run、conflict、provenance 策略
+
+**重要语义：**
+- `skill` resource 是规则或提示词来源，不是 artifact 输出。
+- `workflow` 和 `skill` resource 的 `ref` 路径在 validate 时必须能解析到已存在文件。
+- `attractor-profile` resource 只通过 `name` 引用 `codument/config/attractor-profiles.json` 中的 profile；不要在该 resource 上写 direct `attractor` 或 `ref` 文件属性。
+- 目标位置通过 `<targets><target ... /></targets>` 表达；多个 target 表示同一份 artifact 生成后同步到多个目标根目录。
+- `target.base-dir` 是目标根目录；目录型 artifact 使用 `relative-dir`，文件型 artifact 使用 `relative-file`。不要在新配置中使用旧 `path`/`output-path`。
+- 多个 target 必须保持同一套相对路径结构：目录型 artifact 把同一相对文件树写入每个 `base-dir/relative-dir`；文件型 artifact 把同一文件内容写入每个 `base-dir/relative-file`。
+- 缺失 `codument/config/artifacts.xml` 时，不执行 artifact sync，也不产生额外等待。
+
+**示例：**
+```xml
+<artifact-config version="1">
+  <resources>
+    <workflow id="sync-target-doc" ref="codument/workflows/artifacts/sync-target-doc.md" />
+    <skill id="atm-cli-sync-rule" ref="/Users/kongweixian/ai/ai-team/multica/terminal/skills/atm-cli/SKILL.md" />
+    <attractor-profile id="docs-profile" name="docs" />
+    <agent id="fresh-doc-agent" executor="fresh-subagent" />
+  </resources>
+
+  <artifacts>
+    <artifact
+      id="atm-cli-usage-doc"
+      kind="target-doc"
+      enabled="true"
+      source-kind="archived-track"
+      source-scope="current"
+    >
+      <uses>
+        <use resource="fresh-doc-agent" />
+        <use resource="sync-target-doc" />
+        <use resource="atm-cli-sync-rule" />
+        <use resource="docs-profile" />
+      </uses>
+      <targets>
+        <target id="atm-cli-docs" kind="local-dir" base-dir="/Users/kongweixian/ai/ai-team/multica/terminal/docs" relative-file="atm-cli/usage.md" />
+        <target id="team-docs" kind="local-dir" base-dir="/Users/kongweixian/ai/ai-team/docs" relative-file="skills/atm-cli.md" />
+      </targets>
+      <policy dry-run="first" conflict="diff-confirm" provenance="manifest" />
+    </artifact>
+  </artifacts>
+</artifact-config>
+```
+
+`<policy>` 支持：
+
+- `dry-run="never|first|always|changed"`
+- `conflict="block|diff-confirm|merge|overwrite|append|skip"`
+- `provenance="none|manifest|inline|both"`
+
 ### `<metadata>` - 元数据
 
 | 元素 | 必需 | 说明 |
@@ -253,7 +410,19 @@ plan.xml 的根元素为 `<plan>`。Track 的唯一标识符在 `<metadata><trac
 
 ### `<phases>` - 阶段列表
 
-包含一个或多个 `<phase>` 元素。
+包含一个或多个 `<phase>` 元素。`<phases>` 是必需容器；即使只有一个阶段，也必须写：
+
+```xml
+<phases>
+  <phase id="P1" name="...">
+    <tasks>
+      <task id="T1.1" name="..." status="TODO" priority="P0" />
+    </tasks>
+  </phase>
+</phases>
+```
+
+不要写成 `<plan><phase ... /></plan>`，strict validate 会拒绝这种结构。
 
 ### `<phase>` - 阶段
 

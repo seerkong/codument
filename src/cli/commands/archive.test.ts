@@ -188,7 +188,7 @@ describe('codument archive', () => {
     expect(markdownDecision).toContain('Decision URI: decision://keep-markdown-compat');
   });
 
-  it('syncs durable decisions to configured knowledge targets when enabled', async () => {
+  it('does not copy durable decision records into configured knowledge targets', async () => {
     const repoRoot = path.resolve(__dirname, '../../..');
     const cliEntry = path.join(repoRoot, 'src/cli/index.ts');
     const ws = makeTempDir('codument-archive-knowledge-sync-ws-');
@@ -214,7 +214,7 @@ describe('codument archive', () => {
   <description>knowledge sync archive test</description>
 </metadata><phases></phases></plan>`);
     writeFile(path.join(trackDir, 'proposal.md'), '# Proposal\n\nArchive knowledge sync behavior.\n');
-    writeFile(path.join(trackDir, 'decisions', 'use-docs-sync.md'), '# Use Docs Sync\n\n### Durable\nSync durable decisions to configured knowledge targets.\n');
+    writeFile(path.join(trackDir, 'decisions', 'use-docs-sync.md'), '# Use Docs Sync\n\n### Durable\nKeep durable decisions in the Codument decision registry.\n');
 
     const proc = Bun.spawn([
       'bun',
@@ -237,13 +237,13 @@ describe('codument archive', () => {
     expect(err).toBe('');
     expect(exitCode).toBe(0);
 
-    const knowledgeRoot = path.join(ws, 'docs', '2026-05');
-    expect(fs.existsSync(knowledgeRoot)).toBe(true);
-    const knowledgeDir = fs.readdirSync(knowledgeRoot)[0];
-    const syncedDecision = fs.readFileSync(path.join(knowledgeRoot, knowledgeDir, 'decision.md'), 'utf-8');
-    expect(syncedDecision).toContain('Decision URI: decision://use-docs-sync');
-    expect(syncedDecision).toContain('Target: knowledge://main-docs');
-    expect(syncedDecision).toContain('Sync durable decisions to configured knowledge targets.');
+    const decisionRoot = path.join(ws, 'codument', 'decisions', '2026-05');
+    expect(fs.existsSync(decisionRoot)).toBe(true);
+    const promotedDecisionDir = fs.readdirSync(decisionRoot)[0];
+    const promotedDecision = fs.readFileSync(path.join(decisionRoot, promotedDecisionDir, 'decision.md'), 'utf-8');
+    expect(promotedDecision).toContain('Decision URI: decision://use-docs-sync');
+    expect(promotedDecision).toContain('Source: archive://');
+    expect(fs.existsSync(path.join(ws, 'docs', '2026-05'))).toBe(false);
   });
 
   it('fails before moving the track when a configured knowledge target root is missing', async () => {

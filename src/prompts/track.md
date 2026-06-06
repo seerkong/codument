@@ -379,23 +379,30 @@ Bad：
     - 读取确认的 design.md 内容
     - 读取`codument/std/workflow.md`, `codument/workflows/workflow.md`
     - 生成 plan.xml，包含 Phase、Task、Subtask 的层级结构
+    - **硬性 XML 结构**：`plan.xml` 根节点必须是 `<plan>`；所有 `<phase>` 必须放在 `<phases>` 容器内；禁止把 `<phase>` 直接写在 `<plan>` 下；每个 `<phase>` 内的 `<task>` 必须放在 `<tasks>` 容器内
     - **关键：** 计划结构必须遵循 workflow.md 中的方法论（如 TDD 的"编写测试"和"实现"任务）
     - 每个任务包含 id、name、priority、status
     - **可配置确认**：如需在阶段或任务执行前/后确认，可在 `<phase>` 或 `<task>` 下添加 `<confirm protocol="yield-human-confirm|yield-gap-loop" when="before|after|both" status="TODO" />`（见 `codument/std/protocols.md`）
+    - **可配置吸引子校验**：如需在 track 设计后、phase/task 前后或归档前校验吸引子，可添加 `<attractor-check profile="default|docs|..." when="before|after|both" status="TODO" executor="subagent|fresh-subagent">`，并用 `<result-policy on-gap="fix-immediately|confirm-before-fix|block" />` 配置结果策略
+    - **operation hooks**：创建 track 时，如果 `codument/config/operation-hooks.xml` 为 `operation name="track"` 配置了 `after-design` 或 `after-plan`，按其中的 hook DSL 执行
+    - **artifact sync hooks**：如需在 archive、artifact-sync 或其他 operation 中同步 artifact，在 `operation-hooks.xml` 中添加 `<artifact-sync artifact="..." status="TODO" executor="subagent|fresh-subagent" />`，并在 `codument/config/artifacts.xml` 中定义该 artifact；不要在 plan.xml 中隐式生成 artifact sync
+    - **artifact resources**：`artifacts.xml` 中的 `skill` resource 是同步规则，不是制品；项目特定执行说明应优先放在 `codument/workflows/`
     - **默认确认策略（重要）**：默认情况下，仅在**最后一个 phase** 下添加一个 `when="after"` 的 phase 级 `<confirm ... />`；中间 phase 默认**不添加** `<confirm>`，task 默认也**不添加** `<confirm>`
     - **例外**：只有在用户明确要求、存在高风险发布/迁移/安全检查、或确有必要在关键节点暂停审阅时，才为中间 phase 或 task 添加额外 `<confirm>`
-    - **知识同步任务（可选）**：如果 `codument/config/feature.json` 中 `knowledgeSync.enabled=true`，在 tasks 中添加一个文档同步任务：
+    - **知识制品同步任务（可选）**：如果 `codument/config/operation-hooks.xml` 中存在显式 `<artifact-sync artifact="..." />`，且该 artifact 在 `codument/config/artifacts.xml` 中定义，可在 tasks 中添加一个文档或制品同步任务：
       ```xml
       <task id="T-sync-knowledge-docs" name="同步项目知识文档" priority="P1" status="TODO">
-        <description>根据 feature.json 中配置的 knowledgeSync targets 和对应 attractor，判断并同步受影响的知识目录。</description>
+        <description>根据 operation-hooks.xml 引用的 artifact 和 artifacts.xml 中的 targets，判断并同步受影响的知识制品。</description>
         <acceptance_criteria>
-          <criterion id="AC-read-attractor" checked="false">已读取目标 knowledge attractor</criterion>
-          <criterion id="AC-decide-sync" checked="false">已判断是否需要同步 docs 或外部知识目录</criterion>
+          <criterion id="AC-read-artifact-config" checked="false">已读取目标 artifact 的 resources、targets 和 policy</criterion>
+          <criterion id="AC-read-attractor" checked="false">已读取 artifact 的 attractor-profile resource；如旧 target 显式指定 attractor hint，也已读取 target attractor</criterion>
+          <criterion id="AC-decide-sync" checked="false">已判断是否需要同步 docs、外部知识目录或其他目标</criterion>
           <criterion id="AC-log-reason" checked="false">已记录未同步的理由或已完成同步</criterion>
         </acceptance_criteria>
       </task>
       ```
-    - 如果 `knowledgeSync.enabled=false` 或配置缺失，不生成该任务，也不生成 docs 联动信息
+    - 不要只因为 `knowledgeSync.enabled=true` 就生成隐式同步任务；旧 `knowledgeSync.targets` 应通过 `upgrade-workspace` 迁移到 `codument/config/artifacts.xml`
+    - 如果没有显式 artifact-sync hook 或 artifact 配置缺失，不生成该任务，也不生成 docs 联动信息
 
 3. **写入文件：**
     - 将执行计划写入 `codument/tracks/<track_id>/plan.xml`

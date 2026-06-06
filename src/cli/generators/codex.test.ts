@@ -13,6 +13,8 @@ describe("generateCodexCommands", () => {
   it("installs generated codument skills into the Codex skill directory", async () => {
     const repoRoot = path.resolve(__dirname, "../../..");
     const tempHome = makeTempDir("codex-home-");
+    fs.mkdirSync(path.join(tempHome, ".codex", "skills", "codument-docs-sync-track"), { recursive: true });
+    fs.writeFileSync(path.join(tempHome, ".codex", "skills", "codument-docs-sync-track", "SKILL.md"), "OLD\n");
     const proc = Bun.spawn(
       [
         "bun",
@@ -37,10 +39,14 @@ describe("generateCodexCommands", () => {
 
     const workflowSkillRoot = path.join(tempHome, ".codex", "skills", "codument-workflow");
     const legacySkillRoot = path.join(tempHome, ".codex", "skills", "codument");
+    const legacyDocsSyncTrackRoot = path.join(tempHome, ".codex", "skills", "codument-docs-sync-track");
     const gapLoopSkillRoot = path.join(tempHome, ".codex", "skills", "codument-gap-loop");
+    const artifactSyncSkillRoot = path.join(tempHome, ".codex", "skills", "codument-artifact-sync");
     expect(fs.existsSync(legacySkillRoot)).toBe(false);
+    expect(fs.existsSync(legacyDocsSyncTrackRoot)).toBe(false);
     expect(fs.existsSync(workflowSkillRoot)).toBe(false);
     expect(fs.existsSync(path.join(gapLoopSkillRoot, "SKILL.md"))).toBe(true);
+    expect(fs.existsSync(path.join(artifactSyncSkillRoot, "SKILL.md"))).toBe(true);
     const standaloneGapLoopRef = fs.readFileSync(path.join(gapLoopSkillRoot, "SKILL.md"), "utf-8");
     expect(standaloneGapLoopRef.startsWith("---\nname: codument-gap-loop\n")).toBe(true);
     expect(standaloneGapLoopRef).toContain("Trigger aliases: `codument:gap-loop`, `codument-gap-loop`.");

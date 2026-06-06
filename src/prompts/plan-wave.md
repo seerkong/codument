@@ -70,7 +70,7 @@
    - `proposal/` — 大型 track 的子提案目录（如存在）
    - `context.md` — 讨论记录（如存在）
    - `codument/std/plan-xml-spec.md` — plan.xml schema 规范
-   - `codument/config/feature.json` — 判断是否需要 knowledge sync 任务
+   - `codument/config/operation-hooks.xml` 和 `codument/config/artifacts.xml` — 仅用于识别显式 hook 触发的 artifact/knowledge sync 任务
 
 2. **检查 execution_mode：**
    - 如果 plan.xml 中 `<execution_mode>` 为 `sequential`，询问是否切换为 `wave`
@@ -88,7 +88,7 @@
    - 无依赖关系的 task 可以并行
    - 有共同前置依赖的 task 可以在同一 wave
    - 有顺序依赖的 task 必须在不同 wave
-   - 如果 `knowledgeSync.enabled=true`，需要把文档/知识同步任务纳入对应 phase 的依赖图
+   - 只有当 plan 中已有显式文档/制品同步 task，或 `operation-hooks.xml` 中显式 `<artifact-sync artifact="..." />` 引用 `artifacts.xml` 中的 artifact 时，才把 artifact sync 纳入对应 phase 的依赖图；不要只因为 `knowledgeSync.enabled=true` 推断隐式同步任务
 
 ### 3.3 生成 Wave 分组
 

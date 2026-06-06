@@ -43,7 +43,7 @@
 5. 编写 `spec_deltas/<capability>/delta.xml` XML 规范增量，使用 `<spec-patch>`、`spec://` selector 和 `op="upsert|delete|move"`
 6. 编写 `proposal.md` 说明背景和动机、变更什么、“要做”和“不做”、 变更内容、影响范围
 7. 按需编写 `design.md` 说明上下文、方案概览、影响范围与修改点、决策、风险/权衡、兼容性设计、迁移计划、待解决问题
-8. 编写 `plan.xml` 结构化任务清单
+8. 编写 `plan.xml` 结构化任务清单；所有 `<phase>` 必须包在 `<phases>` 下，所有 `<task>` 必须包在所属 `<phase><tasks>` 下，禁止 `<phase>` 直接挂在 `<plan>` 下
 9. 尝试运行 `codument validate <id> --strict` 验证后再提交审批；如果系统找不到 `codument` 命令，可跳过该外部 CLI validate 步骤，并明确说明已跳过
 
 ### 阶段二：实现变更
@@ -63,7 +63,8 @@
 部署后，创建归档：
 - 将 `tracks/[id]/` 移动到 `archive/YYYY-MM/YYYY-MM-DD-HHmm-[id]/`，时间来自 track 最后更新时间
 - 如果能力发生变化，更新 `spec://` registry；如有 durable decision，提升到 `decision://`
-- 仅当 `codument/config/feature.json` 启用 `knowledgeSync` 或 `projectMemory` 时，才同步外部知识面或 memory
+- 仅当 `codument/config/feature.json` 启用 `projectMemory` 且 track 明确提供 `memory/` 候选时，才提升 `memory://`
+- 仅当 `codument/config/operation-hooks.xml` 显式配置 `<artifact-sync artifact="..." />` 且对应 artifact 存在于 `codument/config/artifacts.xml` 时，才执行外部知识面或 artifact 同步；不要只因为 `knowledgeSync.enabled=true` 或 `artifacts.xml` 存在就隐式同步
 - 尝试运行 `codument validate --strict` 确认归档的变更通过检查；如果系统找不到 `codument` 命令，可跳过该外部 CLI validate 步骤，并明确说明已跳过
 
 ## 开始任何任务前
@@ -105,7 +106,7 @@ codument status                # 查看项目状态
 请使用 codument-gap-loop skill, 检查track: <track-id>
 请使用 codument-verify skill, 验证track: <track-id>
 请使用 codument-docs-bootstrap skill, 将现存项目总结到 docs/modeling 和 docs/impl
-请使用 codument-docs-sync-track skill, 将指定track改动同步到 docs/modeling 和 docs/impl
+请使用 codument-artifact-sync skill, 同步指定 artifact
 请使用 codument-migrate-archive skill, 迁移旧 archive 目录到新规范
 请使用 codument-migrate-specs skill, 迁移旧 Markdown specs 到 XML registry
 
@@ -483,7 +484,7 @@ codument archive <id>      # 标记完成
 请使用 codument-gap-loop skill, 检查track: <id>
 请使用 codument-verify skill, 验证track: <id>
 请使用 codument-docs-bootstrap skill, 将现存项目总结到 docs/modeling 和 docs/impl
-请使用 codument-docs-sync-track skill, 将指定track改动同步到 docs/modeling 和 docs/impl
+请使用 codument-artifact-sync skill, 同步指定 artifact
 请使用 codument-migrate-archive skill, 迁移旧 archive 目录到新规范
 请使用 codument-migrate-specs skill, 迁移旧 Markdown specs 到 XML registry
 ```
@@ -573,3 +574,29 @@ Codument 使用三层确认机制确保重要决策得到用户认可：
 3. **展示影响**：在确认前展示操作的影响范围
 4. **允许修改**：用户可以要求修改而非简单确认
 5. **记录决策**：重要决策记录在相关文件中
+
+## Operation Hooks
+
+Codument MAY use `codument/config/operation-hooks.xml` to configure sparse hooks for commands or skills that do not have their own `plan.xml` execution plan.
+
+- Only execute hooks for the current operation and point when the XML explicitly configures them.
+- Supported reusable hook DSL includes `<attractor-check>`, `<artifact-sync>`, `<result-policy>`, and nested `<confirm>`.
+- `revise-track` is the explicit operation for amending an existing track's proposal, design, spec deltas, plan, analysis, or decisions during non-linear work.
+- If `operation-hooks.xml` is missing, continue the default command/skill workflow without extra waits.
+
+## Artifact Sync
+
+Codument MAY use `codument/config/artifacts.xml` to define hook-triggered artifact sync entries.
+
+- The root is `<artifact-config version="1">` with `resources` and `artifacts`; it does not define `pipelines`.
+- `resources` only supports `workflow`, `skill`, `attractor-profile`, and `agent`.
+- `attractor-profile` resources reference `codument/config/attractor-profiles.json` by `name`; do not put direct `attractor` or `ref` file attributes on the resource.
+- `artifact` children are limited to `uses`, `targets`, and `policy`.
+- Source metadata stays on artifact attributes such as `source-kind` and `source-scope`.
+- Target locations use `<targets><target id="..." kind="local-dir|web|command" base-dir="..." relative-dir="..." /></targets>` for directory artifacts, or `relative-file="..."` for single-file artifacts; multiple targets mean one generated artifact is distributed to multiple destinations.
+- Legacy target attributes `path` and `output-path` may be migrated for compatibility, but new config should use `base-dir` plus `relative-dir` or `relative-file`.
+- `skill` resources are rule or prompt sources, not artifact outputs.
+- `workflow` and `skill` resource `ref` files must exist when validate checks `artifacts.xml`.
+- Artifact sync runs only when `operation-hooks.xml` explicitly contains `<artifact-sync artifact="..." />`.
+- Legacy `knowledgeSync.targets` migration should create docs/memory attractor profiles; `docs-knowledge.md` and `project-memory.md` belong in those profile definitions unless preserved as an explicit target-specific legacy hint.
+- Project-specific artifact sync workflow instructions should live under `codument/workflows/`, for example `codument/workflows/artifacts/*.md`.

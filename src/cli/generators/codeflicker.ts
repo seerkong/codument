@@ -9,6 +9,7 @@ import {
   CODEFLICKER_WORKFLOW_COMMAND_DISPLAY_PATH,
   CODEFLICKER_WORKFLOW_SKILL_DISPLAY_PATH,
   CODUMENT_WORKFLOW_SKILL_NAME,
+  LEGACY_DOCS_SYNC_TRACK_SKILL_NAME,
   LEGACY_CODUMENT_SKILL_NAME,
   buildWorkflowSkillDirectories,
 } from '../../skills/codument-lifecycle';
@@ -108,6 +109,15 @@ const COMMANDS = {
       argsToken: '$ARGUMENTS',
     }),
   },
+  'artifact-sync': {
+    description: 'Sync an explicitly selected artifact',
+    content: buildSkillWrapperBody({
+      commandId: 'artifact-sync',
+      skillDisplayPath: CODEFLICKER_WORKFLOW_SKILL_DISPLAY_PATH,
+      subskillName: 'artifact-sync',
+      argsToken: '$ARGUMENTS',
+    }),
+  },
   'gap-loop': {
     description: 'Run a fresh gap loop for a track or phase',
     content: buildSkillWrapperBody({
@@ -127,12 +137,14 @@ export async function generateCodeFlickerCommands(): Promise<void> {
   syncGeneratedSkillDirectories(
     CODEFLICKER_SKILLS_DIR,
     buildWorkflowSkillDirectories('codeflicker'),
-    [LEGACY_CODUMENT_SKILL_NAME, CODUMENT_WORKFLOW_SKILL_NAME]
+    [LEGACY_CODUMENT_SKILL_NAME, CODUMENT_WORKFLOW_SKILL_NAME, LEGACY_DOCS_SYNC_TRACK_SKILL_NAME]
   );
 
   if (!fs.existsSync(CODEFLICKER_COMMANDS_DIR)) {
     fs.mkdirSync(CODEFLICKER_COMMANDS_DIR, { recursive: true });
   }
+
+  fs.rmSync(path.join(CODEFLICKER_COMMANDS_DIR, 'docs-sync-track.md'), { force: true });
 
   for (const [name, cmd] of Object.entries(COMMANDS)) {
     const filePath = path.join(CODEFLICKER_COMMANDS_DIR, `${name}.md`);

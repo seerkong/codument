@@ -46,6 +46,8 @@
 
 如果当前运行在一个更上层的封装编排环境中，而该环境本身已经实现了 `yield-gap-loop` 协议，则**以上层环境的编排实现为准**。
 
+如果当前 scope 已由上层 `operation-hooks.xml` 或 `plan.xml` 的 `<attractor-check>` 拥有吸引子校验，不要在 gap-loop 子代理内启动 competing nested attractor-check。可以读取已有 hook 结果作为背景，但是否重跑由父层决定。
+
 这类环境包括但不限于：
 
 - 多 agent / agent teams 编排应用

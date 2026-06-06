@@ -8,6 +8,7 @@ import * as path from 'path';
 import {
   CODUMENT_WORKFLOW_SKILL_NAME,
   CLAUDE_WORKFLOW_SKILL_DISPLAY_PATH,
+  LEGACY_DOCS_SYNC_TRACK_SKILL_NAME,
   LEGACY_CODUMENT_SKILL_NAME,
   buildWorkflowSkillDirectories,
 } from '../../skills/codument-lifecycle';
@@ -107,6 +108,15 @@ const COMMANDS = {
       argsToken: '$ARGUMENTS',
     }),
   },
+  'artifact-sync': {
+    description: 'Sync an explicitly selected artifact',
+    content: buildSkillWrapperBody({
+      commandId: 'artifact-sync',
+      skillDisplayPath: CLAUDE_WORKFLOW_SKILL_DISPLAY_PATH,
+      subskillName: 'artifact-sync',
+      argsToken: '$ARGUMENTS',
+    }),
+  },
   'gap-loop': {
     description: 'Run a fresh gap loop for a track or phase',
     content: buildSkillWrapperBody({
@@ -126,12 +136,14 @@ export async function generateClaudeCommands(): Promise<void> {
   syncGeneratedSkillDirectories(
     CLAUDE_SKILLS_DIR,
     buildWorkflowSkillDirectories('claude'),
-    [LEGACY_CODUMENT_SKILL_NAME, CODUMENT_WORKFLOW_SKILL_NAME]
+    [LEGACY_CODUMENT_SKILL_NAME, CODUMENT_WORKFLOW_SKILL_NAME, LEGACY_DOCS_SYNC_TRACK_SKILL_NAME]
   );
 
   if (!fs.existsSync(CLAUDE_COMMANDS_DIR)) {
     fs.mkdirSync(CLAUDE_COMMANDS_DIR, { recursive: true });
   }
+
+  fs.rmSync(path.join(CLAUDE_COMMANDS_DIR, 'docs-sync-track.md'), { force: true });
 
   for (const [name, cmd] of Object.entries(COMMANDS)) {
     const filePath = path.join(CLAUDE_COMMANDS_DIR, `${name}.md`);

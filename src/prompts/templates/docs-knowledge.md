@@ -2,7 +2,7 @@
 
 ## 目的
 
-当 `knowledgeSync.enabled=true` 时，本文件是项目知识维护的入口 attractor。
+当 `knowledgeSync.enabled=true` 时，本文件可作为项目知识维护的入口 attractor。它只提供 docs/knowledge 同步规则，不会因为 feature 开关存在而触发同步。
 
 文档系统由两套并列的分形标准组成：
 
@@ -11,10 +11,10 @@ docs/modeling/  # 建模真源与派生建模
 docs/impl/      # 实现、操作、示例、参考、排障知识
 ```
 
-创建或更新 docs 前，必须先阅读 Codument 标准目录中的详细标准：
+创建或更新 docs 前，必须先阅读同级分形标准：
 
-- [codument/std/docs-modeling-fractal/index.md](../std/docs-modeling-fractal/index.md)：`docs/modeling/` 的规范标准。
-- [codument/std/docs-impl-fractal/index.md](../std/docs-impl-fractal/index.md)：`docs/impl/` 的规范标准。
+- [docs-modeling-fractal/index.md](./docs-modeling-fractal/index.md)：`docs/modeling/` 的规范标准。
+- [docs-impl-fractal/index.md](./docs-impl-fractal/index.md)：`docs/impl/` 的规范标准。
 
 本文件只保留路由规则、通用元数据、track 同步检查清单。不要把具体建模文件模板或实现平面细则塞回本文件；这些内容应维护在两份分形标准中。
 
@@ -232,9 +232,15 @@ docs/_assets/
 
 ## Track Knowledge Sync
 
-当 `knowledgeSync.enabled=true` 时，每个 Codument track 都必须检查是否需要更新 docs。
+`knowledgeSync.enabled=true` 只表示本 attractor 可作为 docs/knowledge 同步指导。不要只因为该开关为 true 就创建或执行 docs sync 任务。
 
-以下变化应加入 docs sync 任务：
+只有在以下任一条件成立时，才执行 docs sync：
+
+- 用户显式调用 `codument-artifact-sync` 命令或 skill，同步 docs 类 artifact。
+- `plan.xml` 中已经存在显式 docs/knowledge 同步任务。
+- `codument/config/operation-hooks.xml` 显式配置 `<artifact-sync artifact="..." />`，且该 artifact 存在于 `codument/config/artifacts.xml`。
+
+以下变化是显式 docs sync 的候选输入，不会自动创建同步任务：
 
 - domain context、object、field semantics、lifecycle、status、invariant。
 - object behavior、command、query、mutation、side effect、failure semantics。
@@ -246,7 +252,7 @@ docs/_assets/
 - troubleshooting knowledge。
 - 文档路径移动、拆分、合并或吸收。
 
-每次 docs sync 应执行：
+每次被显式触发的 docs sync 应执行：
 
 1. 判断更新属于 `docs/modeling/` 还是 `docs/impl/`。
 2. 判断 plane。

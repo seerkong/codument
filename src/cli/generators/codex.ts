@@ -7,6 +7,7 @@ import * as os from 'os';
 import * as path from 'path';
 import {
   CODUMENT_WORKFLOW_SKILL_NAME,
+  LEGACY_DOCS_SYNC_TRACK_SKILL_NAME,
   LEGACY_CODUMENT_SKILL_NAME,
   buildWorkflowSkillDirectories,
 } from '../../skills/codument-lifecycle';
@@ -18,6 +19,6 @@ export async function generateCodexCommands(): Promise<void> {
   syncGeneratedSkillDirectories(
     CODEX_SKILLS_DIR,
     buildWorkflowSkillDirectories('codex'),
-    [LEGACY_CODUMENT_SKILL_NAME, CODUMENT_WORKFLOW_SKILL_NAME]
+    [LEGACY_CODUMENT_SKILL_NAME, CODUMENT_WORKFLOW_SKILL_NAME, LEGACY_DOCS_SYNC_TRACK_SKILL_NAME]
   );
 }

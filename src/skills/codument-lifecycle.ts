@@ -5,12 +5,13 @@ import {
   executeWavePrompt,
   gapLoopPrompt,
   docsBootstrapPrompt,
-  docsSyncTrackPrompt,
+  artifactSyncPrompt,
   migrateArchivePrompt,
   migrateSpecsPrompt,
   implementPrompt,
   initPrompt,
   planWavePrompt,
+  reviseTrackPrompt,
   statusPrompt,
   trackPrompt,
   validatePrompt,
@@ -19,6 +20,7 @@ import {
 
 export const CODUMENT_WORKFLOW_SKILL_NAME = "codument-workflow";
 export const LEGACY_CODUMENT_SKILL_NAME = "codument";
+export const LEGACY_DOCS_SYNC_TRACK_SKILL_NAME = "codument-docs-sync-track";
 export const CODUMENT_SKILL_PREFIX = "codument";
 
 export type WorkflowTarget = "claude" | "codeflicker" | "codex" | "eidolon" | "sparrow" | "opencode";
@@ -46,12 +48,13 @@ const SUBSKILL_SOURCES = [
   { name: "execute-wave", prompt: executeWavePrompt, description: "Execute tasks by wave DAG scheduling." },
   { name: "gap-loop", prompt: gapLoopPrompt, description: "Run a fresh gap analysis and repair loop for a track or phase." },
   { name: "docs-bootstrap", prompt: docsBootstrapPrompt, description: "Summarize an existing project into docs/modeling and docs/impl." },
-  { name: "docs-sync-track", prompt: docsSyncTrackPrompt, description: "Sync a specified track's changes into docs/modeling and docs/impl." },
+  { name: "artifact-sync", prompt: artifactSyncPrompt, description: "Sync an explicitly selected artifact from codument/config/artifacts.xml." },
   { name: "implement", prompt: implementPrompt, description: "Implement a track sequentially from plan.xml." },
   { name: "migrate-archive", prompt: migrateArchivePrompt, description: "Migrate legacy Codument archive layouts to the current archive directory convention." },
   { name: "migrate-specs", prompt: migrateSpecsPrompt, description: "Migrate legacy Markdown specs to XML spec registry files or folders." },
   { name: "init", prompt: initPrompt, description: "Initialize or resume Codument project setup." },
   { name: "plan-wave", prompt: planWavePrompt, description: "Convert a phase into wave DAG execution groups." },
+  { name: "revise-track", prompt: reviseTrackPrompt, description: "Revise an existing track's self-contained artifacts during non-linear work." },
   { name: "status", prompt: statusPrompt, description: "Show project status and summarize tracks or tasks." },
   { name: "track", prompt: trackPrompt, description: "Create a new track, proposal, spec, or plan." },
   { name: "validate", prompt: validatePrompt, description: "Validate track or spec structure and strict-mode checks." },
@@ -60,7 +63,7 @@ const SUBSKILL_SOURCES = [
 
 const NO_FRESH_CHILD_PRELUDE = new Set<string>([
   "docs-bootstrap",
-  "docs-sync-track",
+  "artifact-sync",
   "migrate-archive",
   "migrate-specs",
 ]);

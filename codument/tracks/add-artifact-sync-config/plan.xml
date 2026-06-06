@@ -1,0 +1,137 @@
+<plan>
+  <metadata>
+    <track_id>add-artifact-sync-config</track_id>
+    <type>feature</type>
+    <status>completed</status>
+    <created_at>2026-06-06T07:11:30Z</created_at>
+    <updated_at>2026-06-07T00:00:00Z</updated_at>
+    <description>Add codument/config/artifacts.xml and artifact-sync hooks for compact AI-guided artifact synchronization.</description>
+    <commit_mode>manual</commit_mode>
+    <validation_mode>yield-gap-loop</validation_mode>
+    <validation_granularity>final_phase</validation_granularity>
+    <gap_loop_round>14</gap_loop_round>
+  </metadata>
+  <phases>
+    <phase id="P1" name="Spec and DSL documentation" status="DONE">
+      <goal>Define the artifact sync DSL and operation hook contract.</goal>
+      <tasks>
+        <task id="T1.1" name="Apply codument-core spec delta" status="DONE" priority="P0">
+          <description>Merge requirements for artifacts.xml, resources, artifact node shape, policy, and artifact-sync hook behavior.</description>
+          <acceptance_criteria>
+            <criterion id="T1.1-AC1" checked="true">Spec defines `codument/config/artifacts.xml` root and missing-file behavior</criterion>
+            <criterion id="T1.1-AC2" checked="true">Spec restricts resources to workflow, skill, attractor-profile, and agent</criterion>
+            <criterion id="T1.1-AC3" checked="true">Spec restricts artifact children to uses, targets, and policy</criterion>
+          </acceptance_criteria>
+        </task>
+        <task id="T1.2" name="Document artifacts.xml DSL" status="DONE" priority="P0">
+          <description>Update standard plan/protocol docs with compact examples and policy options.</description>
+          <acceptance_criteria>
+            <criterion id="T1.2-AC1" checked="true">Docs show `artifact-config` with resources and artifacts</criterion>
+            <criterion id="T1.2-AC2" checked="true">Docs explain that skill files are rule resources, not artifacts</criterion>
+            <criterion id="T1.2-AC3" checked="true">Docs define dry-run, conflict, and provenance policy options</criterion>
+          </acceptance_criteria>
+        </task>
+        <task id="T1.3" name="Document artifact-sync hook" status="DONE" priority="P0">
+          <description>Extend operation hook documentation to include `<artifact-sync artifact="..." />` and result-policy reuse.</description>
+          <acceptance_criteria>
+            <criterion id="T1.3-AC1" checked="true">operation-hooks examples include artifact-sync</criterion>
+            <criterion id="T1.3-AC2" checked="true">artifact-sync status and executor semantics are documented</criterion>
+            <criterion id="T1.3-AC3" checked="true">Missing or unknown artifact references produce validation errors or BLOCKED results</criterion>
+          </acceptance_criteria>
+        </task>
+      </tasks>
+    </phase>
+    <phase id="P2" name="Validation and config support" status="DONE">
+      <goal>Add parser and validation support for artifact sync configuration.</goal>
+      <tasks>
+        <task id="T2.1" name="Add artifact config helpers" status="DONE" priority="P1">
+          <description>Add helpers for `codument/config/artifacts.xml` path resolution and lightweight config loading where needed.</description>
+          <acceptance_criteria>
+            <criterion id="T2.1-AC1" checked="true">Helper exposes artifacts config path</criterion>
+            <criterion id="T2.1-AC2" checked="true">Missing artifacts.xml remains valid</criterion>
+          </acceptance_criteria>
+        </task>
+        <task id="T2.2" name="Validate artifacts.xml shape" status="DONE" priority="P0">
+          <description>Extend validate to reject unsupported resource types, unsupported artifact children, duplicate ids, and malformed policy values.</description>
+          <acceptance_criteria>
+            <criterion id="T2.2-AC1" checked="true">Only workflow, skill, attractor-profile, and agent resources are accepted</criterion>
+            <criterion id="T2.2-AC2" checked="true">Only uses, targets, and policy children are accepted under artifact</criterion>
+            <criterion id="T2.2-AC3" checked="true">Invalid dry-run, conflict, provenance, target kind, or executor values are reported</criterion>
+            <criterion id="T2.2-AC4" checked="true">Missing workflow or skill resource ref files are reported</criterion>
+          </acceptance_criteria>
+        </task>
+        <task id="T2.3" name="Validate artifact-sync hooks" status="DONE" priority="P0">
+          <description>Extend operation hook validation to accept artifact-sync nodes and verify referenced artifact ids.</description>
+          <acceptance_criteria>
+            <criterion id="T2.3-AC1" checked="true">Valid artifact-sync nodes pass validation</criterion>
+            <criterion id="T2.3-AC2" checked="true">Unknown artifact references are reported</criterion>
+            <criterion id="T2.3-AC3" checked="true">Nested result-policy and confirm behavior remains valid</criterion>
+          </acceptance_criteria>
+        </task>
+        <task id="T2.4" name="Migrate feature targets to artifacts" status="DONE" priority="P0">
+          <description>Generate explicit artifacts.xml entries from enabled legacy feature config and move knowledgeSync targets into artifact targets.</description>
+          <acceptance_criteria>
+            <criterion id="T2.4-AC1" checked="true">upgrade-workspace creates artifacts.xml when knowledgeSync or projectMemory is enabled and artifacts.xml is missing</criterion>
+            <criterion id="T2.4-AC2" checked="true">Legacy knowledgeSync targets become multiple target entries under one docs knowledge artifact</criterion>
+            <criterion id="T2.4-AC3" checked="true">Generated docs artifact explicitly uses a docs attractor profile that contains codument/attractors/docs-knowledge.md</criterion>
+            <criterion id="T2.4-AC4" checked="true">Existing artifacts.xml is preserved without deleting legacy targets</criterion>
+            <criterion id="T2.4-AC5" checked="true">Generated docs and memory artifacts get docs-knowledge and project-memory guidance through attractor profiles, not direct attractor-profile resource attributes</criterion>
+            <criterion id="T2.4-AC6" checked="true">New or migrated feature.json keeps only enabled switches and does not retain empty knowledgeSync targets</criterion>
+            <criterion id="T2.4-AC7" checked="true">upgrade-workspace does not create attractor-profiles.json unless a persistent non-default profile is needed or the user already has one</criterion>
+            <criterion id="T2.4-AC8" checked="true">upgrade-workspace removes redundant default-only attractor-profiles.json from old generated workspaces</criterion>
+            <criterion id="T2.4-AC9" checked="true">upgrade-workspace creates a default operation-hooks.xml artifact-sync hook when enabled feature config creates default artifacts</criterion>
+            <criterion id="T2.4-AC10" checked="true">upgrade-workspace creates docs-modeling-fractal and docs-impl-fractal under codument/attractors when knowledgeSync is enabled</criterion>
+            <criterion id="T2.4-AC11" checked="true">Generated artifact targets use base-dir with relative-dir or relative-file instead of path/output-path</criterion>
+            <criterion id="T2.4-AC12" checked="true">Generated docs knowledge artifact targets are directory targets so docs attractors can write multiple files</criterion>
+            <criterion id="T2.4-AC13" checked="true">upgrade-workspace migrates old path/output-path target locations to the new target location attributes</criterion>
+          </acceptance_criteria>
+        </task>
+      </tasks>
+    </phase>
+    <phase id="P3" name="Prompt and skill integration" status="DONE">
+      <goal>Teach Codument operations and generated skills how to reason about artifact sync.</goal>
+      <tasks>
+        <task id="T3.1" name="Update lifecycle prompts" status="DONE" priority="P1">
+          <description>Update archive, artifact-sync, track, validate, and related prompts to describe artifact sync and avoid implicit execution.</description>
+          <acceptance_criteria>
+            <criterion id="T3.1-AC1" checked="true">Prompts mention `codument/config/artifacts.xml` where relevant</criterion>
+            <criterion id="T3.1-AC2" checked="true">Prompts state artifact sync only runs when explicit artifact-sync hook exists</criterion>
+            <criterion id="T3.1-AC3" checked="true">Prompts direct project-specific instructions to `codument/workflows/` resources</criterion>
+            <criterion id="T3.1-AC4" checked="true">Validate prompt documents missing `workflow` or `skill` resource ref files</criterion>
+          </acceptance_criteria>
+        </task>
+        <task id="T3.2" name="Update generated lifecycle skills" status="DONE" priority="P1">
+          <description>Ensure generated Codument skills include artifacts.xml and artifact-sync guidance.</description>
+          <acceptance_criteria>
+            <criterion id="T3.2-AC1" checked="true">Generated skills include artifact sync guidance</criterion>
+            <criterion id="T3.2-AC2" checked="true">Skill generation tests cover the new prompt content</criterion>
+            <criterion id="T3.2-AC3" checked="true">Generated skills include `codument-artifact-sync` and do not include `codument-docs-sync-track`</criterion>
+            <criterion id="T3.2-AC4" checked="true">Generated assistant command wrappers include artifact-sync and remove docs-sync-track</criterion>
+            <criterion id="T3.2-AC5" checked="true">Compiled codument embeds built-in prompts and does not read `src/prompts/*.md` from the source checkout at runtime</criterion>
+          </acceptance_criteria>
+        </task>
+      </tasks>
+    </phase>
+    <phase id="P4" name="Tests and validation" status="DONE">
+      <goal>Add focused tests and run validation for the track.</goal>
+      <tasks>
+        <task id="T4.1" name="Add validation tests" status="DONE" priority="P0">
+          <description>Add tests for valid artifacts.xml, invalid resource types, invalid artifact children, policy values, and artifact-sync references.</description>
+          <acceptance_criteria>
+            <criterion id="T4.1-AC1" checked="true">Tests cover valid artifacts.xml and artifact-sync hook</criterion>
+            <criterion id="T4.1-AC2" checked="true">Tests cover invalid resource and artifact node shapes</criterion>
+            <criterion id="T4.1-AC3" checked="true">Tests cover unknown artifact-sync references</criterion>
+          </acceptance_criteria>
+        </task>
+        <task id="T4.2" name="Run project validation" status="DONE" priority="P0">
+          <description>Run relevant tests and `codument validate add-artifact-sync-config --strict` or equivalent.</description>
+          <acceptance_criteria>
+            <criterion id="T4.2-AC1" checked="true">Relevant automated tests pass</criterion>
+            <criterion id="T4.2-AC2" checked="true">Track validation passes</criterion>
+          </acceptance_criteria>
+        </task>
+      </tasks>
+      <confirm protocol="yield-gap-loop" when="after" status="DONE" />
+    </phase>
+  </phases>
+</plan>

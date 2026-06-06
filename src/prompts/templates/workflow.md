@@ -256,3 +256,9 @@ git commit -m "test(utils): Add tests for parseTaskDetails function"
 
 ## 其他项目级workflow
 请阅读 `codument/workflows/` 目录下的更多文件，了解更多的本项目专属工作流
+
+## 吸引子校验 Hook
+
+当 `plan.xml` 中的当前 phase 或 task 存在 `<attractor-check .../>`，按 `codument/std/protocols.md` 的 attractor-check 协议执行。未配置该 hook 时，不要因为 `codument/attractors/` 存在而额外等待。
+
+当 `codument/config/operation-hooks.xml` 为当前 operation 和 point 配置 hook 时，执行其中的 `<attractor-check>`、`<artifact-sync>`、`<result-policy>` 和 nested `<confirm>`。该文件是稀疏 overlay；缺失 operation 或 point 表示保持默认流程。

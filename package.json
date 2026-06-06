@@ -1,6 +1,6 @@
 {
   "name": "codument",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "description": "Spec-driven development tool for AI coding assistants",
   "type": "module",
   "main": "src/cli/index.ts",

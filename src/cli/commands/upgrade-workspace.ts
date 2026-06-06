@@ -11,7 +11,12 @@ import {
   parseOptions,
   SPECS_DIR,
 } from '../utils';
-import { ensureFeatureConfig } from '../utils/feature-config';
+import {
+  artifactsConfigPath,
+  ensureFeatureArtifactDefaults,
+  ensureFeatureConfig,
+  removeDefaultOnlyAttractorProfiles,
+} from '../utils/feature-config';
 
 import {
   docsImplFractalTemplate,
@@ -186,6 +191,30 @@ function cleanupLegacyCodumentSkills(tools: CLITool[]): void {
   }
 }
 
+function normalizeLegacyArtifactTargetLocations(): boolean {
+  const configPath = artifactsConfigPath(CODUMENT_DIR);
+  if (!fs.existsSync(configPath)) {
+    return false;
+  }
+
+  const original = fs.readFileSync(configPath, 'utf-8');
+  let normalized = original.replace(
+    /(<target\b[^>]*\bid="knowledge-[^"]+"[^>]*?)\spath="([^"]+)"\soutput-path="knowledge\.md"/g,
+    '$1 base-dir="$2" relative-dir="."'
+  );
+  normalized = normalized.replace(
+    /(<target\b[^>]*?)\spath="([^"]+)"\soutput-path="([^"]+)"/g,
+    '$1 base-dir="$2" relative-file="$3"'
+  );
+
+  if (normalized === original) {
+    return false;
+  }
+
+  fs.writeFileSync(configPath, normalized, 'utf-8');
+  return true;
+}
+
 function lifecycleSkillsDisplayPath(skillsDisplayPath: string): string {
   return `${skillsDisplayPath}codument-*/`;
 }
@@ -292,10 +321,20 @@ export async function upgradeWorkspaceCommand(args: string[]): Promise<void> {
   const featureConfig = ensureFeatureConfig(CODUMENT_DIR);
   console.log('✓ Ensured codument/config/feature.json');
 
+  if (removeDefaultOnlyAttractorProfiles(CODUMENT_DIR)) {
+    console.log('✓ Removed redundant default-only codument/config/attractor-profiles.json');
+  }
+
   const featureAttractors: string[] = [];
   if (featureConfig.knowledgeSync.enabled) {
     if (writeIfMissing(path.join(ATTRACTORS_DIR, 'docs-knowledge.md'), docsKnowledgeTemplate)) {
       featureAttractors.push('docs-knowledge.md');
+    }
+    if (writeIfMissing(path.join(ATTRACTORS_DIR, 'docs-modeling-fractal', 'index.md'), docsModelingFractalTemplate)) {
+      featureAttractors.push('docs-modeling-fractal/index.md');
+    }
+    if (writeIfMissing(path.join(ATTRACTORS_DIR, 'docs-impl-fractal', 'index.md'), docsImplFractalTemplate)) {
+      featureAttractors.push('docs-impl-fractal/index.md');
     }
   }
   if (featureConfig.projectMemory.enabled) {
@@ -305,6 +344,23 @@ export async function upgradeWorkspaceCommand(args: string[]): Promise<void> {
   }
   if (featureAttractors.length > 0) {
     console.log(`✓ Created feature attractors: ${featureAttractors.join(', ')}`);
+  }
+
+  const featureArtifactDefaults = ensureFeatureArtifactDefaults(featureConfig, CODUMENT_DIR);
+  if (featureArtifactDefaults.addedProfiles.length > 0) {
+    console.log(`✓ Added feature attractor profiles: ${featureArtifactDefaults.addedProfiles.join(', ')}`);
+  }
+  if (featureArtifactDefaults.createdArtifactsConfig) {
+    console.log('✓ Created codument/config/artifacts.xml from enabled feature config');
+  }
+  if (featureArtifactDefaults.createdOperationHooksConfig) {
+    console.log('✓ Created codument/config/operation-hooks.xml from enabled feature config');
+  }
+  if (featureArtifactDefaults.migratedKnowledgeTargets) {
+    console.log('✓ Moved knowledgeSync targets into codument/config/artifacts.xml');
+  }
+  if (normalizeLegacyArtifactTargetLocations()) {
+    console.log('✓ Migrated artifact targets to base-dir with relative-dir or relative-file');
   }
 
   const legacyTracksPath = path.join(CODUMENT_DIR, 'tracks.md');

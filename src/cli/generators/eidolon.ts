@@ -8,6 +8,7 @@ import * as path from 'path';
 import {
   CODUMENT_WORKFLOW_SKILL_NAME,
   EIDOLON_WORKFLOW_SKILL_DISPLAY_PATH,
+  LEGACY_DOCS_SYNC_TRACK_SKILL_NAME,
   LEGACY_CODUMENT_SKILL_NAME,
   buildWorkflowSkillDirectories,
 } from '../../skills/codument-lifecycle';
@@ -107,6 +108,15 @@ const COMMANDS = {
       argsToken: '{{args}}',
     }),
   },
+  'artifact-sync': {
+    description: 'Sync an explicitly selected artifact',
+    prompt: buildSkillWrapperBody({
+      commandId: 'artifact-sync',
+      skillDisplayPath: EIDOLON_WORKFLOW_SKILL_DISPLAY_PATH,
+      subskillName: 'artifact-sync',
+      argsToken: '{{args}}',
+    }),
+  },
   'gap-loop': {
     description: 'Run a fresh gap loop for a track or phase',
     prompt: buildSkillWrapperBody({
@@ -130,12 +140,14 @@ export async function generateEidolonCommands(): Promise<void> {
   syncGeneratedSkillDirectories(
     EIDOLON_SKILLS_DIR,
     buildWorkflowSkillDirectories('eidolon'),
-    [LEGACY_CODUMENT_SKILL_NAME, CODUMENT_WORKFLOW_SKILL_NAME]
+    [LEGACY_CODUMENT_SKILL_NAME, CODUMENT_WORKFLOW_SKILL_NAME, LEGACY_DOCS_SYNC_TRACK_SKILL_NAME]
   );
 
   if (!fs.existsSync(EIDOLON_COMMANDS_DIR)) {
     fs.mkdirSync(EIDOLON_COMMANDS_DIR, { recursive: true });
   }
+
+  fs.rmSync(path.join(EIDOLON_COMMANDS_DIR, 'docs-sync-track.toml'), { force: true });
 
   for (const [name, cmd] of Object.entries(COMMANDS)) {
     const content = `description = "${cmd.description}"

@@ -7,6 +7,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import {
   CODUMENT_WORKFLOW_SKILL_NAME,
+  LEGACY_DOCS_SYNC_TRACK_SKILL_NAME,
   LEGACY_CODUMENT_SKILL_NAME,
   OPENCODE_WORKFLOW_SKILL_DISPLAY_PATH,
   buildWorkflowSkillDirectories,
@@ -107,6 +108,15 @@ const COMMANDS = {
       argsToken: '$ARGUMENTS',
     }),
   },
+  'codument-artifact-sync': {
+    description: 'Sync an explicitly selected artifact',
+    content: buildSkillWrapperBody({
+      commandId: 'artifact-sync',
+      skillDisplayPath: OPENCODE_WORKFLOW_SKILL_DISPLAY_PATH,
+      subskillName: 'artifact-sync',
+      argsToken: '$ARGUMENTS',
+    }),
+  },
   'codument-gap-loop': {
     description: 'Run a fresh gap loop for a track or phase',
     content: buildSkillWrapperBody({
@@ -126,12 +136,14 @@ export async function generateOpenCodeCommands(): Promise<void> {
   syncGeneratedSkillDirectories(
     OPENCODE_SKILLS_DIR,
     buildWorkflowSkillDirectories('opencode'),
-    [LEGACY_CODUMENT_SKILL_NAME, CODUMENT_WORKFLOW_SKILL_NAME]
+    [LEGACY_CODUMENT_SKILL_NAME, CODUMENT_WORKFLOW_SKILL_NAME, LEGACY_DOCS_SYNC_TRACK_SKILL_NAME]
   );
 
   if (!fs.existsSync(OPENCODE_COMMANDS_DIR)) {
     fs.mkdirSync(OPENCODE_COMMANDS_DIR, { recursive: true });
   }
+
+  fs.rmSync(path.join(OPENCODE_COMMANDS_DIR, 'codument-docs-sync-track.md'), { force: true });
 
   for (const [name, cmd] of Object.entries(COMMANDS)) {
     const filePath = path.join(OPENCODE_COMMANDS_DIR, `${name}.md`);

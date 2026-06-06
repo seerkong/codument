@@ -198,8 +198,8 @@ while 存在未完成的 wave:
 
 2. **阶段门控验证：** 与 implement.md 相同的门控逻辑（严格触发条件）
    - 检查 gate_criteria
-   - **仅当**该 `<phase>` 下存在 `<confirm protocol="yield-human-confirm" .../>` 或 `<confirm protocol="yield-gap-loop" .../>` 且 `when` 包含 `after`（或 `both`）时：执行 `codument/std/workflow.md` 的“阶段完成验证协议”，并按 `codument/std/protocols.md` 等待确认完成
-   - **否则：**跳过门控确认步骤，不要提问，并输出提示："当前 phase 未配置 confirm(after/both)，将自动进入下一 phase。"
+   - **仅当**该 `<phase>` 下存在 `<confirm .../>` 或 `<attractor-check .../>` 且 `when` 包含 `after`（或 `both`）时：执行 `codument/std/workflow.md` 的阶段完成验证或吸引子校验协议，并按 `codument/std/protocols.md` 等待完成
+   - **否则：**跳过门控确认步骤，不要提问，并输出提示："当前 phase 未配置 confirm/attractor-check(after/both)，将自动进入下一 phase。"
    - 如果协议为 `yield-gap-loop`：
      - 当前波次执行编排器在 phase 完成后只负责结束当前轮并把控制权交回父层
      - 父层编排者每次启动新一轮前，必须先更新 `plan.xml` metadata 中的 `<gap_loop_round>`

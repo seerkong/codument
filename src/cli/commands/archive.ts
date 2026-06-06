@@ -112,13 +112,8 @@ export async function archiveCommand(args: string[]) {
   }
 
   if (featureConfig.knowledgeSync.enabled) {
-    const syncResults: string[] = [];
-    for (const { target, root } of knowledgeTargets) {
-      syncDecisionsToTarget(archiveDir, root, target.name, trackId, updatedDate);
-      syncResults.push(target.name);
-    }
-    if (syncResults.length > 0) {
-      console.log(`✓ Knowledge synced to targets: ${syncResults.join(', ')}`);
+    if (knowledgeTargets.length > 0) {
+      console.log(`  Knowledge sync targets checked: ${knowledgeTargets.map(({ target }) => target.name).join(', ')}`);
     } else {
       console.log('  Knowledge sync enabled but no targets configured');
     }
@@ -411,59 +406,4 @@ function applySpecDeltas(specPath: string): string[] {
   }
 
   return updatedSpecs;
-}
-
-function syncDecisionsToTarget(
-  archiveDir: string,
-  targetRoot: string,
-  targetName: string,
-  trackId: string,
-  updatedDate: Date,
-): void {
-  const decisionsDir = path.join(archiveDir, 'decisions');
-  if (!fs.existsSync(decisionsDir) || !fs.statSync(decisionsDir).isDirectory()) {
-    const legacyPath = path.join(archiveDir, 'decisions.md');
-    if (!fs.existsSync(legacyPath)) {
-      return;
-    }
-    const source = fs.readFileSync(legacyPath, 'utf-8').trim();
-    if (!source || source === '# Decisions') {
-      return;
-    }
-    if (!hasDurableDecision(source)) {
-      return;
-    }
-    const content = [
-      `# Decision: ${trackId}`,
-      '',
-      `Decision URI: ${decisionUriForSlug(trackId)}`,
-      `Target: knowledge://${targetName}`,
-      '',
-      source,
-      '',
-    ].join('\n');
-    writePromotedArtifact(targetRoot, 'decision.md', trackId, updatedDate, content);
-    return;
-  }
-
-  const decisionFiles = fs.readdirSync(decisionsDir)
-    .filter(f => f.endsWith('.md') && f !== 'summary.md');
-
-  for (const fileName of decisionFiles) {
-    const source = fs.readFileSync(path.join(decisionsDir, fileName), 'utf-8').trim();
-    if (!source || !hasDurableDecision(source)) {
-      continue;
-    }
-    const slug = path.basename(fileName, '.md');
-    const content = [
-      `# Decision: ${slug}`,
-      '',
-      `Decision URI: ${decisionUriForSlug(slug)}`,
-      `Target: knowledge://${targetName}`,
-      '',
-      source,
-      '',
-    ].join('\n');
-    writePromotedArtifact(targetRoot, 'decision.md', slug, updatedDate, content);
-  }
 }

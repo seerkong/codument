@@ -191,3 +191,68 @@ q4: <answer>
 
 **Message Template (recommended):**
 "Confirm (gap-loop) <phase/task> <id>: <name>. When=<before|after>. Yield control to parent orchestrator and start a fresh gap-loop child round."
+
+## Protocol: attractor-check
+**ID:** attractor-check
+
+**Trigger:** An `<attractor-check profile="..." when="..." status="..." executor="..." />` element exists under the current `plan.xml` scope, or inside `codument/config/operation-hooks.xml` for the current operation point.
+
+**Attributes:**
+- `profile` (optional): attractor profile name from `codument/config/attractor-profiles.json`; defaults to `default`.
+- `when` (required): `before` | `after` | `both`
+- `status` (required): `TODO` | `IN_PROGRESS` | `DONE` | `BLOCKED` | `CANCELLED`
+- `executor` (optional): `main-agent` | `subagent` | `fresh-subagent`; defaults to `subagent`.
+
+**Behavior:**
+1. Resolve the requested attractor profile.
+2. Read every attractor file in the profile.
+3. Compare the guarded scope against those attractors.
+4. Return a structured status:
+   - `PASS`: no meaningful deviation found.
+   - `GAP`: deviation found and a repair can be proposed.
+   - `BLOCKED`: profile, scope, or repair path cannot be resolved safely.
+5. Apply `<result-policy>`:
+   - `fix-immediately`: repair, then rerun the check.
+   - `confirm-before-fix`: run the nested `<confirm>` before repair.
+   - `block`: mark the hook `BLOCKED` and wait for user input.
+
+**Ownership:**
+- If an upper-level operation hook already owns the attractor check for the current scope, downstream agents MUST NOT start competing nested checks.
+- If `executor=fresh-subagent` is requested and no fresh child mechanism exists, return `BLOCKED` instead of silently degrading to same-context review.
+
+**No Implicit Checks:**
+- Do not run an attractor check merely because `codument/attractors/` exists.
+- Run it only when a `plan.xml` or `operation-hooks.xml` hook explicitly configures it.
+
+## Protocol: artifact-sync
+**ID:** artifact-sync
+
+**Trigger:** An `<artifact-sync artifact="..." status="..." executor="..." />` element exists inside `codument/config/operation-hooks.xml` for the current operation point.
+
+**Attributes:**
+- `artifact` (required): artifact id from `codument/config/artifacts.xml`.
+- `status` (required): `TODO` | `IN_PROGRESS` | `DONE` | `BLOCKED` | `CANCELLED`
+- `executor` (optional): `main-agent` | `subagent` | `fresh-subagent`; defaults to `subagent`.
+
+**Behavior:**
+1. Load `codument/config/artifacts.xml`.
+2. Resolve the requested artifact from the `<artifacts>` section.
+3. Resolve every resource referenced by the artifact's `<uses>` entries.
+4. Treat `skill` resources as read-only rule or prompt sources, never as artifact outputs.
+5. Use `workflow` resources, especially files under `codument/workflows/`, as execution guidance.
+6. Use `attractor-profile` resources as artifact quality guidance.
+7. Resolve the artifact's `<targets>` entries. Each `<target>` defines the target kind, destination `base-dir`, either `relative-dir` for directory artifacts or `relative-file` for single-file artifacts, and optional target-specific attractor.
+8. Generate the artifact content once, preserving its relative file paths. For directory artifacts, distribute the same relative file tree into every target's `base-dir/relative-dir`. For file artifacts, write the same generated file content to every target's `base-dir/relative-file`.
+9. Do not treat multiple targets as multiple independent artifact generations, and do not alter filenames or hierarchy per target unless a workflow or skill resource explicitly says so.
+10. Execute the artifact sync according to the artifact source attributes, resolved targets, and `<policy>`.
+11. Return a structured result with artifact id, status, summary, changed outputs per target, and manifest path when provenance is enabled.
+
+**Policy:**
+- `dry-run`: `never` | `first` | `always` | `changed`
+- `conflict`: `block` | `diff-confirm` | `merge` | `overwrite` | `append` | `skip`
+- `provenance`: `none` | `manifest` | `inline` | `both`
+
+**No Implicit Sync:**
+- Do not run artifact sync merely because `codument/config/artifacts.xml` exists.
+- Run artifact sync only when an explicit `artifact-sync` hook configures it.
+- If `executor=fresh-subagent` is requested and no fresh child mechanism exists, return `BLOCKED` instead of silently degrading to same-context execution.

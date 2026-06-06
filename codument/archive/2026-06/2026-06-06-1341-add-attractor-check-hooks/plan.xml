@@ -1,0 +1,183 @@
+<plan>
+  <metadata>
+    <track_id>add-attractor-check-hooks</track_id>
+    <type>feature</type>
+    <status>completed</status>
+    <created_at>2026-06-06T04:02:13Z</created_at>
+    <updated_at>2026-06-06T05:41:04Z</updated_at>
+    <description>Add attractor profiles and explicit plan XML attractor-check hooks that can validate track design, phases, tasks, and archive readiness against selected attractor bundles.</description>
+    <commit_mode>manual</commit_mode>
+    <validation_mode>yield-gap-loop</validation_mode>
+    <validation_granularity>final_phase</validation_granularity>
+    <gap_loop_round>3</gap_loop_round>
+  </metadata>
+  <phases>
+  <phase id="P1" name="Spec and protocol definition" status="DONE">
+    <goal>Define the attractor profile and attractor-check hook contract in specifications and standard protocol documents.</goal>
+    <tasks>
+      <task id="T1.1" name="Update codument-core spec registry" status="DONE" priority="P0">
+        <description>Apply the spec delta for attractor profile configuration, attractor-check hook behavior, result policy, and workflow integration.</description>
+        <acceptance_criteria>
+          <criterion id="T1.1-AC1" checked="true">`codument-core` contains requirements for attractor profiles and attractor-check hooks</criterion>
+          <criterion id="T1.1-AC2" checked="true">Scenarios cover default profile fallback, configured profiles, lifecycle-specific profiles, result policies, and no-hook behavior</criterion>
+        </acceptance_criteria>
+      </task>
+      <task id="T1.2" name="Document plan XML node shape" status="DONE" priority="P0">
+        <description>Update plan XML documentation to define `&lt;attractor-check&gt;` placement, attributes, status values, ordering, and relationship to `&lt;confirm&gt;`.</description>
+        <acceptance_criteria>
+          <criterion id="T1.2-AC1" checked="true">`plan-xml-spec.md` documents `&lt;attractor-check&gt;`</criterion>
+          <criterion id="T1.2-AC2" checked="true">Examples show default and docs profiles</criterion>
+          <criterion id="T1.2-AC3" checked="true">Nested `&lt;confirm&gt;` under result policy is documented</criterion>
+        </acceptance_criteria>
+      </task>
+      <task id="T1.3" name="Define attractor check protocol" status="DONE" priority="P0">
+        <description>Update protocols documentation to describe executor behavior, structured result status, result policy handling, and parent orchestration rules.</description>
+        <acceptance_criteria>
+          <criterion id="T1.3-AC1" checked="true">Protocol defines PASS/GAP/BLOCKED structured result</criterion>
+          <criterion id="T1.3-AC2" checked="true">Protocol defines fix-immediately, confirm-before-fix, and block behaviors</criterion>
+          <criterion id="T1.3-AC3" checked="true">Protocol prevents competing nested attractor checks when an upper layer owns the hook</criterion>
+        </acceptance_criteria>
+      </task>
+      <task id="T1.4" name="Define operation-hooks.xml overlay" status="DONE" priority="P0">
+        <description>Document `codument/config/operation-hooks.xml` as a sparse workspace-level XML hook overlay for Codument operations that do not have their own `plan.xml` execution plan.</description>
+        <acceptance_criteria>
+          <criterion id="T1.4-AC1" checked="true">Spec defines operation hook overlay behavior</criterion>
+          <criterion id="T1.4-AC2" checked="true">Overlay is sparse and does not require predefining every Codument command</criterion>
+          <criterion id="T1.4-AC3" checked="true">Overlay reuses `&lt;attractor-check&gt;`, `&lt;result-policy&gt;`, and `&lt;confirm&gt;` semantics</criterion>
+        </acceptance_criteria>
+      </task>
+      <task id="T1.5" name="Define revise-track command" status="DONE" priority="P0">
+        <description>Define `revise-track` as the explicit command or skill for amending existing track artifacts during implementation, gap-loop, archive preparation, or other non-linear Codument work.</description>
+        <acceptance_criteria>
+          <criterion id="T1.5-AC1" checked="true">Spec defines `revise-track` inputs and behavior</criterion>
+          <criterion id="T1.5-AC2" checked="true">Spec requires revisions to stay inside the target track directory</criterion>
+          <criterion id="T1.5-AC3" checked="true">Spec defines interaction with operation hooks and attractor profiles</criterion>
+        </acceptance_criteria>
+      </task>
+    </tasks>
+  </phase>
+  <phase id="P2" name="Config and validation support" status="DONE">
+    <goal>Add workspace configuration and validation support for attractor profiles and plan hooks.</goal>
+    <tasks>
+      <task id="T2.1" name="Add attractor profile config helpers" status="DONE" priority="P0">
+        <description>Implement or update config helpers to resolve `codument/config/attractor-profiles.json` with an implicit default profile fallback.</description>
+        <acceptance_criteria>
+          <criterion id="T2.1-AC1" checked="true">Missing profile config resolves default project/product attractors</criterion>
+          <criterion id="T2.1-AC2" checked="true">Configured profiles resolve custom attractor lists</criterion>
+          <criterion id="T2.1-AC3" checked="true">Missing referenced profiles or files produce clear errors</criterion>
+        </acceptance_criteria>
+      </task>
+      <task id="T2.2" name="Update init and upgrade behavior" status="DONE" priority="P1">
+        <description>Create or preserve attractor profile config during init and upgrade without overwriting user edits.</description>
+        <acceptance_criteria>
+          <criterion id="T2.2-AC1" checked="true">New init creates or documents default attractor profile config</criterion>
+          <criterion id="T2.2-AC2" checked="true">Upgrade creates missing config safely</criterion>
+          <criterion id="T2.2-AC3" checked="true">Existing user profile config is not overwritten</criterion>
+        </acceptance_criteria>
+      </task>
+      <task id="T2.3" name="Validate attractor-check nodes" status="DONE" priority="P0">
+        <description>Extend validation to check `&lt;attractor-check&gt;` attributes, supported result policies, and profile references where practical.</description>
+        <acceptance_criteria>
+          <criterion id="T2.3-AC1" checked="true">Invalid `when`, `status`, `executor`, or `on-gap` values are reported</criterion>
+          <criterion id="T2.3-AC2" checked="true">Missing profile references are reported</criterion>
+          <criterion id="T2.3-AC3" checked="true">Valid nested `&lt;confirm&gt;` remains accepted</criterion>
+        </acceptance_criteria>
+      </task>
+      <task id="T2.4" name="Validate operation-hooks.xml" status="DONE" priority="P1">
+        <description>Add validation for `codument/config/operation-hooks.xml` shape, operation names, known hook points, nested hook DSL, and profile references.</description>
+        <acceptance_criteria>
+          <criterion id="T2.4-AC1" checked="true">Missing overlay file keeps existing behavior valid</criterion>
+          <criterion id="T2.4-AC2" checked="true">Known operation hook points are validated when available</criterion>
+          <criterion id="T2.4-AC3" checked="true">Nested attractor-check and confirm nodes are validated consistently</criterion>
+        </acceptance_criteria>
+      </task>
+    </tasks>
+  </phase>
+  <phase id="P3" name="Workflow and prompt integration" status="DONE">
+    <goal>Teach Codument lifecycle prompts and generated skills to create and execute attractor-check hooks.</goal>
+    <tasks>
+      <task id="T3.1" name="Update track creation prompts" status="DONE" priority="P0">
+        <description>Update track creation guidance so plan generation can insert design, phase, task, or archive attractor checks with selected profiles.</description>
+        <acceptance_criteria>
+          <criterion id="T3.1-AC1" checked="true">Track prompt explains attractor profiles</criterion>
+          <criterion id="T3.1-AC2" checked="true">Track prompt can generate `&lt;attractor-check&gt;` examples</criterion>
+          <criterion id="T3.1-AC3" checked="true">Default behavior stays lightweight and does not force checks everywhere</criterion>
+        </acceptance_criteria>
+      </task>
+      <task id="T3.2" name="Update implementation and wave execution prompts" status="DONE" priority="P0">
+        <description>Update implement and execute-wave flows to run attractor-check hooks at configured before/after/both points and apply result policies.</description>
+        <acceptance_criteria>
+          <criterion id="T3.2-AC1" checked="true">Phase-level and task-level hooks are handled</criterion>
+          <criterion id="T3.2-AC2" checked="true">No hook means no implicit wait or check</criterion>
+          <criterion id="T3.2-AC3" checked="true">Nested confirm policy is delegated to existing confirm protocol</criterion>
+        </acceptance_criteria>
+      </task>
+      <task id="T3.3" name="Update gap-loop and archive prompts" status="DONE" priority="P1">
+        <description>Clarify how gap-loop interacts with attractor-check results and how archive can run docs or archive-readiness profiles.</description>
+        <acceptance_criteria>
+          <criterion id="T3.3-AC1" checked="true">Gap-loop avoids competing nested hook ownership</criterion>
+          <criterion id="T3.3-AC2" checked="true">Archive prompt can run docs-related attractor profile checks before archive completion</criterion>
+          <criterion id="T3.3-AC3" checked="true">Knowledge sync guidance can use profile-specific attractors</criterion>
+        </acceptance_criteria>
+      </task>
+      <task id="T3.4" name="Update operation hook execution guidance" status="DONE" priority="P0">
+        <description>Update Codument command and skill prompts to read `codument/config/operation-hooks.xml` entries and execute only configured hook points.</description>
+        <acceptance_criteria>
+          <criterion id="T3.4-AC1" checked="true">Track command can execute configured after-design or after-plan hooks</criterion>
+          <criterion id="T3.4-AC2" checked="true">Archive command can execute configured before-archive or docs-readiness hooks</criterion>
+          <criterion id="T3.4-AC3" checked="true">Commands without overlay entries keep default behavior</criterion>
+        </acceptance_criteria>
+      </task>
+      <task id="T3.5" name="Add revise-track command and skill" status="DONE" priority="P0">
+        <description>Add `revise-track` prompt, generated skill support, and optional CLI command behavior for revising existing track artifacts.</description>
+        <acceptance_criteria>
+          <criterion id="T3.5-AC1" checked="true">`revise-track` can resolve and read a target track</criterion>
+          <criterion id="T3.5-AC2" checked="true">`revise-track` can update proposal, design, spec deltas, plan, analysis, or decisions as needed</criterion>
+          <criterion id="T3.5-AC3" checked="true">`revise-track` executes configured before-revise hooks before file changes</criterion>
+        </acceptance_criteria>
+      </task>
+      <task id="T3.6" name="Regenerate lifecycle skills" status="DONE" priority="P1">
+        <description>Ensure generated Codument lifecycle skills include updated attractor-check guidance.</description>
+        <acceptance_criteria>
+          <criterion id="T3.6-AC1" checked="true">Generated skills mention attractor profiles where relevant</criterion>
+          <criterion id="T3.6-AC2" checked="true">Generated skills mention `&lt;attractor-check&gt;` execution semantics where relevant</criterion>
+          <criterion id="T3.6-AC3" checked="true">Generated skills mention `operation-hooks.xml` semantics where relevant</criterion>
+          <criterion id="T3.6-AC4" checked="true">Generated skills include `revise-track` when target supports generated skills</criterion>
+        </acceptance_criteria>
+      </task>
+    </tasks>
+  </phase>
+  <phase id="P4" name="Tests and validation" status="DONE">
+    <goal>Add tests and run validation for the new attractor profile and hook behavior.</goal>
+    <tasks>
+      <task id="T4.1" name="Add CLI and prompt tests" status="DONE" priority="P0">
+        <description>Add focused tests for profile config creation/resolution, plan validation, prompt content, and generated skill output.</description>
+        <acceptance_criteria>
+          <criterion id="T4.1-AC1" checked="true">Tests cover default profile fallback</criterion>
+          <criterion id="T4.1-AC2" checked="true">Tests cover custom profile preservation</criterion>
+          <criterion id="T4.1-AC3" checked="true">Tests cover invalid hook and nested confirm validation</criterion>
+          <criterion id="T4.1-AC4" checked="true">Tests cover `operation-hooks.xml` parsing and validation</criterion>
+          <criterion id="T4.1-AC5" checked="true">Tests cover `revise-track` prompt or command behavior</criterion>
+        </acceptance_criteria>
+      </task>
+      <task id="T4.2" name="Run project validation" status="DONE" priority="P0">
+        <description>Run relevant test and validation commands and record any skipped commands with reasons.</description>
+        <acceptance_criteria>
+          <criterion id="T4.2-AC1" checked="true">Relevant automated tests pass</criterion>
+          <criterion id="T4.2-AC2" checked="true">`codument validate add-attractor-check-hooks --strict` or equivalent passes</criterion>
+          <criterion id="T4.2-AC3" checked="true">Any unavailable validation command is explicitly reported</criterion>
+        </acceptance_criteria>
+      </task>
+      <task id="T4.3" name="Review migration and docs impact" status="DONE" priority="P1">
+        <description>Review compatibility with existing workspaces, old plans without hooks, and feature config behavior.</description>
+        <acceptance_criteria>
+          <criterion id="T4.3-AC1" checked="true">Existing workspaces without profile config remain valid</criterion>
+          <criterion id="T4.3-AC2" checked="true">Existing plans without hooks do not gain implicit waits</criterion>
+          <criterion id="T4.3-AC3" checked="true">Docs mention migration and fallback behavior</criterion>
+        </acceptance_criteria>
+      </task>
+    </tasks>
+    <confirm protocol="yield-gap-loop" when="after" status="DONE" />
+  </phase>
+  </phases>
+</plan>

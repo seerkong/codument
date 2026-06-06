@@ -11,6 +11,8 @@ describe("generateSparrowCommands", () => {
   it("installs generated codument skills into the workspace Sparrow skill directory", async () => {
     const repoRoot = path.resolve(__dirname, "../../..");
     const tempWorkspace = makeTempDir("sparrow-workspace-");
+    fs.mkdirSync(path.join(tempWorkspace, ".sparrow", "skills", "codument-docs-sync-track"), { recursive: true });
+    fs.writeFileSync(path.join(tempWorkspace, ".sparrow", "skills", "codument-docs-sync-track", "SKILL.md"), "OLD\n");
     const proc = Bun.spawn(
       [
         "bun",
@@ -32,13 +34,17 @@ describe("generateSparrowCommands", () => {
 
     const workflowSkillRoot = path.join(tempWorkspace, ".sparrow", "skills", "codument-workflow");
     const legacySkillRoot = path.join(tempWorkspace, ".sparrow", "skills", "codument");
+    const legacyDocsSyncTrackRoot = path.join(tempWorkspace, ".sparrow", "skills", "codument-docs-sync-track");
     const oldSkillRoot = path.join(tempWorkspace, ".sparrow", "skill");
     const gapLoopSkillRoot = path.join(tempWorkspace, ".sparrow", "skills", "codument-gap-loop");
+    const artifactSyncSkillRoot = path.join(tempWorkspace, ".sparrow", "skills", "codument-artifact-sync");
     expect(fs.existsSync(legacySkillRoot)).toBe(false);
+    expect(fs.existsSync(legacyDocsSyncTrackRoot)).toBe(false);
     expect(fs.existsSync(workflowSkillRoot)).toBe(false);
     expect(fs.existsSync(path.join(oldSkillRoot, "codument-workflow"))).toBe(false);
     expect(fs.existsSync(path.join(oldSkillRoot, "codument-gap-loop"))).toBe(false);
     expect(fs.existsSync(path.join(gapLoopSkillRoot, "manifest.yml"))).toBe(true);
+    expect(fs.existsSync(path.join(artifactSyncSkillRoot, "manifest.yml"))).toBe(true);
     expect(fs.readFileSync(path.join(gapLoopSkillRoot, "manifest.yml"), "utf-8")).toContain("\"name\": \"codument-gap-loop\"");
     const gapLoopRef = fs.readFileSync(path.join(gapLoopSkillRoot, "SKILL.md"), "utf-8");
     expect(gapLoopRef.startsWith("---\nname: codument-gap-loop\n")).toBe(true);

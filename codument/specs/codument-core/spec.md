@@ -300,6 +300,130 @@ Source: track `create-codument-prompts-20260101` (archived 2026-01-11)
 - **AND** 补齐 `<validation_granularity>` 与 `<gap_loop_round>`
 - **AND** 将当前 scope 所需的 `<confirm>` 迁移或补齐为 `yield-gap-loop`
 
+### Requirement: Attractor Profile 配置
+系统应当（SHALL）支持命名 attractor profile，用于把一个或多个项目级吸引子文件组合成可复用的校验上下文。
+
+#### Scenario: 缺失配置时使用默认 profile
+- **GIVEN** workspace 存在 `codument/attractors/project.md` 和 `codument/attractors/product.md`
+- **WHEN** `codument/config/attractor-profiles.json` 不存在
+- **THEN** 系统有效的 `default` profile 包含 `codument/attractors/project.md`
+- **AND** 包含 `codument/attractors/product.md`
+
+#### Scenario: 解析已配置 profile
+- **GIVEN** workspace 定义 `codument/config/attractor-profiles.json`
+- **WHEN** plan hook 或 operation hook 通过名称引用 profile
+- **THEN** 系统解析该 profile 中配置的 attractor 文件列表
+- **AND** profile 或其 attractor 文件缺失时报告 `BLOCKED` 或 validation error
+
+#### Scenario: 支持自定义吸引子
+- **GIVEN** workspace 在 `codument/attractors/` 下包含用户自定义文件
+- **WHEN** 这些文件被某个 attractor profile 引用
+- **THEN** 系统把这些文件视为有效吸引子
+- **AND** 不假设 attractors 目录只有 `project.md` 和 `product.md`
+
+### Requirement: Attractor Check Hook
+系统应当（SHALL）支持显式 `plan.xml` 吸引子校验 hook，用选定 attractor profile 校验 track、phase 或 task。
+
+#### Scenario: plan.xml 中配置吸引子校验
+- **GIVEN** `plan.xml` 在 plan、phase 或 task 下包含 `<attractor-check profile="..." when="..." status="..." />`
+- **WHEN** 执行流程到达该 hook 保护的 scope
+- **THEN** 系统使用指定 profile 对该 scope 执行吸引子一致性校验
+
+#### Scenario: when 语义与 confirm 一致
+- **GIVEN** `<attractor-check>` 配置 `when="before"`、`when="after"` 或 `when="both"`
+- **WHEN** 执行其保护 scope
+- **THEN** 系统按 before、after、both 时机执行校验
+
+#### Scenario: 生命周期状态复用既有状态
+- **GIVEN** attractor check 开始、通过、发现 gap 或无法安全继续
+- **WHEN** 系统更新 hook 状态
+- **THEN** 状态值使用 `TODO`、`IN_PROGRESS`、`DONE`、`BLOCKED` 或 `CANCELLED`
+
+#### Scenario: 不同阶段使用不同 profile
+- **GIVEN** 一个 track 的实现阶段使用 `default` profile，归档前使用 `docs` profile
+- **WHEN** 对应 hook 执行
+- **THEN** 系统使用该 hook 自身配置的 profile
+- **AND** 不使用全局固定的一组吸引子替代
+
+### Requirement: Attractor Check Result Policy
+系统应当（SHALL）支持可配置的校验结果策略，让吸引子 gap 可以立即修正、确认后修正或阻塞等待用户。
+
+#### Scenario: 立即修复
+- **GIVEN** attractor check 包含 `<result-policy on-gap="fix-immediately" />`
+- **WHEN** 校验返回可安全修复的 gap
+- **THEN** 系统修复后重新运行 attractor check
+- **AND** 只有复检通过后才将 hook 标记为 `DONE`
+
+#### Scenario: 修复前人工确认
+- **GIVEN** attractor check 包含 `<result-policy on-gap="confirm-before-fix">` 和 nested `<confirm protocol="yield-human-confirm" ... />`
+- **WHEN** 校验返回 gap
+- **THEN** 系统在修复前先运行 nested confirm
+
+#### Scenario: 发现 gap 后阻塞
+- **GIVEN** attractor check 包含 `<result-policy on-gap="block" />`
+- **WHEN** 校验返回任何 gap
+- **THEN** 系统将 attractor check 标记为 `BLOCKED`
+- **AND** 等待用户输入
+
+#### Scenario: 结构化结果
+- **GIVEN** attractor check 执行器完成校验
+- **WHEN** 它向父流程报告结果
+- **THEN** 结果包含 `PASS`、`GAP` 或 `BLOCKED`
+- **AND** 包含 profile 名称、checked scope、summary 和必要的 gap 明细
+
+### Requirement: Operation Hooks 配置
+系统应当（SHALL）支持 `codument/config/operation-hooks.xml` 作为 workspace 级稀疏 XML hook overlay，用于没有独立 `plan.xml` 的 Codument operation。
+
+#### Scenario: 只执行已配置 operation
+- **GIVEN** `operation-hooks.xml` 只配置了 `track` operation
+- **WHEN** 用户运行 `track` 后又运行 `archive`
+- **THEN** 系统只对 `track` 执行已配置 hook
+- **AND** `archive` 保持默认行为
+
+#### Scenario: 复用 hook DSL
+- **GIVEN** `operation-hooks.xml` 中某个 hook 嵌套 `<attractor-check>` 和 `<confirm>`
+- **WHEN** operation 到达对应 hook point
+- **THEN** 系统使用与 plan-level hook 相同的协议语义执行这些节点
+
+#### Scenario: 校验已知 hook point
+- **GIVEN** operation 定义了稳定 hook point，例如 `after-design`、`before-archive` 或 `before-revise`
+- **WHEN** `operation-hooks.xml` 引用这些 point
+- **THEN** 系统在对应 point 执行 hook
+- **AND** 对已知 operation 的未知 point 报告 validation error
+
+#### Scenario: 缺失 operation-hooks.xml
+- **GIVEN** workspace 不存在 `codument/config/operation-hooks.xml`
+- **WHEN** Codument command 或 skill 运行
+- **THEN** 系统不因该功能存在而要求额外 hook 或等待
+
+### Requirement: revise-track 命令/Skill
+系统应当（SHALL）提供 `revise-track` command 或 skill，用于在非线性 Codument 工作中修订已有 track 产物。
+
+#### Scenario: 修订现有 track
+- **GIVEN** 用户正在 implement、gap-loop 或归档准备某个 track
+- **WHEN** 用户调用 `revise-track` 并提供目标 track 与修订要求
+- **THEN** 系统读取该 track 的 proposal、design、spec deltas、plan、analysis 和 decisions 上下文
+- **AND** 更新最小必要的 track-local 产物
+
+#### Scenario: 修订前 hook
+- **GIVEN** `operation-hooks.xml` 为 `operation name="revise-track"` 配置了 `before-revise` hook
+- **WHEN** 用户调用 `revise-track`
+- **THEN** 系统在修改 track 前执行该 hook
+- **AND** 如果 hook 为 `BLOCKED`，系统停止且不修改 track 文件
+
+#### Scenario: 修订内容保持 track-local
+- **GIVEN** 修订需要新增上下文、发现、决策、spec 或 plan 任务
+- **WHEN** `revise-track` 应用修订
+- **THEN** 系统将必要上下文保留在目标 track 目录内
+- **AND** 不依赖隐藏目录文档或外部笔记才能理解修订后的 track
+
+#### Scenario: 修订结果报告
+- **GIVEN** `revise-track` 成功完成
+- **WHEN** 命令或 skill 报告结果
+- **THEN** 系统列出被修改的 track 文件
+- **AND** 总结修订原因
+- **AND** 建议继续 implement、gap-loop 或 archive
+
 ### Requirement: 验证命令
 系统应当（SHALL）提供 /codument:validate 命令，支持：
 - 验证 track 结构
@@ -505,6 +629,152 @@ Source: track `create-codument-prompts-20260101` (archived 2026-01-11)
 - **THEN** `<metadata>` 中 `validation_mode` 为 `yield-gap-loop`
 - **AND** `<metadata>` 中存在 `validation_granularity`
 - **AND** `<metadata>` 中 `gap_loop_round` 至少被初始化为 `0`
+
+### Requirement: Artifact Sync 配置
+系统应当（SHALL）支持 `codument/config/artifacts.xml` 作为 hook 触发的 artifact 生成与同步 XML registry。
+
+#### Scenario: artifacts.xml 根结构
+- **GIVEN** workspace 定义 `codument/config/artifacts.xml`
+- **WHEN** 系统加载 artifact sync 配置
+- **THEN** 根节点为 `<artifact-config version="1">`
+- **AND** 根节点包含 `resources` 和 `artifacts`
+- **AND** 根节点不要求也不定义 `pipelines`
+
+#### Scenario: 缺失 artifacts.xml
+- **GIVEN** workspace 不存在 `codument/config/artifacts.xml`
+- **WHEN** Codument command 或 skill 运行
+- **THEN** 系统保持默认流程，不执行 artifact sync
+
+### Requirement: Artifact Sync Resources
+系统应当（SHALL）将 artifact sync resource 限制为 workflow、skill、attractor-profile 和 agent 四类显式引用。
+
+#### Scenario: 只允许四类 resource
+- **GIVEN** `codument/config/artifacts.xml` 包含 `resources`
+- **WHEN** 系统验证该文件
+- **THEN** `resources` 下只允许 `workflow`、`skill`、`attractor-profile` 和 `agent` 子节点
+
+#### Scenario: skill 是规则资源
+- **GIVEN** `skill` resource 引用 `/Users/kongweixian/ai/ai-team/multica/terminal/skills/atm-cli/SKILL.md` 等文件
+- **WHEN** artifact 使用该 resource
+- **THEN** 系统将该 skill 文件视为规则或提示词来源
+- **AND** 系统不会将该 skill 文件本身视为 artifact 输出
+
+#### Scenario: workflow resource 复用 codument/workflows
+- **GIVEN** `workflow` resource 引用 `codument/workflows/` 下的文件
+- **WHEN** artifact sync executor 准备 artifact
+- **THEN** 系统将该 workflow 文件作为项目级执行指导读取
+
+#### Scenario: workflow 或 skill ref 缺失
+- **GIVEN** `workflow` 或 `skill` resource 引用一个文件路径
+- **WHEN** 系统验证 artifact sync 配置
+- **THEN** 如果引用文件缺失，系统报告 validation error
+
+#### Scenario: attractor-profile resource
+- **GIVEN** `attractor-profile` resource 命名 `codument/config/attractor-profiles.json` 中的 profile
+- **WHEN** artifact sync executor 准备或校验 artifact
+- **THEN** 系统解析并使用该 attractor profile 作为 artifact 质量指导
+
+### Requirement: Artifact 定义
+系统应当（SHALL）使用紧凑属性以及显式 resource、target、policy 子节点定义 artifact。
+
+#### Scenario: artifact 只允许 uses、targets 和 policy
+- **GIVEN** `artifact` 节点出现在 `artifacts` 下
+- **WHEN** 系统验证该节点
+- **THEN** 该节点只允许 `uses`、`targets` 和 `policy` 子节点
+
+#### Scenario: artifact 属性表达 source 信息
+- **GIVEN** artifact 需要 source 信息
+- **WHEN** 配置 artifact
+- **THEN** artifact 使用 `source-kind`、`source-scope` 等属性表达稳定 source 信息
+- **AND** artifact 可以为了兼容保留旧的单目标属性，但新的多目标配置应使用 `targets`
+
+#### Scenario: uses 引用 resources
+- **GIVEN** artifact 包含 `uses` 子节点
+- **WHEN** artifact sync executor 解析 artifact
+- **THEN** 每个 `use` 条目引用 `resources` 中的 resource id
+
+#### Scenario: 多目标分发
+- **GIVEN** artifact 包含 `targets` 子节点
+- **WHEN** artifact sync executor 生成 artifact 内容
+- **THEN** 系统支持 `targets` 下的一个或多个 `target` 条目
+- **AND** 每个 target 定义目标 kind、目录 path 和 output-path
+- **AND** 多个 target 表示一个生成后的 artifact 分发到多个目标，不表示多次独立 artifact 生成
+
+#### Scenario: policy 控制执行策略
+- **GIVEN** artifact 包含 `policy` 子节点
+- **WHEN** artifact sync executor 应用 artifact
+- **THEN** policy 可以定义 dry-run、conflict 和 provenance 行为
+
+### Requirement: Feature Artifact 迁移
+系统应当（SHALL）在 workspace 升级时，将启用的 legacy feature sync targets 迁移到显式 artifact sync 配置。
+
+#### Scenario: knowledge targets 移入 artifacts.xml
+- **GIVEN** `codument/config/feature.json` 中 `knowledgeSync.enabled=true` 且存在一个或多个 `targets`
+- **AND** `codument/config/artifacts.xml` 不存在
+- **WHEN** 用户运行 `codument upgrade-workspace`
+- **THEN** 系统创建 `codument/config/artifacts.xml`
+- **AND** 生成的 docs knowledge artifact 使用包含 `codument/attractors/docs-knowledge.md` 的 `docs` attractor profile
+- **AND** 生成的 `attractor-profile` resource 通过 `name` 引用该 profile，且不依赖 direct `attractor` 或 `ref` 属性
+- **AND** 每个 legacy knowledge target 成为生成 artifact 的 `targets` 节点下的 `target`
+- **AND** 系统在写入 artifacts.xml 后清空 `feature.json` 中已迁移的 `knowledgeSync.targets`
+
+#### Scenario: 保留已有 artifacts.xml
+- **GIVEN** `codument/config/artifacts.xml` 已存在
+- **WHEN** 用户运行 `codument upgrade-workspace`
+- **THEN** 系统不覆盖已有 artifacts.xml
+- **AND** 除非已写入等价显式 artifact target，否则系统不从 feature.json 删除 legacy targets
+
+#### Scenario: project memory feature artifact
+- **GIVEN** `projectMemory.enabled=true`
+- **AND** `codument/config/artifacts.xml` 不存在
+- **WHEN** 用户运行 `codument upgrade-workspace`
+- **THEN** 生成的 artifacts.xml 包含一个使用 `memory` attractor profile 的 project memory artifact，该 profile 包含 `codument/attractors/project-memory.md`
+
+### Requirement: Artifact Sync Hook
+系统应当（SHALL）允许 `operation-hooks.xml` 通过 `artifact-sync` 节点引用 artifact id 并触发 artifact 同步。
+
+#### Scenario: operation hook 触发 artifact-sync
+- **GIVEN** `codument/config/operation-hooks.xml` 的 hook 内包含 `artifact-sync`
+- **WHEN** operation 到达该 hook point
+- **THEN** 系统从 `codument/config/artifacts.xml` 解析被引用的 artifact
+- **AND** 系统按照 artifact 的 resources 和 policy 执行 artifact sync
+
+#### Scenario: 未知 artifact 引用
+- **GIVEN** `artifact-sync` hook 引用未知 artifact id
+- **WHEN** 系统验证或执行该 hook
+- **THEN** 系统报告 validation error 或 `BLOCKED` 结果
+
+#### Scenario: 结构化同步结果
+- **GIVEN** artifact sync executor 完成执行
+- **WHEN** 它向父流程报告结果
+- **THEN** 结果包含 artifact id、status、summary、changed outputs，以及 provenance 启用时的 manifest path
+
+### Requirement: Artifact Sync 命令
+系统应当（SHALL）通过 `codument-artifact-sync` 暴露 artifact 同步能力，而不是继续使用 docs-specific sync 命令。
+
+#### Scenario: 生成 artifact-sync skill
+- **GIVEN** 系统生成 Codument lifecycle skills
+- **WHEN** 用户检查生成的 skill 列表
+- **THEN** 系统包含 `codument-artifact-sync`
+- **AND** 系统不包含 `codument-docs-sync-track`
+
+#### Scenario: 生成 artifact-sync command wrapper
+- **GIVEN** 系统为 Claude、CodeFlicker、Eidolon 或 OpenCode 生成 assistant command wrappers
+- **WHEN** 用户检查生成的 command 文件
+- **THEN** 系统包含指向 `codument-artifact-sync` 的 `artifact-sync` command wrapper
+- **AND** 系统移除旧 `docs-sync-track` command wrapper
+
+#### Scenario: docs 规则由 docs-knowledge attractor 提供
+- **GIVEN** 用户同步 docs 类 artifact
+- **WHEN** artifact 使用 docs attractor profile
+- **THEN** docs 内容选择、docs/modeling 与 docs/impl 路由、frontmatter 与质量规则来自 `codument/attractors/docs-knowledge.md`
+- **AND** artifact-sync skill 负责 artifact 选择、resource 解析、targets、policy 与执行
+
+#### Scenario: 删除旧 knowledge-sync hook point
+- **GIVEN** `codument/config/operation-hooks.xml` 中 archive hook 使用 `point="before-knowledge-sync"`
+- **WHEN** 系统验证 hook 配置
+- **THEN** 系统报告该 hook point 未知
+- **AND** 系统使用 `before-artifact-sync` 等 artifact-sync 术语
 
 ### Requirement: CLI 工具
 系统应当（SHALL）提供 CLI 工具，支持：

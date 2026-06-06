@@ -133,11 +133,14 @@
     g. **可选确认点（任务级）：**
        - 当 `<task>` 下存在 `<confirm .../>` 时，按 `when` 执行 `codument/std/protocols.md` 中对应协议
        - 若确认未通过，必须修复后重新 review，直到 `<confirm>` 的 `status=DONE` 才能继续
+    h. **可选吸引子校验（任务级）：**
+       - 当 `<task>` 下存在 `<attractor-check .../>` 时，按 `when` 执行 `codument/std/protocols.md` 中 attractor-check 协议
+       - 若返回 `GAP`，必须按 `<result-policy>` 修复、确认或阻塞，直到该 hook 为 `DONE` 或 `BLOCKED`
 
 
 ### 3.4 阶段门控验证
 
-**协议：仅在 `<phase>` 下存在 `<confirm protocol="yield-human-confirm" .../>` 或 `<confirm protocol="yield-gap-loop" .../>` 且 when 包含 `after` 时执行门控检查。**
+**协议：仅在 `<phase>` 下存在 `<confirm .../>` 或 `<attractor-check .../>` 且 when 包含 `after` 时执行对应门控检查。**
 
 1. **触发条件：** 当阶段内所有任务状态为 `DONE` 且该 `<phase>` 的 `<confirm>` when 包含 `after`
 
@@ -176,7 +179,8 @@
        - `NO_GAP`：若这是“首轮 + 无历史报告”的结果，父层仍必须再 fresh-spawn 一轮新的 gap-loop 子代理验证；只有验证轮也通过时，才能将当前 `<confirm>` 标记为 `DONE`
        - `FIX_APPLIED`：当前 `<confirm>` 保持未完成，父层必须再次 fresh-spawn 新的 gap-loop 子代理复检，不得停止在这一轮
        - `BLOCKED`：将当前 `<confirm>` 标记为 `BLOCKED`，停止并请求用户输入
-   - 未配置 `<confirm>`：直接继续
+   - `attractor-check`：按 `codument/std/protocols.md` 读取 profile、执行校验、处理 `PASS/GAP/BLOCKED` 与 `<result-policy>`
+   - 未配置 `<confirm>` 或 `<attractor-check>`：直接继续
 
 
 5. **创建检查点：** 确认后，**如果是 auto 模式**：
@@ -281,9 +285,10 @@
     c. **更新 project 类 attractor：**
        - 同样，确定是否需要更新架构决策
        - 提议并确认后更新（使用 **Protocol: ask-single-question-closed**）
-    d. **按配置执行 knowledge sync：**
-       - 仅当 `knowledgeSync.enabled=true` 时，才向配置 target 生成 docs/knowledge 同步步骤
-       - 同步时必须读取 target 对应 attractor
+    d. **按显式 hook 执行 artifact/knowledge sync：**
+       - 仅当 `codument/config/operation-hooks.xml` 为当前 operation point 显式配置 `<artifact-sync artifact="..." />`，且该 artifact 存在于 `codument/config/artifacts.xml` 时，才执行 docs/knowledge 或其他 artifact 同步步骤
+       - 不要只因为 `knowledgeSync.enabled=true` 就生成或执行隐式同步步骤；旧 `knowledgeSync.targets` 应由 `upgrade-workspace` 迁移为 `artifacts.xml` 的 `<targets>`
+       - 同步时必须读取 artifact 的 `<uses>`、`<targets>` 和 `<policy>`，并通过 artifact 的 `attractor-profile` resource 读取 profile 指定的 attractor；只有旧 target 显式携带 target-specific `attractor` hint 时才读取 target attractor
 
 
 6. **最终报告：** 宣布同步完成并总结操作

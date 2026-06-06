@@ -61,9 +61,13 @@
 - [ ] 包含 `<plan>` 根元素
 - [ ] 包含 `<metadata>` 部分，包括 track_id、track_name、goal、status
 - [ ] 包含 `<phases>` 部分
+- [ ] 所有 `<phase>` 都是 `<phases>` 的直接子节点，不能直接挂在 `<plan>` 下
+- [ ] 所有 `<task>` 都是所属 `<phase><tasks>` 的直接子节点，不能直接挂在 `<phase>` 下
 - [ ] 每个 `<phase>` 有 id 和 name 属性
 - [ ] 每个 `<task>` 有 id、name、status、priority 属性（status: TODO|IN_PROGRESS|DONE|BLOCKED|CANCELLED）
 - [ ] status 值有效：TODO|IN_PROGRESS|DONE|BLOCKED
+- [ ] `<attractor-check>` 的 `when`、`status`、`executor`、profile 引用和 `<result-policy>` 有效
+- [ ] nested `<confirm>` 保持现有 confirm 协议约束
 
 ### 2.3 验证 Spec
 
@@ -78,9 +82,36 @@
 - [ ] XML 根节点是 `<capability id="...">`
 - [ ] 至少包含一个 `<requirement>`
 - [ ] 至少包含一个 `<case>`
+
+### 2.4 验证 Operation Hooks
+
+如果存在 `codument/config/operation-hooks.xml`：
+
+- [ ] 根节点是 `<operation-hooks version="1">`
+- [ ] `<operation name="...">` 使用已知 operation 或被明确允许
+- [ ] 已知 operation 的 hook point 有效，例如 `track/after-design`、`archive/before-archive`、`revise-track/before-revise`
+- [ ] hook 内嵌套的 `<attractor-check>`、`<artifact-sync>`、`<result-policy>`、`<confirm>` 遵循同一套 DSL
+- [ ] `<artifact-sync artifact="...">` 引用 `codument/config/artifacts.xml` 中存在的 artifact id
+- [ ] 缺失 `operation-hooks.xml` 是合法状态，不产生错误
 - [ ] include 拆分路径可解析
 
-### 2.4 严格模式 (--strict)
+### 2.5 验证 Artifacts Config
+
+如果存在 `codument/config/artifacts.xml`：
+
+- [ ] 根节点是 `<artifact-config version="1">`
+- [ ] 根节点只包含 `<resources>` 和 `<artifacts>`
+- [ ] `<resources>` 下只包含 `<workflow>`、`<skill>`、`<attractor-profile>`、`<agent>`
+- [ ] `<workflow ref="...">` 和 `<skill ref="...">` 引用的文件存在
+- [ ] `<attractor-profile name="...">` 通过 `codument/config/attractor-profiles.json` 解析 profile，且不使用 direct `attractor` 或 `ref` 文件属性
+- [ ] `<artifact>` 子节点只包含 `<uses>`、`<targets>` 和 `<policy>`
+- [ ] `<uses>/<use resource="...">` 引用已定义 resource
+- [ ] `<targets>/<target ...>` 使用有效 `kind`，并包含 `id`、`base-dir`，且在 `relative-dir` 和 `relative-file` 中二选一
+- [ ] 多个 target 被视为同一 artifact 的多目标分发，不要求拆成多个 artifact
+- [ ] `<policy>` 的 `dry-run`、`conflict`、`provenance` 使用有效枚举
+- [ ] 缺失 `artifacts.xml` 是合法状态，不产生错误
+
+### 2.6 严格模式 (--strict)
 
 使用 `--strict` 参数时执行额外检查：
 

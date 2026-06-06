@@ -8,6 +8,7 @@ import * as fs from 'fs';
 import { getWorkspaceDir } from '../utils';
 import {
   CODUMENT_WORKFLOW_SKILL_NAME,
+  LEGACY_DOCS_SYNC_TRACK_SKILL_NAME,
   LEGACY_CODUMENT_SKILL_NAME,
   buildWorkflowSkillDirectories,
 } from '../../skills/codument-lifecycle';
@@ -40,6 +41,6 @@ export async function generateSparrowCommands(): Promise<void> {
   syncGeneratedSkillDirectories(
     skillsRootDir,
     buildWorkflowSkillDirectories('sparrow'),
-    [LEGACY_CODUMENT_SKILL_NAME, CODUMENT_WORKFLOW_SKILL_NAME]
+    [LEGACY_CODUMENT_SKILL_NAME, CODUMENT_WORKFLOW_SKILL_NAME, LEGACY_DOCS_SYNC_TRACK_SKILL_NAME]
   );
 }

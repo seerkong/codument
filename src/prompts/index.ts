@@ -1,55 +1,70 @@
 /**
  * Codument Prompts
  *
- * All prompt files are loaded using __dirname + fs.readFileSync,
- * which allows Bun to embed them into the executable via bunfs.
+ * Prompt and template files are imported as text so compiled executables are
+ * self-contained and do not read from the source checkout at runtime.
  */
 
-import * as fs from "fs";
-import * as path from "path";
-
-// Helper to read prompt file content
-function loadPrompt(filename: string): string {
-  const filePath = path.join(__dirname, filename);
-  return fs.readFileSync(filePath, "utf-8");
-}
-
-// Helper to read template file content
-function loadTemplate(filename: string): string {
-  const filePath = path.join(__dirname, "templates", filename);
-  return fs.readFileSync(filePath, "utf-8");
-}
+import stdAgentsPromptText from "./std_agents.md" with { type: "text" };
+import rootAgentsPromptText from "./root_agents.md" with { type: "text" };
+import initPromptText from "./init.md" with { type: "text" };
+import trackPromptText from "./track.md" with { type: "text" };
+import implementPromptText from "./implement.md" with { type: "text" };
+import validatePromptText from "./validate.md" with { type: "text" };
+import reviseTrackPromptText from "./revise-track.md" with { type: "text" };
+import archivePromptText from "./archive.md" with { type: "text" };
+import statusPromptText from "./status.md" with { type: "text" };
+import planXmlSpecText from "./plan-xml-spec.md" with { type: "text" };
+import protocolsPromptText from "./protocols.md" with { type: "text" };
+import discussPromptText from "./discuss.md" with { type: "text" };
+import planWavePromptText from "./plan-wave.md" with { type: "text" };
+import executeWavePromptText from "./execute-wave.md" with { type: "text" };
+import verifyPromptText from "./verify.md" with { type: "text" };
+import gapLoopPromptText from "./gap-loop.md" with { type: "text" };
+import docsBootstrapPromptText from "./docs-bootstrap.md" with { type: "text" };
+import artifactSyncPromptText from "./artifact-sync.md" with { type: "text" };
+import migrateArchivePromptText from "./migrate-archive.md" with { type: "text" };
+import migrateSpecsPromptText from "./migrate-specs.md" with { type: "text" };
+import workflowTemplateText from "./templates/workflow.md" with { type: "text" };
+import projectTemplateText from "./templates/project.md" with { type: "text" };
+import productTemplateText from "./templates/product.md" with { type: "text" };
+import techStackTemplateText from "./templates/tech-stack.md" with { type: "text" };
+import docsKnowledgeTemplateText from "./templates/docs-knowledge.md" with { type: "text" };
+import docsModelingFractalTemplateText from "./templates/docs-modeling-fractal.md" with { type: "text" };
+import docsImplFractalTemplateText from "./templates/docs-impl-fractal.md" with { type: "text" };
+import projectMemoryTemplateText from "./templates/project-memory.md" with { type: "text" };
 
 // Core prompts
-export const stdAgentsPrompt = loadPrompt("std_agents.md");
-export const rootAgentsPrompt = loadPrompt("root_agents.md");
-export const initPrompt = loadPrompt("init.md");
-export const trackPrompt = loadPrompt("track.md");
-export const implementPrompt = loadPrompt("implement.md");
-export const validatePrompt = loadPrompt("validate.md");
-export const archivePrompt = loadPrompt("archive.md");
-export const statusPrompt = loadPrompt("status.md");
-export const planXmlSpec = loadPrompt("plan-xml-spec.md");
-export const protocolsPrompt = loadPrompt("protocols.md");
-export const discussPrompt = loadPrompt("discuss.md");
-export const planWavePrompt = loadPrompt("plan-wave.md");
-export const executeWavePrompt = loadPrompt("execute-wave.md");
-export const verifyPrompt = loadPrompt("verify.md");
-export const gapLoopPrompt = loadPrompt("gap-loop.md");
-export const docsBootstrapPrompt = loadPrompt("docs-bootstrap.md");
-export const docsSyncTrackPrompt = loadPrompt("docs-sync-track.md");
-export const migrateArchivePrompt = loadPrompt("migrate-archive.md");
-export const migrateSpecsPrompt = loadPrompt("migrate-specs.md");
+export const stdAgentsPrompt = stdAgentsPromptText;
+export const rootAgentsPrompt = rootAgentsPromptText;
+export const initPrompt = initPromptText;
+export const trackPrompt = trackPromptText;
+export const implementPrompt = implementPromptText;
+export const validatePrompt = validatePromptText;
+export const reviseTrackPrompt = reviseTrackPromptText;
+export const archivePrompt = archivePromptText;
+export const statusPrompt = statusPromptText;
+export const planXmlSpec = planXmlSpecText;
+export const protocolsPrompt = protocolsPromptText;
+export const discussPrompt = discussPromptText;
+export const planWavePrompt = planWavePromptText;
+export const executeWavePrompt = executeWavePromptText;
+export const verifyPrompt = verifyPromptText;
+export const gapLoopPrompt = gapLoopPromptText;
+export const docsBootstrapPrompt = docsBootstrapPromptText;
+export const artifactSyncPrompt = artifactSyncPromptText;
+export const migrateArchivePrompt = migrateArchivePromptText;
+export const migrateSpecsPrompt = migrateSpecsPromptText;
 
 // Templates
-export const workflowTemplate = loadTemplate("workflow.md");
-export const projectTemplate = loadTemplate("project.md");
-export const productTemplate = loadTemplate("product.md");
-export const techStackTemplate = loadTemplate("tech-stack.md");
-export const docsKnowledgeTemplate = loadTemplate("docs-knowledge.md");
-export const docsModelingFractalTemplate = loadTemplate("docs-modeling-fractal.md");
-export const docsImplFractalTemplate = loadTemplate("docs-impl-fractal.md");
-export const projectMemoryTemplate = loadTemplate("project-memory.md");
+export const workflowTemplate = workflowTemplateText;
+export const projectTemplate = projectTemplateText;
+export const productTemplate = productTemplateText;
+export const techStackTemplate = techStackTemplateText;
+export const docsKnowledgeTemplate = docsKnowledgeTemplateText;
+export const docsModelingFractalTemplate = docsModelingFractalTemplateText;
+export const docsImplFractalTemplate = docsImplFractalTemplateText;
+export const projectMemoryTemplate = projectMemoryTemplateText;
 
 // Export all prompts as a map
 export const prompts = {
@@ -58,6 +73,7 @@ export const prompts = {
   track: trackPrompt,
   implement: implementPrompt,
   validate: validatePrompt,
+  reviseTrack: reviseTrackPrompt,
   archive: archivePrompt,
   status: statusPrompt,
   tasksXmlSpec: planXmlSpec,
@@ -67,7 +83,7 @@ export const prompts = {
   verify: verifyPrompt,
   gapLoop: gapLoopPrompt,
   docsBootstrap: docsBootstrapPrompt,
-  docsSyncTrack: docsSyncTrackPrompt,
+  artifactSync: artifactSyncPrompt,
   migrateArchive: migrateArchivePrompt,
   migrateSpecs: migrateSpecsPrompt,
 };
