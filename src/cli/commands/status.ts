@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { getTracks, getSpecs, codumentExists, formatStatus, CODUMENT_DIR, parseTaskDetails } from '../utils';
+import { getTracks, getSpecs, codumentExists, formatStatus, CODUMENT_DIR, walkTrackTasks } from '../utils';
 
 export async function statusCommand(args: string[]) {
   if (!codumentExists()) {
@@ -42,27 +42,16 @@ export async function statusCommand(args: string[]) {
   let nextTask = '';
 
   if (currentTrack) {
-    const planPath = path.join(CODUMENT_DIR, 'tracks', currentTrack.id, 'plan.xml');
-    if (fs.existsSync(planPath)) {
-      const phases = parseTaskDetails(planPath);
-
-      for (const phase of phases) {
-        for (const task of phase.tasks) {
-          if (!currentPhase && task.status === 'IN_PROGRESS') {
-            currentPhase = phase.name;
-          }
-          if (!currentTask && task.status === 'IN_PROGRESS') {
-            currentTask = task.name;
-          }
-          if (!nextTask && task.status === 'TODO') {
-            nextTask = task.name;
-          }
-
-          if (currentTask && nextTask) {
-            break;
-          }
+    const file = path.join(CODUMENT_DIR, 'tracks', currentTrack.id, 'track.xml');
+    if (fs.existsSync(file)) {
+      for (const task of walkTrackTasks(file)) {
+        if (!currentTask && task.status === 'ACTIVE') {
+          currentPhase = task.phaseName;
+          currentTask = task.name;
         }
-
+        if (!nextTask && task.status === 'NOT_STARTED') {
+          nextTask = task.name;
+        }
         if (currentTask && nextTask) {
           break;
         }

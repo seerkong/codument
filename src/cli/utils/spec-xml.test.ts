@@ -58,6 +58,22 @@ describe('spec XML parser', () => {
     expect(updated).toContain('<suite id="save"');
   });
 
+  it('applies behavior-patch wrapper operations by behavior:// selector', () => {
+    const patch = `<behavior-patch capability="resource.skill-tool" version="1">
+      <upsert selector="behavior://resource.skill-tool/requirements/save-skill-tool/suites/save/suites/valid-draft/cases/save-new-skill">
+        <case id="save-new-skill">
+          <given>当前 app 有效</given>
+          <when>用户保存 skill tool</when>
+          <then>系统写入资源与 VFS 数据</then>
+        </case>
+      </upsert>
+    </behavior-patch>`;
+
+    const updated = applySpecXmlPatchContent(singleFileSpec, patch);
+    expect(updated).toContain('系统写入资源与 VFS 数据');
+    expect(updated).toContain('<case id="save-new-skill">');
+  });
+
   it('moves nodes across capability registry entries by spec:// selector', () => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'codument-spec-xml-cross-move-'));
     fs.writeFileSync(path.join(dir, 'old-capability.xml'), `<capability id="old-capability">
@@ -150,5 +166,107 @@ describe('spec XML parser', () => {
     expect(requirement).toContain('<include href="../suites/create.xml" />');
     expect(requirement).not.toContain('invoice total is locked');
     expect(suite).toContain('invoice total is locked');
+  });
+
+  it('upserts, deletes and moves into an existing <behaviors capability> single-file registry', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'codument-behaviors-single-'));
+    fs.writeFileSync(path.join(dir, 'web-perf.xml'), `<behaviors capability="web-perf" version="1">
+  <requirement id="existing">
+    <statement>Existing requirement is preserved.</statement>
+  </requirement>
+  <requirement id="drop-me">
+    <statement>This one will be deleted.</statement>
+  </requirement>
+</behaviors>
+`);
+
+    const updated = applySpecXmlPatchToRegistry(`<behavior-patch capability="web-perf" version="1">
+  <upsert selector="behavior://web-perf/requirements/hot-path-coalescing">
+    <requirement id="hot-path-coalescing">
+      <statement>系统 SHALL 合并热路径。</statement>
+    </requirement>
+  </upsert>
+  <delete selector="behavior://web-perf/requirements/drop-me" />
+  <move selector="behavior://web-perf/requirements/existing" to="behavior://web-perf/requirements/renamed-existing" />
+</behavior-patch>`, dir);
+
+    expect(updated).toEqual(['web-perf']);
+    const registry = fs.readFileSync(path.join(dir, 'web-perf.xml'), 'utf-8');
+    expect(registry).toContain('<behaviors capability="web-perf"');
+    expect(registry).toContain('id="hot-path-coalescing"');
+    expect(registry).not.toContain('id="drop-me"');
+    expect(registry).toContain('id="renamed-existing"');
+    expect(registry).not.toContain('id="existing"');
+  });
+
+  it('upserts into an existing <behaviors capability> folder registry and preserves includes', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'codument-behaviors-folder-'));
+    fs.mkdirSync(path.join(dir, 'web-perf', 'requirements'), { recursive: true });
+    fs.writeFileSync(path.join(dir, 'web-perf', 'index.xml'), `<behaviors capability="web-perf" version="1">
+  <include href="requirements/render.xml" />
+</behaviors>
+`);
+    fs.writeFileSync(path.join(dir, 'web-perf', 'requirements', 'render.xml'), `<requirement id="render">
+  <statement>Rendering stays within budget.</statement>
+</requirement>
+`);
+
+    const updated = applySpecXmlPatchToRegistry(`<behavior-patch capability="web-perf" version="1">
+  <upsert selector="behavior://web-perf/requirements/render/suites/budget/cases/coalesce">
+    <case id="coalesce">
+      <given>many updates queued</given>
+      <when>frame budget is tight</when>
+      <then>updates are coalesced</then>
+    </case>
+  </upsert>
+</behavior-patch>`, dir);
+
+    expect(updated).toEqual(['web-perf']);
+    const index = fs.readFileSync(path.join(dir, 'web-perf', 'index.xml'), 'utf-8');
+    const requirement = fs.readFileSync(path.join(dir, 'web-perf', 'requirements', 'render.xml'), 'utf-8');
+    expect(index).toContain('<include href="requirements/render.xml" />');
+    expect(index).not.toContain('id="coalesce"');
+    expect(requirement).toContain('id="coalesce"');
+    expect(requirement).toContain('updates are coalesced');
+  });
+
+  it('creates a brand-new registry in the current <behaviors capability> format', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'codument-behaviors-new-'));
+
+    applySpecXmlPatchToRegistry(`<behavior-patch capability="fresh-cap" version="1">
+  <upsert selector="behavior://fresh-cap/requirements/first">
+    <requirement id="first">
+      <statement>First requirement.</statement>
+    </requirement>
+  </upsert>
+</behavior-patch>`, dir);
+
+    const registry = fs.readFileSync(path.join(dir, 'fresh-cap.xml'), 'utf-8');
+    expect(registry).toContain('<behaviors capability="fresh-cap"');
+    expect(registry).not.toContain('<capability id=');
+    expect(registry).toContain('id="first"');
+  });
+
+  it('still accepts legacy <capability id> registry roots for backward compatibility', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'codument-behaviors-legacy-'));
+    fs.writeFileSync(path.join(dir, 'legacy-cap.xml'), `<capability id="legacy-cap" version="1">
+  <requirement id="kept">
+    <statement>Kept requirement.</statement>
+  </requirement>
+</capability>
+`);
+
+    const updated = applySpecXmlPatchToRegistry(`<behavior-patch capability="legacy-cap" version="1">
+  <upsert selector="behavior://legacy-cap/requirements/added">
+    <requirement id="added">
+      <statement>Added requirement.</statement>
+    </requirement>
+  </upsert>
+</behavior-patch>`, dir);
+
+    expect(updated).toEqual(['legacy-cap']);
+    const registry = fs.readFileSync(path.join(dir, 'legacy-cap.xml'), 'utf-8');
+    expect(registry).toContain('id="kept"');
+    expect(registry).toContain('id="added"');
   });
 });

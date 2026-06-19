@@ -1,0 +1,266 @@
+<behavior-patch capability="codument-core">
+  <upsert selector="behavior://codument-core/requirements/波次执行模式">
+    <requirement id="波次执行模式">
+      <statement>系统应当（SHALL）在 plan.xml 中支持 `wave` 执行模式，通过 `&lt;metadata&gt;` 中的 `&lt;execution_mode&gt;` 字段声明。当值为 `wave` 时，phase 内的 task 按 wave DAG 调度并行执行；当值为 `sequential` 或缺失时，保持原有顺序执行行为。</statement>
+      <suite name="波次执行模式">
+        <case id="声明波次执行模式" name="声明波次执行模式">
+          <given>用户创建新 track</given>
+          <when>系统生成 plan.xml</when>
+          <then>plan.xml 中的 phase 包含 `&lt;waves&gt;` 声明和 task 级别的 `wave` 属性
+需求涉及可并行化的任务
+`&lt;metadata&gt;` 中 `&lt;execution_mode&gt;` 设置为 `wave`</then>
+        </case>
+        <case id="缺失-executionmode-时的默认行为" name="缺失 execution_mode 时的默认行为">
+          <given>一个旧的或未声明 execution_mode 的 plan.xml</given>
+          <when>系统读取该 plan.xml</when>
+          <then>系统将其视为 `sequential` 模式
+保持原有顺序执行行为不变</then>
+        </case>
+      </suite>
+    </requirement>
+  </upsert>
+  <upsert selector="behavior://codument-core/requirements/wave-dag-依赖声明">
+    <requirement id="wave-dag-依赖声明">
+      <statement>系统应当（SHALL）在每个 `&lt;phase&gt;` 下支持 `&lt;waves&gt;` 容器，包含多个 `&lt;wave&gt;` 节点。每个 `&lt;wave&gt;` 通过 `id` 属性标识（格式 `WAVE-P{n}-{序号}`，如 `WAVE-P1-01`），通过可选的 `depends_on` 属性声明对其他 wave 的依赖（逗号分隔，支持多依赖），形成 DAG。</statement>
+      <suite name="wave-dag-依赖声明">
+        <case id="声明-wave-依赖关系" name="声明 wave 依赖关系">
+          <given>一个 phase 包含多个可分组的 task</given>
+          <when>系统生成 plan.xml</when>
+          <then>phase 下包含 `&lt;waves&gt;` 节点
+每个 `&lt;wave&gt;` 有唯一 `id`（格式 `WAVE-P{n}-{序号}`）
+有依赖的 wave 通过 `depends_on` 属性引用前置 wave</then>
+        </case>
+        <case id="无依赖的-wave-立即可执行" name="无依赖的 wave 立即可执行">
+          <given>一个 wave 节点没有 `depends_on` 属性</given>
+          <when>执行引擎构建 DAG</when>
+          <then>该 wave 入度为 0，立即加入就绪队列</then>
+        </case>
+        <case id="多依赖-wave" name="多依赖 wave">
+          <given>一个 wave 的 `depends_on` 包含多个 wave ID（如 `WAVE-P1-01,WAVE-P1-02`）</given>
+          <when>执行引擎评估该 wave 的就绪状态</when>
+          <then>仅当所有依赖的 wave 全部完成后，该 wave 才加入就绪队列</then>
+        </case>
+      </suite>
+    </requirement>
+  </upsert>
+  <upsert selector="behavior://codument-core/requirements/task-级别-wave-分配">
+    <requirement id="task-级别-wave-分配">
+      <statement>系统应当（SHALL）在 `&lt;task&gt;` 元素上支持 `wave` 属性，值为该 task 所属的 wave ID。同一 wave 内的 task 可并行执行。</statement>
+      <suite name="task-级别-wave-分配">
+        <case id="task-分配到-wave" name="task 分配到 wave">
+          <given>一个 phase 声明了 `&lt;waves&gt;`</given>
+          <when>系统生成 task</when>
+          <then>每个 task 的 `wave` 属性值必须是该 phase 的 `&lt;waves&gt;` 中已声明的 wave ID</then>
+        </case>
+        <case id="未声明-wave-属性的-task" name="未声明 wave 属性的 task">
+          <given>一个 wave 模式的 plan.xml 中某 task 缺少 `wave` 属性</given>
+          <when>系统解析该 task</when>
+          <then>系统报告验证错误</then>
+        </case>
+      </suite>
+    </requirement>
+  </upsert>
+  <upsert selector="behavior://codument-core/requirements/phase-顺序执行保证">
+    <requirement id="phase-顺序执行保证">
+      <statement>系统应当（SHALL）保证 phase 之间严格顺序执行。前一个 phase 的所有 wave 和 task 全部完成后，才启动下一个 phase。</statement>
+      <suite name="phase-顺序执行保证">
+        <case id="phase-顺序执行" name="phase 顺序执行">
+          <given>plan.xml 包含 P1 和 P2 两个 phase</given>
+          <when>执行引擎运行</when>
+          <then>P1 的所有 wave 全部完成后才启动 P2
+P1 包含 WAVE-P1-01 和 WAVE-P1-02
+P2 的 wave 编号从 WAVE-P2-01 重新开始</then>
+        </case>
+      </suite>
+    </requirement>
+  </upsert>
+  <upsert selector="behavior://codument-core/requirements/subtask-嵌套">
+    <requirement id="subtask-嵌套">
+      <statement>系统应当（SHALL）支持 subtask 的递归嵌套。subtask 可以从自闭合标签扩展为开闭标签，内部包含 `&lt;subtasks&gt;` 子容器。嵌套层级无硬性限制，建议不超过 4 层。</statement>
+      <suite name="subtask-嵌套">
+        <case id="subtask-嵌套" name="subtask 嵌套">
+          <given>一个 task 包含复杂的子任务结构</given>
+          <when>系统生成 plan.xml</when>
+          <then>subtask 可以包含 `&lt;subtasks&gt;` 子容器
+子 subtask 的 ID 格式为 `T{phase}.{task}.{sub}.{sub}...`</then>
+        </case>
+        <case id="旧的自闭合-subtask-兼容" name="旧的自闭合 subtask 兼容">
+          <given>一个旧 plan.xml 使用自闭合 `&lt;subtask ... /&gt;` 标签</given>
+          <when>系统解析该 plan.xml</when>
+          <then>自闭合标签仍然合法，解析正常</then>
+        </case>
+      </suite>
+    </requirement>
+  </upsert>
+  <upsert selector="behavior://codument-core/requirements/subtask-详情外链">
+    <requirement id="subtask-详情外链">
+      <statement>系统应当（SHALL）支持在 subtask 内通过 `&lt;detail_ref&gt;` 标签引用外部文件，将复杂任务的详细描述存放在 track 目录下的独立文件中，避免 plan.xml 过度膨胀。</statement>
+      <suite name="subtask-详情外链">
+        <case id="subtask-外链详情文件" name="subtask 外链详情文件">
+          <given>一个 subtask 的任务描述过于复杂</given>
+          <when>系统生成 plan.xml</when>
+          <then>subtask 内包含 `&lt;detail_ref&gt;` 标签，值为相对于 track 目录的文件路径
+对应的详情文件存放在 `phases/P{n}/` 目录下</then>
+        </case>
+        <case id="detailref-文件不存在时的验证" name="detail_ref 文件不存在时的验证">
+          <given>subtask 的 `&lt;detail_ref&gt;` 引用了一个不存在的文件</given>
+          <when>系统执行验证</when>
+          <then>系统报告验证错误，指出缺失的文件路径</then>
+        </case>
+      </suite>
+    </requirement>
+  </upsert>
+  <upsert selector="behavior://codument-core/requirements/context-files-上下文声明">
+    <requirement id="context-files-上下文声明">
+      <statement>系统应当（SHALL）在 `&lt;phase&gt;` 下支持 `&lt;context_files&gt;` 容器，包含多个 `&lt;file&gt;` 子元素，声明该 phase 执行时需要读取的上下文文件路径。此机制替代原有的 `&lt;references&gt;` 标签。</statement>
+      <suite name="context-files-上下文声明">
+        <case id="声明-phase-上下文文件" name="声明 phase 上下文文件">
+          <given>一个 phase 的执行需要特定文件作为上下文</given>
+          <when>系统生成 plan.xml</when>
+          <then>phase 下包含 `&lt;context_files&gt;` 节点
+每个 `&lt;file&gt;` 子元素包含相对于项目根目录的文件路径</then>
+        </case>
+        <case id="子代理读取上下文文件" name="子代理读取上下文文件">
+          <given>执行引擎启动子代理执行某 phase 的 task</given>
+          <when>子代理初始化</when>
+          <then>子代理根据 `&lt;context_files&gt;` 声明的路径读取所需文件
+编排器不传递文件内容，仅传递路径</then>
+        </case>
+      </suite>
+    </requirement>
+  </upsert>
+  <upsert selector="behavior://codument-core/requirements/wave-配置">
+    <requirement id="wave-配置">
+      <statement>系统应当（SHALL）在 plan.xml 根级别支持 `&lt;wave_config&gt;` 节点，配置波次执行的全局参数，包括是否并行（`&lt;parallel&gt;`）、最大并发数（`&lt;max_concurrent&gt;`）、波次间抽检（`&lt;spot_check&gt;`）。</statement>
+      <suite name="wave-配置">
+        <case id="配置波次执行参数" name="配置波次执行参数">
+          <given>用户创建 wave 模式的 track</given>
+          <when>系统生成 plan.xml</when>
+          <then>plan.xml 包含 `&lt;wave_config&gt;` 节点
+包含 `&lt;parallel&gt;`、`&lt;max_concurrent&gt;`、`&lt;spot_check&gt;` 配置项</then>
+        </case>
+      </suite>
+    </requirement>
+  </upsert>
+  <upsert selector="behavior://codument-core/requirements/track-目录结构扩展">
+    <requirement id="track-目录结构扩展">
+      <statement>系统应当（SHALL）在 wave 模式的 track 目录下支持以下新增目录和文件，且不删除任何现有文件：
+- `context.md`：用户决策记录
+- `state.md`：活记忆，执行状态追踪
+- `phases/P{n}/index.md`：phase 级别共享知识索引
+- `waves/WAVE-P{n}-{序号}/index.md`：wave 级别共享知识索引</statement>
+      <suite name="track-目录结构扩展">
+        <case id="wave-模式-track-目录结构" name="wave 模式 track 目录结构">
+          <given>用户创建 wave 模式的 track</given>
+          <when>执行引擎开始执行</when>
+          <then>track 目录下创建 `phases/` 和 `waves/` 子目录
+每个 phase 完成后生成 `phases/P{n}/index.md`
+每个 wave 完成后生成 `waves/WAVE-P{n}-{序号}/index.md`</then>
+        </case>
+        <case id="现有-track-文件不受影响" name="现有 track 文件不受影响">
+          <given>一个现有的 sequential 模式 track</given>
+          <when>系统处理该 track</when>
+          <then>不创建 phases/ 和 waves/ 目录
+现有文件（metadata.json、spec.md、proposal.md、plan.xml、design.md）不被修改或删除</then>
+        </case>
+      </suite>
+    </requirement>
+  </upsert>
+  <upsert selector="behavior://codument-core/requirements/新增命令">
+    <requirement id="新增命令">
+      <statement>系统应当（SHALL）提供以下新命令，所有提示词使用中文编写，命令前缀为 `codument:`：
+- `/codument:discuss`：Phase 级讨论，生成 context.md
+- `/codument:plan-wave`：生成带 wave 标记的 plan.xml
+- `/codument:execute-wave [phase]`：按波次并行执行，可选指定单个 phase
+- `/codument:verify`：独立验证子代理</statement>
+      <suite name="新增命令">
+        <case id="execute-wave-执行全部-phase" name="execute-wave 执行全部 phase">
+          <given>用户有一个 wave 模式的 track</given>
+          <when>用户运行 `/codument:execute-wave`</when>
+          <then>系统按 phase 顺序遍历，每个 phase 内按 wave DAG 调度执行</then>
+        </case>
+        <case id="execute-wave-执行指定-phase" name="execute-wave 执行指定 phase">
+          <given>用户有一个 wave 模式的 track</given>
+          <when>用户运行 `/codument:execute-wave P2`</when>
+          <then>系统仅执行 P2 的 wave 调度
+P1 已完成
+跳过已完成的 phase</then>
+        </case>
+        <case id="discuss-生成-context-md" name="discuss 生成 context.md">
+          <given>用户需要在执行前讨论某 phase 的实现方案</given>
+          <when>用户运行 `/codument:discuss`</when>
+          <then>系统引导用户讨论并将决策记录到 track 目录的 `context.md`</then>
+        </case>
+        <case id="verify-独立验证" name="verify 独立验证">
+          <given>用户完成了 wave 执行</given>
+          <when>用户运行 `/codument:verify`</when>
+          <then>系统启动独立验证子代理
+验证 must_haves 与实际代码库的一致性</then>
+        </case>
+      </suite>
+    </requirement>
+  </upsert>
+  <upsert selector="behavior://codument-core/requirements/plan-xml-格式">
+    <requirement id="plan-xml-格式">
+      <statement>系统应当（SHALL）定义结构化的 plan.xml 格式，包含：
+- metadata 元数据（含 commit_mode、execution_mode）
+- milestones 里程碑
+- phases 阶段（含 waves 声明、context_files）
+- tasks 任务（状态在属性中，含 wave 属性）
+- subtasks 子任务（支持递归嵌套、detail_ref 外链）
+- acceptance_criteria 验收标准
+- gate_criteria 阶段门控标准
+- wave_config 波次配置
+- validations 验证
+- risks 风险
+- summary 统计</statement>
+      <suite name="plan-xml-格式">
+        <case id="解析-plan-xml" name="解析 plan.xml">
+          <given>系统需要读取任务信息</given>
+          <when>系统读取 plan.xml 文件</when>
+          <then>系统能正确解析所有元素和属性
+系统能识别 commit_mode 和 execution_mode 设置</then>
+        </case>
+        <case id="更新任务状态" name="更新任务状态">
+          <given>任务已完成</given>
+          <when>系统更新 plan.xml</when>
+          <then>系统更新任务的 status 属性
+系统更新 acceptance_criteria 的 checked 属性</then>
+        </case>
+      </suite>
+    </requirement>
+  </upsert>
+  <upsert selector="behavior://codument-core/requirements/metadata-json-职责精简">
+    <requirement id="metadata-json-职责精简">
+      <statement>系统应当（SHALL）将 metadata.json 的职责限定为项目级元数据，移除与 plan.xml 重复的字段：
+- `commit_mode` 仅在 plan.xml 的 `&lt;metadata&gt;&lt;commit_mode&gt;` 中维护，从 metadata.json 中移除
+- metadata.json 的 `status` 语义明确为项目级状态（如 codument init 所处阶段），track 执行状态仅在 plan.xml 的 `&lt;metadata&gt;&lt;status&gt;` 中维护</statement>
+      <suite name="metadata-json-职责精简">
+        <case id="metadata-json-不含-commitmode" name="metadata.json 不含 commit_mode">
+          <given>用户创建新 track</given>
+          <when>系统生成 metadata.json</when>
+          <then>metadata.json 不包含 `commit_mode` 字段
+commit_mode 仅在 plan.xml 的 `&lt;metadata&gt;` 中声明</then>
+        </case>
+        <case id="读取-commitmode" name="读取 commit_mode">
+          <given>系统需要获取 track 的提交模式</given>
+          <when>系统读取配置</when>
+          <then>系统从 plan.xml 的 `&lt;commit_mode&gt;` 读取
+不从 metadata.json 读取</then>
+        </case>
+      </suite>
+    </requirement>
+  </upsert>
+  <upsert selector="behavior://codument-core/requirements/task-级别-dependencies">
+    <requirement id="task-级别-dependencies">
+      <statement>**原因**：依赖关系由 wave DAG（`&lt;waves&gt;` 中的 `&lt;wave depends_on=&quot;...&quot;&gt;`) 统一表达，task 级别的 `&lt;dependencies&gt;` 标签成为冗余信息源，存在两套依赖互相矛盾的风险。
+**迁移**：从 plan-xml-spec、提示词、解析器中移除 `&lt;dependencies&gt;` 相关描述和代码。旧归档 plan.xml 中的 `&lt;dependencies&gt;` 保留不动，但不再被解析器使用。</statement>
+    </requirement>
+  </upsert>
+  <upsert selector="behavior://codument-core/requirements/metadata-json-中的-commitmode-字段">
+    <requirement id="metadata-json-中的-commitmode-字段">
+      <statement>**原因**：与 plan.xml 中的 `&lt;commit_mode&gt;` 重复，存在不一致风险。
+**迁移**：从 metadata.json 模板和生成逻辑中移除 `commit_mode`。现有 track 的 metadata.json 中若包含该字段，解析器忽略即可。</statement>
+    </requirement>
+  </upsert>
+</behavior-patch>

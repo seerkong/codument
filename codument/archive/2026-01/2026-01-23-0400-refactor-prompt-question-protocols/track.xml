@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Track id="refactor-prompt-question-protocols" version="1" xmlns:cdt="urn:codument:v1">
+  <Metadata>
+    <Status>completed</Status>
+    <Goal>统一提问协议并同步归档 XML 规范</Goal>
+    <Description>统一提问协议并同步归档 XML 规范</Description>
+    <CommitMode>manual</CommitMode>
+    <CreatedAt>2026-01-22T20:00:00Z</CreatedAt>
+    <UpdatedAt>2026-01-22T20:00:00Z</UpdatedAt>
+  </Metadata>
+
+  <Ports scope="track">
+    <MaterialBundle role="input" name="behavior-deltas" domain="behavior" path="vfs://./behavior_deltas/"/>
+    <MaterialBundle role="output" name="docs" domain="doc" path="vfs://@/docs/"/>
+    <MaterialBundle role="output" name="behavior" domain="codument" path="vfs://@/codument/behaviors/"/>
+  </Ports>
+
+  <TaskSpace id="space_refactor-prompt-question-protocols" name="refactor-prompt-question-protocols" version="1">
+    <Description>统一提问协议并同步归档 XML 规范</Description>
+    <SubNodes>
+      <TaskGroup id="P1" name="Refactor Prompt Protocols" status="DONE" order="0" cdt:child-mode="dag">
+        <SubNodes>
+          <Task id="P1-T1" name="Extract Question protocol" status="DONE" order="0">
+            <Description>Extract the question protocol from the old prompt format.</Description>
+          </Task>
+          <Task id="P1-T2" name="Define Question type variants" status="DONE" order="1">
+            <Description>Define variants for yes_no, text, number, single_select, multi_select question types.</Description>
+          </Task>
+          <Task id="P1-T3" name="Implement Message overloads" status="DONE" order="2">
+            <Description>Implement Message overloads for each question type variant.</Description>
+          </Task>
+        </SubNodes>
+      </TaskGroup>
+    </SubNodes>
+  </TaskSpace>
+
+  <Schedule>
+    <Dag for="P1">
+      <Node id="P1-T2">
+        <After ref="P1-T1"/>
+      </Node>
+      <Node id="P1-T3">
+        <After ref="P1-T1"/>
+        <After ref="P1-T2"/>
+      </Node>
+    </Dag>
+  </Schedule>
+</Track>

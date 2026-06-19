@@ -1,0 +1,45 @@
+<behavior-patch capability="codument-core">
+  <upsert selector="behavior://codument-core/requirements/提问协议复用">
+    <requirement id="提问协议复用">
+      <statement>系统应当（SHALL）将提问提示词的通用规则封装为可复用协议，并在所有提问场景中引用。</statement>
+      <suite name="提问协议复用">
+        <case id="多问提示复用" name="多问提示复用">
+          <given>提示词需要在一轮中提出多个问题</given>
+          <when>系统生成提问提示词</when>
+          <then>系统引用多问协议而非重复描述
+用户可按 Q1/Q2 标识回答</then>
+        </case>
+        <case id="单问提示复用" name="单问提示复用">
+          <given>提示词需要一次提一个问题</given>
+          <when>系统生成提问提示词</when>
+          <then>系统引用单问协议而非重复描述</then>
+        </case>
+      </suite>
+    </requirement>
+  </upsert>
+  <upsert selector="behavior://codument-core/requirements/自由输入选项">
+    <requirement id="自由输入选项">
+      <statement>系统应当（SHALL）在需要自由输入的提问中提供可输入答案的选项，但不强制固定选项名称。</statement>
+      <suite name="自由输入选项">
+        <case id="工具内置选项避免重复" name="工具内置选项避免重复">
+          <given>运行环境已提供内置“其他/自定义输入”选项</given>
+          <when>系统生成提问选项</when>
+          <then>系统不重复添加同义自由输入选项</then>
+        </case>
+      </suite>
+    </requirement>
+  </upsert>
+  <upsert selector="behavior://codument-core/requirements/归档-xml-规范对齐">
+    <requirement id="归档-xml-规范对齐">
+      <statement>系统应当（SHALL）将归档中的旧任务 XML（早期格式）迁移为 plan.xml，并与 plan.xml 规范对齐。</statement>
+      <suite name="归档-xml-规范对齐">
+        <case id="归档-xml-迁移" name="归档 XML 迁移">
+          <given>归档目录中存在旧任务 XML（早期格式）</given>
+          <when>系统进行规范同步</when>
+          <then>文件被重命名为 plan.xml
+XML 根节点与元数据字段符合 plan.xml 规范</then>
+        </case>
+      </suite>
+    </requirement>
+  </upsert>
+</behavior-patch>

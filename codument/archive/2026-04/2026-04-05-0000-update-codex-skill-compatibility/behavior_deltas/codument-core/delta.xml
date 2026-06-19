@@ -1,0 +1,72 @@
+<behavior-patch capability="codument-core">
+  <upsert selector="behavior://codument-core/requirements/codex-使用-skill-目录分发-codument-工作流">
+    <requirement id="codex-使用-skill-目录分发-codument-工作流">
+      <statement>系统应当（SHALL）对新版 Codex 通过 skill 目录分发 Codument 工作流，而不是继续生成 `~/.codex/prompts/codument-*.md`。</statement>
+      <suite name="codex-使用-skill-目录分发-codument-工作流">
+        <case id="选择-codex-时安装-codument-workflow-skill" name="选择 Codex 时安装 codument-workflow skill">
+          <given>用户运行 `codument init`</given>
+          <when>系统生成 Codex 相关产物</when>
+          <then>系统将 Codument 工作流写入 `~/.codex/skills/codument-workflow/`
+用户选择支持 Codex
+不再依赖 `~/.codex/prompts/codument-*.md`</then>
+        </case>
+        <case id="升级工作区时更新-codex-skill" name="升级工作区时更新 Codex skill">
+          <given>用户运行 `codument upgrade-workspace`</given>
+          <when>系统升级 Codex 相关产物</when>
+          <then>系统备份并更新 `~/.codex/skills/codument-workflow/`
+`codument/state.json` 中包含 `codex`</then>
+        </case>
+      </suite>
+    </requirement>
+  </upsert>
+  <upsert selector="behavior://codument-core/requirements/codex-skill-内容与用户现有迁移版本一致">
+    <requirement id="codex-skill-内容与用户现有迁移版本一致">
+      <statement>系统应当（SHALL）以用户当前已迁移完成的 `codument-workflow` skill 结构作为新版 Codex 兼容基线，确保初始化和升级产生相同目录形态。</statement>
+      <suite name="codex-skill-内容与用户现有迁移版本一致">
+        <case id="初始化后-skill-目录结构完整" name="初始化后 skill 目录结构完整">
+          <given>系统为 Codex 安装 `codument-workflow`</given>
+          <when>用户检查目标目录</when>
+          <then>目录至少包含：</then>
+        </case>
+      </suite>
+    </requirement>
+  </upsert>
+  <upsert selector="behavior://codument-core/requirements/项目初始化命令">
+    <requirement id="项目初始化命令">
+      <statement>系统应当（SHALL）提供 `codument init` 命令，支持：
+- 检测项目类型（Brownfield/Greenfield）
+- 交互式收集项目信息
+- 生成 `project.md`、`product.md`、`workflow.md`、`tech-stack.md`
+- 创建初始 track
+- 支持恢复中断的初始化流程
+- 根据用户选择的 AI coding 工具生成对应产物</statement>
+      <suite name="项目初始化命令">
+        <case id="初始化时为-codex-生成-skill-而非-prompts" name="初始化时为 Codex 生成 skill 而非 prompts">
+          <given>用户在初始化过程中选择 Codex</given>
+          <when>初始化完成</when>
+          <then>系统输出的完成提示指向 `~/.codex/skills/codument-workflow/`
+不再声明生成 `~/.codex/prompts/codument-*.md`</then>
+        </case>
+      </suite>
+    </requirement>
+  </upsert>
+  <upsert selector="behavior://codument-core/requirements/升级工作区命令">
+    <requirement id="升级工作区命令">
+      <statement>系统应当（SHALL）提供 `codument upgrade-workspace` 命令，支持升级工作区内嵌标准文件与所选 AI coding 工具产物。</statement>
+      <suite name="升级工作区命令">
+        <case id="升级时备份-codex-skill" name="升级时备份 Codex skill">
+          <given>用户已选择 Codex</given>
+          <when>用户运行 `codument upgrade-workspace`</when>
+          <then>系统将 `~/.codex/skills/codument-workflow/` 备份到升级备份目录
+随后用新的 skill 内容覆盖该目录</then>
+        </case>
+      </suite>
+    </requirement>
+  </upsert>
+  <upsert selector="behavior://codument-core/requirements/codex-prompts-目录生成">
+    <requirement id="codex-prompts-目录生成">
+      <statement>**原因**：新版 Codex 不再以 `~/.codex/prompts/` 中的 command 文件作为 Codument 工作流入口，继续生成这些 prompts 会导致文档、初始化输出和升级逻辑与真实使用方式脱节。
+**迁移**：将 Codex 相关产物统一迁移到 `~/.codex/skills/codument-workflow/`，并在代码与文档中移除 `~/.codex/prompts/codument-*.md` 的主路径表述。</statement>
+    </requirement>
+  </upsert>
+</behavior-patch>

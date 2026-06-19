@@ -1,6 +1,6 @@
 {
   "name": "codument",
-  "version": "0.3.4",
+  "version": "0.4.0",
   "description": "Spec-driven development tool for AI coding assistants",
   "type": "module",
   "main": "src/cli/index.ts",
@@ -8,9 +8,10 @@
     "codument": "src/cli/index.ts"
   },
   "scripts": {
+    "gen:templates": "bun run scripts/gen-template-manifest.ts",
     "dev": "bun run src/cli/index.ts",
-    "build": "bun build src/cli/index.ts --compile --outfile=dist/codument",
-    "build:dev": "bun build src/cli/index.ts --compile --outfile=dist/codument-dev",
+    "build": "bun run gen:templates && bun build src/cli/index.ts --compile --outfile=dist/codument",
+    "build:dev": "bun run gen:templates && bun build src/cli/index.ts --compile --outfile=dist/codument-dev",
     "build:all": "bun run build && bun run build:dev",
     "test": "bun test",
     "test:coverage": "bun test --coverage",

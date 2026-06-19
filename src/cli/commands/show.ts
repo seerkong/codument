@@ -68,7 +68,7 @@ function showTrack(trackId: string, jsonOutput: boolean) {
       files: {},
     };
 
-    const files = ['proposal.md', 'plan.xml', 'design.md', 'decisions.md', 'spec.md'];
+    const files = ['proposal.md', 'track.xml', 'design.md', 'decisions.md'];
     for (const file of files) {
       const filePath = path.join(trackDir, file);
       if (fs.existsSync(filePath)) {
@@ -109,7 +109,7 @@ function showTrack(trackId: string, jsonOutput: boolean) {
   }
 
   console.log('\nFiles:');
-  const files = ['proposal.md', 'plan.xml', 'design.md', 'decisions.md'];
+  const files = ['proposal.md', 'track.xml', 'design.md', 'decisions.md'];
   for (const file of files) {
     const filePath = path.join(trackDir, file);
     const exists = fs.existsSync(filePath);
@@ -121,12 +121,7 @@ function showTrack(trackId: string, jsonOutput: boolean) {
       console.log(`  ✓ ${path.relative(trackDir, filePath)}`);
     }
   } else {
-    const legacySpecPath = path.join(trackDir, 'spec.md');
-    const legacyStatus = fs.existsSync(legacySpecPath) ? '✓' : '✗';
-    console.log(`  ${legacyStatus} spec_deltas/**/*.xml`);
-    if (fs.existsSync(legacySpecPath)) {
-      console.log('  ✓ spec.md (legacy)');
-    }
+    console.log(`  ✗ behavior_deltas/**/*.xml`);
   }
 
   console.log('');
@@ -135,6 +130,7 @@ function showTrack(trackId: string, jsonOutput: boolean) {
 function collectTrackXmlSpecDeltas(trackDir: string): string[] {
   const results: string[] = [];
   const roots = [
+    path.join(trackDir, 'behavior_deltas'),
     path.join(trackDir, 'spec_deltas'),
     path.join(trackDir, 'spec-deltas'),
   ];

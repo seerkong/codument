@@ -12,8 +12,32 @@ function writeFile(filePath: string, content: string): void {
   fs.writeFileSync(filePath, content, 'utf-8');
 }
 
+function writeTrackXml(trackDir: string, trackId: string, updatedAt = '2026-05-30T14:32:00+08:00'): void {
+  writeFile(path.join(trackDir, 'track.xml'), `<?xml version="1.0" encoding="UTF-8"?>
+<Track id="${trackId}" version="1" xmlns:cdt="urn:codument:v1">
+  <Metadata>
+    <Status>completed</Status>
+    <Goal>archive test</Goal>
+    <Description>archive test</Description>
+    <CommitMode>manual</CommitMode>
+    <CreatedAt>2026-05-30T01:00:00Z</CreatedAt>
+    <UpdatedAt>${updatedAt}</UpdatedAt>
+  </Metadata>
+  <TaskSpace id="space_${trackId}" name="${trackId}">
+    <SubNodes />
+  </TaskSpace>
+</Track>`);
+}
+
+function writeAttractorProfiles(ws: string, memoryEnabled: boolean): void {
+  writeFile(path.join(ws, 'codument', 'config', 'attractor-profiles.xml'), `<AttractorProfiles>
+  <Profile name="memory" enabled="${memoryEnabled ? 'true' : 'false'}" />
+</AttractorProfiles>
+`);
+}
+
 describe('codument archive', () => {
-  it('uses track updated_at minute prefix and promotes explicit durable decisions and memory when enabled', async () => {
+  it('uses track UpdatedAt minute prefix and promotes explicit durable decisions and memory when profile enabled', async () => {
     const repoRoot = path.resolve(__dirname, '../../..');
     const cliEntry = path.join(repoRoot, 'src/cli/index.ts');
     const ws = makeTempDir('codument-archive-ws-');
@@ -22,19 +46,8 @@ describe('codument archive', () => {
 
     writeFile(path.join(ws, 'codument', 'attractors', 'project.md'), '# p\n');
     writeFile(path.join(ws, 'codument', 'attractors', 'product.md'), '# p\n');
-    writeFile(path.join(ws, 'codument', 'config', 'feature.json'), JSON.stringify({
-      knowledgeSync: { enabled: false, targets: [] },
-      projectMemory: { enabled: true },
-    }, null, 2));
-    writeFile(path.join(trackDir, 'plan.xml'), `<?xml version="1.0"?>
-<plan><metadata>
-  <track_id>${trackId}</track_id>
-  <type>feature</type>
-  <status>completed</status>
-  <created_at>2026-05-30T01:00:00Z</created_at>
-  <updated_at>2026-05-30T14:32:00+08:00</updated_at>
-  <description>archive test</description>
-</metadata><phases></phases></plan>`);
+    writeAttractorProfiles(ws, true);
+    writeTrackXml(trackDir, trackId);
     writeFile(path.join(trackDir, 'spec.md'), '## ADDED Requirements\n### Requirement: X\n#### Scenario: Y\n');
     writeFile(path.join(trackDir, 'proposal.md'), '# Proposal\n\nArchive behavior.\n');
     writeFile(path.join(trackDir, 'decisions.md'), '# Decisions\n\n### Durable\nUse new archive layout.\n');
@@ -82,19 +95,8 @@ describe('codument archive', () => {
     const trackId = 'archive-no-promotion';
     const trackDir = path.join(ws, 'codument', 'tracks', trackId);
 
-    writeFile(path.join(ws, 'codument', 'config', 'feature.json'), JSON.stringify({
-      knowledgeSync: { enabled: false, targets: [] },
-      projectMemory: { enabled: true },
-    }, null, 2));
-    writeFile(path.join(trackDir, 'plan.xml'), `<?xml version="1.0"?>
-<plan><metadata>
-  <track_id>${trackId}</track_id>
-  <type>feature</type>
-  <status>completed</status>
-  <created_at>2026-05-30T01:00:00Z</created_at>
-  <updated_at>2026-05-30T14:32:00+08:00</updated_at>
-  <description>archive test</description>
-</metadata><phases></phases></plan>`);
+    writeAttractorProfiles(ws, true);
+    writeTrackXml(trackDir, trackId);
     writeFile(path.join(trackDir, 'spec.md'), '## ADDED Requirements\n### Requirement: X\n#### Scenario: Y\n');
     writeFile(path.join(trackDir, 'proposal.md'), '# Proposal\n\nArchive behavior.\n');
     writeFile(path.join(trackDir, 'decisions.md'), '# Decisions\n\n### 1. Local choice\nUse temporary debug logging.\n');
@@ -130,19 +132,8 @@ describe('codument archive', () => {
     const trackId = 'archive-decision-dir';
     const trackDir = path.join(ws, 'codument', 'tracks', trackId);
 
-    writeFile(path.join(ws, 'codument', 'config', 'feature.json'), JSON.stringify({
-      knowledgeSync: { enabled: false, targets: [] },
-      projectMemory: { enabled: false },
-    }, null, 2));
-    writeFile(path.join(trackDir, 'plan.xml'), `<?xml version="1.0"?>
-<plan><metadata>
-  <track_id>${trackId}</track_id>
-  <type>feature</type>
-  <status>completed</status>
-  <created_at>2026-05-30T01:00:00Z</created_at>
-  <updated_at>2026-05-30T14:32:00+08:00</updated_at>
-  <description>decision directory archive test</description>
-</metadata><phases></phases></plan>`);
+    writeAttractorProfiles(ws, false);
+    writeTrackXml(trackDir, trackId);
     writeFile(path.join(trackDir, 'proposal.md'), '# Proposal\n\nDecision directory behavior.\n');
     writeFile(path.join(trackDir, 'decisions', 'use-xml-specs.md'), '# Use XML Specs\n\n### Durable\nUse XML specs as the registry format.\n');
     writeFile(path.join(trackDir, 'decisions', 'keep-markdown-compat.md'), '# Keep Markdown Compat\n\n### Durable\nKeep Markdown specs readable during migration.\n');
@@ -188,7 +179,7 @@ describe('codument archive', () => {
     expect(markdownDecision).toContain('Decision URI: decision://keep-markdown-compat');
   });
 
-  it('does not copy durable decision records into configured knowledge targets', async () => {
+  it('ignores legacy knowledge sync config and does not copy durable decisions into docs targets', async () => {
     const repoRoot = path.resolve(__dirname, '../../..');
     const cliEntry = path.join(repoRoot, 'src/cli/index.ts');
     const ws = makeTempDir('codument-archive-knowledge-sync-ws-');
@@ -204,15 +195,7 @@ describe('codument archive', () => {
       },
       projectMemory: { enabled: false },
     }, null, 2));
-    writeFile(path.join(trackDir, 'plan.xml'), `<?xml version="1.0"?>
-<plan><metadata>
-  <track_id>${trackId}</track_id>
-  <type>feature</type>
-  <status>completed</status>
-  <created_at>2026-05-30T01:00:00Z</created_at>
-  <updated_at>2026-05-30T14:32:00+08:00</updated_at>
-  <description>knowledge sync archive test</description>
-</metadata><phases></phases></plan>`);
+    writeTrackXml(trackDir, trackId);
     writeFile(path.join(trackDir, 'proposal.md'), '# Proposal\n\nArchive knowledge sync behavior.\n');
     writeFile(path.join(trackDir, 'decisions', 'use-docs-sync.md'), '# Use Docs Sync\n\n### Durable\nKeep durable decisions in the Codument decision registry.\n');
 
@@ -246,7 +229,7 @@ describe('codument archive', () => {
     expect(fs.existsSync(path.join(ws, 'docs', '2026-05'))).toBe(false);
   });
 
-  it('fails before moving the track when a configured knowledge target root is missing', async () => {
+  it('does not validate legacy knowledge target roots during archive', async () => {
     const repoRoot = path.resolve(__dirname, '../../..');
     const cliEntry = path.join(repoRoot, 'src/cli/index.ts');
     const ws = makeTempDir('codument-archive-missing-knowledge-target-ws-');
@@ -261,15 +244,7 @@ describe('codument archive', () => {
       },
       projectMemory: { enabled: false },
     }, null, 2));
-    writeFile(path.join(trackDir, 'plan.xml'), `<?xml version="1.0"?>
-<plan><metadata>
-  <track_id>${trackId}</track_id>
-  <type>feature</type>
-  <status>completed</status>
-  <created_at>2026-05-30T01:00:00Z</created_at>
-  <updated_at>2026-05-30T14:32:00+08:00</updated_at>
-  <description>missing knowledge target test</description>
-</metadata><phases></phases></plan>`);
+    writeTrackXml(trackDir, trackId);
     writeFile(path.join(trackDir, 'proposal.md'), '# Proposal\n\nArchive missing knowledge target behavior.\n');
     writeFile(path.join(trackDir, 'decisions', 'external-docs.md'), '# External Docs\n\n### Durable\nDo not create missing external roots silently.\n');
 
@@ -291,10 +266,10 @@ describe('codument archive', () => {
 
     const exitCode = await proc.exited;
     const err = await new Response(proc.stderr).text();
-    expect(exitCode).toBe(1);
-    expect(err).toContain('Knowledge sync target root does not exist');
+    expect(err).toBe('');
+    expect(exitCode).toBe(0);
     expect(fs.existsSync(externalRoot)).toBe(false);
-    expect(fs.existsSync(trackDir)).toBe(true);
+    expect(fs.existsSync(trackDir)).toBe(false);
   });
 
   it('applies XML spec patches from archived tracks to the spec registry', async () => {
@@ -304,10 +279,6 @@ describe('codument archive', () => {
     const trackId = 'archive-xml-patch';
     const trackDir = path.join(ws, 'codument', 'tracks', trackId);
 
-    writeFile(path.join(ws, 'codument', 'config', 'feature.json'), JSON.stringify({
-      knowledgeSync: { enabled: false, targets: [] },
-      projectMemory: { enabled: false },
-    }, null, 2));
     writeFile(path.join(ws, 'codument', 'specs', 'billing.xml'), `<capability id="billing">
   <requirement id="invoice">
     <statement>Invoices are tracked.</statement>
@@ -321,15 +292,7 @@ describe('codument archive', () => {
   </requirement>
 </capability>
 `);
-    writeFile(path.join(trackDir, 'plan.xml'), `<?xml version="1.0"?>
-<plan><metadata>
-  <track_id>${trackId}</track_id>
-  <type>feature</type>
-  <status>completed</status>
-  <created_at>2026-05-30T01:00:00Z</created_at>
-  <updated_at>2026-05-30T02:03:00Z</updated_at>
-  <description>xml patch test</description>
-</metadata><phases></phases></plan>`);
+    writeTrackXml(trackDir, trackId, '2026-05-30T02:03:00Z');
     writeFile(path.join(trackDir, 'spec.xml'), `<spec-patch version="1">
   <case op="upsert" selector="spec://billing/requirement/invoice/suite/create/case/new-case" id="new-case">
     <given>draft invoice exists</given>
@@ -366,10 +329,10 @@ describe('codument archive', () => {
     expect(updatedSpec).not.toContain('id="old-case"');
   });
 
-  it('applies recursive spec_deltas XML patches and creates missing capability registries', async () => {
+  it('applies recursive behavior_deltas XML patches and creates missing capability registries', async () => {
     const repoRoot = path.resolve(__dirname, '../../..');
     const cliEntry = path.join(repoRoot, 'src/cli/index.ts');
-    const ws = makeTempDir('codument-archive-spec-deltas-ws-');
+    const ws = makeTempDir('codument-archive-behavior-deltas-ws-');
     const trackId = 'add-deepseek-cache';
     const trackDir = path.join(ws, 'codument', 'tracks', trackId);
 
@@ -391,26 +354,21 @@ describe('codument archive', () => {
       last_successful_step: '2.1_project',
     }, null, 2));
     writeFile(path.join(trackDir, 'proposal.md'), '# proposal\n');
-    writeFile(path.join(trackDir, 'plan.xml'), `<plan><metadata>
-  <track_id>${trackId}</track_id>
-  <type>feature</type>
-  <status>completed</status>
-  <created_at>2026-05-30T01:00:00Z</created_at>
-  <updated_at>2026-05-30T02:03:00Z</updated_at>
-  <description>deepseek cache</description>
-</metadata><phases></phases></plan>`);
-    writeFile(path.join(trackDir, 'spec_deltas', 'provider.deepseek', 'delta.xml'), `<spec-patch version="1">
-  <requirement op="upsert" selector="spec://provider.deepseek/requirement/cache-support" id="cache-support">
-    <statement>系统 SHALL 支持 DeepSeek 前缀缓存。</statement>
-    <suite id="request-build" name="请求构建">
-      <case id="inject-cache-control">
-        <given>provider 为 deepseek</given>
-        <when>系统构造请求</when>
-        <then>系统 SHALL 插入 cache_control</then>
-      </case>
-    </suite>
-  </requirement>
-</spec-patch>
+    writeTrackXml(trackDir, trackId, '2026-05-30T02:03:00Z');
+    writeFile(path.join(trackDir, 'behavior_deltas', 'provider.deepseek', 'delta.xml'), `<behavior-patch capability="provider.deepseek" version="1">
+  <upsert selector="behavior://provider.deepseek/requirements/cache-support">
+    <requirement id="cache-support">
+      <statement>系统 SHALL 支持 DeepSeek 前缀缓存。</statement>
+      <suite id="request-build" name="请求构建">
+        <case id="inject-cache-control">
+          <given>provider 为 deepseek</given>
+          <when>系统构造请求</when>
+          <then>系统 SHALL 插入 cache_control</then>
+        </case>
+      </suite>
+    </requirement>
+  </upsert>
+</behavior-patch>
 `);
 
     const proc = Bun.spawn([
@@ -433,11 +391,11 @@ describe('codument archive', () => {
     expect(err).toBe('');
     expect(exitCode).toBe(0);
 
-    const specPath = path.join(ws, 'codument', 'specs', 'provider.deepseek.xml');
-    expect(fs.existsSync(specPath)).toBe(true);
-    const updatedSpec = fs.readFileSync(specPath, 'utf-8');
-    expect(updatedSpec).toContain('<capability id="provider.deepseek"');
-    expect(updatedSpec).toContain('id="cache-support"');
-    expect(updatedSpec).toContain('inject-cache-control');
+    const behaviorPath = path.join(ws, 'codument', 'behaviors', 'provider.deepseek.xml');
+    expect(fs.existsSync(behaviorPath)).toBe(true);
+    const updatedBehavior = fs.readFileSync(behaviorPath, 'utf-8');
+    expect(updatedBehavior).toContain('<behaviors capability="provider.deepseek"');
+    expect(updatedBehavior).toContain('id="cache-support"');
+    expect(updatedBehavior).toContain('inject-cache-control');
   });
 });

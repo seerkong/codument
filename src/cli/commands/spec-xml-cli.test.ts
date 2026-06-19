@@ -12,6 +12,28 @@ function writeFile(filePath: string, content: string): void {
   fs.writeFileSync(filePath, content, 'utf-8');
 }
 
+function writeTrackXml(trackDir: string, trackId: string): void {
+  writeFile(path.join(trackDir, 'track.xml'), `<?xml version="1.0" encoding="UTF-8"?>
+<Track id="${trackId}" version="1" xmlns:cdt="urn:codument:v1">
+  <Metadata>
+    <Status>new</Status>
+    <Goal>XML behavior deltas validate.</Goal>
+    <Description>XML behavior deltas validate.</Description>
+    <CreatedAt>2026-05-30T01:00:00Z</CreatedAt>
+    <UpdatedAt>2026-05-30T02:03:00Z</UpdatedAt>
+  </Metadata>
+  <TaskSpace id="space_${trackId}" name="${trackId}">
+    <SubNodes>
+      <TaskGroup id="P1" name="Validate" status="NOT_STARTED">
+        <SubNodes>
+          <Task id="T1.1" name="Validate behavior delta" status="NOT_STARTED" />
+        </SubNodes>
+      </TaskGroup>
+    </SubNodes>
+  </TaskSpace>
+</Track>`);
+}
+
 async function runCli(workspaceDir: string, args: string[]) {
   const repoRoot = path.resolve(__dirname, '../../..');
   const cliEntry = path.join(repoRoot, 'src/cli/index.ts');
@@ -37,7 +59,7 @@ async function runCli(workspaceDir: string, args: string[]) {
 }
 
 describe('XML spec CLI compatibility', () => {
-  it('lists, shows, and validates XML specs alongside Markdown specs', async () => {
+  it('lists and shows XML specs alongside Markdown specs', async () => {
     const ws = makeTempDir('codument-spec-xml-cli-');
     writeFile(path.join(ws, 'codument', 'specs', 'markdown-capability', 'spec.md'), `# Markdown Capability
 
@@ -88,14 +110,9 @@ describe('XML spec CLI compatibility', () => {
     expect(shown.format).toBe('xml');
     expect(shown.requirements).toBe(1);
     expect(shown.scenarios).toBe(1);
-
-    const validate = await runCli(ws, ['validate', 'folder-capability', '--strict']);
-    expect(validate.stderr).toBe('');
-    expect(validate.exitCode).toBe(0);
-    expect(validate.stdout).toContain('spec/folder-capability');
   });
 
-  it('validates active tracks that use XML spec deltas without legacy spec.md', async () => {
+  it('validates active tracks that use behavior deltas without legacy spec.md', async () => {
     const ws = makeTempDir('codument-track-xml-delta-cli-');
     const trackId = 'add-xml-delta';
     writeFile(path.join(ws, 'codument', 'attractors', 'project.md'), '# project\n');
@@ -116,25 +133,20 @@ describe('XML spec CLI compatibility', () => {
       last_successful_step: '2.1_project',
     }, null, 2));
     writeFile(path.join(ws, 'codument', 'tracks', trackId, 'proposal.md'), '# proposal\n');
-    writeFile(path.join(ws, 'codument', 'tracks', trackId, 'plan.xml'), `<plan><metadata>
-  <track_id>${trackId}</track_id>
-  <type>feature</type>
-  <status>new</status>
-  <created_at>2026-05-30T01:00:00Z</created_at>
-  <updated_at>2026-05-30T02:03:00Z</updated_at>
-  <description>xml delta</description>
-</metadata><phases></phases></plan>`);
-    writeFile(path.join(ws, 'codument', 'tracks', trackId, 'spec_deltas', 'xml-capability', 'delta.xml'), `<spec-patch version="1">
-  <requirement op="upsert" selector="spec://xml-capability/requirement/run" id="run">
-    <statement>XML deltas SHALL validate.</statement>
-    <case id="ok"><given>x</given><when>y</when><then>z</then></case>
-  </requirement>
-</spec-patch>
+    writeTrackXml(path.join(ws, 'codument', 'tracks', trackId), trackId);
+    writeFile(path.join(ws, 'codument', 'tracks', trackId, 'behavior_deltas', 'xml-capability', 'delta.xml'), `<behavior-patch capability="xml-capability" version="1">
+  <upsert selector="behavior://xml-capability/requirements/run">
+    <requirement id="run">
+      <statement>XML deltas SHALL validate.</statement>
+      <case id="ok"><given>x</given><when>y</when><then>z</then></case>
+    </requirement>
+  </upsert>
+</behavior-patch>
 `);
 
     const validate = await runCli(ws, ['validate', trackId, '--strict']);
     expect(validate.stderr).toBe('');
     expect(validate.exitCode).toBe(0);
-    expect(validate.stdout).toContain(`track/${trackId}`);
+    expect(validate.stdout).toContain(`✓ ${trackId}: track.xml OK + 1 behavior delta(s)`);
   });
 });

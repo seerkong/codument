@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { getSpecXmlStats, loadSpecXml } from './spec-xml';
+import { getSpecXmlStats, loadSpecXml, parseSpecXmlContent, type SpecXmlNode } from './spec-xml';
 
 // Workspace directory (can be changed via --workspace-dir)
 let workspaceDir = process.cwd();
@@ -23,6 +23,7 @@ export function getWorkspaceDir(): string {
 export const CODUMENT_DIR = 'codument';
 export const TRACKS_DIR = path.join(CODUMENT_DIR, 'tracks');
 export const SPECS_DIR = path.join(CODUMENT_DIR, 'specs');
+export const BEHAVIORS_DIR = path.join(CODUMENT_DIR, 'behaviors');
 export const ARCHIVE_DIR = path.join(CODUMENT_DIR, 'archive');
 export const ATTRACTORS_DIR = path.join(CODUMENT_DIR, 'attractors');
 export const CONFIG_DIR = path.join(CODUMENT_DIR, 'config');
@@ -173,7 +174,7 @@ export function codumentExists(): boolean {
 }
 
 /**
- * Get track directory IDs that contain a plan.xml, regardless of metadata validity.
+ * Get track directory IDs that contain a track.xml.
  */
 export function getTrackIds(): string[] {
   if (!fs.existsSync(TRACKS_DIR)) {
@@ -183,7 +184,119 @@ export function getTrackIds(): string[] {
   return fs.readdirSync(TRACKS_DIR, { withFileTypes: true })
     .filter(dirent => dirent.isDirectory())
     .map(dirent => dirent.name)
-    .filter(trackId => fs.existsSync(path.join(TRACKS_DIR, trackId, 'plan.xml')));
+    .filter(trackId => fs.existsSync(path.join(TRACKS_DIR, trackId, 'track.xml')));
+}
+
+// ---- track.xml readers (new XML standard) ----------------------------------
+
+const SPARROW_DONE = new Set(['DONE']);
+const SPARROW_ACTIVE = new Set(['ACTIVE', 'DELEGATED', 'FORWARDED']);
+const SPARROW_BLOCKED = new Set(['REFUSED', 'ABANDONED']);
+
+function trackXmlPath(trackId: string): string {
+  return path.join(TRACKS_DIR, trackId, 'track.xml');
+}
+
+function parseTrackRoot(file: string): SpecXmlNode | null {
+  try {
+    const root = parseSpecXmlContent(fs.readFileSync(file, 'utf-8'));
+    return root.tag === 'Track' ? root : null;
+  } catch {
+    return null;
+  }
+}
+
+function childOf(node: SpecXmlNode | undefined, tag: string): SpecXmlNode | undefined {
+  return node?.children.find((c) => c.tag === tag);
+}
+function childTextOf(node: SpecXmlNode | undefined, tag: string): string | undefined {
+  return childOf(node, tag)?.text?.trim() || undefined;
+}
+function findAll(node: SpecXmlNode, pred: (n: SpecXmlNode) => boolean, acc: SpecXmlNode[] = []): SpecXmlNode[] {
+  for (const c of node.children) {
+    if (pred(c)) acc.push(c);
+    findAll(c, pred, acc);
+  }
+  return acc;
+}
+
+/** Read track.xml <Metadata> into TrackMetadata (track.xml has no `type`; defaults to feature). */
+export function parseTrackMetadata(file: string, trackIdFallback?: string): TrackMetadata | null {
+  const root = parseTrackRoot(file);
+  if (!root) return null;
+
+  const id = root.attrs['id'] || trackIdFallback;
+  if (!id) return null;
+  const meta = childOf(root, 'Metadata');
+  const status = (childTextOf(meta, 'Status') as TrackMetadata['status']) || 'new';
+  const commit = childTextOf(meta, 'CommitMode');
+
+  return {
+    track_id: id,
+    track_name: childTextOf(meta, 'Goal'),
+    goal: childTextOf(meta, 'Goal'),
+    type: 'feature',
+    status,
+    commit_mode: commit === 'auto' || commit === 'manual' ? commit : undefined,
+    created_at: childTextOf(meta, 'CreatedAt') || '',
+    updated_at: childTextOf(meta, 'UpdatedAt') || childTextOf(meta, 'CreatedAt') || '',
+    description: childTextOf(meta, 'Description') || childTextOf(meta, 'Goal') || '',
+  };
+}
+
+/** Count phases (first-level TaskGroups) and leaf Tasks by sparrow status. */
+export function parseTrackSummary(file: string): TaskSummary | undefined {
+  const root = parseTrackRoot(file);
+  if (!root) return undefined;
+  const space = childOf(root, 'TaskSpace');
+  if (!space) return undefined;
+
+  const firstLevel = childOf(space, 'SubNodes') ?? space;
+  const total_phases = firstLevel.children.filter((c) => c.tag === 'TaskGroup').length;
+  const leaves = findAll(space, (n) => n.tag === 'Task');
+
+  let completed = 0, in_progress = 0, todo = 0, blocked = 0;
+  for (const t of leaves) {
+    const s = t.attrs['status'] || 'NOT_STARTED';
+    if (SPARROW_DONE.has(s)) completed++;
+    else if (SPARROW_ACTIVE.has(s)) in_progress++;
+    else if (SPARROW_BLOCKED.has(s)) blocked++;
+    else todo++;
+  }
+
+  return {
+    total_phases,
+    total_tasks: leaves.length,
+    total_subtasks: 0,
+    total_estimated_days: 0,
+    completed,
+    in_progress,
+    todo,
+    blocked,
+    commit_mode: parseTrackMetadata(file)?.commit_mode,
+  };
+}
+
+export interface TrackTaskInfo {
+  phaseName: string;
+  name: string;
+  status: string;
+}
+/** Flat list of leaf tasks with their phase + sparrow status (for status display). */
+export function walkTrackTasks(file: string): TrackTaskInfo[] {
+  const root = parseTrackRoot(file);
+  if (!root) return [];
+  const space = childOf(root, 'TaskSpace');
+  if (!space) return [];
+  const firstLevel = childOf(space, 'SubNodes') ?? space;
+  const out: TrackTaskInfo[] = [];
+  for (const phase of firstLevel.children.filter((c) => c.tag === 'TaskGroup')) {
+    const phaseName = phase.attrs['name'] || phase.attrs['id'] || '';
+    for (const t of findAll(phase, (n) => n.tag === 'Task')) {
+      out.push({ phaseName, name: t.attrs['name'] || t.attrs['id'] || '', status: t.attrs['status'] || 'NOT_STARTED' });
+    }
+  }
+  return out;
 }
 
 /**
@@ -191,22 +304,13 @@ export function getTrackIds(): string[] {
  */
 export function getTracks(): Track[] {
   const tracks: Track[] = [];
-
   for (const trackId of getTrackIds()) {
-    const trackDir = path.join(TRACKS_DIR, trackId);
-    const planPath = path.join(trackDir, 'plan.xml');
-
-    mergeLegacyMetadataIntoPlan(planPath, path.join(trackDir, 'metadata.json'));
-    const metadata = parsePlanMetadata(planPath, trackId);
+    const file = trackXmlPath(trackId);
+    const metadata = parseTrackMetadata(file, trackId);
     if (metadata) {
-      tracks.push({
-        id: trackId,
-        metadata,
-        taskSummary: parsePlanSummary(planPath),
-      });
+      tracks.push({ id: trackId, metadata, taskSummary: parseTrackSummary(file) });
     }
   }
-
   return tracks;
 }
 
@@ -356,26 +460,21 @@ export function parsePlanSummary(planPath: string): TaskSummary | undefined {
 }
 
 /**
- * Get track by ID
+ * Get track by ID (reads track.xml).
  */
 export function getTrack(trackId: string): Track | null {
-  const trackDir = path.join(TRACKS_DIR, trackId);
-  const planPath = path.join(trackDir, 'plan.xml');
-
-  if (!fs.existsSync(planPath)) {
+  const file = trackXmlPath(trackId);
+  if (!fs.existsSync(file)) {
     return null;
   }
-
-  mergeLegacyMetadataIntoPlan(planPath, path.join(trackDir, 'metadata.json'));
-  const metadata = parsePlanMetadata(planPath, trackId);
+  const metadata = parseTrackMetadata(file, trackId);
   if (!metadata) {
     return null;
   }
-
   return {
     id: trackId,
     metadata,
-    taskSummary: parsePlanSummary(planPath),
+    taskSummary: parseTrackSummary(file),
   };
 }
 

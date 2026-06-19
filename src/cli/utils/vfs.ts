@@ -1,4 +1,5 @@
 export const CODUMENT_VFS_SCHEMES = [
+  'behavior',
   'spec',
   'decision',
   'memory',

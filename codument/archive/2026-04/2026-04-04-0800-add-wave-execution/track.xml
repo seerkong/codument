@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Track id="add-wave-execution" version="1" xmlns:cdt="urn:codument:v1">
+  <Metadata>
+    <Status>completed</Status>
+    <Goal>为 codument 引入基于 GSD 原理的波次执行能力，包括 plan.xml schema 扩展、wave DAG 调度、subtask 嵌套与外链、context_files、新增命令和中文提示词，同时保持完全向后兼容</Goal>
+    <Description>为 codument 引入基于 GSD 原理的波次执行能力，包括 plan.xml schema 扩展、wave DAG 调度、subtask 嵌套与外链、context_files、新增命令和中文提示词，同时保持完全向后兼容</Description>
+    <CommitMode>manual</CommitMode>
+    <CreatedAt>2026-03-01T12:00:00Z</CreatedAt>
+    <UpdatedAt>2026-04-04T00:00:00Z</UpdatedAt>
+  </Metadata>
+
+  <Ports scope="track">
+    <MaterialBundle role="input" name="behavior-deltas" domain="behavior" path="vfs://./behavior_deltas/"/>
+    <MaterialBundle role="output" name="docs" domain="doc" path="vfs://@/docs/"/>
+    <MaterialBundle role="output" name="behavior" domain="codument" path="vfs://@/codument/behaviors/"/>
+  </Ports>
+
+  <TaskSpace id="space_add-wave-execution" name="add-wave-execution" version="1">
+    <Description>为 codument 引入基于 GSD 原理的波次执行能力，包括 plan.xml schema 扩展、wave DAG 调度、subtask 嵌套与外链、context_files、新增命令和中文提示词，同时保持完全向后兼容</Description>
+    <SubNodes>
+      <TaskGroup id="P1" name="Schema 扩展与解析器改造" status="DONE" order="0">
+        <Description>更新 plan.xml schema 规范，改造解析器以支持新节点，移除 dependencies，确保旧 plan.xml 兼容</Description>
+        <cdt:Gate>
+          <cdt:Criterion>所有解析器测试通过</cdt:Criterion>
+          <cdt:Criterion>旧归档 plan.xml 解析无报错</cdt:Criterion>
+          <cdt:Criterion>新 schema 节点解析正确</cdt:Criterion>
+        </cdt:Gate>
+        <SubNodes>
+          <Task id="T1.1" name="更新 plan-xml-spec.md schema 规范" status="DONE" order="0" priority="P0">
+            <Description>更新 src/prompts/plan-xml-spec.md 和 codument/std/plan-xml-spec.md：
+          - 新增 execution_mode、waves、wave、context_files、wave_config、detail_ref 节点描述
+          - task 元素新增 wave 属性
+          - subtask 从自闭合扩展为可开闭标签，支持递归嵌套
+          - 移除 dependencies 标签的所有描述和示例
+          - 更新示例 XML 片段</Description>
+            <cdt:Acceptance>
+              <cdt:Criterion id="T1.1-AC1" checked="false">plan-xml-spec.md 包含所有新增节点的完整描述</cdt:Criterion>
+              <cdt:Criterion id="T1.1-AC2" checked="false">dependencies 相关描述已全部移除</cdt:Criterion>
+              <cdt:Criterion id="T1.1-AC3" checked="false">src/prompts/ 和 codument/std/ 两份副本内容一致</cdt:Criterion>
+            </cdt:Acceptance>
+          </Task>
+          <Task id="T1.2" name="更新 implement.md 移除依赖检查" status="DONE" order="1" priority="P0">
+            <Description>更新 src/prompts/implement.md：
+          - 移除&quot;检查依赖：验证 dependencies 中的任务是否已完成&quot;步骤</Description>
+            <cdt:Acceptance>
+              <cdt:Criterion id="T1.2-AC1" checked="false">implement.md 中不再包含 dependencies 相关描述</cdt:Criterion>
+            </cdt:Acceptance>
+          </Task>
+          <Task id="T1.3" name="更新 track.md 合并提交模式提问" status="DONE" order="2" priority="P1">
+            <Description>更新 src/prompts/track.md：
+          - 将提交模式选择从独立提问步骤合并到 track 创建流程的提问中</Description>
+            <cdt:Acceptance>
+              <cdt:Criterion id="T1.3-AC1" checked="false">提交模式选择不再作为独立提问步骤</cdt:Criterion>
+              <cdt:Criterion id="T1.3-AC2" checked="false">提交模式选择合并到创建流程的交互式提问中</cdt:Criterion>
+            </cdt:Acceptance>
+          </Task>
+          <Task id="T1.4" name="改造解析器 - 移除 dependencies" status="DONE" order="3" priority="P0">
+            <Description>修改 src/cli/utils/index.ts：
+          - 移除 TaskInfo 接口中的 dependencies 字段
+          - 移除 parseTaskDetails 中的 dependencies 正则匹配逻辑
+          - 确保旧 plan.xml 中存在 dependencies 标签时不报错（静默忽略）</Description>
+            <cdt:Acceptance>
+              <cdt:Criterion id="T1.4-AC1" checked="false">dependencies 字段从 TaskInfo 接口移除</cdt:Criterion>
+              <cdt:Criterion id="T1.4-AC2" checked="false">dependencies 正则匹配代码移除</cdt:Criterion>
+              <cdt:Criterion id="T1.4-AC3" checked="false">解析旧归档 plan.xml 不报错</cdt:Criterion>
+            </cdt:Acceptance>
+          </Task>
+          <Task id="T1.5" name="改造解析器 - 新增 wave 相关解析" status="DONE" order="4" priority="P1">
+            <Description>修改 src/cli/utils/index.ts：
+          - 新增 execution_mode 解析（从 metadata 提取）
+          - 新增 task 开标签 wave 属性提取
+          - 新增 parseWaves 函数：从 phase 内提取 waves DAG
+          - 新增 parseContextFiles 函数：从 phase 内提取 context_files
+          - 更新 PhaseDetail 类型定义</Description>
+            <cdt:Acceptance>
+              <cdt:Criterion id="T1.5-AC1" checked="false">能正确解析 execution_mode</cdt:Criterion>
+              <cdt:Criterion id="T1.5-AC2" checked="false">能正确解析 task 的 wave 属性</cdt:Criterion>
+              <cdt:Criterion id="T1.5-AC3" checked="false">能正确解析 phase 内的 waves DAG</cdt:Criterion>
+              <cdt:Criterion id="T1.5-AC4" checked="false">能正确解析 context_files</cdt:Criterion>
+            </cdt:Acceptance>
+          </Task>
+          <Task id="T1.6" name="改造解析器 - subtask 递归嵌套" status="DONE" order="5" priority="P1">
+            <Description>修改 src/cli/utils/index.ts：
+          - 新增递归 parseSubtasks 函数，替代当前的自闭合标签正则
+          - 支持开闭标签 subtask（含嵌套 subtasks）和自闭合标签 subtask
+          - 新增 detail_ref 提取
+          - 更新 SubtaskInfo 类型定义（新增 children、detailRef 字段）</Description>
+            <cdt:Acceptance>
+              <cdt:Criterion id="T1.6-AC1" checked="false">能正确解析自闭合 subtask（向后兼容）</cdt:Criterion>
+              <cdt:Criterion id="T1.6-AC2" checked="false">能正确解析嵌套 subtask</cdt:Criterion>
+              <cdt:Criterion id="T1.6-AC3" checked="false">能正确提取 detail_ref</cdt:Criterion>
+            </cdt:Acceptance>
+          </Task>
+          <Task id="T1.7" name="改造解析器 - metadata.json 瘦身" status="DONE" order="6" priority="P1">
+            <Description>修改 src/cli/utils/index.ts 和相关代码：
+          - getCommitMode 仅从 plan.xml 读取，移除 metadata.json 回退逻辑
+          - metadata.json 模板移除 commit_mode 字段</Description>
+            <cdt:Acceptance>
+              <cdt:Criterion id="T1.7-AC1" checked="false">getCommitMode 仅从 plan.xml 读取</cdt:Criterion>
+              <cdt:Criterion id="T1.7-AC2" checked="false">新生成的 metadata.json 不含 commit_mode</cdt:Criterion>
+            </cdt:Acceptance>
+          </Task>
+          <Task id="T1.8" name="解析器单元测试" status="DONE" order="7" priority="P0">
+            <Description>编写测试覆盖所有解析器改动：
+          - 旧 plan.xml（含 dependencies）解析兼容性测试
+          - 新 plan.xml（含 waves、wave 属性、context_files、嵌套 subtask、detail_ref）解析测试
+          - execution_mode 缺失时默认 sequential 测试
+          - wave 模式下缺少 wave 属性的验证错误测试</Description>
+            <cdt:Acceptance>
+              <cdt:Criterion id="T1.8-AC1" checked="false">所有测试通过</cdt:Criterion>
+              <cdt:Criterion id="T1.8-AC2" checked="false">覆盖率 &gt;80%</cdt:Criterion>
+            </cdt:Acceptance>
+          </Task>
+        </SubNodes>
+      </TaskGroup>
+      <TaskGroup id="P2" name="新增命令提示词" status="DONE" order="1">
+        <Description>创建 4 个新命令的中文提示词，更新现有文档</Description>
+        <cdt:Gate>
+          <cdt:Criterion>所有新提示词文件存在且使用中文</cdt:Criterion>
+          <cdt:Criterion>提示词加载函数正确注册</cdt:Criterion>
+        </cdt:Gate>
+        <SubNodes>
+          <Task id="T2.1" name="创建 discuss.md 提示词" status="DONE" order="0" priority="P1">
+            <Description>创建 src/prompts/discuss.md（中文）：
+          - 引导用户进行 phase 级讨论
+          - 收集实现方案决策
+          - 输出到 track 目录的 context.md</Description>
+            <cdt:Acceptance>
+              <cdt:Criterion id="T2.1-AC1" checked="false">discuss.md 使用中文编写</cdt:Criterion>
+              <cdt:Criterion id="T2.1-AC2" checked="false">包含完整的交互流程</cdt:Criterion>
+            </cdt:Acceptance>
+          </Task>
+          <Task id="T2.2" name="创建 plan-wave.md 提示词" status="DONE" order="1" priority="P1">
+            <Description>创建 src/prompts/plan-wave.md（中文）：
+          - 引导生成带 wave DAG 的 plan.xml
+          - 包含 wave 分组策略（拓扑排序、依赖分析）
+          - 引用更新后的 plan-xml-spec.md</Description>
+            <cdt:Acceptance>
+              <cdt:Criterion id="T2.2-AC1" checked="false">plan-wave.md 使用中文编写</cdt:Criterion>
+              <cdt:Criterion id="T2.2-AC2" checked="false">包含 wave 分组策略说明</cdt:Criterion>
+            </cdt:Acceptance>
+          </Task>
+          <Task id="T2.3" name="创建 execute-wave.md 提示词" status="DONE" order="2" priority="P0">
+            <Description>创建 src/prompts/execute-wave.md（中文）：
+          - Phase 顺序遍历逻辑
+          - Phase 内 wave DAG 调度逻辑（构建 DAG → 拓扑排序 → 并行派发 → 抽检）
+          - 子代理上下文传递机制（仅传路径，子代理自行读取）
+          - 支持指定单个 phase 执行
+          - phases/ 和 waves/ 目录生成逻辑
+          - state.md 状态追踪</Description>
+            <cdt:Acceptance>
+              <cdt:Criterion id="T2.3-AC1" checked="false">execute-wave.md 使用中文编写</cdt:Criterion>
+              <cdt:Criterion id="T2.3-AC2" checked="false">包含完整的 wave DAG 调度流程</cdt:Criterion>
+              <cdt:Criterion id="T2.3-AC3" checked="false">包含 phase 指定执行逻辑</cdt:Criterion>
+            </cdt:Acceptance>
+          </Task>
+          <Task id="T2.4" name="扩展 verify.md 提示词" status="DONE" order="3" priority="P1">
+            <Description>修改 src/prompts/verify.md（中文）：
+          - 独立验证子代理逻辑
+          - goal-backward 验证方法
+          - 三级验证：exists → substantive → wired</Description>
+            <cdt:Acceptance>
+              <cdt:Criterion id="T2.4-AC1" checked="false">verify.md 包含独立验证流程</cdt:Criterion>
+              <cdt:Criterion id="T2.4-AC2" checked="false">包含三级验证说明</cdt:Criterion>
+            </cdt:Acceptance>
+          </Task>
+          <Task id="T2.5" name="注册新提示词到 prompts/index.ts" status="DONE" order="4" priority="P1">
+            <Description>修改 src/prompts/index.ts：
+          - 新增 discuss、plan-wave、execute-wave 提示词的加载函数
+          - 确保 bunfs 嵌入正确</Description>
+            <cdt:Acceptance>
+              <cdt:Criterion id="T2.5-AC1" checked="false">新提示词可通过 prompts/index.ts 正确加载</cdt:Criterion>
+            </cdt:Acceptance>
+          </Task>
+        </SubNodes>
+      </TaskGroup>
+      <TaskGroup id="P3" name="文档更新与生成器适配" status="DONE" order="2">
+        <Description>更新核心文档和 CLI 工具生成器以反映新能力</Description>
+        <cdt:Gate>
+          <cdt:Criterion>所有文档更新完成且内容一致</cdt:Criterion>
+          <cdt:Criterion>生成器输出包含新命令</cdt:Criterion>
+        </cdt:Gate>
+        <SubNodes>
+          <Task id="T3.1" name="更新 AGENTS.md" status="DONE" order="0" priority="P1">
+            <Description>修改 codument/std/AGENTS.md：
+          - 更新目录结构说明（新增 phases/、waves/、context.md、state.md）
+          - 新增命令参考（discuss、plan-wave、execute-wave、verify）
+          - 更新 plan.xml 示例（含 wave 相关节点）
+          - 移除 dependencies 相关描述</Description>
+            <cdt:Acceptance>
+              <cdt:Criterion id="T3.1-AC1" checked="false">目录结构包含新增目录和文件</cdt:Criterion>
+              <cdt:Criterion id="T3.1-AC2" checked="false">命令参考包含 4 个新命令</cdt:Criterion>
+              <cdt:Criterion id="T3.1-AC3" checked="false">dependencies 描述已移除</cdt:Criterion>
+            </cdt:Acceptance>
+          </Task>
+          <Task id="T3.2" name="更新 workflow.md" status="DONE" order="1" priority="P1">
+            <Description>修改 codument/std/workflow.md：
+          - 新增&quot;波次执行工作流&quot;章节
+          - 描述 phase 顺序 + wave DAG 并行的执行模型
+          - 更新任务工作流中的依赖检查步骤（移除 dependencies 引用）</Description>
+            <cdt:Acceptance>
+              <cdt:Criterion id="T3.2-AC1" checked="false">包含波次执行工作流描述</cdt:Criterion>
+              <cdt:Criterion id="T3.2-AC2" checked="false">dependencies 引用已移除</cdt:Criterion>
+            </cdt:Acceptance>
+          </Task>
+          <Task id="T3.3" name="更新 CLI 生成器" status="DONE" order="2" priority="P1">
+            <Description>修改 src/cli/generators/ 下的生成器文件（claude.ts、codex.ts、gemini.ts、eidolon.ts、opencode.ts）：
+          - 为每个 CLI 工具生成 4 个新命令的配置文件
+          - 命令前缀统一为 codument</Description>
+            <cdt:Acceptance>
+              <cdt:Criterion id="T3.3-AC1" checked="false">每个生成器输出包含 discuss、plan-wave、execute-wave、verify 命令</cdt:Criterion>
+            </cdt:Acceptance>
+          </Task>
+          <Task id="T3.4" name="更新 std_agents.md 提示词" status="DONE" order="3" priority="P1">
+            <Description>修改 src/prompts/std_agents.md：
+          - 同步 codument/std/AGENTS.md 的变更到提示词源文件</Description>
+            <cdt:Acceptance>
+              <cdt:Criterion id="T3.4-AC1" checked="false">std_agents.md 与 AGENTS.md 内容一致</cdt:Criterion>
+            </cdt:Acceptance>
+          </Task>
+        </SubNodes>
+      </TaskGroup>
+      <TaskGroup id="P4" name="集成测试与验证" status="DONE" order="3">
+        <Description>端到端验证新功能和向后兼容性</Description>
+        <cdt:Gate>
+          <cdt:Criterion>所有测试通过</cdt:Criterion>
+          <cdt:Criterion>构建成功</cdt:Criterion>
+          <cdt:Criterion>向后兼容性验证通过</cdt:Criterion>
+        </cdt:Gate>
+        <SubNodes>
+          <Task id="T4.1" name="向后兼容性集成测试" status="DONE" order="0" priority="P0">
+            <Description>验证旧 track 和归档数据不受影响：
+          - 解析两个归档 plan.xml 无报错
+          - codument list、show、validate 命令对旧数据正常工作
+          - 旧 plan.xml 中的 dependencies 被静默忽略</Description>
+            <cdt:Acceptance>
+              <cdt:Criterion id="T4.1-AC1" checked="false">归档 plan.xml 解析无报错</cdt:Criterion>
+              <cdt:Criterion id="T4.1-AC2" checked="false">CLI 命令对旧数据正常工作</cdt:Criterion>
+            </cdt:Acceptance>
+          </Task>
+          <Task id="T4.2" name="新功能集成测试" status="DONE" order="1" priority="P0">
+            <Description>验证新功能端到端工作：
+          - 创建包含 wave DAG 的 plan.xml 并解析
+          - 验证 wave 分组逻辑正确
+          - 验证 subtask 嵌套解析正确
+          - 验证 context_files 解析正确
+          - 验证 execution_mode 识别正确</Description>
+            <cdt:Acceptance>
+              <cdt:Criterion id="T4.2-AC1" checked="false">wave DAG 解析和分组正确</cdt:Criterion>
+              <cdt:Criterion id="T4.2-AC2" checked="false">subtask 嵌套解析正确</cdt:Criterion>
+              <cdt:Criterion id="T4.2-AC3" checked="false">所有集成测试通过</cdt:Criterion>
+            </cdt:Acceptance>
+          </Task>
+          <Task id="T4.3" name="构建验证" status="DONE" order="2" priority="P1">
+            <Description>验证构建流程：
+          - bun run build 成功
+          - 新提示词正确嵌入 bunfs
+          - 单文件可执行文件正常运行</Description>
+            <cdt:Acceptance>
+              <cdt:Criterion id="T4.3-AC1" checked="false">构建成功无错误</cdt:Criterion>
+              <cdt:Criterion id="T4.3-AC2" checked="false">新提示词嵌入正确</cdt:Criterion>
+            </cdt:Acceptance>
+          </Task>
+        </SubNodes>
+        <Hooks>
+          <Hook on="phase:after"><cdt:HumanConfirm/></Hook>
+        </Hooks>
+      </TaskGroup>
+    </SubNodes>
+  </TaskSpace>
+
+  <Schedule>
+  </Schedule>
+</Track>

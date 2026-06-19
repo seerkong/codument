@@ -16,6 +16,8 @@ export interface SpecXmlStats {
 }
 
 const SELF_CLOSING = /\/\s*>$/;
+const PATCH_ROOT_TAGS = new Set(['spec-patch', 'behavior-patch']);
+const WRAPPER_OP_TAGS = new Set(['upsert', 'delete', 'move']);
 
 function parseAttrs(raw: string): Record<string, string> {
   const attrs: Record<string, string> = {};
@@ -140,18 +142,25 @@ export function getSpecXmlStats(root: SpecXmlNode): SpecXmlStats {
   return { requirements, scenarios };
 }
 
+function normalizeSelectorTag(tag: string): string {
+  if (tag === 'requirements') return 'requirement';
+  if (tag === 'suites') return 'suite';
+  if (tag === 'cases') return 'case';
+  return tag;
+}
+
 function selectorPairs(selector: string): { capability: string; pairs: Array<{ tag: string; id: string }> } {
   const parsed = parseCodumentVfsUri(selector);
-  if (parsed.scheme !== 'spec') {
-    throw new Error(`Spec selector must use spec://: ${selector}`);
+  if (parsed.scheme !== 'spec' && parsed.scheme !== 'behavior') {
+    throw new Error(`Behavior selector must use behavior:// or legacy spec://: ${selector}`);
   }
   const [capability, ...rest] = parsed.segments;
   if (rest.length % 2 !== 0) {
-    throw new Error(`Spec selector must use tag/id pairs: ${selector}`);
+    throw new Error(`Behavior selector must use tag/id pairs: ${selector}`);
   }
   const pairs = [];
   for (let i = 0; i < rest.length; i += 2) {
-    pairs.push({ tag: rest[i], id: rest[i + 1] });
+    pairs.push({ tag: normalizeSelectorTag(rest[i]), id: rest[i + 1] });
   }
   return { capability, pairs };
 }
@@ -164,11 +173,29 @@ function findChildIndex(parent: SpecXmlNode, pair: { tag: string; id: string }):
   return parent.children.findIndex((child) => child.tag === pair.tag && child.attrs.id === pair.id);
 }
 
+/**
+ * Read the capability id from a registry root, tolerating both the current
+ * `<behaviors capability="X">` standard and the legacy `<capability id="X">` root.
+ */
+function rootCapability(root: SpecXmlNode): string | undefined {
+  if (root.tag === 'behaviors') return root.attrs.capability;
+  if (root.tag === 'capability') return root.attrs.id;
+  return undefined;
+}
+
+function assertRootCapability(root: SpecXmlNode, capability: string, selector: string): void {
+  const actual = rootCapability(root);
+  if (actual !== capability) {
+    throw new Error(
+      `Selector capability does not match root capability: ${selector} ` +
+        `(root <${root.tag}> resolves to ${actual ?? 'no capability'}, selector expects ${capability})`,
+    );
+  }
+}
+
 function findNode(root: SpecXmlNode, selector: string): { parent: SpecXmlNode | null; node: SpecXmlNode; index: number } {
   const { capability, pairs } = selectorPairs(selector);
-  if (root.tag !== 'capability' || root.attrs.id !== capability) {
-    throw new Error(`Selector capability does not match root capability: ${selector}`);
-  }
+  assertRootCapability(root, capability, selector);
 
   let parent: SpecXmlNode | null = null;
   let node = root;
@@ -186,9 +213,7 @@ function findNode(root: SpecXmlNode, selector: string): { parent: SpecXmlNode | 
 
 function findParentForUpsert(root: SpecXmlNode, selector: string): { parent: SpecXmlNode; pair: { tag: string; id: string } } {
   const { capability, pairs } = selectorPairs(selector);
-  if (root.tag !== 'capability' || root.attrs.id !== capability) {
-    throw new Error(`Selector capability does not match root capability: ${selector}`);
-  }
+  assertRootCapability(root, capability, selector);
   if (pairs.length === 0) {
     throw new Error('Cannot upsert the capability root.');
   }
@@ -207,9 +232,7 @@ function findParentForUpsert(root: SpecXmlNode, selector: string): { parent: Spe
 
 function findOrCreateParentForUpsert(root: SpecXmlNode, selector: string): { parent: SpecXmlNode; pair: { tag: string; id: string } } {
   const { capability, pairs } = selectorPairs(selector);
-  if (root.tag !== 'capability' || root.attrs.id !== capability) {
-    throw new Error(`Selector capability does not match root capability: ${selector}`);
-  }
+  assertRootCapability(root, capability, selector);
   if (pairs.length === 0) {
     throw new Error('Cannot upsert the capability root.');
   }
@@ -242,6 +265,44 @@ function cleanPatchNode(node: SpecXmlNode): SpecXmlNode {
   };
 }
 
+interface PatchMutation {
+  op: string;
+  selector: string;
+  to?: string;
+  node: SpecXmlNode;
+}
+
+function assertPatchRoot(root: SpecXmlNode): void {
+  if (!PATCH_ROOT_TAGS.has(root.tag)) {
+    throw new Error('Patch root must be <behavior-patch> or legacy <spec-patch>.');
+  }
+}
+
+function getPatchMutations(patchRoot: SpecXmlNode): PatchMutation[] {
+  const mutations: PatchMutation[] = [];
+  for (const child of patchRoot.children) {
+    if (WRAPPER_OP_TAGS.has(child.tag)) {
+      const selector = child.attrs.selector;
+      if (!selector) {
+        continue;
+      }
+      const node = child.tag === 'upsert' ? child.children[0] : child;
+      if (!node) {
+        throw new Error('Upsert operation requires a child node.');
+      }
+      mutations.push({ op: child.tag, selector, to: child.attrs.to, node });
+      continue;
+    }
+
+    const op = child.attrs.op;
+    const selector = child.attrs.selector;
+    if (op && selector) {
+      mutations.push({ op, selector, to: child.attrs.to, node: child });
+    }
+  }
+  return mutations;
+}
+
 function setSourcePath(node: SpecXmlNode, sourcePath: string | undefined): void {
   if (sourcePath) {
     node.sourcePath = sourcePath;
@@ -256,21 +317,17 @@ function setSourcePath(node: SpecXmlNode, sourcePath: string | undefined): void 
 export function applySpecXmlPatchContent(specContent: string, patchContent: string): string {
   const root = parseSpecXmlContent(specContent);
   const patchRoot = parseSpecXmlContent(patchContent);
-  if (patchRoot.tag !== 'spec-patch') {
-    throw new Error('Patch root must be <spec-patch>.');
-  }
+  assertPatchRoot(patchRoot);
 
-  for (const mutation of patchRoot.children) {
-    const op = mutation.attrs.op;
-    const selector = mutation.attrs.selector;
-    if (!op || !selector) {
-      continue;
-    }
-
+  for (const mutation of getPatchMutations(patchRoot)) {
+    const { op, selector } = mutation;
     if (op === 'upsert') {
       const { parent, pair } = findParentForUpsert(root, selector);
       const index = findChildIndex(parent, pair);
-      const clean = cleanPatchNode(mutation);
+      const clean = cleanPatchNode(mutation.node);
+      if (!clean.attrs.id) {
+        clean.attrs.id = pair.id;
+      }
       if (index === -1) {
         parent.children.push(clean);
       } else {
@@ -283,7 +340,7 @@ export function applySpecXmlPatchContent(specContent: string, patchContent: stri
       }
       target.parent.children.splice(target.index, 1);
     } else if (op === 'move') {
-      const to = mutation.attrs.to;
+      const to = mutation.to;
       if (!to) {
         throw new Error('Move operation requires a to attribute.');
       }
@@ -311,17 +368,15 @@ export function applySpecXmlPatchContent(specContent: string, patchContent: stri
 
 export function getSpecPatchCapabilities(patchContent: string): string[] {
   const patchRoot = parseSpecXmlContent(patchContent);
-  if (patchRoot.tag !== 'spec-patch') {
-    throw new Error('Patch root must be <spec-patch>.');
-  }
+  assertPatchRoot(patchRoot);
 
   const capabilities = new Set<string>();
-  for (const mutation of patchRoot.children) {
-    const selector = mutation.attrs.selector;
+  for (const mutation of getPatchMutations(patchRoot)) {
+    const selector = mutation.selector;
     if (selector) {
       capabilities.add(getSpecSelectorCapability(selector));
     }
-    const to = mutation.attrs.to;
+    const to = mutation.to;
     if (to) {
       capabilities.add(getSpecSelectorCapability(to));
     }
@@ -427,16 +482,14 @@ function loadFolderRegistryEntry(indexPath: string): RegistryMutationEntry {
 
 function createRegistryEntry(specsDir: string, capability: string): RegistryMutationEntry {
   return {
-    root: { tag: 'capability', attrs: { id: capability, version: '1' }, children: [] },
+    root: { tag: 'behaviors', attrs: { capability, version: '1' }, children: [] },
     writePath: path.join(specsDir, `${capability}.xml`),
   };
 }
 
 export function applySpecXmlPatchToRegistry(patchContent: string, specsDir: string): string[] {
   const patchRoot = parseSpecXmlContent(patchContent);
-  if (patchRoot.tag !== 'spec-patch') {
-    throw new Error('Patch root must be <spec-patch>.');
-  }
+  assertPatchRoot(patchRoot);
   if (!fs.existsSync(specsDir)) {
     fs.mkdirSync(specsDir, { recursive: true });
   }
@@ -491,17 +544,12 @@ export function applySpecXmlPatchToRegistry(patchContent: string, specsDir: stri
     }
   };
 
-  for (const mutation of patchRoot.children) {
-    const op = mutation.attrs.op;
-    const selector = mutation.attrs.selector;
-    if (!op || !selector) {
-      continue;
-    }
-
+  for (const mutation of getPatchMutations(patchRoot)) {
+    const { op, selector } = mutation;
     const sourceCapability = getSpecSelectorCapability(selector);
     if (op === 'upsert') {
       const entry = getOrCreateEntry(sourceCapability);
-      upsertNode(entry.root, selector, mutation);
+      upsertNode(entry.root, selector, mutation.node);
       updated.add(sourceCapability);
       continue;
     }
@@ -518,7 +566,7 @@ export function applySpecXmlPatchToRegistry(patchContent: string, specsDir: stri
     }
 
     if (op === 'move') {
-      const to = mutation.attrs.to;
+      const to = mutation.to;
       if (!to) {
         throw new Error('Move operation requires a to attribute.');
       }

@@ -33,17 +33,14 @@ Options:
   -w, --workspace-dir     Set workspace directory (default: current directory)
 
 Examples:
-  codument init                          # Initialize Codument with CLI tool selection
-  codument init --agent=claude,codeflicker,codex,eidolon,sparrow,opencode
-                                         # Initialize without target prompts
-  codument upgrade-workspace             # Upgrade codument/std + assistant commands
-  codument upgrade-track add-user-auth    # Upgrade a track to wave-capable format
+  codument init --agent=codex,claude,eidolon,sparrow            # Install skills into the target skills dir
+  codument init --skills-dir=.claude/skills --force
+  codument upgrade-workspace --agent=codex,claude,eidolon,sparrow  # Refresh std + selected agent skills
   codument list                          # List active tracks
-  codument list --specs                  # List specifications
   codument show add-user-auth            # Show track details
-  codument validate --strict             # Validate all with strict mode
+  codument validate                      # Validate all tracks (track.xml + behavior deltas)
+  codument validate add-user-auth        # Validate one track
   codument status                         # Show project status
-  codument status -w /path/to/project    # Show status for specific project
 `;
 }
 

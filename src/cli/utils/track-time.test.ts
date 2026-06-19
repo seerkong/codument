@@ -6,12 +6,18 @@ import { buildArchiveDestination, formatLocalMinutePrefix, resolveTrackUpdatedDa
 
 function makeTempTrack(updatedAt?: string): string {
   const trackDir = fs.mkdtempSync(path.join(os.tmpdir(), 'codument-track-time-'));
-  fs.writeFileSync(path.join(trackDir, 'plan.xml'), `<plan><metadata>${updatedAt ? `<updated_at>${updatedAt}</updated_at>` : ''}</metadata></plan>`);
+  fs.writeFileSync(path.join(trackDir, 'track.xml'), `<Track id="track-time-test">
+  <Metadata>
+    <Status>completed</Status>
+    ${updatedAt ? '<CreatedAt>2026-05-30T01:00:00Z</CreatedAt>' : ''}
+    ${updatedAt ? `<UpdatedAt>${updatedAt}</UpdatedAt>` : ''}
+  </Metadata>
+</Track>`);
   return trackDir;
 }
 
 describe('track updated time', () => {
-  it('uses plan.xml updated_at before filesystem mtime', () => {
+  it('uses track.xml Metadata UpdatedAt before filesystem mtime', () => {
     const trackDir = makeTempTrack('2026-05-30T06:21:00Z');
     expect(resolveTrackUpdatedDate(trackDir).toISOString()).toBe('2026-05-30T06:21:00.000Z');
   });

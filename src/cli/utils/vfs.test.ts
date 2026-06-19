@@ -3,17 +3,17 @@ import { buildCodumentVfsUri, parseCodumentVfsUri, tryParseCodumentVfsUri } from
 
 describe('Codument VFS URI parser', () => {
   it('parses supported URI schemes and logical segments', () => {
-    const uri = parseCodumentVfsUri('spec://resource.skill-tool/requirement/save/suite/valid/case/save-new');
+    const uri = parseCodumentVfsUri('behavior://resource.skill-tool/requirements/save/suites/valid/cases/save-new');
 
-    expect(uri.scheme).toBe('spec');
+    expect(uri.scheme).toBe('behavior');
     expect(uri.authority).toBe('resource.skill-tool');
     expect(uri.segments).toEqual([
       'resource.skill-tool',
-      'requirement',
+      'requirements',
       'save',
-      'suite',
+      'suites',
       'valid',
-      'case',
+      'cases',
       'save-new',
     ]);
   });

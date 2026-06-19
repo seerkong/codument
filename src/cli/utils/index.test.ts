@@ -35,8 +35,8 @@ afterEach(() => {
 
 function createTempWorkspaceTrack(
   trackId: string,
-  metadataStatus: 'new' | 'in_progress' | 'completed' | 'cancelled',
-  planStatus: 'new' | 'in_progress' | 'completed' | 'cancelled',
+  _legacyStatus: 'new' | 'in_progress' | 'completed' | 'cancelled',
+  trackStatus: 'new' | 'in_progress' | 'completed' | 'cancelled',
 ): string {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'codument-ws-test-'));
   tmpDirs.push(tmpDir);
@@ -44,37 +44,26 @@ function createTempWorkspaceTrack(
   const trackDir = path.join(tmpDir, 'codument', 'tracks', trackId);
   fs.mkdirSync(trackDir, { recursive: true });
 
-  fs.writeFileSync(path.join(trackDir, 'metadata.json'), JSON.stringify({
-    track_id: trackId,
-    type: 'feature',
-    status: metadataStatus,
-    created_at: '2026-03-01T00:00:00Z',
-    updated_at: '2026-03-01T00:00:00Z',
-    description: 'test track',
-  }, null, 2));
-
-  fs.writeFileSync(path.join(trackDir, 'plan.xml'), `<?xml version="1.0"?>
-<plan>
-  <metadata>
-    <track_id>${trackId}</track_id>
-    <track_name>test</track_name>
-    <goal>g</goal>
-    <type>feature</type>
-    <description>test track</description>
-    <created_at>2026-03-01T00:00:00Z</created_at>
-    <updated_at>2026-03-01T00:00:00Z</updated_at>
-    <status>${planStatus}</status>
-    <commit_mode>manual</commit_mode>
-  </metadata>
-  <phases>
-    <phase id="P1" name="p1">
-      <goal>g</goal>
-      <tasks>
-        <task id="T1.1" name="t" status="DONE" priority="P0">d</task>
-      </tasks>
-    </phase>
-  </phases>
-</plan>`);
+  fs.writeFileSync(path.join(trackDir, 'track.xml'), `<?xml version="1.0" encoding="UTF-8"?>
+<Track id="${trackId}" version="1" xmlns:cdt="urn:codument:v1">
+  <Metadata>
+    <Status>${trackStatus}</Status>
+    <Goal>g</Goal>
+    <Description>test track</Description>
+    <CommitMode>manual</CommitMode>
+    <CreatedAt>2026-03-01T00:00:00Z</CreatedAt>
+    <UpdatedAt>2026-03-01T00:00:00Z</UpdatedAt>
+  </Metadata>
+  <TaskSpace id="space_${trackId}" name="${trackId}">
+    <SubNodes>
+      <TaskGroup id="P1" name="p1" status="DONE">
+        <SubNodes>
+          <Task id="T1.1" name="t" status="DONE" priority="P0" />
+        </SubNodes>
+      </TaskGroup>
+    </SubNodes>
+  </TaskSpace>
+</Track>`);
 
   return tmpDir;
 }
@@ -583,10 +572,10 @@ describe('集成测试：完整波次 plan 端到端', () => {
   });
 });
 
-// --- 11. track 状态读取：以 plan.xml 为准 ---
+// --- 11. track 状态读取：以 track.xml 为准 ---
 
 describe('track 状态读取', () => {
-  it('getTrack 以 plan.xml metadata.status 为准', () => {
+  it('getTrack 以 track.xml Metadata.Status 为准', () => {
     const ws = createTempWorkspaceTrack('status-override', 'new', 'completed');
     setWorkspaceDir(ws);
 
@@ -596,7 +585,7 @@ describe('track 状态读取', () => {
     expect(track!.metadata.status).toBe('completed');
   });
 
-  it('getTracks 以 plan.xml metadata.status 为准', () => {
+  it('getTracks 以 track.xml Metadata.Status 为准', () => {
     const ws = createTempWorkspaceTrack('status-override-list', 'new', 'in_progress');
     setWorkspaceDir(ws);
 
@@ -606,9 +595,8 @@ describe('track 状态读取', () => {
     expect(target!.metadata.status).toBe('in_progress');
   });
 
-  it('getTrack 不需要 metadata.json', () => {
+  it('getTrack 不需要 metadata.json 或 plan.xml', () => {
     const ws = createTempWorkspaceTrack('plan-only', 'new', 'in_progress');
-    fs.rmSync(path.join(ws, 'codument', 'tracks', 'plan-only', 'metadata.json'));
     setWorkspaceDir(ws);
 
     const track = getTrack('plan-only');
@@ -618,54 +606,39 @@ describe('track 状态读取', () => {
     expect(track!.metadata.status).toBe('in_progress');
   });
 
-  it('getTrack 将旧 metadata.json 中 plan.xml 缺失的字段合入 plan.xml', () => {
-    const ws = createTempWorkspaceTrack('legacy-merge', 'cancelled', 'completed');
-    const planPath = path.join(ws, 'codument', 'tracks', 'legacy-merge', 'plan.xml');
-    let content = fs.readFileSync(planPath, 'utf-8');
-    content = content
-      .replace(/\n    <type>feature<\/type>/, '')
-      .replace(/\n    <description>test track<\/description>/, '')
-      .replace(/\n    <updated_at>2026-03-01T00:00:00Z<\/updated_at>/, '');
-    fs.writeFileSync(planPath, content, 'utf-8');
+  it('getTrack reads optional metadata fields directly from track.xml', () => {
+    const ws = createTempWorkspaceTrack('track-metadata', 'cancelled', 'completed');
     setWorkspaceDir(ws);
 
-    const track = getTrack('legacy-merge');
+    const track = getTrack('track-metadata');
     expect(track).toBeDefined();
     expect(track!.metadata.type).toBe('feature');
     expect(track!.metadata.description).toBe('test track');
     expect(track!.metadata.status).toBe('completed');
-
-    const updatedPlan = fs.readFileSync(planPath, 'utf-8');
-    expect(updatedPlan).toContain('<type>feature</type>');
-    expect(updatedPlan).toContain('<description>test track</description>');
-    expect(updatedPlan).toContain('<updated_at>2026-03-01T00:00:00Z</updated_at>');
-    expect(updatedPlan).toContain('<status>completed</status>');
+    expect(track!.metadata.updated_at).toBe('2026-03-01T00:00:00Z');
   });
 
-  it('getTrack 合并旧 description 时只检查 metadata 区块', () => {
-    const ws = createTempWorkspaceTrack('legacy-description-merge', 'new', 'new');
-    const planPath = path.join(ws, 'codument', 'tracks', 'legacy-description-merge', 'plan.xml');
-    let content = fs.readFileSync(planPath, 'utf-8');
-    content = content.replace(/\n    <description>test track<\/description>/, '');
-    content = content.replace('<task id="T1.1" name="t" status="DONE" priority="P0">d</task>', '<task id="T1.1" name="t" status="DONE" priority="P0"><description>task description</description></task>');
-    fs.writeFileSync(planPath, content, 'utf-8');
+  it('getTrack description falls back to Metadata.Goal and ignores task descriptions', () => {
+    const ws = createTempWorkspaceTrack('track-description-fallback', 'new', 'new');
+    const trackPath = path.join(ws, 'codument', 'tracks', 'track-description-fallback', 'track.xml');
+    let content = fs.readFileSync(trackPath, 'utf-8');
+    content = content.replace(/\n    <Description>test track<\/Description>/, '');
+    content = content.replace(
+      '<Task id="T1.1" name="t" status="DONE" priority="P0" />',
+      '<Task id="T1.1" name="t" status="DONE" priority="P0"><Description>task description</Description></Task>',
+    );
+    fs.writeFileSync(trackPath, content, 'utf-8');
     setWorkspaceDir(ws);
 
-    const track = getTrack('legacy-description-merge');
+    const track = getTrack('track-description-fallback');
     expect(track).toBeDefined();
-    expect(track!.metadata.description).toBe('test track');
-
-    const updatedPlan = fs.readFileSync(planPath, 'utf-8');
-    const metadataBlock = updatedPlan.match(/<metadata>([\s\S]*?)<\/metadata>/)?.[1] || '';
-    expect(metadataBlock).toContain('<description>test track</description>');
+    expect(track!.metadata.description).toBe('g');
   });
 
-  it('getTrackIds returns plan.xml tracks even when metadata is incomplete', () => {
+  it('getTrackIds returns track.xml tracks even when XML is not a readable Track', () => {
     const ws = createTempWorkspaceTrack('invalid-metadata', 'new', 'new');
-    fs.rmSync(path.join(ws, 'codument', 'tracks', 'invalid-metadata', 'metadata.json'));
-    const planPath = path.join(ws, 'codument', 'tracks', 'invalid-metadata', 'plan.xml');
-    const content = fs.readFileSync(planPath, 'utf-8').replace(/\n    <type>feature<\/type>/, '');
-    fs.writeFileSync(planPath, content, 'utf-8');
+    const trackPath = path.join(ws, 'codument', 'tracks', 'invalid-metadata', 'track.xml');
+    fs.writeFileSync(trackPath, '<not-a-track />');
     setWorkspaceDir(ws);
 
     expect(getTrack('invalid-metadata')).toBeNull();

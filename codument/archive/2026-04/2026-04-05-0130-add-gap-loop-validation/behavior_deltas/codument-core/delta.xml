@@ -1,0 +1,145 @@
+<behavior-patch capability="codument-core">
+  <upsert selector="behavior://codument-core/requirements/gap-loop-命令">
+    <requirement id="gap-loop-命令">
+      <statement>系统应当（SHALL）提供 `/codument:gap-loop` 命令，用于在 fresh agent 中完成当前 track 或 phase 的 gap 分析与修正闭环。</statement>
+      <suite name="gap-loop-命令">
+        <case id="仅基于-track-运行-gap-loop" name="仅基于 track 运行 gap loop">
+          <given>用户提供一个 `track-id`</given>
+          <when>用户运行 `/codument:gap-loop &lt;track-id&gt;`</when>
+          <then>系统读取该 track 的 `proposal.md`、`spec.md`、`design.md`（如存在）、`plan.xml`
+自动读取该 track 目录下 `reports/` 中已有报告作为背景上下文
+review 当前实现与未提交代码改动
+先生成新的 gap 报告，再决定是否修正</then>
+        </case>
+        <case id="额外背景文件参与-gap-loop" name="额外背景文件参与 gap loop">
+          <given>用户提供一个或多个 `--background &lt;path&gt;`</given>
+          <when>用户运行 `/codument:gap-loop &lt;track-id&gt; --background &lt;path&gt;`</when>
+          <then>系统在读取 track 自身与 `reports/` 背景后，继续读取这些额外背景文件
+这些背景文件可以位于 track 目录之外</then>
+        </case>
+        <case id="仅针对单个-phase-运行-gap-loop" name="仅针对单个 phase 运行 gap loop">
+          <given>用户提供 `--phase P2`</given>
+          <when>用户运行 `/codument:gap-loop &lt;track-id&gt; --phase P2`</when>
+          <then>系统聚焦于该 phase 的目标、任务和当前实现状态执行 gap 分析与修正</then>
+        </case>
+      </suite>
+    </requirement>
+  </upsert>
+  <upsert selector="behavior://codument-core/requirements/gap-loop-结构化返回结果">
+    <requirement id="gap-loop-结构化返回结果">
+      <statement>系统应当（SHALL）要求 gap-loop 子代理在结束时只返回结构化 XML 结果，供父层编排者决定继续、复检或阻塞。</statement>
+      <suite name="gap-loop-结构化返回结果">
+        <case id="没有发现-gap" name="没有发现 gap">
+          <given>gap-loop 子代理完成分析</given>
+          <when>子代理结束</when>
+          <then>返回的 XML 中 `&lt;status&gt;` 为 `NO_GAP`
+未发现相对于当前目标的新增 gap</then>
+        </case>
+        <case id="已修正-gap-但需要复检" name="已修正 gap 但需要复检">
+          <given>gap-loop 子代理发现 gap</given>
+          <when>子代理结束</when>
+          <then>返回的 XML 中 `&lt;status&gt;` 为 `FIX_APPLIED`
+已生成报告并完成一轮修正
+返回 `report_path` 以及 `plan_updated/spec_updated/design_updated` 标记</then>
+        </case>
+        <case id="无法继续自动修正" name="无法继续自动修正">
+          <given>gap-loop 子代理发现 gap</given>
+          <when>子代理结束</when>
+          <then>返回的 XML 中 `&lt;status&gt;` 为 `BLOCKED`
+修正依赖用户决策或外部条件</then>
+        </case>
+      </suite>
+    </requirement>
+  </upsert>
+  <upsert selector="behavior://codument-core/requirements/创建变更追踪命令">
+    <requirement id="创建变更追踪命令">
+      <statement>系统应当（SHALL）提供 `/codument:track` 命令，支持：
+- 收集 track 描述
+- 交互式生成 spec.md
+- 交互式生成 plan.xml
+- 选择提交模式（auto/manual）
+- 选择校验模式（`yield-human-confirm` 或 `yield-gap-loop`）
+- 当校验模式为 `yield-gap-loop` 时，进一步选择校验粒度（`final_phase` 或 `every_phase`）
+- 创建 track 目录和元数据</statement>
+      <suite name="创建变更追踪命令">
+        <case id="创建-track-时选择人工确认" name="创建 track 时选择人工确认">
+          <given>用户创建新 track</given>
+          <when>用户在创建流程中选择 `yield-human-confirm`</when>
+          <then>系统在生成的 `plan.xml` 中，仅按默认策略插入 `&lt;confirm protocol=&quot;yield-human-confirm&quot; when=&quot;after&quot; status=&quot;TODO&quot; /&gt;`
+不再继续询问 `validation_granularity`</then>
+        </case>
+        <case id="创建-track-时选择-gap-loop-且使用默认粒度" name="创建 track 时选择 gap loop 且使用默认粒度">
+          <given>用户创建新 track</given>
+          <when>用户在创建流程中选择 `yield-gap-loop`</when>
+          <then>系统继续询问 `validation_granularity`
+用户未特殊要求校验粒度
+默认选择 `final_phase`
+仅在最后一个 phase 下插入 `&lt;confirm protocol=&quot;yield-gap-loop&quot; when=&quot;after&quot; status=&quot;TODO&quot; /&gt;`</then>
+        </case>
+        <case id="创建-track-时选择-gap-loop-且每个-phase-都校验" name="创建 track 时选择 gap loop 且每个 phase 都校验">
+          <given>用户创建新 track</given>
+          <when>用户在创建流程中选择 `yield-gap-loop`</when>
+          <then>系统在每个 phase 下都插入 `&lt;confirm protocol=&quot;yield-gap-loop&quot; when=&quot;after&quot; status=&quot;TODO&quot; /&gt;`
+用户选择 `validation_granularity=every_phase`</then>
+        </case>
+      </suite>
+    </requirement>
+  </upsert>
+  <upsert selector="behavior://codument-core/requirements/plan-xml-格式">
+    <requirement id="plan-xml-格式">
+      <statement>系统应当（SHALL）定义结构化的 plan.xml 格式，包含：
+- metadata 元数据（含 `commit_mode`、`execution_mode`）
+- 可选的 `validation_mode`
+- 当 `validation_mode=yield-gap-loop` 时可选的 `validation_granularity`
+- phases 阶段
+- tasks 任务
+- acceptance_criteria 验收标准
+- gate_criteria 阶段门控标准
+- validations 验证
+- risks 风险
+- summary 统计</statement>
+      <suite name="plan-xml-格式">
+        <case id="metadata-中记录人工确认模式" name="metadata 中记录人工确认模式">
+          <given>用户创建 track 并选择人工确认</given>
+          <when>系统生成 `plan.xml`</when>
+          <then>`&lt;metadata&gt;` 中 `validation_mode` 为 `yield-human-confirm`</then>
+        </case>
+        <case id="metadata-中记录-gap-loop-模式与粒度" name="metadata 中记录 gap loop 模式与粒度">
+          <given>用户创建 track 并选择 gap loop</given>
+          <when>系统生成 `plan.xml`</when>
+          <then>`&lt;metadata&gt;` 中 `validation_mode` 为 `yield-gap-loop`
+`&lt;metadata&gt;` 中 `validation_granularity` 为 `final_phase` 或 `every_phase`</then>
+        </case>
+      </suite>
+    </requirement>
+  </upsert>
+  <upsert selector="behavior://codument-core/requirements/阶段完成验证协议">
+    <requirement id="阶段完成验证协议">
+      <statement>系统应当（SHALL）在阶段结束时支持基于 `&lt;confirm&gt;` 的两种协议：
+- `yield-human-confirm`
+- `yield-gap-loop`</statement>
+      <suite name="阶段完成验证协议">
+        <case id="gap-loop-协议触发时让出控制权" name="gap loop 协议触发时让出控制权">
+          <given>某个 phase 的最后一个任务已完成</given>
+          <when>当前执行 agent 到达该确认点</when>
+          <then>当前 agent 不在原上下文内继续做 gap 校验
+该 phase 下存在 `&lt;confirm protocol=&quot;yield-gap-loop&quot; when=&quot;after&quot; status=&quot;TODO&quot; /&gt;`
+当前 agent 将控制权交回父层编排者
+由父层编排者 fresh-spawn 新的 gap-loop 子代理</then>
+        </case>
+        <case id="父层根据-gap-loop-返回结果复检" name="父层根据 gap loop 返回结果复检">
+          <given>父层触发了 gap-loop 子代理</given>
+          <when>子代理返回 `&lt;status&gt;FIX_APPLIED&lt;/status&gt;`</when>
+          <then>父层必须再次 fresh-spawn 新的 gap-loop 子代理复检
+直到某一轮返回 `NO_GAP` 或 `BLOCKED`</then>
+        </case>
+      </suite>
+    </requirement>
+  </upsert>
+  <upsert selector="behavior://codument-core/requirements/ai-评审确认协议">
+    <requirement id="ai-评审确认协议">
+      <statement>**原因**：`yield-ai-confirm` 未形成稳定实际工作流，且无法表达“当前执行 agent 结束后由父层 fresh-spawn 新 agent 进行 gap 分析与修正”的闭环语义。
+**迁移**：从 `plan-xml-spec.md`、`protocols.md`、`track.md`、`implement.md`、`execute-wave.md`、`workflow.md`、`AGENTS.md` 与命令生成器中移除 `yield-ai-confirm` 及其相关引用；统一改为保留 `yield-human-confirm` 并新增 `yield-gap-loop`。</statement>
+    </requirement>
+  </upsert>
+</behavior-patch>

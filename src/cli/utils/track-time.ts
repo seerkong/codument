@@ -10,15 +10,15 @@ function parseDate(value: string | undefined): Date | null {
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
-function readUpdatedAtFromPlan(planPath: string): Date | null {
-  if (!fs.existsSync(planPath)) {
+function readUpdatedAtFromTrack(trackXmlPath: string): Date | null {
+  if (!fs.existsSync(trackXmlPath)) {
     return null;
   }
-  const content = fs.readFileSync(planPath, 'utf-8');
-  const metadataBlock = content.match(/<metadata>([\s\S]*?)<\/metadata>/)?.[1] ?? '';
-  const updatedAt = metadataBlock.match(/<updated_at>([\s\S]*?)<\/updated_at>/)?.[1]?.trim();
-  const updatedAtCamel = metadataBlock.match(/<updatedAt>([\s\S]*?)<\/updatedAt>/)?.[1]?.trim();
-  return parseDate(updatedAt) ?? parseDate(updatedAtCamel);
+  const content = fs.readFileSync(trackXmlPath, 'utf-8');
+  const meta = content.match(/<Metadata>([\s\S]*?)<\/Metadata>/)?.[1] ?? content;
+  const updatedAt = meta.match(/<UpdatedAt>([\s\S]*?)<\/UpdatedAt>/)?.[1]?.trim();
+  const createdAt = meta.match(/<CreatedAt>([\s\S]*?)<\/CreatedAt>/)?.[1]?.trim();
+  return parseDate(updatedAt) ?? parseDate(createdAt);
 }
 
 function maxMtimeMs(dir: string): number {
@@ -43,9 +43,9 @@ function maxMtimeMs(dir: string): number {
 }
 
 export function resolveTrackUpdatedDate(trackDir: string, now = new Date()): Date {
-  const planDate = readUpdatedAtFromPlan(path.join(trackDir, 'plan.xml'));
-  if (planDate) {
-    return planDate;
+  const trackDate = readUpdatedAtFromTrack(path.join(trackDir, 'track.xml'));
+  if (trackDate) {
+    return trackDate;
   }
 
   const mtime = maxMtimeMs(trackDir);

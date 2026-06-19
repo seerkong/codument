@@ -1,9 +1,0 @@
-{
-  "knowledgeSync": {
-    "enabled": false,
-    "targets": []
-  },
-  "projectMemory": {
-    "enabled": false
-  }
-}

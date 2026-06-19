@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import {
   ARCHIVE_DIR,
+  BEHAVIORS_DIR,
   DECISIONS_DIR,
   MEMORY_DIR,
   SPECS_DIR,
@@ -10,7 +11,6 @@ import {
   getTrack,
   parseOptions,
 } from '../utils';
-import { loadFeatureConfig, resolveKnowledgeTargetRoot, type KnowledgeSyncTarget } from '../utils/feature-config';
 import { applySpecXmlPatchToRegistry } from '../utils/spec-xml';
 import { buildArchiveDestination, formatLocalMinutePrefix, resolveTrackUpdatedDate } from '../utils/track-time';
 
@@ -53,17 +53,6 @@ export async function archiveCommand(args: string[]) {
   const archiveDir = buildArchiveDestination(trackDir, trackId, ARCHIVE_DIR);
   const archiveId = path.basename(archiveDir);
 
-  const featureConfig = loadFeatureConfig();
-  let knowledgeTargets: Array<{ target: KnowledgeSyncTarget; root: string }> = [];
-  if (featureConfig.knowledgeSync.enabled) {
-    try {
-      knowledgeTargets = prepareKnowledgeSyncTargets(featureConfig.knowledgeSync.targets);
-    } catch (error) {
-      console.error(error instanceof Error ? error.message : 'Knowledge sync target validation failed.');
-      process.exit(1);
-    }
-  }
-
   console.log(`\nArchiving track: ${trackId}`);
   console.log(`Destination: ${archiveDir}`);
 
@@ -77,21 +66,26 @@ export async function archiveCommand(args: string[]) {
     process.exit(1);
   }
 
+  // Apply behavior/spec registry updates BEFORE moving the track. The registry
+  // write is all-or-nothing (applySpecXmlPatchToRegistry stages every mutation in
+  // memory and only flushes on success), so a delta failure now leaves the track
+  // in place and re-runnable instead of stranding a half-archived, inconsistent state.
+  let updatedRegistries: string[] | null = null;
+  if (!skipSpecs) {
+    updatedRegistries = applyArchivedSpecDeltas(trackDir);
+  }
+
   // Move track to archive
   fs.renameSync(trackDir, archiveDir);
   console.log('✓ Track moved to archive');
   console.log(`✓ Archive ID: ${archiveId}`);
 
-  // Update specs if not skipped
-  if (!skipSpecs) {
-    const updated = applyArchivedSpecDeltas(archiveDir);
-    if (updated.length > 0) {
-      console.log(`✓ Updated specs: ${updated.join(', ')}`);
-    } else {
-      console.log('  No spec updates needed');
-    }
+  if (updatedRegistries === null) {
+    console.log('  Skipped behavior/spec updates (--skip-specs)');
+  } else if (updatedRegistries.length > 0) {
+    console.log(`✓ Updated behavior/spec registry: ${updatedRegistries.join(', ')}`);
   } else {
-    console.log('  Skipped spec updates (--skip-specs)');
+    console.log('  No behavior/spec updates needed');
   }
 
   const promotedDecision = promoteDecisionRecord(archiveDir, archiveId, trackId, updatedDate);
@@ -104,51 +98,31 @@ export async function archiveCommand(args: string[]) {
     console.log(`✓ Generated archive summary: ${summaryPath}`);
   }
 
-  if (featureConfig.projectMemory.enabled) {
-    const promotedMemory = promoteMemoryRecords(archiveDir, archiveId, trackId, updatedDate);
-    if (promotedMemory.length > 0) {
-      console.log(`✓ Promoted memory records: ${promotedMemory.join(', ')}`);
-    }
-  }
-
-  if (featureConfig.knowledgeSync.enabled) {
-    if (knowledgeTargets.length > 0) {
-      console.log(`  Knowledge sync targets checked: ${knowledgeTargets.map(({ target }) => target.name).join(', ')}`);
-    } else {
-      console.log('  Knowledge sync enabled but no targets configured');
-    }
+  // Promote memory candidates the track explicitly provided (no-op when none exist).
+  const promotedMemory = promoteMemoryRecords(archiveDir, archiveId, trackId, updatedDate);
+  if (promotedMemory.length > 0) {
+    console.log(`✓ Promoted memory records: ${promotedMemory.join(', ')}`);
   }
 
   console.log(`\n✓ Track "${trackId}" archived successfully!\n`);
 }
 
-function prepareKnowledgeSyncTargets(targets: KnowledgeSyncTarget[]): Array<{ target: KnowledgeSyncTarget; root: string }> {
-  return targets.map((target) => {
-    const root = resolveKnowledgeTargetRoot(target);
-    if (!fs.existsSync(root)) {
-      throw new Error(`Knowledge sync target root does not exist: ${root}. Create the target directory first or disable knowledgeSync for this archive run.`);
-    }
-    if (!fs.statSync(root).isDirectory()) {
-      throw new Error(`Knowledge sync target root is not a directory: ${root}`);
-    }
-    if (target.attractor) {
-      const attractorPath = path.isAbsolute(target.attractor)
-        ? target.attractor
-        : path.resolve(process.cwd(), target.attractor);
-      if (!fs.existsSync(attractorPath)) {
-        throw new Error(`Knowledge sync target attractor does not exist: ${attractorPath}`);
-      }
-      fs.readFileSync(attractorPath, 'utf-8');
-    }
-    return { target, root };
-  });
-}
-
 function applyArchivedSpecDeltas(archiveDir: string): string[] {
-  const xmlPatches = collectXmlSpecPatches(archiveDir);
-  if (xmlPatches.length > 0) {
+  const behaviorPatches = collectXmlPatches(archiveDir, ['behavior_deltas', 'behavior-deltas']);
+  if (behaviorPatches.length > 0) {
     const updated = new Set<string>();
-    for (const patchPath of xmlPatches) {
+    for (const patchPath of behaviorPatches) {
+      for (const capability of applySpecXmlPatchToRegistry(fs.readFileSync(patchPath, 'utf-8'), BEHAVIORS_DIR)) {
+        updated.add(capability);
+      }
+    }
+    return [...updated];
+  }
+
+  const legacyXmlPatches = collectXmlPatches(archiveDir, ['spec_deltas', 'spec-deltas']);
+  if (legacyXmlPatches.length > 0) {
+    const updated = new Set<string>();
+    for (const patchPath of legacyXmlPatches) {
       for (const capability of applySpecXmlPatchToRegistry(fs.readFileSync(patchPath, 'utf-8'), SPECS_DIR)) {
         updated.add(capability);
       }
@@ -175,12 +149,9 @@ function applyArchivedSpecDeltas(archiveDir: string): string[] {
   return [];
 }
 
-function collectXmlSpecPatches(archiveDir: string): string[] {
+function collectXmlPatches(archiveDir: string, rootNames: string[]): string[] {
   const results: string[] = [];
-  const roots = [
-    path.join(archiveDir, 'spec_deltas'),
-    path.join(archiveDir, 'spec-deltas'),
-  ];
+  const roots = rootNames.map((name) => path.join(archiveDir, name));
 
   const visit = (dir: string) => {
     if (!fs.existsSync(dir)) {

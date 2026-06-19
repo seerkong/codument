@@ -12,8 +12,24 @@ function writeFile(filePath: string, content: string): void {
   fs.writeFileSync(filePath, content, 'utf-8');
 }
 
+function writeTrackXml(trackDir: string, trackId: string): void {
+  writeFile(path.join(trackDir, 'track.xml'), `<?xml version="1.0" encoding="UTF-8"?>
+<Track id="${trackId}" version="1" xmlns:cdt="urn:codument:v1">
+  <Metadata>
+    <Status>new</Status>
+    <Goal>behavior delta</Goal>
+    <Description>behavior delta</Description>
+    <CreatedAt>2026-05-30T01:00:00Z</CreatedAt>
+    <UpdatedAt>2026-05-30T02:03:00Z</UpdatedAt>
+  </Metadata>
+  <TaskSpace id="space_${trackId}" name="${trackId}">
+    <SubNodes />
+  </TaskSpace>
+</Track>`);
+}
+
 describe('codument show', () => {
-  it('shows recursive XML spec deltas for tracks instead of implying spec.md', async () => {
+  it('shows recursive behavior deltas for tracks instead of implying spec.md', async () => {
     const repoRoot = path.resolve(__dirname, '../../..');
     const cliEntry = path.join(repoRoot, 'src/cli/index.ts');
     const ws = makeTempDir('codument-show-track-ws-');
@@ -22,17 +38,12 @@ describe('codument show', () => {
 
     writeFile(path.join(ws, 'codument', 'state.json'), '{}');
     writeFile(path.join(trackDir, 'proposal.md'), '# Proposal\n');
-    writeFile(path.join(trackDir, 'plan.xml'), `<plan><metadata>
-  <track_id>${trackId}</track_id>
-  <type>feature</type>
-  <status>proposed</status>
-  <created_at>2026-05-30T01:00:00Z</created_at>
-  <updated_at>2026-05-30T02:03:00Z</updated_at>
-  <description>xml delta</description>
-</metadata><phases></phases></plan>`);
-    writeFile(path.join(trackDir, 'spec_deltas', 'provider.deepseek', 'delta.xml'), `<spec-patch version="1">
-  <requirement op="upsert" selector="spec://provider.deepseek/requirement/cache-support" id="cache-support" />
-</spec-patch>
+    writeTrackXml(trackDir, trackId);
+    writeFile(path.join(trackDir, 'behavior_deltas', 'provider.deepseek', 'delta.xml'), `<behavior-patch capability="provider.deepseek" version="1">
+  <upsert selector="behavior://provider.deepseek/requirements/cache-support">
+    <requirement id="cache-support" />
+  </upsert>
+</behavior-patch>
 `);
 
     const proc = Bun.spawn([
@@ -54,11 +65,11 @@ describe('codument show', () => {
     const err = await new Response(proc.stderr).text();
     expect(err).toBe('');
     expect(exitCode).toBe(0);
-    expect(out).toContain('spec_deltas/provider.deepseek/delta.xml');
+    expect(out).toContain('behavior_deltas/provider.deepseek/delta.xml');
     expect(out).not.toContain('✗ spec.md');
   });
 
-  it('includes XML spec deltas in track JSON output', async () => {
+  it('includes behavior deltas in track JSON output', async () => {
     const repoRoot = path.resolve(__dirname, '../../..');
     const cliEntry = path.join(repoRoot, 'src/cli/index.ts');
     const ws = makeTempDir('codument-show-track-json-ws-');
@@ -67,17 +78,12 @@ describe('codument show', () => {
 
     writeFile(path.join(ws, 'codument', 'state.json'), '{}');
     writeFile(path.join(trackDir, 'proposal.md'), '# Proposal\n');
-    writeFile(path.join(trackDir, 'plan.xml'), `<plan><metadata>
-  <track_id>${trackId}</track_id>
-  <type>feature</type>
-  <status>proposed</status>
-  <created_at>2026-05-30T01:00:00Z</created_at>
-  <updated_at>2026-05-30T02:03:00Z</updated_at>
-  <description>xml delta</description>
-</metadata><phases></phases></plan>`);
-    writeFile(path.join(trackDir, 'spec_deltas', 'provider.deepseek', 'delta.xml'), `<spec-patch version="1">
-  <requirement op="upsert" selector="spec://provider.deepseek/requirement/cache-support" id="cache-support" />
-</spec-patch>
+    writeTrackXml(trackDir, trackId);
+    writeFile(path.join(trackDir, 'behavior_deltas', 'provider.deepseek', 'delta.xml'), `<behavior-patch capability="provider.deepseek" version="1">
+  <upsert selector="behavior://provider.deepseek/requirements/cache-support">
+    <requirement id="cache-support" />
+  </upsert>
+</behavior-patch>
 `);
 
     const proc = Bun.spawn([
@@ -101,6 +107,6 @@ describe('codument show', () => {
     expect(err).toBe('');
     expect(exitCode).toBe(0);
     const payload = JSON.parse(out);
-    expect(payload.files['spec_deltas/provider.deepseek/delta.xml']).toContain('<spec-patch version="1">');
+    expect(payload.files['behavior_deltas/provider.deepseek/delta.xml']).toContain('<behavior-patch capability="provider.deepseek" version="1">');
   });
 });

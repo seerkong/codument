@@ -1,0 +1,201 @@
+<behavior-patch capability="codument-core">
+  <upsert selector="behavior://codument-core/requirements/artifacts-config">
+    <requirement id="artifacts-config">
+        <statement>系统 SHALL support `codument/config/artifacts.xml` as an XML artifact sync registry for hook-triggered artifact generation and synchronization.</statement>
+        <suite id="artifacts-xml-shape" name="Artifacts XML shape">
+          <case id="root-shape">
+            <given>A workspace defines `codument/config/artifacts.xml`.</given>
+            <when>The system loads artifact sync configuration.</when>
+            <then>The root node SHALL be `artifact-config` with `version="1"`.</then>
+            <and>The root SHALL contain `resources` and `artifacts` sections.</and>
+            <and>The root SHALL NOT require or define a `pipelines` section.</and>
+          </case>
+          <case id="missing-config">
+            <given>No `codument/config/artifacts.xml` file exists.</given>
+            <when>A Codument command or skill runs.</when>
+            <then>The system SHALL continue the default workflow without artifact sync.</then>
+          </case>
+        </suite>
+      </requirement>
+  </upsert>
+  <upsert selector="behavior://codument-core/requirements/artifact-resources">
+    <requirement id="artifact-resources">
+        <statement>系统 SHALL restrict artifact sync resources to explicit workflow, skill, attractor-profile, and agent references.</statement>
+        <suite id="resource-types" name="Artifact resource types">
+          <case id="allowed-resource-types">
+            <given>`codument/config/artifacts.xml` contains a `resources` section.</given>
+            <when>The system validates the file.</when>
+            <then>The only allowed child nodes under `resources` SHALL be `workflow`, `skill`, `attractor-profile`, and `agent`.</then>
+          </case>
+          <case id="skill-is-rule">
+            <given>A `skill` resource references a file such as `/Users/kongweixian/ai/ai-team/multica/terminal/skills/atm-cli/SKILL.md`.</given>
+            <when>An artifact uses that resource.</when>
+            <then>The system SHALL treat the skill file as a rule or instruction source.</then>
+            <and>The system SHALL NOT treat the skill file itself as the artifact output.</and>
+          </case>
+          <case id="workflow-resource">
+            <given>A `workflow` resource references a file under `codument/workflows/`.</given>
+            <when>The artifact sync executor prepares an artifact.</when>
+            <then>The system SHALL read that workflow file as project-specific execution guidance.</then>
+          </case>
+          <case id="missing-workflow-or-skill-ref">
+            <given>A `workflow` or `skill` resource references a file path.</given>
+            <when>The system validates artifact sync configuration.</when>
+            <then>The system SHALL report a validation error when the referenced file is missing.</then>
+          </case>
+          <case id="attractor-profile-resource">
+            <given>An `attractor-profile` resource names a profile from `codument/config/attractor-profiles.json`.</given>
+            <when>The artifact sync executor prepares or validates an artifact.</when>
+            <then>The system SHALL resolve and use that attractor profile as artifact quality guidance.</then>
+          </case>
+        </suite>
+      </requirement>
+  </upsert>
+  <upsert selector="behavior://codument-core/requirements/artifact-definition">
+    <requirement id="artifact-definition">
+        <statement>系统 SHALL define each artifact with compact attributes plus explicit resource, target, and policy child nodes.</statement>
+        <suite id="artifact-node-shape" name="Artifact node shape">
+          <case id="allowed-children">
+            <given>An `artifact` node appears under `artifacts`.</given>
+            <when>The system validates the node.</when>
+            <then>The only allowed child nodes SHALL be `uses`, `targets`, and `policy`.</then>
+          </case>
+          <case id="artifact-attributes">
+            <given>An artifact needs source information.</given>
+            <when>The artifact is configured.</when>
+            <then>The artifact SHALL express stable source information through attributes such as `source-kind` and `source-scope`.</then>
+            <and>The artifact MAY keep legacy single-target attributes for compatibility, but new multi-target configuration SHALL use `targets`.</and>
+          </case>
+          <case id="uses-resources">
+            <given>An artifact has a `uses` child node.</given>
+            <when>The artifact sync executor resolves the artifact.</when>
+            <then>Each `use` entry SHALL reference a resource id from the `resources` section.</then>
+          </case>
+          <case id="multiple-targets">
+            <given>An artifact has a `targets` child node.</given>
+            <when>The artifact sync executor generates the artifact content.</when>
+            <then>The system SHALL support one or more `target` entries under `targets`.</then>
+            <and>Each target SHALL define its destination kind and `base-dir` target root.</and>
+            <and>Each target SHALL define exactly one of `relative-dir` or `relative-file`.</and>
+            <and>`relative-dir` SHALL represent a directory inside the target root for artifacts that may write multiple files.</and>
+            <and>`relative-file` SHALL represent a single file path inside the target root for single-file artifacts.</and>
+            <and>The system SHALL treat multiple targets as one generated artifact distributed to multiple destinations, not as multiple independent artifact generations.</and>
+          </case>
+          <case id="policy-behavior">
+            <given>An artifact has a `policy` child node.</given>
+            <when>The artifact sync executor applies the artifact.</when>
+            <then>The policy MAY define dry-run, conflict, and provenance behavior.</then>
+          </case>
+        </suite>
+      </requirement>
+  </upsert>
+  <upsert selector="behavior://codument-core/requirements/feature-artifact-migration">
+    <requirement id="feature-artifact-migration">
+        <statement>系统 SHALL migrate enabled legacy feature sync targets into explicit artifact sync configuration during workspace upgrade.</statement>
+        <suite id="feature-target-migration" name="Feature target migration">
+          <case id="knowledge-targets-move-to-artifacts">
+            <given>`codument/config/feature.json` has `knowledgeSync.enabled=true` with one or more `targets`.</given>
+            <and>`codument/config/artifacts.xml` does not exist.</and>
+            <when>The user runs `codument upgrade-workspace`.</when>
+            <then>The system SHALL create `codument/config/artifacts.xml`.</then>
+            <and>The generated docs knowledge artifact SHALL use a `docs` attractor profile that includes `codument/attractors/docs-knowledge.md`.</and>
+            <and>The generated `attractor-profile` resource SHALL reference that profile by `name` and SHALL NOT depend on direct `attractor` or `ref` attributes.</and>
+            <and>Each legacy knowledge target SHALL become a directory target under the generated artifact's `targets` node using `base-dir` and `relative-dir`.</and>
+            <and>The system SHALL remove migrated `knowledgeSync.targets` from `feature.json` after writing them to artifacts.xml.</and>
+            <and>If `codument/config/operation-hooks.xml` does not exist, the system SHALL create a default archive `after-archive` hook that triggers the generated docs artifact.</and>
+          </case>
+          <case id="legacy-target-location-migration">
+            <given>`codument/config/artifacts.xml` contains generated target locations using old `path` and `output-path` attributes.</given>
+            <when>The user runs `codument upgrade-workspace`.</when>
+            <then>The system SHALL migrate single-file targets to `base-dir` and `relative-file`.</then>
+            <and>The system SHALL migrate docs knowledge targets to `base-dir` and `relative-dir`.</and>
+          </case>
+          <case id="preserve-existing-artifacts-config">
+            <given>`codument/config/artifacts.xml` already exists.</given>
+            <when>The user runs `codument upgrade-workspace`.</when>
+            <then>The system SHALL NOT overwrite the existing artifacts.xml.</then>
+            <and>The system SHALL NOT remove legacy targets from feature.json unless it has written an equivalent explicit artifact target.</and>
+          </case>
+          <case id="empty-targets-removed">
+            <given>`codument/config/feature.json` has `knowledgeSync.targets=[]`.</given>
+            <when>The user runs `codument upgrade-workspace`.</when>
+            <then>The system SHALL remove the empty `targets` field from feature.json.</then>
+          </case>
+          <case id="project-memory-feature-artifact">
+            <given>`projectMemory.enabled=true`.</given>
+            <and>`codument/config/artifacts.xml` does not exist.</and>
+            <when>The user runs `codument upgrade-workspace`.</when>
+            <then>The generated artifacts.xml SHALL include a project memory artifact that uses a `memory` attractor profile containing `codument/attractors/project-memory.md`.</then>
+            <and>If `codument/config/operation-hooks.xml` does not exist, the system SHALL create a default archive `after-archive` hook that triggers the generated memory artifact.</and>
+          </case>
+          <case id="docs-fractal-attractors">
+            <given>`knowledgeSync.enabled=true`.</given>
+            <when>The user runs `codument upgrade-workspace`.</when>
+            <then>The system SHALL create `codument/attractors/docs-knowledge.md` when missing.</then>
+            <and>The system SHALL create `codument/attractors/docs-modeling-fractal/index.md` when missing.</and>
+            <and>The system SHALL create `codument/attractors/docs-impl-fractal/index.md` when missing.</and>
+          </case>
+          <case id="default-only-profile-cleanup">
+            <given>`codument/config/attractor-profiles.json` contains only the built-in default project/product profile.</given>
+            <when>The user runs `codument upgrade-workspace`.</when>
+            <then>The system SHALL remove that redundant config file and use the built-in default profile instead.</then>
+            <and>The system SHALL preserve the file when it contains custom, docs, memory, or otherwise non-default profile data.</and>
+          </case>
+        </suite>
+      </requirement>
+  </upsert>
+  <upsert selector="behavior://codument-core/requirements/artifact-sync-hook">
+    <requirement id="artifact-sync-hook">
+        <statement>系统 SHALL allow `operation-hooks.xml` to trigger artifact synchronization through an `artifact-sync` node that references an artifact id.</statement>
+        <suite id="operation-hook-integration" name="Artifact sync operation hook integration">
+          <case id="artifact-sync-node">
+            <given>`codument/config/operation-hooks.xml` contains an `artifact-sync` node inside a hook.</given>
+            <when>The operation reaches that hook point.</when>
+            <then>The system SHALL resolve the referenced artifact from `codument/config/artifacts.xml`.</then>
+            <and>The system SHALL execute artifact sync according to the artifact's resources and policy.</and>
+          </case>
+          <case id="unknown-artifact">
+            <given>An `artifact-sync` hook references an unknown artifact id.</given>
+            <when>The hook is validated or executed.</when>
+            <then>The system SHALL report a validation error or `BLOCKED` result.</then>
+          </case>
+          <case id="structured-result">
+            <given>An artifact sync executor completes.</given>
+            <when>It reports to the parent workflow.</when>
+            <then>The result SHALL include artifact id, status, summary, changed outputs, and manifest path when provenance is enabled.</then>
+          </case>
+        </suite>
+      </requirement>
+  </upsert>
+  <upsert selector="behavior://codument-core/requirements/artifact-sync-command">
+    <requirement id="artifact-sync-command">
+        <statement>系统 SHALL expose artifact synchronization through `codument-artifact-sync` rather than docs-specific sync commands.</statement>
+        <suite id="artifact-sync-entrypoint" name="Artifact sync entrypoint">
+          <case id="artifact-sync-skill">
+            <given>Generated lifecycle skills are built for a supported target.</given>
+            <when>The system emits standalone Codument skills.</when>
+            <then>The system SHALL include `codument-artifact-sync`.</then>
+            <and>The system SHALL NOT include `codument-docs-sync-track`.</and>
+          </case>
+          <case id="artifact-sync-command-wrapper">
+            <given>The system generates assistant command wrappers for Claude, CodeFlicker, Eidolon, or OpenCode.</given>
+            <when>The user inspects the generated command files.</when>
+            <then>The system SHALL include an `artifact-sync` command wrapper pointing at `codument-artifact-sync`.</then>
+            <and>The system SHALL remove the old `docs-sync-track` command wrapper.</and>
+          </case>
+          <case id="docs-rules-live-in-attractor">
+            <given>A docs class artifact needs content selection and docs/modeling versus docs/impl routing rules.</given>
+            <when>The artifact sync executor prepares the artifact.</when>
+            <then>The system SHALL read those rules from `codument/attractors/docs-knowledge.md` through an attractor profile.</then>
+            <and>The artifact-sync skill SHALL handle artifact selection, resource resolution, targets, policy, and execution.</and>
+          </case>
+          <case id="no-before-knowledge-sync">
+            <given>`codument/config/operation-hooks.xml` contains an archive hook with `point="before-knowledge-sync"`.</given>
+            <when>The system validates operation hooks.</when>
+            <then>The system SHALL report the hook point as unknown.</then>
+            <and>The system SHALL use artifact-sync terminology such as `before-artifact-sync` instead.</and>
+          </case>
+        </suite>
+      </requirement>
+  </upsert>
+</behavior-patch>
