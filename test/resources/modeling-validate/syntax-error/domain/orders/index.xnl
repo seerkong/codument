@@ -1,0 +1,8 @@
+<object #orders.order kind="entity" fact_grade="authoritative_fact" single_writer="modeling://domain/orders/orders_module" [
+  <desc ?a>
+  一张订单：marker 故意不匹配，触发 XNL 语法错。
+  </?b>
+  <types ?t>
+  interface Order { id: string }
+  </?t>
+]>

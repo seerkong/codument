@@ -10,59 +10,64 @@ import f4 from './codument/attractors/project-memory.md' with { type: 'text' };
 import f5 from './codument/attractors/project.md' with { type: 'text' };
 import f6 from './codument/backlog/README.md' with { type: 'text' };
 import f7 from './codument/config/attractor-profiles.xml' with { type: 'text' };
-import f8 from './codument/config/operation-hooks.xml' with { type: 'text' };
-import f9 from './codument/memory/README.md' with { type: 'text' };
-import f10 from './codument/missions/README.md' with { type: 'text' };
-import f11 from './codument/sop/README.md' with { type: 'text' };
-import f12 from './codument/std/AGENTS.md' with { type: 'text' };
-import f13 from './codument/std/docs-impl-fractal/index.md' with { type: 'text' };
-import f14 from './codument/std/docs-modeling-fractal/index.md' with { type: 'text' };
-import f15 from './codument/std/kernel-pointer.md' with { type: 'text' };
-import f16 from './codument/std/operations/README.md' with { type: 'text' };
-import f17 from './codument/std/operations/_operation-spec.md' with { type: 'text' };
-import f18 from './codument/std/operations/archive.md' with { type: 'text' };
-import f19 from './codument/std/operations/artifact-sync.md' with { type: 'text' };
-import f20 from './codument/std/operations/discuss.md' with { type: 'text' };
-import f21 from './codument/std/operations/docs-bootstrap.md' with { type: 'text' };
-import f22 from './codument/std/operations/gap-loop.md' with { type: 'text' };
-import f23 from './codument/std/operations/implement.md' with { type: 'text' };
-import f24 from './codument/std/operations/init.md' with { type: 'text' };
-import f25 from './codument/std/operations/migrate.md' with { type: 'text' };
-import f26 from './codument/std/operations/plan-schedule.md' with { type: 'text' };
-import f27 from './codument/std/operations/revise-track.md' with { type: 'text' };
-import f28 from './codument/std/operations/status.md' with { type: 'text' };
-import f29 from './codument/std/operations/track.md' with { type: 'text' };
-import f30 from './codument/std/operations/validate.md' with { type: 'text' };
-import f31 from './codument/std/operations/verify.md' with { type: 'text' };
-import f32 from './codument/std/root-agents.md' with { type: 'text' };
-import f33 from './codument/std/sop/archive.md' with { type: 'text' };
-import f34 from './codument/std/sop/artifact-sync.md' with { type: 'text' };
-import f35 from './codument/std/sop/gap-loop.md' with { type: 'text' };
-import f36 from './codument/std/sop/questioning.md' with { type: 'text' };
-import f37 from './codument/std/sop/tdd.md' with { type: 'text' };
-import f38 from './codument/std/sop/validation.md' with { type: 'text' };
-import f39 from './codument/std/sop/wave-exec.md' with { type: 'text' };
-import f40 from './codument/std/sop/workflow.md' with { type: 'text' };
-import f41 from './codument/std/spec/behavior-delta.md' with { type: 'text' };
-import f42 from './codument/std/spec/behavior-registry.md' with { type: 'text' };
-import f43 from './codument/std/spec/folder-manifest.md' with { type: 'text' };
-import f44 from './codument/std/spec/track-xml-spec.md' with { type: 'text' };
-import f45 from './codument/workflows/README.md' with { type: 'text' };
-import f46 from './skills/README.md' with { type: 'text' };
-import f47 from './skills/codument-archive/SKILL.md' with { type: 'text' };
-import f48 from './skills/codument-artifact-sync/SKILL.md' with { type: 'text' };
-import f49 from './skills/codument-discuss/SKILL.md' with { type: 'text' };
-import f50 from './skills/codument-docs-bootstrap/SKILL.md' with { type: 'text' };
-import f51 from './skills/codument-gap-loop/SKILL.md' with { type: 'text' };
-import f52 from './skills/codument-implement/SKILL.md' with { type: 'text' };
-import f53 from './skills/codument-init/SKILL.md' with { type: 'text' };
-import f54 from './skills/codument-migrate/SKILL.md' with { type: 'text' };
-import f55 from './skills/codument-plan-schedule/SKILL.md' with { type: 'text' };
-import f56 from './skills/codument-revise-track/SKILL.md' with { type: 'text' };
-import f57 from './skills/codument-status/SKILL.md' with { type: 'text' };
-import f58 from './skills/codument-track/SKILL.md' with { type: 'text' };
-import f59 from './skills/codument-validate/SKILL.md' with { type: 'text' };
-import f60 from './skills/codument-verify/SKILL.md' with { type: 'text' };
+import f8 from './codument/config/modeling.xml' with { type: 'text' };
+import f9 from './codument/config/operation-hooks.xml' with { type: 'text' };
+import f10 from './codument/memory/README.md' with { type: 'text' };
+import f11 from './codument/missions/README.md' with { type: 'text' };
+import f12 from './codument/sop/README.md' with { type: 'text' };
+import f13 from './codument/std/AGENTS.md' with { type: 'text' };
+import f14 from './codument/std/docs-impl-fractal/index.md' with { type: 'text' };
+import f15 from './codument/std/docs-modeling-fractal/index.md' with { type: 'text' };
+import f16 from './codument/std/kernel-pointer.md' with { type: 'text' };
+import f17 from './codument/std/operations/README.md' with { type: 'text' };
+import f18 from './codument/std/operations/_operation-spec.md' with { type: 'text' };
+import f19 from './codument/std/operations/archive.md' with { type: 'text' };
+import f20 from './codument/std/operations/artifact-sync.md' with { type: 'text' };
+import f21 from './codument/std/operations/discuss.md' with { type: 'text' };
+import f22 from './codument/std/operations/docs-bootstrap.md' with { type: 'text' };
+import f23 from './codument/std/operations/gap-loop.md' with { type: 'text' };
+import f24 from './codument/std/operations/implement.md' with { type: 'text' };
+import f25 from './codument/std/operations/init.md' with { type: 'text' };
+import f26 from './codument/std/operations/migrate.md' with { type: 'text' };
+import f27 from './codument/std/operations/plan-schedule.md' with { type: 'text' };
+import f28 from './codument/std/operations/revise-track.md' with { type: 'text' };
+import f29 from './codument/std/operations/status.md' with { type: 'text' };
+import f30 from './codument/std/operations/track.md' with { type: 'text' };
+import f31 from './codument/std/operations/validate.md' with { type: 'text' };
+import f32 from './codument/std/operations/verify.md' with { type: 'text' };
+import f33 from './codument/std/root-agents.md' with { type: 'text' };
+import f34 from './codument/std/sop/archive.md' with { type: 'text' };
+import f35 from './codument/std/sop/artifact-sync.md' with { type: 'text' };
+import f36 from './codument/std/sop/gap-loop.md' with { type: 'text' };
+import f37 from './codument/std/sop/questioning.md' with { type: 'text' };
+import f38 from './codument/std/sop/tdd.md' with { type: 'text' };
+import f39 from './codument/std/sop/validation.md' with { type: 'text' };
+import f40 from './codument/std/sop/wave-exec.md' with { type: 'text' };
+import f41 from './codument/std/sop/workflow.md' with { type: 'text' };
+import f42 from './codument/std/spec/behavior-delta.md' with { type: 'text' };
+import f43 from './codument/std/spec/behavior-registry.md' with { type: 'text' };
+import f44 from './codument/std/spec/folder-manifest.md' with { type: 'text' };
+import f45 from './codument/std/spec/modeling-delta.md' with { type: 'text' };
+import f46 from './codument/std/spec/modeling-node-schema.md' with { type: 'text' };
+import f47 from './codument/std/spec/modeling-registry.md' with { type: 'text' };
+import f48 from './codument/std/spec/track-xml-spec.md' with { type: 'text' };
+import f49 from './codument/std/spec/xnl-format.md' with { type: 'text' };
+import f50 from './codument/workflows/README.md' with { type: 'text' };
+import f51 from './skills/README.md' with { type: 'text' };
+import f52 from './skills/codument-archive/SKILL.md' with { type: 'text' };
+import f53 from './skills/codument-artifact-sync/SKILL.md' with { type: 'text' };
+import f54 from './skills/codument-discuss/SKILL.md' with { type: 'text' };
+import f55 from './skills/codument-docs-bootstrap/SKILL.md' with { type: 'text' };
+import f56 from './skills/codument-gap-loop/SKILL.md' with { type: 'text' };
+import f57 from './skills/codument-implement/SKILL.md' with { type: 'text' };
+import f58 from './skills/codument-init/SKILL.md' with { type: 'text' };
+import f59 from './skills/codument-migrate/SKILL.md' with { type: 'text' };
+import f60 from './skills/codument-plan-schedule/SKILL.md' with { type: 'text' };
+import f61 from './skills/codument-revise-track/SKILL.md' with { type: 'text' };
+import f62 from './skills/codument-status/SKILL.md' with { type: 'text' };
+import f63 from './skills/codument-track/SKILL.md' with { type: 'text' };
+import f64 from './skills/codument-validate/SKILL.md' with { type: 'text' };
+import f65 from './skills/codument-verify/SKILL.md' with { type: 'text' };
 
 export interface TemplateFile {
   /** Path relative to src/templates/, e.g. "codument/std/AGENTS.md" or "skills/codument-track/SKILL.md". */
@@ -79,57 +84,62 @@ export const TEMPLATE_FILES: TemplateFile[] = [
   { path: "codument/attractors/project.md", content: f5 },
   { path: "codument/backlog/README.md", content: f6 },
   { path: "codument/config/attractor-profiles.xml", content: f7 },
-  { path: "codument/config/operation-hooks.xml", content: f8 },
-  { path: "codument/memory/README.md", content: f9 },
-  { path: "codument/missions/README.md", content: f10 },
-  { path: "codument/sop/README.md", content: f11 },
-  { path: "codument/std/AGENTS.md", content: f12 },
-  { path: "codument/std/docs-impl-fractal/index.md", content: f13 },
-  { path: "codument/std/docs-modeling-fractal/index.md", content: f14 },
-  { path: "codument/std/kernel-pointer.md", content: f15 },
-  { path: "codument/std/operations/README.md", content: f16 },
-  { path: "codument/std/operations/_operation-spec.md", content: f17 },
-  { path: "codument/std/operations/archive.md", content: f18 },
-  { path: "codument/std/operations/artifact-sync.md", content: f19 },
-  { path: "codument/std/operations/discuss.md", content: f20 },
-  { path: "codument/std/operations/docs-bootstrap.md", content: f21 },
-  { path: "codument/std/operations/gap-loop.md", content: f22 },
-  { path: "codument/std/operations/implement.md", content: f23 },
-  { path: "codument/std/operations/init.md", content: f24 },
-  { path: "codument/std/operations/migrate.md", content: f25 },
-  { path: "codument/std/operations/plan-schedule.md", content: f26 },
-  { path: "codument/std/operations/revise-track.md", content: f27 },
-  { path: "codument/std/operations/status.md", content: f28 },
-  { path: "codument/std/operations/track.md", content: f29 },
-  { path: "codument/std/operations/validate.md", content: f30 },
-  { path: "codument/std/operations/verify.md", content: f31 },
-  { path: "codument/std/root-agents.md", content: f32 },
-  { path: "codument/std/sop/archive.md", content: f33 },
-  { path: "codument/std/sop/artifact-sync.md", content: f34 },
-  { path: "codument/std/sop/gap-loop.md", content: f35 },
-  { path: "codument/std/sop/questioning.md", content: f36 },
-  { path: "codument/std/sop/tdd.md", content: f37 },
-  { path: "codument/std/sop/validation.md", content: f38 },
-  { path: "codument/std/sop/wave-exec.md", content: f39 },
-  { path: "codument/std/sop/workflow.md", content: f40 },
-  { path: "codument/std/spec/behavior-delta.md", content: f41 },
-  { path: "codument/std/spec/behavior-registry.md", content: f42 },
-  { path: "codument/std/spec/folder-manifest.md", content: f43 },
-  { path: "codument/std/spec/track-xml-spec.md", content: f44 },
-  { path: "codument/workflows/README.md", content: f45 },
-  { path: "skills/README.md", content: f46 },
-  { path: "skills/codument-archive/SKILL.md", content: f47 },
-  { path: "skills/codument-artifact-sync/SKILL.md", content: f48 },
-  { path: "skills/codument-discuss/SKILL.md", content: f49 },
-  { path: "skills/codument-docs-bootstrap/SKILL.md", content: f50 },
-  { path: "skills/codument-gap-loop/SKILL.md", content: f51 },
-  { path: "skills/codument-implement/SKILL.md", content: f52 },
-  { path: "skills/codument-init/SKILL.md", content: f53 },
-  { path: "skills/codument-migrate/SKILL.md", content: f54 },
-  { path: "skills/codument-plan-schedule/SKILL.md", content: f55 },
-  { path: "skills/codument-revise-track/SKILL.md", content: f56 },
-  { path: "skills/codument-status/SKILL.md", content: f57 },
-  { path: "skills/codument-track/SKILL.md", content: f58 },
-  { path: "skills/codument-validate/SKILL.md", content: f59 },
-  { path: "skills/codument-verify/SKILL.md", content: f60 },
+  { path: "codument/config/modeling.xml", content: f8 },
+  { path: "codument/config/operation-hooks.xml", content: f9 },
+  { path: "codument/memory/README.md", content: f10 },
+  { path: "codument/missions/README.md", content: f11 },
+  { path: "codument/sop/README.md", content: f12 },
+  { path: "codument/std/AGENTS.md", content: f13 },
+  { path: "codument/std/docs-impl-fractal/index.md", content: f14 },
+  { path: "codument/std/docs-modeling-fractal/index.md", content: f15 },
+  { path: "codument/std/kernel-pointer.md", content: f16 },
+  { path: "codument/std/operations/README.md", content: f17 },
+  { path: "codument/std/operations/_operation-spec.md", content: f18 },
+  { path: "codument/std/operations/archive.md", content: f19 },
+  { path: "codument/std/operations/artifact-sync.md", content: f20 },
+  { path: "codument/std/operations/discuss.md", content: f21 },
+  { path: "codument/std/operations/docs-bootstrap.md", content: f22 },
+  { path: "codument/std/operations/gap-loop.md", content: f23 },
+  { path: "codument/std/operations/implement.md", content: f24 },
+  { path: "codument/std/operations/init.md", content: f25 },
+  { path: "codument/std/operations/migrate.md", content: f26 },
+  { path: "codument/std/operations/plan-schedule.md", content: f27 },
+  { path: "codument/std/operations/revise-track.md", content: f28 },
+  { path: "codument/std/operations/status.md", content: f29 },
+  { path: "codument/std/operations/track.md", content: f30 },
+  { path: "codument/std/operations/validate.md", content: f31 },
+  { path: "codument/std/operations/verify.md", content: f32 },
+  { path: "codument/std/root-agents.md", content: f33 },
+  { path: "codument/std/sop/archive.md", content: f34 },
+  { path: "codument/std/sop/artifact-sync.md", content: f35 },
+  { path: "codument/std/sop/gap-loop.md", content: f36 },
+  { path: "codument/std/sop/questioning.md", content: f37 },
+  { path: "codument/std/sop/tdd.md", content: f38 },
+  { path: "codument/std/sop/validation.md", content: f39 },
+  { path: "codument/std/sop/wave-exec.md", content: f40 },
+  { path: "codument/std/sop/workflow.md", content: f41 },
+  { path: "codument/std/spec/behavior-delta.md", content: f42 },
+  { path: "codument/std/spec/behavior-registry.md", content: f43 },
+  { path: "codument/std/spec/folder-manifest.md", content: f44 },
+  { path: "codument/std/spec/modeling-delta.md", content: f45 },
+  { path: "codument/std/spec/modeling-node-schema.md", content: f46 },
+  { path: "codument/std/spec/modeling-registry.md", content: f47 },
+  { path: "codument/std/spec/track-xml-spec.md", content: f48 },
+  { path: "codument/std/spec/xnl-format.md", content: f49 },
+  { path: "codument/workflows/README.md", content: f50 },
+  { path: "skills/README.md", content: f51 },
+  { path: "skills/codument-archive/SKILL.md", content: f52 },
+  { path: "skills/codument-artifact-sync/SKILL.md", content: f53 },
+  { path: "skills/codument-discuss/SKILL.md", content: f54 },
+  { path: "skills/codument-docs-bootstrap/SKILL.md", content: f55 },
+  { path: "skills/codument-gap-loop/SKILL.md", content: f56 },
+  { path: "skills/codument-implement/SKILL.md", content: f57 },
+  { path: "skills/codument-init/SKILL.md", content: f58 },
+  { path: "skills/codument-migrate/SKILL.md", content: f59 },
+  { path: "skills/codument-plan-schedule/SKILL.md", content: f60 },
+  { path: "skills/codument-revise-track/SKILL.md", content: f61 },
+  { path: "skills/codument-status/SKILL.md", content: f62 },
+  { path: "skills/codument-track/SKILL.md", content: f63 },
+  { path: "skills/codument-validate/SKILL.md", content: f64 },
+  { path: "skills/codument-verify/SKILL.md", content: f65 },
 ];

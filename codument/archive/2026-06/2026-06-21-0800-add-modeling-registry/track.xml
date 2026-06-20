@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Track id="add-modeling-registry" version="1" xmlns:cdt="urn:codument:v1">
+  <Metadata>
+    <Status>completed</Status>
+    <Goal>Add a codument/modeling domain modeling registry (XNL + xnl-vfs + xnl-vcs), with git-like deltas, a fractal-split lint, archive merge, docs/impl writeback, and a default-off modeling config.</Goal>
+    <Description>Upgrade docs/modeling into a codument-managed modeling registry backed by xnl-vfs/xnl-vcs; track modeling changes as vcs branches merged at archive; nodes are XNL with a DEPA-grounded kind spectrum and minimal representations.</Description>
+    <Type>feature</Type>
+    <CommitMode>manual</CommitMode>
+    <CreatedAt>2026-06-20T00:00:00Z</CreatedAt>
+    <UpdatedAt>2026-06-21T00:00:00Z</UpdatedAt>
+  </Metadata>
+
+  <Ports scope="track">
+    <MaterialBundle role="input" name="behavior-deltas" domain="behavior" path="vfs://./behavior_deltas/"/>
+    <MaterialBundle role="input" name="modeling-deltas" domain="modeling" path="vfs://./modeling_deltas/"/>
+    <MaterialBundle role="output" name="behavior" domain="codument" path="vfs://@/codument/behaviors/"/>
+    <MaterialBundle role="output" name="modeling" domain="codument" path="vfs://@/codument/modeling/"/>
+    <MaterialBundle role="output" name="docs" domain="doc" path="vfs://@/docs/"/>
+  </Ports>
+
+  <TaskSpace id="space_add-modeling-registry" name="add-modeling-registry" version="1">
+    <Description>Phases: spec/schema, xnl integration, CLI lint, operation wiring + config, tests/validation.</Description>
+    <SubNodes>
+
+      <TaskGroup id="P1" name="Spec and node schema" status="DONE" order="0">
+        <Description>Define the modeling registry and delta specs plus the node schema (kind spectrum + minimal representations).</Description>
+        <SubNodes>
+          <Task id="T1.1" name="Author codument-core behavior delta" status="DONE" order="0" priority="P0">
+            <Description>Authored behavior_deltas/codument-core/delta.xml: modeling-registry, modeling-node-schema, modeling-delta-merge, modeling-fractal-split, modeling-config, modeling-docs-impl-writeback, host-git-versioned, knowledgesync-residue-removed. Applied to behaviors registry at archive.</Description>
+            <cdt:Acceptance>
+              <cdt:Criterion id="T1.1-AC1" checked="true">behavior://codument-core modeling requirements authored and validate (codument validate --strict OK)</cdt:Criterion>
+            </cdt:Acceptance>
+          </Task>
+          <Task id="T1.2" name="Write modeling-registry.md and modeling-delta.md" status="DONE" order="1" priority="P0">
+            <Description>Author std/spec/modeling-registry.md and std/spec/modeling-delta.md mirroring behavior-registry.md / behavior-delta.md, grounded in xnl-vfs/xnl-vcs.</Description>
+            <cdt:Acceptance>
+              <cdt:Criterion id="T1.2-AC1" checked="true">Registry spec defines codument/modeling layout, host-git versioning, node-meta, vfs working tree, ephemeral merge engine (no persisted .xnl-vcs)</cdt:Criterion>
+              <cdt:Criterion id="T1.2-AC2" checked="true">Delta spec defines track branch + archive 3-way merge + base anchoring (decision A)</cdt:Criterion>
+            </cdt:Acceptance>
+          </Task>
+          <Task id="T1.3" name="Write node schema guide (kind spectrum + minimal reps)" status="DONE" order="2" priority="P0">
+            <Description>Author the modeling node schema: kernel bare kinds vs shell namespaced kinds; representation forms (prose/ts/mermaid/pseudo); minimal-required per kind; namespaced ids; good/bad XNL examples; modeling references behavior://.</Description>
+            <cdt:Acceptance>
+              <cdt:Criterion id="T1.3-AC1" checked="true">Kind spectrum and per-kind minimal representations documented with examples</cdt:Criterion>
+              <cdt:Criterion id="T1.3-AC2" checked="true">DEPA fact_grade/single_writer required on entity nodes</cdt:Criterion>
+            </cdt:Acceptance>
+          </Task>
+        </SubNodes>
+      </TaskGroup>
+
+      <TaskGroup id="P2" name="XNL integration layer" status="DONE" order="1">
+        <Description>Integrate xnl-core/xnl-vfs/xnl-vcs into codument; load/save the modeling registry; validate node schema; depends on xnl.ts vfs-import resolver for cross-file imports.</Description>
+        <SubNodes>
+          <Task id="T2.1" name="Add xnl-core/xnl-vfs deps + registry load/save" status="DONE" order="0" priority="P0">
+            <Description>Added xnl-core@^0.1.6 + xnl-vfs@^0.1.1 deps; src/cli/modeling/registry.ts loads/saves codument/modeling working tree (plain fs + xnl-core parse/lineBlock, deterministic empty markers), indexes nodes by namespaced id, builds modeling:// URIs, skips hidden dirs, rejects duplicate ids. No persisted parallel vcs repo.</Description>
+            <cdt:Acceptance>
+              <cdt:Criterion id="T2.1-AC1" checked="true">Registry round-trips to/from codument/modeling working tree (host-git versioned); no persisted parallel vcs repo (registry.test.ts 5 pass)</cdt:Criterion>
+            </cdt:Acceptance>
+          </Task>
+          <Task id="T2.2" name="Node schema validation" status="DONE" order="1" priority="P0">
+            <Description>src/cli/modeling/schema.ts validates kind (kernel bare vs shell namespaced), namespaced ids, fact_grade enum, and minimal-required representations (entity: ts+fact_grade+single_writer; enum: ts; state-machine: mermaid; module: depends_on+capsule-tree; component: runtime/input/config/output).</Description>
+            <cdt:Acceptance>
+              <cdt:Criterion id="T2.2-AC1" checked="true">Validation rejects nodes missing minimal-required representations (schema.test.ts 8 pass)</cdt:Criterion>
+            </cdt:Acceptance>
+          </Task>
+          <Task id="T2.3" name="Modeling delta merge (node-level 3-way)" status="DONE" order="2" priority="P0">
+            <Description>src/cli/modeling/merge.ts: node-level 3-way merge by id via xnl-core diffNodes/applyMutations; disjoint changes auto-merge (path-overlap detection); conservative default policy reports same-field/delete-modify/add-add conflicts (human) without silent overwrite; per-type policy override (ours|theirs|base). Base anchored at track create (decision A); ephemeral, no persisted vcs.</Description>
+            <cdt:Acceptance>
+              <cdt:Criterion id="T2.3-AC1" checked="true">Concurrent-track 3-way merge works; conflicts reported not silently overwritten (merge.test.ts 7 pass)</cdt:Criterion>
+            </cdt:Acceptance>
+          </Task>
+        </SubNodes>
+      </TaskGroup>
+
+      <TaskGroup id="P3" name="CLI fractal-split lint" status="DONE" order="2">
+        <Description>codument modeling lint: flag oversized modeling XNL files for same-name-folder split.</Description>
+        <SubNodes>
+          <Task id="T3.1" name="Implement modeling lint" status="DONE" order="0" priority="P1">
+            <Description>src/cli/modeling/lint.ts: threshold-based (line/node count, defaults 400/8, configurable) scan of codument/modeling; reports split candidates. CLI `codument modeling lint [dir] [--max-lines N] [--max-nodes N]` wired into index.ts + help. Advisory: lint suggests, actual split is model-applied per folder-manifest.md.</Description>
+            <cdt:Acceptance>
+              <cdt:Criterion id="T3.1-AC1" checked="true">Lint flags oversized files by line/node thresholds; CLI command + 5 tests pass (lint.test.ts)</cdt:Criterion>
+            </cdt:Acceptance>
+          </Task>
+        </SubNodes>
+      </TaskGroup>
+
+      <TaskGroup id="P4" name="Operation wiring + config + cleanup" status="DONE" order="3">
+        <Description>Wire track/implement/archive prompts; add config/modeling.xml (default off); writeback docs/impl; clean knowledgeSync residue.</Description>
+        <SubNodes>
+          <Task id="T4.1" name="config/modeling.xml (default off) + gate" status="DONE" order="0" priority="P0">
+            <Description>Added src/templates/codument/config/modeling.xml (+ dogfood copy) modeled on attractor-profiles.xml: enabled (default false), Registry dir, Lint thresholds, MergePolicy. src/cli/modeling/config.ts reads it (default OFF when absent/disabled); lint command reads thresholds from config. 4 config tests.</Description>
+            <cdt:Acceptance>
+              <cdt:Criterion id="T4.1-AC1" checked="true">No config or disabled → modeling skipped; config.ts defaults enabled=false (config.test.ts 4 pass)</cdt:Criterion>
+            </cdt:Acceptance>
+          </Task>
+          <Task id="T4.2" name="Wire track/implement/archive prompts" status="DONE" order="1" priority="P0">
+            <Description>track.md §3.3b: gated step to draft modeling_deltas referencing behavior_deltas + record host-git base. archive.md §5.5: gated modeling 3-way merge (base materialized from host git, xnl-vfs merge, MergePolicy conflicts) + docs/impl writeback by category; pipeline overview updated. implement.md §11.0: gated note that implementation-time modeling changes go to modeling_deltas. All gated on config/modeling.xml enabled.</Description>
+            <cdt:Acceptance>
+              <cdt:Criterion id="T4.2-AC1" checked="true">track.md produces modeling_delta and records host-git merge base (gated)</cdt:Criterion>
+              <cdt:Criterion id="T4.2-AC2" checked="true">archive.md merges modeling delta (3-way + policy) and writes docs/impl by category (gated)</cdt:Criterion>
+            </cdt:Acceptance>
+          </Task>
+          <Task id="T4.3" name="Clean knowledgeSync residue" status="DONE" order="2" priority="P1">
+            <Description>Replaced active-gating knowledgeSync references in live templates + dogfood (model-driven-docs, implement, plan-schedule, discuss, track, docs-bootstrap, attractor-profiles comment) with docs-profile language. Intentional old→new migration-mapping notes (口径映射, archive.md targets migration) kept per spec.</Description>
+            <cdt:Acceptance>
+              <cdt:Criterion id="T4.3-AC1" checked="true">No active-gating knowledgeSync references remain; only intentional migration notes</cdt:Criterion>
+            </cdt:Acceptance>
+          </Task>
+        </SubNodes>
+      </TaskGroup>
+
+      <TaskGroup id="P5" name="Tests and validation" status="DONE" order="4">
+        <Description>Tests for registry round-trip, schema validation, 3-way merge/conflicts, lint, config gate; resource-driven promotion; run project validation.</Description>
+        <SubNodes>
+          <Task id="T5.1" name="Add focused tests" status="DONE" order="0" priority="P0">
+            <Description>34 modeling tests: registry round-trip (5), schema validation (8), merge/conflict (7), lint thresholds (5), config gate (4), plus resource-driven end-to-end promotion (5) over test/resources/modeling-merge/case-NN/{base,ours,theirs}/ + expected.json (load -> merge -> writeback -> reload). Tests moved to sibling test/ dir; legacy plan.xml fixtures recovered to test/cli/utils/fixtures/.</Description>
+            <cdt:Acceptance>
+              <cdt:Criterion id="T5.1-AC1" checked="true">Tests cover round-trip, schema, merge/conflict, lint, gate, resource-driven promotion (34 modeling tests pass)</cdt:Criterion>
+            </cdt:Acceptance>
+          </Task>
+          <Task id="T5.2" name="Run project validation" status="DONE" order="1" priority="P0">
+            <Description>typecheck (tsc --noEmit) exit 0; full suite 97 pass / 0 fail; codument validate add-modeling-registry --strict OK. Note: `bun run lint` is a pre-existing project gap (no eslint flat config committed; eslint v10 requires eslint.config.js) — unrelated to this track.</Description>
+            <cdt:Acceptance>
+              <cdt:Criterion id="T5.2-AC1" checked="true">typecheck clean + 97 tests pass + track validates (lint pre-existing gap, out of scope)</cdt:Criterion>
+            </cdt:Acceptance>
+          </Task>
+        </SubNodes>
+        <Hooks>
+          <Hook on="phase:after"><cdt:GapLoop max-rounds="5" on-exhausted="block"/></Hook>
+        </Hooks>
+      </TaskGroup>
+
+    </SubNodes>
+  </TaskSpace>
+
+  <Schedule>
+  </Schedule>
+</Track>

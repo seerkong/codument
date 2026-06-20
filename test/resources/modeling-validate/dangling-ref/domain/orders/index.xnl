@@ -1,0 +1,8 @@
+<object #orders.order kind="entity" fact_grade="authoritative_fact" single_writer="modeling://domain/orders/nonexistent_module" [
+  <desc ?>
+  single_writer 指向一个 registry 里不存在的 modeling:// 节点（悬空引用）。
+  </?>
+  <types ?t>
+  interface Order { id: string }
+  </?t>
+]>

@@ -1,0 +1,1 @@
+{ "conflicts": [], "mergedIds": ["resource.x"], "assert": { "resource.x": { "a": "2", "b": "2" } } }

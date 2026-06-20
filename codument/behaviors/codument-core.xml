@@ -24,14 +24,14 @@
     <statement>系统 SHALL support an explicit `plan.xml` attractor check hook that validates a track, phase, or task against a selected attractor profile.</statement>
     <suite id="plan-xml-hook" name="Plan XML hook behavior">
       <case id="hook-placement">
-        <given>A `plan.xml` contains an `&amp;lt;attractor-check profile=&quot;...&quot; when=&quot;...&quot; status=&quot;...&quot; /&amp;gt;` node under the track, a phase, or a task.</given>
+        <given>A `plan.xml` contains an `&amp;amp;amp;amp;lt;attractor-check profile=&amp;amp;amp;quot;...&amp;amp;amp;quot; when=&amp;amp;amp;quot;...&amp;amp;amp;quot; status=&amp;amp;amp;quot;...&amp;amp;amp;quot; /&amp;amp;amp;amp;gt;` node under the track, a phase, or a task.</given>
         <when>The execution workflow reaches the hook's guarded scope.</when>
         <then>The system SHALL run attractor alignment validation for that scope using the selected profile.</then>
       </case>
       <case id="when-semantics">
-        <given>An `&amp;lt;attractor-check&amp;gt;` node has `when=&quot;before&quot;`, `when=&quot;after&quot;`, or `when=&quot;both&quot;`.</given>
+        <given>An `&amp;amp;amp;amp;lt;attractor-check&amp;amp;amp;amp;gt;` node has `when=&amp;amp;amp;quot;before&amp;amp;amp;quot;`, `when=&amp;amp;amp;quot;after&amp;amp;amp;quot;`, or `when=&amp;amp;amp;quot;both&amp;amp;amp;quot;`.</given>
         <when>The guarded scope is executed.</when>
-        <then>The system SHALL apply the same before, after, and both timing semantics used by `&amp;lt;confirm&amp;gt;`.</then>
+        <then>The system SHALL apply the same before, after, and both timing semantics used by `&amp;amp;amp;amp;lt;confirm&amp;amp;amp;amp;gt;`.</then>
       </case>
       <case id="status-semantics">
         <given>An attractor check starts execution.</given>
@@ -49,17 +49,17 @@
     <statement>系统 SHALL support configurable post-check policies so attractor gaps can be repaired immediately, routed through confirmation, or blocked for user input.</statement>
     <suite id="result-policy" name="Attractor check result policy">
       <case id="fix-immediately">
-        <given>An attractor check contains `&amp;lt;result-policy on-gap=&quot;fix-immediately&quot; /&amp;gt;`.</given>
+        <given>An attractor check contains `&amp;amp;amp;amp;lt;result-policy on-gap=&amp;amp;amp;quot;fix-immediately&amp;amp;amp;quot; /&amp;amp;amp;amp;gt;`.</given>
         <when>The check returns a gap that the executor can safely repair.</when>
         <then>The system SHALL apply the repair and rerun the attractor check before marking the hook `DONE`.</then>
       </case>
       <case id="confirm-before-fix">
-        <given>An attractor check contains `&amp;lt;result-policy on-gap=&quot;confirm-before-fix&quot;&amp;gt;` with a nested `&amp;lt;confirm protocol=&quot;yield-human-confirm&quot; when=&quot;after&quot; status=&quot;TODO&quot; /&amp;gt;`.</given>
+        <given>An attractor check contains `&amp;amp;amp;amp;lt;result-policy on-gap=&amp;amp;amp;quot;confirm-before-fix&amp;amp;amp;quot;&amp;amp;amp;amp;gt;` with a nested `&amp;amp;amp;amp;lt;confirm protocol=&amp;amp;amp;quot;yield-human-confirm&amp;amp;amp;quot; when=&amp;amp;amp;quot;after&amp;amp;amp;quot; status=&amp;amp;amp;quot;TODO&amp;amp;amp;quot; /&amp;amp;amp;amp;gt;`.</given>
         <when>The check returns a gap.</when>
         <then>The system SHALL run the nested confirmation before applying the proposed repair.</then>
       </case>
       <case id="block-on-gap">
-        <given>An attractor check contains `&amp;lt;result-policy on-gap=&quot;block&quot; /&amp;gt;`.</given>
+        <given>An attractor check contains `&amp;amp;amp;amp;lt;result-policy on-gap=&amp;amp;amp;quot;block&amp;amp;amp;quot; /&amp;amp;amp;amp;gt;`.</given>
         <when>The check returns any gap.</when>
         <then>The system SHALL mark the attractor check `BLOCKED` and wait for user input.</then>
       </case>
@@ -79,7 +79,7 @@
         <then>The system SHALL validate the drafted track artifacts against the selected attractor profile before treating the design as confirmed.</then>
       </case>
       <case id="phase-check">
-        <given>A phase contains an attractor check with `when=&quot;after&quot;`.</given>
+        <given>A phase contains an attractor check with `when=&amp;amp;amp;quot;after&amp;amp;amp;quot;`.</given>
         <when>All tasks in the phase are complete.</when>
         <then>The implementation workflow SHALL run the attractor check before moving past the phase.</then>
       </case>
@@ -105,7 +105,7 @@
         <and>The system SHALL run `archive` with its existing default behavior.</and>
       </case>
       <case id="reuse-hook-dsl">
-        <given>`codument/config/operation-hooks.xml` contains an operation hook with nested `&amp;lt;attractor-check&amp;gt;` and `&amp;lt;confirm&amp;gt;` nodes.</given>
+        <given>`codument/config/operation-hooks.xml` contains an operation hook with nested `&amp;amp;amp;amp;lt;attractor-check&amp;amp;amp;amp;gt;` and `&amp;amp;amp;amp;lt;confirm&amp;amp;amp;amp;gt;` nodes.</given>
         <when>The operation reaches the configured hook point.</when>
         <then>The system SHALL execute those nodes using the same protocol semantics as plan-level hooks.</then>
       </case>
@@ -132,7 +132,7 @@
         <and>The system SHALL update the minimal set of track-local artifacts needed to capture the revision.</and>
       </case>
       <case id="revise-before-hook">
-        <given>`codument/config/operation-hooks.xml` configures `operation name=&quot;revise-track&quot;` with a `before-revise` hook.</given>
+        <given>`codument/config/operation-hooks.xml` configures `operation name=&amp;amp;amp;quot;revise-track&amp;amp;amp;quot;` with a `before-revise` hook.</given>
         <when>The user invokes `revise-track`.</when>
         <then>The system SHALL execute the configured hook before modifying the track.</then>
         <and>If the hook is `BLOCKED`, the system SHALL stop without changing track files.</and>
@@ -156,7 +156,7 @@
       <case id="root-shape">
         <given>A workspace defines `codument/config/artifacts.xml`.</given>
         <when>The system loads artifact sync configuration.</when>
-        <then>The root node SHALL be `artifact-config` with `version=&quot;1&quot;`.</then>
+        <then>The root node SHALL be `artifact-config` with `version=&amp;amp;amp;quot;1&amp;amp;amp;quot;`.</then>
         <and>The root SHALL contain `resources` and `artifacts` sections.</and>
         <and>The root SHALL NOT require or define a `pipelines` section.</and>
       </case>
@@ -301,10 +301,265 @@
         <and>The artifact-sync skill SHALL handle artifact selection, resource resolution, targets, policy, and execution.</and>
       </case>
       <case id="no-before-knowledge-sync">
-        <given>`codument/config/operation-hooks.xml` contains an archive hook with `point=&quot;before-knowledge-sync&quot;`.</given>
+        <given>`codument/config/operation-hooks.xml` contains an archive hook with `point=&amp;amp;amp;quot;before-knowledge-sync&amp;amp;amp;quot;`.</given>
         <when>The system validates operation hooks.</when>
         <then>The system SHALL report the hook point as unknown.</then>
         <and>The system SHALL use artifact-sync terminology such as `before-artifact-sync` instead.</and>
+      </case>
+    </suite>
+  </requirement>
+  <requirement id="modeling-registry">
+    <statement>系统 SHALL provide a domain modeling registry at `codument/modeling/` as an xnl-vfs working tree backed by an xnl-vcs repository, replacing free-form `docs/modeling` as the modeling source of truth.</statement>
+    <suite id="modeling-registry-shape" name="Modeling registry shape">
+      <case id="working-tree">
+        <given>A workspace enables the modeling profile.</given>
+        <when>The system materializes the modeling registry.</when>
+        <then>`codument/modeling/&amp;amp;amp;lt;plane&amp;amp;amp;gt;/&amp;amp;amp;lt;context&amp;amp;amp;gt;/*.xnl` SHALL be human-readable XNL files on disk.</then>
+        <and>Node identity SHALL be stable via XNL namespaced ids or `.node-meta` sidecars.</and>
+      </case>
+      <case id="host-git-versioned">
+        <given>The modeling registry exists.</given>
+        <when>The system records modeling history and collaboration.</when>
+        <then>`codument/modeling/**.xnl` SHALL be versioned by the host project git, not a persisted parallel vcs repo.</then>
+        <and>Any xnl-vfs/xnl-vcs artifacts (e.g. `.xnl-vcs/`) used as an ephemeral merge engine SHALL live under `.tmp/` and be gitignored.</and>
+      </case>
+      <case id="docs-impl-retained">
+        <given>The modeling registry is introduced.</given>
+        <when>Implementation knowledge must be recorded.</when>
+        <then>`docs/impl/` SHALL remain the derived implementation/maintenance knowledge plane, not moved into `codument/`.</then>
+      </case>
+    </suite>
+  </requirement>
+  <requirement id="modeling-node-schema">
+    <statement>系统 SHALL define modeling nodes as XNL elements with a cross-domain kind spectrum, DEPA fact-source metadata, and minimal required representations per kind.</statement>
+    <suite id="kind-spectrum" name="Kind spectrum and representations">
+      <case id="kernel-kinds">
+        <given>A modeling node close to the modeling kernel.</given>
+        <when>An author declares its kind.</when>
+        <then>Kernel kinds SHALL use bare cross-domain tags: `entity`/`object`, `enum`, `state-machine`, `module`/`capsule`, `component`, `port`, `actor`, `policy`.</then>
+      </case>
+      <case id="shell-kinds">
+        <given>A modeling node close to shell/presentation/interaction.</given>
+        <when>An author declares its kind.</when>
+        <then>Shell kinds SHALL use namespaced domain tags such as `surface:route`, `backend:endpoint`, `cli:command`, `agent:tool`.</then>
+      </case>
+      <case id="minimal-representations">
+        <given>A modeling node of a given kind.</given>
+        <when>The system validates the node.</when>
+        <then>`entity` SHALL carry `types` + `fact_grade` + `single_writer`; `state-machine` SHALL carry `mermaid`; `module` SHALL carry `depends_on` + a capsule-tree; `component` SHALL carry runtime/input/config/output `types` blocks.</then>
+        <and>A `module` capsule-tree SHALL reach file/symbol granularity (the files inside each capsule with their responsibility and the modeling node each realizes), not stop at the contract/logic/support layer names.</and>
+      </case>
+      <case id="prose-no-escape">
+        <given>A node embeds TypeScript, mermaid, or pseudocode.</given>
+        <when>It is stored.</when>
+        <then>The content SHALL be an XNL `TextElement` with a marker, requiring no escaping.</then>
+      </case>
+      <case id="namespaced-id">
+        <given>A modeling node needs a globally unique id.</given>
+        <when>The id is assigned.</when>
+        <then>The id SHALL use a multi-level XNL namespaced word: `#&amp;amp;amp;lt;context&amp;amp;amp;gt;.&amp;amp;amp;lt;name&amp;amp;amp;gt;`, or fully qualified across planes as `#&amp;amp;amp;lt;plane&amp;amp;amp;gt;.&amp;amp;amp;lt;context&amp;amp;amp;gt;.&amp;amp;amp;lt;name&amp;amp;amp;gt;`.</then>
+      </case>
+      <case id="modeling-references-behavior">
+        <given>A modeling node describes testable behavior.</given>
+        <when>An author models it.</when>
+        <then>The node SHALL reference `behavior://…` rather than duplicating BDD cases.</then>
+      </case>
+      <case id="vfs-uri-references">
+        <given>A modeling node references another node or a behavior.</given>
+        <when>The reference is written and resolved.</when>
+        <then>The canonical reference syntax SHALL be a VFS URI (`modeling://&amp;amp;amp;lt;plane&amp;amp;amp;gt;/&amp;amp;amp;lt;context&amp;amp;amp;gt;/&amp;amp;amp;lt;name&amp;amp;amp;gt;` or `behavior://…`).</then>
+        <and>The resolver SHALL treat any metadata/attribute value matching a known VFS scheme as a reference (scheme self-identifying), without a fixed key whitelist.</and>
+      </case>
+    </suite>
+  </requirement>
+  <requirement id="modeling-delta-merge">
+    <statement>系统 SHALL express a track's modeling change as target-state nodes and apply it at archive via an ephemeral node-level three-way merge (xnl-vfs as merge engine), with the base anchored on the host git commit, rather than a custom delta node type or a persisted parallel vcs repo.</statement>
+    <suite id="delta-merge" name="Modeling delta as three-way merge">
+      <case id="target-state-export">
+        <given>A track changes modeling.</given>
+        <when>The track is created and implemented.</when>
+        <then>The change SHALL be written as target-state nodes under `tracks/&amp;amp;amp;lt;id&amp;amp;amp;gt;/modeling_deltas/&amp;amp;amp;lt;plane&amp;amp;amp;gt;/&amp;amp;amp;lt;context&amp;amp;amp;gt;.xnl` (the merge `theirs` side), git-tracked and reviewable.</then>
+      </case>
+      <case id="base-anchor">
+        <given>A track modeling change.</given>
+        <when>The track is created.</when>
+        <then>The system SHALL record the current host git commit id of `codument/modeling` as the three-way merge base.</then>
+      </case>
+      <case id="archive-merge">
+        <given>An archived track with modeling changes.</given>
+        <when>The system applies the modeling delta.</when>
+        <then>The system SHALL materialize base (from host git), ours (working tree), and theirs (modeling_deltas), and run an ephemeral node-level three-way merge via xnl-vfs `xnlFileHandler.merge`.</then>
+        <and>Conflicts (`RENAME_RENAME`, `DELETE_MODIFY`, `BINARY_UNMERGEABLE`) SHALL be resolved via `{ metadataId, choice }` or reported issues-first, never silently overwritten.</and>
+        <and>The merged result SHALL be written back to the working tree and committed by host git; ephemeral merge artifacts SHALL NOT be persisted.</and>
+      </case>
+      <case id="conflict-policy">
+        <given>A three-way modeling merge produces conflicts.</given>
+        <when>The system resolves them.</when>
+        <then>By default it SHALL auto-merge only unambiguous cases (disjoint nodes, disjoint sub-parts, pure adds, pure deletes) and report true conflicts (same-field, DELETE_MODIFY, RENAME_RENAME, ADD/ADD same id) issues-first, pausing rather than silently choosing a side.</then>
+        <and>Per-conflict-type policy SHALL be configurable in `codument/config/modeling.xml` `&amp;amp;amp;lt;merge-policy&amp;amp;amp;gt;` with `resolve` of `human|ours|theirs|base`, defaulting to `human`.</and>
+      </case>
+    </suite>
+  </requirement>
+  <requirement id="modeling-fractal-split">
+    <statement>系统 SHALL provide a `codument modeling lint` check that flags oversized modeling XNL files for same-name-folder fractal split.</statement>
+    <suite id="fractal-split" name="Fractal split check">
+      <case id="oversize-flag">
+        <given>A modeling XNL file exceeds the configured line or node-count threshold.</given>
+        <when>`codument modeling lint` runs.</when>
+        <then>The system SHALL flag the file as a fractal-split candidate.</then>
+      </case>
+      <case id="split-is-vcs-tracked">
+        <given>A flagged file is split.</given>
+        <when>The split is applied.</when>
+        <then>The split SHALL use `vfs.rename` so xnl-vcs tracks the move.</then>
+      </case>
+    </suite>
+  </requirement>
+  <requirement id="modeling-config">
+    <statement>系统 SHALL gate all modeling behavior behind `codument/config/modeling.xml` (modeled on `attractor-profiles.xml`), disabled by default.</statement>
+    <suite id="modeling-config-gate" name="Modeling config gate">
+      <case id="default-off">
+        <given>A workspace without `codument/config/modeling.xml` or with the modeling profile not enabled.</given>
+        <when>Track create, implement, archive, or lint runs.</when>
+        <then>The system SHALL skip all modeling behavior and leave existing behavior unchanged.</then>
+      </case>
+      <case id="enabled">
+        <given>`codument/config/modeling.xml` enables the modeling profile.</given>
+        <when>A track is created, implemented, or archived.</when>
+        <then>The system SHALL produce and apply modeling deltas per this spec.</then>
+      </case>
+    </suite>
+  </requirement>
+  <requirement id="modeling-docs-impl-writeback">
+    <statement>系统 SHALL, at archive when modeling is enabled, write the track's design rationale into `docs/impl/` by category after merging modeling deltas.</statement>
+    <suite id="docs-impl-writeback" name="docs/impl writeback">
+      <case id="category-routing">
+        <given>An archived track whose design adds implementation knowledge.</given>
+        <when>The system writes back to docs/impl.</when>
+        <then>Content SHALL be routed by category (overview/howto/rules/reference/troubleshooting) per the impl fractal standard.</then>
+      </case>
+    </suite>
+  </requirement>
+  <requirement id="knowledgesync-residue-removed">
+    <statement>系统 SHALL NOT retain `knowledgeSync` string residue; modeling enablement is governed only by `codument/config/modeling.xml`.</statement>
+    <suite id="knowledgesync-cleanup" name="knowledgeSync cleanup">
+      <case id="no-residue">
+        <given>The codebase and templates after this change.</given>
+        <when>The project is searched for `knowledgeSync`.</when>
+        <then>No `knowledgeSync` references SHALL remain except intentional migration notes.</then>
+      </case>
+    </suite>
+  </requirement>
+  <requirement id="modeling-validate">
+    <statement>系统 SHALL provide an explicit `codument modeling validate` command that checks every modeling `.xnl` file across three layers — XNL syntax, node-schema semantics, and hierarchy/reference consistency — reporting issues author-friendly (file + line/position + reason) instead of throwing, gated behind `config/modeling.xml` (skipped when modeling is disabled).</statement>
+    <suite id="syntax-layer" name="Layer 1: XNL syntax">
+      <case id="parse-and-report">
+        <given>A modeling `.xnl` file with an XNL syntax error (e.g. mismatched text marker, unclosed block).</given>
+        <when>`codument modeling validate` runs.</when>
+        <then>The system SHALL parse via xnl-core `parseXnl(.., {textBlockStyle:true})` and report `{file, line/position, reason}`, rather than letting an uncaught `XnlParseError` propagate.</then>
+        <and>A syntactically valid file SHALL pass this layer with no finding.</and>
+      </case>
+    </suite>
+    <suite id="schema-layer" name="Layer 2: node-schema semantics">
+      <case id="reuse-validate-node">
+        <given>A modeling node missing a minimal-required representation (e.g. `entity` without `types`/`fact_grade`/`single_writer`, or an unknown bare kind).</given>
+        <when>validate runs.</when>
+        <then>The system SHALL reuse `validateModelingNode` (kind spectrum, minimal representations, `fact_grade` enum, namespaced id) and surface each violation as a finding.</then>
+      </case>
+    </suite>
+    <suite id="hierarchy-layer" name="Layer 3: hierarchy / definition consistency">
+      <case id="id-path-alignment">
+        <given>A node whose id namespace does not match its file path `&amp;amp;lt;plane&amp;amp;gt;/&amp;amp;lt;context&amp;amp;gt;` (e.g. `#inventory.stock` inside `domain/orders/index.xnl`).</given>
+        <when>validate runs.</when>
+        <then>The system SHALL flag a hierarchy violation: the id's context segment MUST equal the path context, and if the id carries a plane prefix it MUST equal the path plane.</then>
+      </case>
+      <case id="plane-legality">
+        <given>The modeling registry root and a file under some plane.</given>
+        <when>validate runs.</when>
+        <then>The system SHALL require a `domain` plane to exist and accept open derived planes, flagging an unknown plane per `config/modeling.xml` policy (default: warning).</then>
+      </case>
+      <case id="reference-resolvable">
+        <given>A node with a `modeling://` reference (`single_writer`/`depends_on`/`derived_from`/`uses`) pointing to a node absent from the registry index.</given>
+        <when>validate runs over the full registry.</when>
+        <then>The system SHALL resolve `modeling://` references (scheme self-identifying) against the registry index and report dangling references.</then>
+        <and>`behavior://` references SHALL be syntax-checked but their existence MAY be left unverified (no hard dependency on the behaviors registry).</and>
+      </case>
+      <case id="unique-id">
+        <given>Two nodes sharing the same id across files.</given>
+        <when>validate runs.</when>
+        <then>The system SHALL report the duplicate id with both file locations (as a finding, not an uncaught throw).</then>
+      </case>
+      <case id="delta-files-same-rules">
+        <given>A track's `modeling_deltas/&amp;amp;lt;plane&amp;amp;gt;/&amp;amp;lt;context&amp;amp;gt;.xnl` target-state file.</given>
+        <when>validate runs against deltas (e.g. `modeling validate --deltas &amp;amp;lt;track&amp;amp;gt;`).</when>
+        <then>The same syntax + schema + hierarchy rules SHALL apply, with the id namespace aligned to the delta file's `&amp;amp;lt;plane&amp;amp;gt;/&amp;amp;lt;context&amp;amp;gt;`.</then>
+      </case>
+    </suite>
+    <suite id="gating-and-report" name="Gating and reporting">
+      <case id="config-gate">
+        <given>`config/modeling.xml` with modeling disabled (default).</given>
+        <when>`codument modeling validate` runs.</when>
+        <then>The system SHALL skip and state modeling is disabled, consistent with `lint`/`track`/`archive` gating.</then>
+      </case>
+      <case id="issues-first-exit">
+        <given>One or more findings across layers.</given>
+        <when>validate completes.</when>
+        <then>The system SHALL print findings grouped by file with a non-zero summary count (issues-first), and a clean run SHALL report success.</then>
+      </case>
+    </suite>
+  </requirement>
+  <requirement id="xnl-format-guide">
+    <statement>系统 SHALL vendor the xnl-core for-AI format guide into codument std as the authoritative XNL syntax reference for authoring modeling nodes, because the published npm package ships only `dist/` (its `doc/ai-guide/` is not packaged).</statement>
+    <suite id="vendored-guide" name="Vendored XNL format guide">
+      <case id="guide-present">
+        <given>An AI author generating modeling XNL needs syntax rules (markers, zero-escape, EBNF, common errors).</given>
+        <when>It consults codument std.</when>
+        <then>codument SHALL provide `std/spec/xnl-format.md` vendored from `xnl-core` `doc/ai-guide/XnlDataFormatForAi.md`, with a provenance note (source + version).</then>
+      </case>
+      <case id="modeling-specs-reference">
+        <given>The modeling specs (`modeling-registry.md` / `modeling-node-schema.md` / `modeling-delta.md`).</given>
+        <when>They describe XNL writing.</when>
+        <then>They SHALL reference `std/spec/xnl-format.md` as the authoritative syntax source instead of re-deriving syntax inline.</then>
+      </case>
+    </suite>
+  </requirement>
+  <requirement id="modeling-authoring-form">
+    <statement>系统 SHALL guide and validate the XNL *form* of modeling nodes so that LLM authors produce spec-conformant nodes — component IO blocks as bare tags, shell-kind nodes as plain element tags plus a `kind` attribute — while the validate engine accepts the common role-tagged IO variant for compatibility. Derived from E2E dogfood where a real model (codex gpt-5.5) wrote conceptually-correct modeling but tripped on these two XNL-form ambiguities across 3/3 and 1/3 topics.</statement>
+    <suite id="component-io-form" name="Component IO block form">
+      <case id="bare-io-tags-canonical">
+        <given>A modeling `component` node needing runtime/input/config/output blocks.</given>
+        <when>An author writes it per spec.</when>
+        <then>The canonical form SHALL be bare tags `&amp;lt;runtime&amp;gt;` / `&amp;lt;input&amp;gt;` / `&amp;lt;config&amp;gt;` / `&amp;lt;output&amp;gt;`, and `modeling-node-schema.md` + `xnl-format.md` SHALL state this explicitly with Good/Bad examples.</then>
+      </case>
+      <case id="role-tagged-io-accepted">
+        <given>A `component` whose IO blocks are written as `&amp;lt;types role=&quot;runtime&quot;&amp;gt;` (and input/config/output) instead of bare tags.</given>
+        <when>`modeling validate` runs.</when>
+        <then>The schema layer SHALL accept a role-tagged block as satisfying the corresponding runtime/input/config/output requirement (compatibility), without raising the &quot;requires a &amp;lt;slot&amp;gt; block&quot; error.</then>
+        <and>Bare tags remain the canonical, spec-recommended form; role-tagged is accepted-but-discouraged.</and>
+      </case>
+    </suite>
+    <suite id="shell-kind-form" name="Shell-kind node form">
+      <case id="plain-tag-plus-kind-attr">
+        <given>A shell-kind modeling node (e.g. a backend endpoint or a surface route).</given>
+        <when>An author writes its XNL element.</when>
+        <then>The element tag SHALL be a plain word (e.g. `&amp;lt;endpoint&amp;gt;`, `&amp;lt;route&amp;gt;`) carrying the namespaced kind in the `kind` attribute (`kind=&quot;backend:endpoint&quot;`); the element tag name MUST NOT contain a colon (XNL element tags cannot).</then>
+        <and>`modeling-node-schema.md` + `xnl-format.md` SHALL show Good (`&amp;lt;endpoint kind=&quot;backend:endpoint&quot;&amp;gt;`) vs Bad (`&amp;lt;backend:endpoint …&amp;gt;` → XNL syntax error) examples.</and>
+      </case>
+    </suite>
+    <suite id="selfcheck-in-flow" name="Modeling self-check in track / implement">
+      <case id="validate-after-generate">
+        <given>A track-creation or implement step that generates/edits `modeling_deltas` while modeling is enabled.</given>
+        <when>The deltas are written.</when>
+        <then>The workflow SHALL run `codument modeling validate --deltas &amp;lt;track&amp;gt;` and surface + repair findings before proceeding.</then>
+        <and>This step SHALL be gated on `config/modeling.xml` (skipped when modeling is disabled), consistent with other modeling behavior.</and>
+      </case>
+    </suite>
+    <suite id="language-convention" name="Descriptive content in Chinese, identifiers in English">
+      <case id="chinese-descriptions">
+        <given>An author writes a modeling node's descriptive content.</given>
+        <when>The node is authored.</when>
+        <then>Descriptive blocks (`desc` / `fact-source` / `not-owned-here` / `dependency-rule` / `invariants`), code comments inside `types` and IO blocks, `pseudo` natural-language steps, and `mermaid` node/transition labels SHALL be written in Chinese.</then>
+        <and>Code identifiers — TypeScript interface/type/field names, `enum` members and values, `kind`, `fact_grade`, metadata keys, `#id` namespaces, VFS schemes, and mermaid state names that mirror enum values — SHALL remain in English, so generated TypeScript stays compilable and machine contracts (schema/refs) stay consistent. See std/spec/modeling-node-schema.md §9.</and>
       </case>
     </suite>
   </requirement>

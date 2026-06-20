@@ -1,0 +1,3 @@
+<object #resource.x kind="entity">
+
+<object #resource.y kind="enum">

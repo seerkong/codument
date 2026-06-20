@@ -1,0 +1,8 @@
+<object #derived.orders.summary kind="entity" fact_grade="derived_projection_cache" single_writer="modeling://domain/orders/order" derived_from="modeling://domain/orders/order" [
+  <desc ?>
+  位于未知 derived plane（不是 domain），应当产生 warning（非 error）。id 带 plane 前缀且与路径一致。
+  </?>
+  <types ?t>
+  interface OrderSummary { id: string; total: number }
+  </?t>
+]>

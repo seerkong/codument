@@ -1,0 +1,55 @@
+<object #orders.order kind="entity" fact_grade="authoritative_fact" single_writer="modeling://domain/orders/orders_module" [
+  <desc ?>
+  一张订单：从下单到履约的聚合根。状态由事件投影，金额是只读派生。
+  </?>
+  <types ?ts_order>
+  interface Order {
+    id: string
+    customerId: string
+    status: OrderStatus
+    lines: OrderLine[]
+    total: Money          // 只读投影：由 lines 计算，不反写
+  }
+  interface OrderLine { sku: string; qty: number; unitPrice: Money }
+  </?ts_order>
+  <fact-source ?>
+  唯一写入者 = orders_module；total 是 derived_projection_cache，由 lines 投影，不反写。
+  </?>
+  <invariants ?>
+  同一 order 内 sku 不重复；total = Σ(line.qty × line.unitPrice)；删除走软删 cancelled。
+  </?>
+  <not-owned-here ?>
+  库存扣减属 inventory context，本节点经 message 请求，不直写。
+  </?>
+]>
+
+<enum #orders.order_status kind="enum" [
+  <types ?ts_status>
+  enum OrderStatus { Draft="draft", Placed="placed", Paid="paid", Shipped="shipped", Cancelled="cancelled" }
+  </?ts_status>
+]>
+
+<state-machine #orders.order_lifecycle kind="state-machine" [
+  <desc ?>
+  订单状态机：合法迁移与触发事件。
+  </?>
+  <mermaid ?mm_life>
+  stateDiagram-v2
+    [*] --> draft
+    draft --> placed: place
+    placed --> paid: pay
+    paid --> shipped: ship
+    draft --> cancelled: cancel
+    placed --> cancelled: cancel
+  </?mm_life>
+]>
+
+<policy #orders.pricing kind="policy" behaviors=["behavior://orders/requirements/coupon-validation"] [
+  <desc ?>
+  定价与折扣规则：跨 order line 的金额计算与优惠券校验。
+  </?>
+  <pseudo kind="rule" ?ps_price>
+  applicable(coupon, order) :- valid(coupon), total(order, T), T >= coupon.minSpend.
+  discount(order, D)        :- applicable(C, order), D = C.amount.
+  </?ps_price>
+]>

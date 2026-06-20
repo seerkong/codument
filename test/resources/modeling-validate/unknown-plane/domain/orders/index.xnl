@@ -1,0 +1,8 @@
+<object #orders.order kind="entity" fact_grade="authoritative_fact" single_writer="modeling://domain/orders/order" [
+  <desc ?>
+  domain plane 存在的订单实体。
+  </?>
+  <types ?t>
+  interface Order { id: string }
+  </?t>
+]>

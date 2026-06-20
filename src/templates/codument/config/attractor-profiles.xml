@@ -11,7 +11,7 @@
     <Attractor ref="vfs://@/codument/attractors/project.md"/>
   </Profile>
 
-  <!-- 启用即开启 docs 知识同步能力（取代旧 feature.json knowledgeSync.enabled）；停用则 docs 相关 hook/同步不触发 -->
+  <!-- 启用即开启 docs 知识同步能力；停用则 docs 相关 hook/同步不触发 -->
   <Profile name="docs" enabled="true">
     <Description>docs 知识方向（分层晋升 + 分形规范）</Description>
     <Attractor ref="vfs://@/codument/attractors/knowledge-tiers.md"/>

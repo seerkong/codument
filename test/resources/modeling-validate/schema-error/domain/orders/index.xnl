@@ -1,0 +1,5 @@
+<object #orders.order kind="entity" [
+  <desc ?>
+  entity 缺最小表征：没有 types / fact_grade / single_writer。
+  </?>
+]>

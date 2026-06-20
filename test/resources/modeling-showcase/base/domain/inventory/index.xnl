@@ -1,0 +1,25 @@
+<actor #inventory.inventory kind="actor" single_writer="modeling://domain/inventory/inventory" [
+  <desc ?>
+  库存 actor：拥有 stock 子图的唯一写入边界；外部经 message 进入，不直写。偏重 = data-owner。
+  </?>
+  <mermaid ?mm_actor>
+  flowchart LR
+    orders -- message ReserveStock --> inventory
+    inventory -- message StockReserved/StockShortfall --> orders
+  </?mm_actor>
+  <commands ?cmd>
+  ReserveStock / ReleaseStock：owner 在自己 reducer 内同步 reduce(command)；跨 actor 投递是 message。
+  </?cmd>
+]>
+
+<object #inventory.stock kind="entity" fact_grade="authoritative_fact" single_writer="modeling://domain/inventory/inventory" [
+  <desc ?>
+  SKU 库存量，由 inventory actor 单写。
+  </?>
+  <types ?ts_stock>
+  interface Stock { sku: string; available: number; reserved: number }
+  </?ts_stock>
+  <fact-source ?>
+  唯一写入者 = inventory actor；available 是 1 级权威，不经磁盘往返。
+  </?>
+]>

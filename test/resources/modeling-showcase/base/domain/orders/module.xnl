@@ -1,0 +1,54 @@
+<module #orders.orders_module kind="module" depends_on=["modeling://domain/inventory/inventory" "modeling://domain/orders/order"] [
+  <desc ?>
+  订单模块：拥有 order 聚合的写入边界，编排下单流程。
+  </?>
+  <capsule-tree ?cap>
+  orders/                            # module 根（写入边界 = order 聚合）
+    contract/                        # 对外类型；无副作用、无内向依赖
+      order-create.ts                # OrderCreate / CartLine 入参 DTO
+      order-response.ts              # OrderResponse ← modeling://domain/orders/order 的只读投影
+    logic/                           # 纯函数：可单测、无 IO
+      project-total.ts               # fn(lines) -> total（derived_projection_cache）
+      transit-status.ts              # 状态迁移守卫，依据 #orders.order_lifecycle
+      apply-coupon.ts                # 折扣计算 + 券校验，依据 #orders.pricing
+    support/                         # 副作用适配器（IO 边界，contract 的实现）
+      order-store.ts                 # append/load order 事件（authoritative_fact 写入口）
+      inventory-mailbox.ts           # 向 #inventory.inventory 投递 ReserveStock message
+      event-publisher.ts             # 发布 OrderPlaced 领域事件
+    ports/                           # 入口编排（薄；不含业务规则）
+      create-order.ts                # POST /orders -> #orders.place_order（message）
+  </?cap>
+  <dependency-rule ?>
+  层向依赖单向：ports → logic → contract；support 实现 contract 接口由 ports 注入；跨 context 只经 inventory 的 message，不读其 internals。
+  </?>
+]>
+
+<component #orders.place_order kind="component" [
+  <desc ?>
+  下单标准组件：output = fn(runtime, input, config)。
+  </?>
+  <runtime ?rt>
+  interface PlaceOrderRuntime {
+    orderStore: OrderStore        // 副作用契约
+    inventory: InventoryMailbox   // 跨 actor 的 message 投递口
+    clock: Clock
+    currentUser: User             // 请求级只读
+  }
+  </?rt>
+  <input ?in>
+  interface PlaceOrderInput { cart: CartLine[] }
+  </?in>
+  <config ?cfg>
+  interface PlaceOrderConfig { allowBackorder: boolean }
+  </?cfg>
+  <output ?out>
+  interface PlaceOrderOutput { order: Order }
+  </?out>
+  <pseudo kind="ctrl" ?ctrl>
+  function placeOrder(runtime, input, config) {
+    const reserved = send(runtime.inventory, ReserveStock(input.cart))  // message, 异步
+    if (!reserved.ok && !config.allowBackorder) return fail("out_of_stock")
+    return runtime.orderStore.appendPlaced(project(input.cart))
+  }
+  </?ctrl>
+]>

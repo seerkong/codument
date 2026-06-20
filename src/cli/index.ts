@@ -7,6 +7,7 @@ import { initCommand } from './commands/init';
 import { archiveCommand } from './commands/archive';
 import { upgradeWorkspaceCommand } from './commands/upgrade-workspace';
 import { upgradeTrackCommand } from './commands/upgrade-track';
+import { modelingCommand } from './commands/modeling';
 import { setWorkspaceDir } from './utils';
 import { VERSION } from '../version';
 
@@ -26,6 +27,8 @@ Commands:
   validate [item]   Validate track or spec format
   archive <id>      Archive a completed track
   status            Show project status overview
+  modeling lint     Flag oversized modeling XNL files for fractal split
+  modeling validate Validate modeling XNL (syntax + schema + hierarchy)
 
 Options:
   -h, --help              Show this help message
@@ -103,6 +106,9 @@ async function main() {
         break;
       case 'upgrade-track':
         await upgradeTrackCommand(commandArgs);
+        break;
+      case 'modeling':
+        await modelingCommand(commandArgs);
         break;
       default:
         console.error(`Unknown command: ${command}`);
