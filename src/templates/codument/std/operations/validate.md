@@ -247,7 +247,7 @@ Behaviors:
 
 ## 9. 独立验证子代理模式
 
-当本 skill 被旧 `codument-execute-wave` 入口作为验证子代理调用时，执行以下独立验证流程；当前标准下波次执行已并入 `codument-implement`。
+当本 skill 被旧 `codument-execute-wave` 入口作为验证子代理调用时，执行以下独立验证流程；当前标准下波次执行已并入 `codument-impl-track`。
 
 ### 9.1 触发条件
 

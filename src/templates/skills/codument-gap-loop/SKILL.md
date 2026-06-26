@@ -9,7 +9,7 @@ description: 有界目标对比纠偏（双角色：父层编排 + fresh 子代�
 
 `@/codument/std/operations/gap-loop.md`
 
-⚠️ 本操作是**双角色协议**：读 body 后**第一动作是判定自己是父层编排代理还是本轮 fresh 子代理**，只执行对应章节。完整规程见 `@/codument/std/sop/gap-loop.md`（body 引用）。
+⚠️ 本操作是**双角色协议**：读 body 后**第一动作是判定自己是父层编排代理还是本轮 fresh 子代理**，只执行对应章节。完整规程见 `@/codument/std/operations/gap-loop.md`（body 引用）。
 
 - **前置**：项目已 `codument-init`，目标 track 已在实现中。
 - **用法**：校验 track: `<track-id>` [--phase <id>] [--background <path>]。

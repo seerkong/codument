@@ -4,7 +4,7 @@
 
 > 本文是完整提示词（口径已对齐当前标准）。**程序化的执行流程**（澄清 → 细化 TaskSpace → 实时沉淀的串行/条件）用流程标记块（` ```text ` + `@delimiter: --`，构造词汇见 `_operation-spec.md`）表达；**说明、规则、背景、示例**用 Markdown，内嵌 XML 用 ```` ```xml ```` 围栏。
 >
-> 口径映射：`codument:discuss`→`codument-discuss`；`plan.xml`→`track.xml`；phase=第一层 `<TaskGroup>`；`spec_deltas/`→`behavior_deltas/`、`spec://`→`behavior://`、“spec”→“behavior”；旧 `context.md` 的"讨论记录"不再是独立产物，而是**落进 `track.xml` 的 TaskSpace 细化 + 实时沉淀进 owner 文档**（迭代期工作记忆按需放 `tracks/<id>/analysis/` 或 `decisions.md`）；`<gate_criteria>`→`<cdt:Gate>`、`<acceptance_criteria>`→`<cdt:Acceptance>`；并行调度标 `cdt:child-mode="dag"` 交给 `plan-schedule`。
+> 口径映射：`codument:discuss`→`codument-discuss`；`plan.xml`→`track.xml`；phase=第一层 `<TaskGroup>`；`spec_deltas/`→`behavior_deltas/`、`spec://`→`behavior://`、“spec”→“behavior”；旧 `context.md` 的"讨论记录"不再是独立产物，而是**落进 `track.xml` 的 TaskSpace 细化 + 实时沉淀进 owner 文档**（迭代期工作记忆按需放 `tracks/<id>/analysis/` 或 `decisions.md`）；`<gate_criteria>`→`<cdt:Gate>`、`<acceptance_criteria>`→`<cdt:Acceptance>`；并行调度标 `cdt:child-mode="dag"` 交给 `plan-track-wave`。
 
 ---
 
@@ -139,7 +139,7 @@ discuss 同时承担两件事，缺一不可：
 
 - **增删 `<Task>`/`<TaskGroup>`**：把粗任务拆为叶 `<Task>`，复杂任务升级为嵌套 `<TaskGroup>`（任意层级，取代旧固定 3 层）。
 - **补 `cdt:Acceptance`/`cdt:Gate`**：为目标 task 补验收标准（`{taskId}-AC{n}`）、为 phase 补阶段门控。
-- **定 `cdt:child-mode`**：若该层需要并行，在 `<TaskGroup>`（或 `<TaskSpace>`）上标 `cdt:child-mode="dag"`，并把**该层直接下层之间**的依赖声明交给 `plan-schedule` skill（它在 `<Schedule><Dag for=该层><Node><After ref>` 里落依赖边）。默认 `sequential` 可省，多数层无需任何依赖配置。
+- **定 `cdt:child-mode`**：若该层需要并行，在 `<TaskGroup>`（或 `<TaskSpace>`）上标 `cdt:child-mode="dag"`，并把**该层直接下层之间**的依赖声明交给 `plan-track-wave` skill（它在 `<Schedule><Dag for=该层><Node><After ref>` 里落依赖边）。默认 `sequential` 可省，多数层无需任何依赖配置。
 
 ```xml
 <TaskGroup id="P1" name="后端导出端点" status="ACTIVE" order="0" cdt:child-mode="dag">
@@ -201,14 +201,14 @@ discuss 中一旦把某领域概念/行为/policy/架构澄清到**稳定**（�
 宣布讨论完成：
 
 > "Phase <id> 讨论完成，track.xml 已细化（任务拆分 + 验收/门控 + 可选调度标记）；稳定结论已实时收敛进 owner 文档。
-> 推荐的下一步是 `请使用 codument-implement skill，实现 track: <track_id>` 开始实现；如该 phase 标了 `cdt:child-mode=dag` 需先排依赖，可先 `请使用 codument-plan-schedule skill，规划 track: <track_id>`。"
+> 推荐的下一步是 `请使用 codument-impl-track skill，实现 track: <track_id>` 开始实现；如该 phase 标了 `cdt:child-mode=dag` 需先排依赖，可先 `请使用 codument-plan-track-wave skill，规划 track: <track_id>`。"
 
 ---
 
 ## 引用
 
 - `codument/std/spec/track-xml-spec.md`（TaskSpace/Schedule/Hooks、phase=第一层 TaskGroup、`cdt:` 概念）
-- `codument/std/operations/plan-schedule.md`（`cdt:child-mode=dag` 层的依赖边声明）
+- `codument/std/operations/plan-track-wave.md`（`cdt:child-mode=dag` 层的依赖边声明）
 - `codument/std/sop/questioning.md`（ask-single-question-free / -closed / ask-multi-question-free）
 - `codument/attractors/knowledge-tiers.md`（晋升阶梯、真源优先级）
 - `codument/attractors/model-driven-docs.md`（docs/modeling 与 docs/impl 路由、frontmatter）

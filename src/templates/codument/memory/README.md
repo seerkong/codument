@@ -10,4 +10,4 @@
 memory/<category>/YYYY-MM/YYYY-MM-DD-HHmm-slug/   # category ∈ lessons|incidents|patterns|summaries
 ```
 
-每条目录自包含；**不建全局 `index.md`**（跨分支会冲突）。归档时若该 track 无耐久教训，不造条目。仅当 `memory` profile 启用且 track 显式给出候选时才提升（见 `std/sop/archive.md`）。
+每条目录自包含；**不建全局 `index.md`**（跨分支会冲突）。归档时若该 track 无耐久教训，不造条目。仅当 `memory` profile 启用且 track 显式给出候选时才提升（见 `std/operations/archive.md`）。

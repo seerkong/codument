@@ -13,10 +13,10 @@
 | skill 壳目录 | 指向的 body |
 |---|---|
 | `codument-init/` | `@/codument/std/operations/init.md` |
-| `codument-track/` | `@/codument/std/operations/track.md` |
+| `codument-plan-track/` | `@/codument/std/operations/plan-track.md` |
 | `codument-discuss/` | `@/codument/std/operations/discuss.md` |
-| `codument-plan-schedule/` | `@/codument/std/operations/plan-schedule.md` |
-| `codument-implement/` | `@/codument/std/operations/implement.md` |
+| `codument-plan-track-wave/` | `@/codument/std/operations/plan-track-wave.md` |
+| `codument-impl-track/` | `@/codument/std/operations/impl-track.md` |
 | `codument-gap-loop/` | `@/codument/std/operations/gap-loop.md` |
 | `codument-verify/` | `@/codument/std/operations/verify.md` |
 | `codument-revise-track/` | `@/codument/std/operations/revise-track.md` |

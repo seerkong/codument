@@ -127,7 +127,7 @@
 - **修改过的 track 文件**（哪些 behavior_deltas / design / track.xml / analysis / decisions）；
 - **修订原因**；
 - **是否执行了 operation hook**（before / after，及结果）；
-- **推荐下一步**：继续 `codument-implement`、运行 `codument-gap-loop`、再次 `codument-revise-track`，或 `codument-archive`。
+- **推荐下一步**：继续 `codument-impl-track`、运行 `codument-gap-loop`、再次 `codument-revise-track`，或 `codument-archive`。
 
 ---
 

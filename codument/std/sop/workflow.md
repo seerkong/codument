@@ -16,11 +16,11 @@
 
 ## 三阶段
 
-### 一、创建 track（`codument-track`）
+### 一、创建 track（`codument-plan-track`）
 查现状（`codument list [--behaviors]`）→ 选动词开头 kebab `track-id` → 写 `behavior_deltas/<cap>/delta.xml` + `proposal.md`(+`design.md`) + `track.xml`（TaskSpace；phase=第一层 TaskGroup）→ 同轮收集 提交模式 / 校验模式 / 方向审查并写成 Hooks → 等批准。
 
-### 二、实现（`codument-implement` 等）
-读 proposal/design/behavior_deltas/analysis/findings → 按 TaskSpace 顺序遍历 phase、层内按 Schedule（默认顺序 / `cdt:child-mode="dag"` 则 DAG，见 `wave-exec.md`）派发子代理 → 独立 spot-check → 回写 status 与 findings → 在 phase/task/track 生命周期跑 `cdt:` hook（`validation.md`）。可按需 `discuss` / `plan-schedule` / `gap-loop` / `verify` / `revise-track`。
+### 二、实现（`codument-impl-track` 等）
+读 proposal/design/behavior_deltas/analysis/findings → 按 TaskSpace 顺序遍历 phase、层内按 Schedule（默认顺序 / `cdt:child-mode="dag"` 则 DAG，见 `wave-exec.md`）派发子代理 → 独立 spot-check → 回写 status 与 findings → 在 phase/task/track 生命周期跑 `cdt:` hook（`validation.md`）。可按需 `discuss` / `plan-track-wave` / `gap-loop` / `verify` / `revise-track`。
 
 ### 三、归档（`codument-archive`）
 提升 behavior delta 进 `codument/behaviors/` → 移 track 到 `archive/YYYY-MM/...` → 条件提升 decision/memory → 显式 hook 触发 artifact/docs 同步（`archive.md` / `artifact-sync.md`）。

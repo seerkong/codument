@@ -1,10 +1,10 @@
-# skill: codument-track（创建变更追踪）
+# skill: codument-plan-track（创建变更追踪）
 
 为一个新功能 / Bug 修复 / 变更创建一条 **Track**：引导用户收集信息，生成行为增量（`behavior_deltas/<capability>/delta.xml`）、提案（`proposal.md`）、可选方案设计（`design.md`），以及状态真源 `track.xml`，并把它们组织在专用的 `tracks/<id>/` 目录中等待批准。
 
 > 本文以 **Markdown 为主**：何时建 track、每步问什么、产物长什么样、各种规则与示例都用 prose / 列表 / 表格 / good-bad 示例完整给出。只有**程序化的控制流**（新建 track 的固定顺序、同轮确认的写入分支）用流程标记块（` ```text ` + `@delimiter: --`，构造词汇见 `_operation-spec.md`）表达；XML 片段用 ` ```xml ` 围栏内嵌（免转义）。
 >
-> 口径映射（旧→新，全文一致）：`codument:track`→`codument-track`；`list --specs`→`list --behaviors`；`plan.xml`→`track.xml`（根 `<Track xmlns:cdt>`，phase = `<TaskSpace>` 第一层 `<TaskGroup>`，状态枚举 `NOT_STARTED/ACTIVE/DONE…`）；`spec_deltas/`→`behavior_deltas/`、`spec://`→`behavior://`、`<spec-patch>`→`<behavior-patch>`、`specs/`→`behaviors/`，"spec"→"behavior"；`<validation_mode>`/`<confirm>`→`<cdt:GapLoop>`/`<cdt:HumanConfirm>` 节点；`<attractor-check>`→`<cdt:AttractorCheck use="coding|docs">`；`feature.json` 能力开关→profile 的 `enabled`。track.xml 完整口径见 `codument/std/spec/track-xml-spec.md`，track 目录布局见其 §0.5。
+> 口径映射（旧→新，全文一致）：`codument:track`/旧 `codument-track`→`codument-plan-track`；`list --specs`→`list --behaviors`；`plan.xml`→`track.xml`（根 `<Track xmlns:cdt>`，phase = `<TaskSpace>` 第一层 `<TaskGroup>`，状态枚举 `NOT_STARTED/ACTIVE/DONE…`）；`spec_deltas/`→`behavior_deltas/`、`spec://`→`behavior://`、`<spec-patch>`→`<behavior-patch>`、`specs/`→`behaviors/`，"spec"→"behavior"；`<validation_mode>`/`<confirm>`→`<cdt:GapLoop>`/`<cdt:HumanConfirm>` 节点；`<attractor-check>`→`<cdt:AttractorCheck use="coding|docs">`；`feature.json` 能力开关→profile 的 `enabled`。track.xml 完整口径见 `codument/std/spec/track-xml-spec.md`，track 目录布局见其 §0.5。
 
 ---
 
@@ -430,7 +430,7 @@ proposal 获批后："现在我将根据规范创建结构化实现计划（`tra
 </Schedule>
 ```
 
-一个 `<Dag>` 只描述一个父节点的直接下层之间的边（不跨层、不跨父）；后续 `codument-plan-schedule` skill 也可补这一步。
+一个 `<Dag>` 只描述一个父节点的直接下层之间的边（不跨层、不跨父）；后续 `codument-plan-track-wave` skill 也可补这一步。
 
 写入 `codument/tracks/<track_id>/track.xml`。
 
@@ -452,16 +452,20 @@ proposal 获批后："现在我将根据规范创建结构化实现计划（`tra
 > **E. 仅最后一个 phase 校验（final_phase，默认）**
 > **F. 每个 phase 都校验（every_phase）**
 >
+> 若选 **D**，再选**是否启用 gap-loop 验证轮（verify-round）**——即首轮无 gap（`NO_GAP`）后是否再 fresh-spawn 一轮（轻量）验证轮做首轮怀疑：
+> **G. 启用（verify-round=true）** — 首轮 `NO_GAP` 后再追一轮轻量验证
+> **H. 不启用（verify-round=false，默认）** — 首轮 `NO_GAP` 直接收口
+>
 > **方向审查**默认开启：每个第一层 phase 完成后执行 `coding` AttractorCheck，即在每个第一层 `<TaskGroup>` 写入 `<Hook on="phase:after"><cdt:AttractorCheck use="coding"/></Hook>`。
 > 如需覆盖默认，请明确选择：**否** | **仅终态 phase** | **每个 phase**（profile：编码用 `coding`；docs 同步 track 可改用 `docs`）
 >
-> 你可以在同一条回复里同时给出「修改意见 + 提交模式（A/B）+ 校验模式（C/D）+ 可选粒度（E/F）+ 方向审查范围」。"（**ask-single-question-free**）
+> 你可以在同一条回复里同时给出「修改意见 + 提交模式（A/B）+ 校验模式（C/D）+ 可选粒度（E/F）+ 验证轮（G/H）+ 方向审查范围」。"（**ask-single-question-free**）
 
 等待反馈、修改 `track.xml` 至确认，然后据选择写入。若用户没有明确覆盖方向审查范围，**默认每个第一层 `TaskGroup` 都挂 `phase:after` 的 `<cdt:AttractorCheck use="coding"/>`**。**校验模式塌缩到 track.xml 节点**：旧 `validation_mode`/`validation_granularity` = "在终态 phase（或每个 phase）挂哪个 typed check"——`final_phase` = 仅最后一个第一层 `TaskGroup` 挂；`every_phase` = 每个都挂。这些 typed check **配置直接写在节点上，无独立定义文件**（见 track-xml-spec §6）：
 
 | typed check | 配置（在节点属性上） | 取代旧 |
 |---|---|---|
-| `<cdt:GapLoop max-rounds="5" on-exhausted="block"/>` | `max-rounds` 上限、`on-exhausted` | `validation_mode=yield-gap-loop` + `<confirm protocol="yield-gap-loop">` |
+| `<cdt:GapLoop max-rounds="5" on-exhausted="block" verify-round="false"/>` | `max-rounds` 上限、`on-exhausted`、`verify-round`（首轮怀疑验证轮开关，缺省取全局默认 false） | `validation_mode=yield-gap-loop` + `<confirm protocol="yield-gap-loop">` |
 | `<cdt:HumanConfirm/>` | 暂无属性 | `validation_mode=yield-human-confirm` + `<confirm protocol="yield-human-confirm">` |
 | `<cdt:AttractorCheck use="coding\|docs"/>` | `use` = `config/attractor-profiles.xml` 的 profile 名；审查器固定 **fresh-subagent**（std 约定，不配置） | `<attractor-check>` |
 
@@ -476,13 +480,16 @@ proposal 获批后："现在我将根据规范创建结构化实现计划（`tra
 ---- #switch ?mode on="校验模式"
 ------ #case ?gap when="D（gap-loop）"
 -------- #step ?g1
-未明确选粒度时默认 final_phase
+未明确选粒度时默认 final_phase；未明确选验证轮（G/H）时 verify-round 取全局默认 false
 -------- /?g1
+-------- #step ?g1b
+据 G/H 定 verify-round 值（G→true、H/默认→false）；所挂的每个 <cdt:GapLoop> 都带 verify-round="<该值>"
+-------- /?g1b
 -------- #if ?g2 cond="粒度 = final_phase"
-仅在最后一个第一层 TaskGroup 的 <Hooks> 挂 <Hook on="phase:after"><cdt:GapLoop max-rounds="5" on-exhausted="block"/></Hook>
+仅在最后一个第一层 TaskGroup 的 <Hooks> 挂 <Hook on="phase:after"><cdt:GapLoop max-rounds="5" on-exhausted="block" verify-round="<G/H 值>"/></Hook>
 -------- /?g2
 -------- #else ?g3
-每个第一层 TaskGroup 的 <Hooks> 都挂同样的 <cdt:GapLoop>
+每个第一层 TaskGroup 的 <Hooks> 都挂同样的 <cdt:GapLoop ... verify-round="<G/H 值>"/>
 -------- /?g3
 ------ /?gap
 ------ #case ?human when="C（人工确认）"
@@ -512,12 +519,14 @@ proposal 获批后："现在我将根据规范创建结构化实现计划（`tra
 <TaskGroup id="P3" name="docs 同步与收尾" status="NOT_STARTED" order="2">
   ...
   <Hooks>
-    <Hook on="phase:after"><cdt:GapLoop max-rounds="5" on-exhausted="block"/></Hook>
+    <Hook on="phase:after"><cdt:GapLoop max-rounds="5" on-exhausted="block" verify-round="false"/></Hook>
     <Hook on="phase:after"><cdt:AttractorCheck use="docs"/></Hook>
   </Hooks>
 </TaskGroup>
 ```
 
+> `verify-round` 一经在 §3.7 据用户答复（G/H，缺省取全局默认 false）确定，**本 track 所有 GapLoop 节点沿用同一设置**；后续追加 phase 时新挂的 `<cdt:GapLoop>` 也沿用同一 `verify-round`。它控制「首轮 `NO_GAP` 后是否再追一轮（轻量）验证轮」，运行期语义见 `gap-loop.md` §0.2.4。
+>
 > 旧 `gap_loop_round` 不再写计划：gap-loop 轮次由父层在运行期记到 `<Metadata>` 的 `gap-round`（见 `gap-loop.md`），创建阶段无需初始化。
 
 ### 3.8 收尾
@@ -529,13 +538,13 @@ proposal 获批后："现在我将根据规范创建结构化实现计划（`tra
    > 状态真源：`codument/tracks/<track_id>/track.xml`
    > 提交模式：<auto|manual>
    > 校验模式：<cdt:HumanConfirm|cdt:GapLoop>
-   > 你现在可以运行 `请使用 codument-implement skill, 实现 track: <track_id>` 开始实现。"
+   > 你现在可以运行 `请使用 codument-impl-track skill, 实现 track: <track_id>` 开始实现。"
 
 ---
 
 ## 4. 门控（gates）
 
-- **提案获批前不开始实现**（这是 `codument-implement` 的前置门控）。
+- **提案获批前不开始实现**（这是 `codument-impl-track` 的前置门控）。
 - 若 `codument/config/operation-hooks.xml` 为 `operation name="track"` 配置了 `track:after-design` 或 `track:after-plan` hook（如设计后方向审查），按其 hook DSL 执行——这是**命令级 hook**（无 track.xml 宿主的操作走 `operation-hooks.xml`），与 track.xml 里的节点级 `<Hook>` **同语法、不同宿主**。`operation-hooks.xml` 缺失时按默认流程继续，不加额外等待。
 
 ---

@@ -121,7 +121,7 @@ Tracks:  3 总计 | 1 进行中 | 1 待开始 | 1 已完成
 - **项目状态：** 高级进度摘要（正常、延迟、阻塞）。
 - **当前阶段和任务：** 当前 `status=ACTIVE` 的阶段和任务。
 - **下一步：** 下一个待处理任务（`<Schedule>` dag 层入度 0 的就绪 `NOT_STARTED` 节点，或顺序层中下一个 `NOT_STARTED`）。
-- **可续跑（恢复信息）：** track.xml `<Metadata><Status>=in_progress` 且含 `status=ACTIVE` 任务的 track——这是被中断的工作，可用 `codument-implement` 续跑（取代旧 `state.json` 恢复点）。
+- **可续跑（恢复信息）：** track.xml `<Metadata><Status>=in_progress` 且含 `status=ACTIVE` 任务的 track——这是被中断的工作，可用 `codument-impl-track` 续跑（取代旧 `state.json` 恢复点）。
 - **阻塞：** 任何明确标记为阻塞的项目（待处理的 `cdt:HumanConfirm`/`cdt:GapLoop` 门控、或 `REFUSED`/`ABANDONED` 任务）。
 - **Tracks（总计）：** Tracks 总数及其 Status 分布。
 - **任务（总计）：** 任务总数及状态分布。
@@ -140,4 +140,4 @@ Tracks:  3 总计 | 1 进行中 | 1 待开始 | 1 已完成
 ## 4. 参考
 
 - track 文件格式：`codument/std/spec/track-xml-spec.md`
-- 续跑实现：`codument/std/operations/implement.md`
+- 续跑实现：`codument/std/operations/impl-track.md`

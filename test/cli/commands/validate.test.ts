@@ -56,6 +56,28 @@ test('validate passes a well-formed track.xml + behavior delta', async () => {
   expect(code).toBe(0);
 });
 
+test('validate passes a cdt:GapLoop carrying verify-round', async () => {
+  const ws = tmpWorkspace();
+  writeTrack(ws, 'tvr',
+    GOOD_TRACK.replace('id="t1"', 'id="tvr"')
+      .replace('<cdt:GapLoop max-rounds="5" on-exhausted="block"/>',
+        '<cdt:GapLoop max-rounds="5" on-exhausted="block" verify-round="true"/>'));
+  const { code, out } = await runValidate(ws, ['tvr']);
+  expect(out).toContain('✓ tvr');
+  expect(code).toBe(0);
+});
+
+test('validate rejects a bad cdt:GapLoop verify-round value', async () => {
+  const ws = tmpWorkspace();
+  writeTrack(ws, 'tvr2',
+    GOOD_TRACK.replace('id="t1"', 'id="tvr2"')
+      .replace('<cdt:GapLoop max-rounds="5" on-exhausted="block"/>',
+        '<cdt:GapLoop max-rounds="5" on-exhausted="block" verify-round="yes"/>'));
+  const { code, out } = await runValidate(ws, ['tvr2']);
+  expect(out).toContain('verify-round="yes"');
+  expect(code).toBe(1);
+});
+
 test('validate rejects a invalid task status', async () => {
   const ws = tmpWorkspace();
   writeTrack(ws, 't2', GOOD_TRACK.replace('id="t1"', 'id="t2"').replace('status="DONE"', 'status="TODO"'));

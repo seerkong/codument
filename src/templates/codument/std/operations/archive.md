@@ -82,7 +82,7 @@
 ---- /?memory
 ---- #if ?sync cond="operation-hooks.xml 为 archive:after 显式配了 <cdt:ArtifactSync use=\"...\"> 且 docs profile enabled"
 ------ #step ?artifact-sync
-读 track 的 output MaterialBundle（如 docs 目录），按 sop/artifact-sync.md / codument-artifact-sync skill 同步到目标；只同步 hook 引用的 artifact
+读 track 的 output MaterialBundle（如 docs 目录），按 operations/artifact-sync.md / codument-artifact-sync skill 同步到目标；只同步 hook 引用的 artifact
 ------ /?artifact-sync
 ---- /?sync
 ---- #else ?no-sync cond="缺显式 archive:after <cdt:ArtifactSync> hook 或 docs profile 未 enabled"
@@ -195,11 +195,11 @@ track 完成后更新行为登记表 `codument/behaviors/`（旧称 spec registr
 
 - 来源 = track 的 `output` MaterialBundle（如 docs 目录）——**直接读 track 的 output MaterialBundle，不再引用 `artifacts.xml` 作为单独配置**。
 - 目标 = artifact 规则里的一个/多个目标根（base-dir + relative-dir/file）。
-- 同步只针对 hook 引用的那个 artifact，按 `sop/artifact-sync.md` 的内容选择 / 路由 / 质量 + 写入 policy（dry-run / conflict=diff-confirm / provenance=manifest）执行；多目标保持同一相对结构。
+- 同步只针对 hook 引用的那个 artifact，按 `operations/artifact-sync.md` 的内容选择 / 路由 / 质量 + 写入 policy（dry-run / conflict=diff-confirm / provenance=manifest）执行；多目标保持同一相对结构。
 
 **关键约束**：缺失显式 hook 时，**不要**因为 `docs` profile `enabled` 或 artifact 配置存在就隐式同步。
 
-完整 artifact-sync 规程见 [codument-artifact-sync skill](./artifact-sync.md) 与 [std/sop/artifact-sync.md](@codument/std/sop/artifact-sync.md)。
+完整 artifact-sync 规程见 [codument-artifact-sync skill](./artifact-sync.md)（含 §4.5 docs 路由）。
 
 ---
 
@@ -216,7 +216,7 @@ track 完成后更新行为登记表 `codument/behaviors/`（旧称 spec registr
 - 使用 `codument list` 确认 track ID。
 - 使用 `codument list --behaviors` 查看更新后的行为登记表（XML registry）。
 - behavior 登记表布局 / delta 应用：[std/spec/behavior-registry.md](@codument/std/spec/behavior-registry.md)。
-- 归档执行套路：[std/sop/archive.md](@codument/std/sop/archive.md)。
+- 归档执行套路：本文（codument-archive skill 即完整归档规程）。
 - 晋升阶梯与触发条件：[knowledge-tiers.md](@codument/attractors/knowledge-tiers.md) §4–§5。
-- 显式 artifact 同步：[codument-artifact-sync skill](./artifact-sync.md) / [std/sop/artifact-sync.md](@codument/std/sop/artifact-sync.md)。
+- 显式 artifact 同步：[codument-artifact-sync skill](./artifact-sync.md)（含 §4.5 docs 路由）。
 - 检查归档后 `codument validate --strict` 通过；如果系统找不到 `codument` 命令，则记录该外部 CLI validate 步骤已跳过。

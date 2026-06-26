@@ -43,6 +43,6 @@ export async function initCommand(args: string[]): Promise<void> {
   console.log('  config/cli-tools.json: tools updated');
   console.log('  AGENTS.md : managed block written');
   if (codumentExists()) {
-    console.log('\nNext: edit codument/attractors/{project,product}.md, then use the codument-track skill.');
+    console.log('\nNext: edit codument/attractors/{project,product}.md, then use the codument-plan-track skill.');
   }
 }

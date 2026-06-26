@@ -1,17 +1,14 @@
 ---
 name: codument-implement
-description: 按 track.xml 的 TaskSpace + Schedule 执行实现——编排 fresh 子代理逐任务推进、回写状态、跑生命周期 hook、支持中断续跑。开始或继续实现已批准的 track 时使用。
+description: "[已更名为 codument-impl-track] 按 track.xml 的 TaskSpace + Schedule 执行实现——编排 fresh 子代理逐任务推进、回写状态、跑生命周期 hook、支持中断续跑。开始或继续实现已批准的 track 时使用。"
 ---
 
-# Codument · implement
+# Codument · implement（别名 → impl-track）
 
-这是 codument **implement** 操作的 skill 壳。**权威提示词在工作区** body——打开并**严格遵循**：
+本 skill 已更名为 **codument-impl-track**。旧名 `codument-implement` 保留为别名壳，触发后仍路由到新逻辑——权威提示词见：
 
-`@/codument/std/operations/implement.md`
+`@/codument/std/operations/impl-track.md`
 
-按其中的 Markdown 说明 + `--` 流程标记块执行（遍历 phase、层内顺序/DAG 调度、派发子代理、回写 status、跑 cdt: hook、续跑检测）；方法论见 `@/codument/std/sop/{tdd,wave-exec,gap-loop}.md`（均由 body 按需引用）。
+按其中的 Markdown 说明 + `--` 流程标记块执行。新引用请用 `codument-impl-track`。
 
-- **前置**：项目已 `codument-init`，目标 track 提案已批准。
-- **用法**：实现 track: `<track-id>` [phase]（缺省从第一个未完成 phase 起）。
-
-> 壳只做路由，不重述规则。一切以 `@/codument/std/operations/implement.md` 为准。
+> 壳只做路由，不重述规则。一切以 `@/codument/std/operations/impl-track.md` 为准。

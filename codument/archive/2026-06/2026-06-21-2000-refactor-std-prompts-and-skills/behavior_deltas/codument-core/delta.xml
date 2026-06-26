@@ -1,0 +1,84 @@
+<behavior-patch capability="codument-core" version="1">
+  <upsert selector="behavior://codument-core/requirements/std-sop-no-operation-dup">
+    <requirement id="std-sop-no-operation-dup">
+      <statement>系统 SHALL keep `codument/std/sop/` for cross-operation methodology only, with no file that duplicates a single operation's flow already owned by `codument/std/operations/`. Operation-specific procedure SHALL live in the operation prompt; sop SHALL hold shared methodology (questioning/tdd/validation/wave-exec/workflow).</statement>
+      <suite id="dedup" name="sop / operations de-duplication">
+        <case id="no-dup-files">
+          <given>The std prompt tree.</given>
+          <when>An operation already has a complete prompt in `std/operations/&lt;op&gt;.md`.</when>
+          <then>There SHALL NOT be a same-named `std/sop/&lt;op&gt;.md` re-stating that operation's flow; archive/artifact-sync/gap-loop SHALL be removed from sop and consolidated into their operations file.</then>
+        </case>
+        <case id="unique-content-preserved">
+          <given>`sop/artifact-sync.md` carries unique docs-routing guidance not in `operations/artifact-sync.md`.</given>
+          <when>The sop file is removed.</when>
+          <then>Its unique content (docs routing / knowledge-tiers judgement / folder-manifest backfill) SHALL be merged into `operations/artifact-sync.md` first, losing nothing.</then>
+        </case>
+        <case id="references-redirected">
+          <given>Files reference `sop/{archive,artifact-sync,gap-loop}.md`.</given>
+          <when>Those sop files are removed.</when>
+          <then>All references (operations/spec/memory/attractors/skill shells, src/templates + dogfood) SHALL be redirected to the operations file, and `manifest.ts` regenerated; no dangling `sop/{archive,artifact-sync,gap-loop}.md` reference remains.</then>
+        </case>
+      </suite>
+    </requirement>
+  </upsert>
+
+  <upsert selector="behavior://codument-core/requirements/gap-loop-recheck-efficiency">
+    <requirement id="gap-loop-recheck-efficiency">
+      <statement>系统 SHALL make the gap-loop first-round verification round a configurable, default-off option (global default overridable per-scope), asked at track creation; and SHALL make every re-check round lightweight/incremental — all to cut fresh-spawn cost without losing the FIX-must-recheck guarantee.</statement>
+
+      <suite id="verify-round-config" name="Verification round as a config switch">
+        <case id="global-default-off">
+          <given>The global gap-loop config and a scope with no per-scope override.</given>
+          <when>A first round returns `NO_GAP` with no history.</when>
+          <then>The first-round-suspicion verification round SHALL default to OFF — the parent closes out without an extra round — governed by a global gap-loop config switch (default off).</then>
+        </case>
+        <case id="node-attr-override">
+          <given>A `&lt;cdt:GapLoop&gt;` hook node carrying `verify-round="true|false"`.</given>
+          <when>The parent decides whether to run the first-round verification round.</when>
+          <then>The node attribute SHALL override the global default for that scope: `true` runs the verification round, `false` skips it (first-round `NO_GAP` closes out).</then>
+        </case>
+        <case id="asked-at-track-creation">
+          <given>Track creation's same-round confirmation (commit mode + validation mode).</given>
+          <when>The user is prompted.</when>
+          <then>The system SHALL also ask whether to enable the gap-loop verification round, and write the chosen `verify-round` onto the GapLoop hook nodes; later-added phases SHALL follow the same setting.</then>
+        </case>
+      </suite>
+
+      <suite id="lightweight-recheck" name="Lightweight / incremental re-check">
+        <case id="verification-round-lightweight">
+          <given>verify-round is ON and the parent re-spawns the first-round verification round.</given>
+          <when>The fresh sub-agent runs it.</when>
+          <then>It SHALL only re-confirm the prior round's gap-report conclusion plus the current uncommitted diff, not re-derive the full target comparison; a lower reasoning effort MAY be used.</then>
+        </case>
+        <case id="fix-incremental-recheck">
+          <given>A prior round returned `FIX_APPLIED`.</given>
+          <when>The parent re-spawns the mandatory re-check (ALWAYS required, independent of `verify-round`).</when>
+          <then>That round SHALL focus on the FIX's changed scope (incremental), not re-review the whole scope from scratch.</then>
+        </case>
+      </suite>
+    </requirement>
+  </upsert>
+
+  <upsert selector="behavior://codument-core/requirements/skill-operation-naming">
+    <requirement id="skill-operation-naming">
+      <statement>系统 SHALL name track planning/implement operation prompts and their skill shells consistently in a `codument-plan-&lt;noun&gt;` / `codument-impl-track` family, with skill name = operation base name; high-traffic renamed names keep alias shells, low-traffic ones are dropped.</statement>
+      <suite id="naming" name="Skill / operation naming">
+        <case id="family-names">
+          <given>The track planning/implement skills and their operation files.</given>
+          <when>They are named.</when>
+          <then>`codument-implement`→`codument-impl-track`, `codument-track`→`codument-plan-track`, `codument-plan-schedule`→`codument-plan-track-wave`; each skill shell SHALL `@`-reference an operation file of the same base name (`impl-track.md` / `plan-track.md` / `plan-track-wave.md`). Future `codument-plan-mission` (default-DAG) follows the same `codument-plan-&lt;noun&gt;` style.</then>
+        </case>
+        <case id="legacy-aliases">
+          <given>Renamed skills are invoked by an old name.</given>
+          <when>The old name is used.</when>
+          <then>`codument-implement` and `codument-track` SHALL remain as alias shells routing to the new operation (back-compat); `codument-plan-schedule` SHALL be dropped with no alias.</then>
+        </case>
+        <case id="references-updated">
+          <given>References to old skill/operation names.</given>
+          <when>The rename is applied.</when>
+          <then>All references (operations cross-refs, AGENTS.md, skills/README, src/cli init, std docs; src+dogfood) SHALL point to new names; `codument-plan-schedule` SHALL have zero residual references; `manifest.ts` regenerated to match disk.</then>
+        </case>
+      </suite>
+    </requirement>
+  </upsert>
+</behavior-patch>

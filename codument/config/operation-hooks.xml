@@ -25,4 +25,13 @@
     </Hooks>
   </Operation>
 
+  <Operation name="gap-loop">
+    <!--
+      gap-loop 全局默认：verify-round 控制「首轮 NO_GAP 后是否再追一轮（轻量）验证轮」做首轮怀疑。
+      默认 false（关）。节点 <cdt:GapLoop verify-round="true|false"> 覆盖此全局默认（per-scope）。
+      详见 std/operations/gap-loop.md §0.2.4。
+    -->
+    <cdt:GapLoopDefaults verify-round="false"/>
+  </Operation>
+
 </OperationHooks>

@@ -166,6 +166,10 @@ function validateHooks(track: SpecXmlNode, file: string, errors: ValidationError
     if (onEx !== undefined && !ON_EXHAUSTED.has(onEx)) {
       errors.push({ file, severity: 'warning', message: `<cdt:GapLoop on-exhausted="${onEx}"> 非常见取值（block|continue|fail）` });
     }
+    const verifyRound = gl.attrs['verify-round'];
+    if (verifyRound !== undefined && verifyRound !== 'true' && verifyRound !== 'false') {
+      errors.push({ file, severity: 'error', message: `<cdt:GapLoop verify-round="${verifyRound}"> 必须是 true 或 false` });
+    }
   }
 }
 

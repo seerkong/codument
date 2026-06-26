@@ -1,12 +1,12 @@
-# skill: codument-plan-schedule（规划调度 · Schedule DAG）
+# skill: codument-plan-track-wave（规划调度 · Schedule DAG）
 
-**描述：** 为 `track.xml` 的某些层配置执行调度——把可并行的层标 `cdt:child-mode="dag"`，并在 `<Schedule>` 里用 `<Dag for><Node id><After ref>` 声明该层直接下层的依赖。wave（波次）不再手维护，是该 DAG 层依赖的**拓扑分层派生视图**，由 `codument-implement` 在执行时推导。
+**描述：** 为 `track.xml` 的某些层配置执行调度——把可并行的层标 `cdt:child-mode="dag"`，并在 `<Schedule>` 里用 `<Dag for><Node id><After ref>` 声明该层直接下层的依赖。wave（波次）不再手维护，是该 DAG 层依赖的**拓扑分层派生视图**，由 `codument-impl-track` 在执行时推导。
 
 > 本文是完整规划协议（口径已对齐当前标准）。**程序化流程**（逐层分析、标 dag、声明依赖、校验）用流程标记块（` ```text ` + `@delimiter: --`，构造词汇见 `_operation-spec.md`）表达；**说明、规则、背景、示例**用 Markdown。
 >
 > 本 skill 由旧 `codument:plan-wave` 重命名而来：「波次规划」→「调度规划」。旧版手写 `<waves>` 块 + 每个 task 的 `wave=` 属性；新版只在**需要并行的层**上加 `cdt:child-mode="dag"` 并写**结构化依赖**——一个前驱一行 `<After ref>`，不再有手维护的 wave 列表。
 >
-> 口径映射：`codument:plan-wave`→`codument-plan-schedule`；`plan.xml`→`track.xml`；phase = `<TaskSpace>` 第一层 `<TaskGroup>`；`execution_mode=wave`/`<waves>`/`wave=`→逐层 `cdt:child-mode="dag"` + `<Schedule><Dag for><Node id><After ref>`；`wave_config`→`<Schedule><Parallel max-concurrent spot-check>`；`context_files`→`<Ports><MaterialBundle role="input">`；`spec_deltas/`→`behavior_deltas/`。`context.md`/`design/`/`proposal/` 规划期外部记忆现归 `tracks/<id>/analysis/`。
+> 口径映射：`codument:plan-wave`→`codument-plan-track-wave`；`plan.xml`→`track.xml`；phase = `<TaskSpace>` 第一层 `<TaskGroup>`；`execution_mode=wave`/`<waves>`/`wave=`→逐层 `cdt:child-mode="dag"` + `<Schedule><Dag for><Node id><After ref>`；`wave_config`→`<Schedule><Parallel max-concurrent spot-check>`；`context_files`→`<Ports><MaterialBundle role="input">`；`spec_deltas/`→`behavior_deltas/`。`context.md`/`design/`/`proposal/` 规划期外部记忆现归 `tracks/<id>/analysis/`。
 
 ---
 
@@ -211,7 +211,7 @@
 > - 已标 dag 的层：\<count>
 > - 总依赖边：\<count>
 >
-> 你现在可以运行 `请使用 codument-implement skill, 执行 track: <track_id>` 开始执行——wave 由依赖在执行时派生。
+> 你现在可以运行 `请使用 codument-impl-track skill, 执行 track: <track_id>` 开始执行——wave 由依赖在执行时派生。
 
 ---
 
@@ -220,7 +220,7 @@
 - **默认零配置**：未标 `dag` 的层按 `order` 依次执行——大多数 track 不必写任何依赖，跳过本 skill。
 - **依赖完全结构化**：前驱用 `<After ref="…">` **子元素**表达，一个前驱一行——**不用空格分隔的属性字符串**（避免 id 含空格 / 解析歧义）；新增一条依赖 = 加一行 `<After>`，对 AI 编辑最省力、最不易错。
 - **作用域单一**：一个 `<Dag>` 只描述**一个父节点的直接下层**之间的边；要给多个非叶节点配依赖就写多个 `<Dag for=...>`，**不跨层、不跨父**——避免旧 `<Needs task on>` 那种全局扁平边的歧义。
-- **wave 是派生视图**：不再手维护 `<waves>`/`wave=`。某 `dag` 层的依赖经拓扑分层即得 wave，由 `codument-implement` 执行时推导；并发上限 / 抽检放 `<Parallel>`。具体派发套路见 `codument/std/sop/wave-exec.md`。
+- **wave 是派生视图**：不再手维护 `<waves>`/`wave=`。某 `dag` 层的依赖经拓扑分层即得 wave，由 `codument-impl-track` 执行时推导；并发上限 / 抽检放 `<Parallel>`。具体派发套路见 `codument/std/sop/wave-exec.md`。
 
 ---
 

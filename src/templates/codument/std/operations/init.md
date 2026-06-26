@@ -244,7 +244,7 @@ attractors/：按当前 profile enabled 补齐缺失文件（docs→model-driven
 - 落盘了 `codument/std/`（自包含提示词）、`config/`（profile + hook 模板）、`attractors/`（project/product/tiers + 按 profile 的 docs/memory）、空骨架目录。
 - 各 profile 的 `enabled` 状态（coding/docs/memory，默认全开）。
 - 项目根 `AGENTS.md` 的 codument 受管块已写入/刷新。
-- 下一步建议：可用 `请使用 codument-track skill，创建新变更追踪` 创建新 track，或用 `请使用 codument-implement skill，实现 track: <track_id>` 开始实现已有 track。
+- 下一步建议：可用 `请使用 codument-plan-track skill，创建新变更追踪` 创建新 track，或用 `请使用 codument-impl-track skill，实现 track: <track_id>` 开始实现已有 track。
 
 ---
 

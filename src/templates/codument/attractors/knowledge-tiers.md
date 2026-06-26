@@ -45,7 +45,7 @@ attractor-guided-engineering 把这些都摊在 `docs/` 根下；codument 把**�
 | `docs/architecture/` 技术基线 + 边界 | `docs/impl/global/overview/` + `docs/impl/<plane>/overview/` + `.../rules/` + `code-map.md` | **fractal** |
 | `docs/references/` 查阅 + code map + API/schema/兼容表 | `docs/impl/<plane>/reference/` 类目 + modeling `code-map.md` | **fractal** |
 | `docs/lessons/` durable 教训 | `codument/memory/`（lessons/incidents/patterns） | tier(memory) |
-| `docs/examples/` 示例 + 骨架 | 文档内示例→`docs/impl/<plane>/examples/`；工作文档骨架→`std/operations/track.md` + `std/spec/track-xml-spec.md` 的内嵌示例 | **fractal** + std |
+| `docs/examples/` 示例 + 骨架 | 文档内示例→`docs/impl/<plane>/examples/`；工作文档骨架→`std/operations/plan-track.md` + `std/spec/track-xml-spec.md` 的内嵌示例 | **fractal** + std |
 | `docs/process/` 流程/规程 | `codument/sop/`（`std/sop/` 内置 + 顶层 `sop/` 自定义） | sop |
 | `docs/skills/` 可复用 prompt/playbook | `std/operations/`（操作）+ `std/sop/`（规程）+ attractor-check profile | std |
 
@@ -125,4 +125,4 @@ tracks/<id>/ ── proposal.md · design.md · discussion · behavior_deltas/ �
 
 - 文件级目录规范（modeling/impl 怎么写、frontmatter）：[model-driven-docs.md](./model-driven-docs.md) → [docs-modeling-fractal](@codument/std/docs-modeling-fractal/index.md) / [docs-impl-fractal](@codument/std/docs-impl-fractal/index.md)。
 - 每个标准文件夹"装什么"的自描述与补齐：[std/spec/folder-manifest.md](@codument/std/spec/folder-manifest.md)。
-- 晋升动作落在流程里：归档晋升见 `std/sop/archive.md`；docs 同步见 `std/sop/artifact-sync.md`；澄清期实时更新见 `std/sop/questioning.md`。
+- 晋升动作落在流程里：归档晋升见 `std/operations/archive.md`；docs 同步见 `std/operations/artifact-sync.md`；澄清期实时更新见 `std/sop/questioning.md`。
