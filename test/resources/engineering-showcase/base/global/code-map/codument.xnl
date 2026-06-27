@@ -1,0 +1,8 @@
+<code-map #global.code-map.codument.cli_commands kind="code-map" [
+  <scope ?>codument CLI command 路由。</?>
+  <paths ?>
+  src/cli/index.ts
+  src/cli/commands/
+  </?>
+  <update-procedure ?>新增 command 时同步 help 文案与测试。</?>
+]>

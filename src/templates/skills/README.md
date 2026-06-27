@@ -29,5 +29,7 @@
 | `codument-artifact-sync/` | `@/codument/std/operations/artifact-sync.md` |
 | `codument-docs-bootstrap/` | `@/codument/std/operations/docs-bootstrap.md` |
 | `codument-migrate/` | `@/codument/std/operations/migrate.md` |
+| `codument-modeling-engineering-e2e/` | 直接运行 `scripts/verify-modeling-engineering-e2e.sh` 的真实 E2E 操作 skill |
+| `codument-code-quality-score/` | 直接运行 `scripts/score-e2e-code-quality.ts` 并做证据化代码质量评价的 skill |
 
 > `SKILL.md` 采用 Agent Skills 标准：`name`（=目录名，小写连字符）+ `description`（agent 据此决定何时调用）+ 薄壳正文。其它 agent 专属命令格式（codex/opencode/…）由 codument 生成器按 agent 类型从同一 body 派生。

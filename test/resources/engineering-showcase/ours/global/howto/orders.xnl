@@ -1,0 +1,10 @@
+<howto #global.howto.orders.add_endpoint kind="howto" related=["modeling://domain/orders/order" "behavior://codument-core/requirements/engineering-registry"] [
+  <desc ?>新增订单接口的标准步骤。</?>
+  <when-to-use ?>需要新增 backend endpoint 并接入行为契约时使用。</?>
+  <steps ?>
+  1. 先新增或更新 behavior case。
+  2. 更新 route handler。
+  3. 补集成测试。
+  </?>
+  <verification ?>运行 backend route tests 与 codument validate。</?>
+]>

@@ -24,5 +24,7 @@
 | codument-docs-bootstrap | `docs-bootstrap.md` | 把现存项目总结进 docs/modeling 与 docs/impl |
 | codument-migrate | `migrate.md` | 迁移旧 plan.xml→track.xml、md specs→xml、旧 archive 布局 |
 
+CLI 辅助命令（非 skill body）：`codument modeling validate|lint` 管理 `codument/modeling/`；`codument engineering validate|lint` 管理 `codument/engineering/`。
+
 > 兼容说明：旧 `codument-plan-schedule` → `codument-plan-track-wave`（Schedule 模型）；旧 `execute-wave` 并入 `impl-track`（Schedule 统一表达调度）；旧 `migrate-archive`+`migrate-specs` 并入 `migrate`。
 > 每个 skill 的「执行套路」细节（TDD、wave 调度、gap-loop 规程等）放 `codument/std/sop/`，由 skill 用 `#call` / 文中引用。

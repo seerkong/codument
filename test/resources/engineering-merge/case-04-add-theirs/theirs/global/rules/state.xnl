@@ -1,0 +1,11 @@
+<rule #global.rules.state.no_write kind="rule" a="1" b="1" [
+  <rule ?>基础规则。</?>
+  <rationale ?>基础理由。</?>
+  <enforcement ?>基础执行。</?>
+]>
+
+<rule #global.rules.state.single_writer kind="rule" [
+  <rule ?>每个事实只有一个写入口。</?>
+  <rationale ?>避免冲突。</?>
+  <enforcement ?>review 写路径。</?>
+]>

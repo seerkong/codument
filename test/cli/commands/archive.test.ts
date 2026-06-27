@@ -398,4 +398,123 @@ describe('codument archive', () => {
     expect(updatedBehavior).toContain('id="cache-support"');
     expect(updatedBehavior).toContain('inject-cache-control');
   });
+
+  it('applies engineering_deltas into codument/engineering when engineering is enabled', async () => {
+    const repoRoot = path.resolve(__dirname, '../../..');
+    const cliEntry = path.join(repoRoot, 'src/cli/index.ts');
+    const ws = makeTempDir('codument-archive-engineering-ws-');
+    const trackId = 'add-engineering-howto';
+    const trackDir = path.join(ws, 'codument', 'tracks', trackId);
+
+    writeFile(path.join(ws, 'codument', 'config', 'engineering.xml'), `<Engineering version="1" enabled="true">
+  <Registry path="codument/engineering" />
+  <Lint maxLines="400" maxNodes="8" />
+  <MergePolicy>
+    <Conflict type="same-field" resolve="human" />
+    <Conflict type="delete-modify" resolve="human" />
+    <Conflict type="add-add" resolve="human" />
+  </MergePolicy>
+</Engineering>
+`);
+    writeFile(path.join(ws, 'codument', 'engineering', 'global', 'howto', 'orders.xnl'), `<howto #global.howto.orders.add_endpoint kind="howto" a="1" b="1" [
+  <when-to-use ?m>
+  需要新增订单 endpoint 时使用。
+  </?m>
+  <steps ?m>
+  1. 补 behavior case。
+  </?m>
+  <verification ?m>
+  运行 route tests。
+  </?m>
+]>
+`);
+
+    Bun.spawnSync(['git', 'init'], { cwd: ws });
+    Bun.spawnSync(['git', 'add', 'codument/engineering'], { cwd: ws });
+    const commitProc = Bun.spawnSync([
+      'git',
+      '-c',
+      'user.name=Test',
+      '-c',
+      'user.email=test@example.com',
+      'commit',
+      '-m',
+      'base engineering registry',
+    ], { cwd: ws });
+    expect(commitProc.exitCode).toBe(0);
+    const revProc = Bun.spawnSync(['git', 'rev-parse', 'HEAD'], { cwd: ws, stdout: 'pipe' });
+    const baseCommit = new TextDecoder().decode(revProc.stdout).trim();
+
+    writeFile(path.join(ws, 'codument', 'engineering', 'global', 'howto', 'orders.xnl'), `<howto #global.howto.orders.add_endpoint kind="howto" a="1" b="2" [
+  <when-to-use ?m>
+  需要新增订单 endpoint 或后台 handler 时使用。
+  </?m>
+  <steps ?m>
+  1. 补 behavior case。
+  </?m>
+  <verification ?m>
+  运行 route tests。
+  </?m>
+]>
+`);
+
+    writeTrackXml(trackDir, trackId, '2026-05-30T02:03:00Z');
+    let trackXml = fs.readFileSync(path.join(trackDir, 'track.xml'), 'utf-8');
+    trackXml = trackXml.replace('</Metadata>', `    <EngineeringBaseCommit>${baseCommit}</EngineeringBaseCommit>\n  </Metadata>`);
+    fs.writeFileSync(path.join(trackDir, 'track.xml'), trackXml, 'utf-8');
+    writeFile(path.join(trackDir, 'proposal.md'), '# Proposal\n\nEngineering delta archive behavior.\n');
+    writeFile(path.join(trackDir, 'engineering_deltas', 'global', 'howto', 'orders.xnl'), `<howto #global.howto.orders.add_endpoint kind="howto" a="2" b="1" [
+  <when-to-use ?m>
+  需要新增订单 endpoint 时使用。
+  </?m>
+  <steps ?m>
+  1. 补 behavior case。
+  2. 实现 backend handler。
+  </?m>
+  <verification ?m>
+  运行 route tests 和 codument validate。
+  </?m>
+]>
+
+<howto #global.howto.orders.add_metrics kind="howto" [
+  <when-to-use ?m>
+  需要观测订单 endpoint 时使用。
+  </?m>
+  <steps ?m>
+  1. 增加 counter。
+  </?m>
+  <verification ?m>
+  检查 metrics endpoint。
+  </?m>
+]>
+`);
+
+    const proc = Bun.spawn([
+      'bun',
+      'run',
+      cliEntry,
+      '--workspace-dir',
+      ws,
+      'archive',
+      trackId,
+      '--yes',
+      '--skip-specs',
+    ], {
+      cwd: repoRoot,
+      stdout: 'pipe',
+      stderr: 'pipe',
+    });
+
+    const exitCode = await proc.exited;
+    const err = await new Response(proc.stderr).text();
+    expect(err).toBe('');
+    expect(exitCode).toBe(0);
+
+    const updated = fs.readFileSync(path.join(ws, 'codument', 'engineering', 'global', 'howto', 'orders.xnl'), 'utf-8');
+    expect(updated).toContain('a="2"');
+    expect(updated).toContain('b="2"');
+    expect(updated).toContain('实现 backend handler');
+    expect(updated).toContain('global.howto.orders.add_metrics');
+    expect(fs.existsSync(trackDir)).toBe(false);
+  });
 });

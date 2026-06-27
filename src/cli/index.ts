@@ -8,6 +8,7 @@ import { archiveCommand } from './commands/archive';
 import { upgradeWorkspaceCommand } from './commands/upgrade-workspace';
 import { upgradeTrackCommand } from './commands/upgrade-track';
 import { modelingCommand } from './commands/modeling';
+import { engineeringCommand } from './commands/engineering';
 import { setWorkspaceDir } from './utils';
 import { VERSION } from '../version';
 
@@ -29,6 +30,8 @@ Commands:
   status            Show project status overview
   modeling lint     Flag oversized modeling XNL files for fractal split
   modeling validate Validate modeling XNL (syntax + schema + hierarchy)
+  engineering lint  Flag oversized engineering XNL files for fractal split
+  engineering validate Validate engineering XNL (syntax + schema + hierarchy)
 
 Options:
   -h, --help              Show this help message
@@ -109,6 +112,9 @@ async function main() {
         break;
       case 'modeling':
         await modelingCommand(commandArgs);
+        break;
+      case 'engineering':
+        await engineeringCommand(commandArgs);
         break;
       default:
         console.error(`Unknown command: ${command}`);

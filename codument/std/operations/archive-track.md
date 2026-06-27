@@ -80,6 +80,11 @@
 提升 memory:// 内容；不要从 proposal 或普通日志自动合成 memory
 ------ /?promote-memory
 ---- /?memory
+---- #if ?engineering cond="config/engineering.xml 存在且 enabled=true"
+------ #step ?engineering-merge
+把 engineering_deltas/** 作为 theirs，与 base（track 元信息记录的宿主 git commit）和 ours（当前 codument/engineering/）做节点级 3-way 合并；冲突按 config/engineering.xml MergePolicy issues-first 处理；合并结果写回 codument/engineering/ 并运行 codument engineering lint
+------ /?engineering-merge
+---- /?engineering
 ---- #if ?sync cond="operation-hooks.xml 为 archive:after 显式配了 <cdt:ArtifactSync use=\"...\"> 且 docs profile enabled"
 ------ #step ?artifact-sync
 读 track 的 output MaterialBundle（如 docs 目录），按 operations/artifact-sync.md / codument-artifact-sync skill 同步到目标；只同步 hook 引用的 artifact
@@ -186,6 +191,17 @@ track 完成后更新行为登记表 `codument/behaviors/`（旧称 spec registr
 5. 把 track 设计方案按类目回写 `docs/impl/`（overview/howto/rules/reference/troubleshooting，见 docs-impl-fractal）。
 
 > 详细规程见 `std/spec/modeling-delta.md`。modeling 是**结构真源**层；与 behaviors（行为契约）互不重复，modeling 节点引用 `behavior://`。
+
+## 5.6 engineering 合并（条件 · engineering 启用）
+
+**仅当** `config/engineering.xml` 存在且 `enabled=true` 时执行；否则整步跳过、行为不变。
+
+1. 物化三方：base（track 元信息记录的宿主 git commit，`git show <commit>:codument/engineering/...`）+ ours（当前 `codument/engineering/` 工作树）+ theirs（track 的 `engineering_deltas/**`）。
+2. 节点级 3-way 合并（临时引擎，不持久化平行 vcs）：复用 `xnl-core` `diffNodes`+`applyMutations`（`metadataIdMode:"identity"`，按 `#id` 命中）。
+3. 冲突按 `config/engineering.xml` 的 `<MergePolicy>` 处置：默认保守（`human`=issues-first 报告并暂停，不静默覆盖），可配 `ours|theirs|base`。
+4. 合并结果写回 `codument/engineering/` 工作树（宿主 git 提交）；跑 `codument engineering lint` 给分形拆分建议。
+
+> 详细规程见 `std/spec/engineering-delta.md`。engineering 是**工程知识真源**层；与 modeling（结构真源）、behaviors（行为契约）、decisions（承重决策）互不重复，通过 `engineering://` / `modeling://` / `behavior://` / `decision://` 引用连接。
 
 ---
 

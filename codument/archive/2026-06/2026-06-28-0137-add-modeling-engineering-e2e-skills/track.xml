@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Track id="add-modeling-engineering-e2e-skills" version="1" xmlns:cdt="urn:codument:v1">
+  <Metadata>
+    <Status>completed</Status>
+    <Goal>新增 modeling + engineering 真实 LLM E2E 测试能力，并沉淀运行 E2E 与代码质量评分两个 skill。</Goal>
+    <Description>把旧 modeling-only 三题目 E2E 升级为 modeling+engineering 全流程：初始化、启用配置、创建 track、生成 deltas、实现代码、质量评分，并把运行方法与评分方法沉淀为 skills。</Description>
+    <CommitMode>manual</CommitMode>
+    <CreatedAt>2026-06-28T01:22:53+08:00</CreatedAt>
+    <UpdatedAt>2026-06-28T01:37:56+08:00</UpdatedAt>
+  </Metadata>
+
+  <Ports scope="track">
+    <MaterialBundle role="input" name="behavior-deltas" domain="behavior" path="vfs://./behavior_deltas/"/>
+    <MaterialBundle role="output" name="behavior" domain="codument" path="vfs://@/codument/behaviors/"/>
+    <MaterialBundle role="output" name="scripts" domain="repo" path="vfs://@/scripts/"/>
+    <MaterialBundle role="output" name="skills" domain="codument" path="vfs://@/src/templates/skills/"/>
+  </Ports>
+
+  <TaskSpace id="space_add-modeling-engineering-e2e-skills" name="add-modeling-engineering-e2e-skills" version="1">
+    <Description>实现 modeling+engineering E2E 脚本、质量评分脚本和两个 skill。</Description>
+    <SubNodes>
+      <TaskGroup id="P1" name="E2E harness" status="DONE" order="0">
+        <Description>新增真实 LLM E2E harness 并兼容旧 modeling 脚本。</Description>
+        <SubNodes>
+          <Task id="T1.1" name="新增 modeling+engineering E2E 脚本" status="DONE" order="0" priority="P0">
+            <Description>实现 `scripts/verify-modeling-engineering-e2e.sh`，覆盖初始化、启用配置、生成 deltas、验证、实现、评分。</Description>
+            <cdt:Acceptance>
+              <cdt:Criterion id="T1.1-AC1" checked="true">脚本支持 todo/ecommerce/blog/custom</cdt:Criterion>
+              <cdt:Criterion id="T1.1-AC2" checked="true">脚本支持 MODE=plan-only 和 MODE=full</cdt:Criterion>
+              <cdt:Criterion id="T1.1-AC3" checked="true">脚本验证 modeling_deltas 与 engineering_deltas</cdt:Criterion>
+            </cdt:Acceptance>
+          </Task>
+          <Task id="T1.2" name="兼容旧 modeling E2E 入口" status="DONE" order="1" priority="P1">
+            <Description>更新 `scripts/verify-modeling-e2e.sh`，委托新脚本的 modeling-only plan-only 模式。</Description>
+            <cdt:Acceptance>
+              <cdt:Criterion id="T1.2-AC1" checked="true">旧脚本仍可用原命令运行</cdt:Criterion>
+            </cdt:Acceptance>
+          </Task>
+        </SubNodes>
+      </TaskGroup>
+
+      <TaskGroup id="P2" name="Quality scoring" status="DONE" order="1">
+        <Description>新增确定性代码质量评分辅助脚本。</Description>
+        <SubNodes>
+          <Task id="T2.1" name="新增评分脚本" status="DONE" order="0" priority="P0">
+            <Description>实现 `scripts/score-e2e-code-quality.ts`，输出 JSON 和 Markdown 报告。</Description>
+            <cdt:Acceptance>
+              <cdt:Criterion id="T2.1-AC1" checked="true">评分脚本可在任意工作区运行</cdt:Criterion>
+              <cdt:Criterion id="T2.1-AC2" checked="true">报告包含总分、分维度分数、证据和建议</cdt:Criterion>
+            </cdt:Acceptance>
+          </Task>
+        </SubNodes>
+      </TaskGroup>
+
+      <TaskGroup id="P3" name="Skills and templates" status="DONE" order="2">
+        <Description>新增两个 skill 壳并更新模板 manifest。</Description>
+        <SubNodes>
+          <Task id="T3.1" name="新增 E2E 运行 skill" status="DONE" order="0" priority="P0">
+            <Description>新增 `codument-modeling-engineering-e2e` skill。</Description>
+            <cdt:Acceptance>
+              <cdt:Criterion id="T3.1-AC1" checked="true">skill 说明真实 E2E 运行方式、参数、输出和失败排查</cdt:Criterion>
+            </cdt:Acceptance>
+          </Task>
+          <Task id="T3.2" name="新增代码质量评分 skill" status="DONE" order="1" priority="P0">
+            <Description>新增 `codument-code-quality-score` skill。</Description>
+            <cdt:Acceptance>
+              <cdt:Criterion id="T3.2-AC1" checked="true">skill 说明评分维度、证据要求和报告格式</cdt:Criterion>
+            </cdt:Acceptance>
+          </Task>
+          <Task id="T3.3" name="更新 manifest" status="DONE" order="2" priority="P0">
+            <Description>更新 skills README 与 manifest，确保 init/upgrade 会部署新 skill。</Description>
+            <cdt:Acceptance>
+              <cdt:Criterion id="T3.3-AC1" checked="true">manifest 包含新增 skill 文件</cdt:Criterion>
+            </cdt:Acceptance>
+          </Task>
+        </SubNodes>
+      </TaskGroup>
+
+      <TaskGroup id="P4" name="Tests and verification" status="DONE" order="3">
+        <Description>新增不调用真实 LLM 的自动化测试，并跑全量检查。</Description>
+        <SubNodes>
+          <Task id="T4.1" name="新增自动化测试" status="DONE" order="0" priority="P0">
+            <Description>测试脚本关键协议、评分脚本输出和 skill/manifest 存在性。</Description>
+            <cdt:Acceptance>
+              <cdt:Criterion id="T4.1-AC1" checked="true">bun test 覆盖新增脚本和 skill 模板</cdt:Criterion>
+            </cdt:Acceptance>
+          </Task>
+          <Task id="T4.2" name="最终验证" status="DONE" order="1" priority="P0">
+            <Description>运行 typecheck/test/check 和 codument validate。</Description>
+            <cdt:Acceptance>
+              <cdt:Criterion id="T4.2-AC1" checked="true">bun run check 通过</cdt:Criterion>
+              <cdt:Criterion id="T4.2-AC2" checked="true">codument validate add-modeling-engineering-e2e-skills --strict 通过</cdt:Criterion>
+            </cdt:Acceptance>
+          </Task>
+        </SubNodes>
+      </TaskGroup>
+    </SubNodes>
+  </TaskSpace>
+</Track>

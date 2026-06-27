@@ -1,0 +1,1 @@
+{ "conflicts": [], "mergedIds": ["global.rules.state.no_write"], "assert": { "global.rules.state.no_write": { "a": "2", "b": "2" } } }

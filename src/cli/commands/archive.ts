@@ -1,5 +1,8 @@
 import * as fs from 'fs';
+import * as os from 'os';
 import * as path from 'path';
+import { execFileSync } from 'child_process';
+import type { XnlNode } from 'xnl-core';
 import {
   ARCHIVE_DIR,
   BEHAVIORS_DIR,
@@ -11,6 +14,9 @@ import {
   getTrack,
   parseOptions,
 } from '../utils';
+import { loadEngineeringConfig } from '../engineering/config';
+import { loadEngineeringRegistry, saveEngineeringFile } from '../engineering/registry';
+import { mergeEngineering, type MergeConflict } from '../engineering/merge';
 import { applySpecXmlPatchToRegistry } from '../utils/spec-xml';
 import { buildArchiveDestination, formatLocalMinutePrefix, resolveTrackUpdatedDate } from '../utils/track-time';
 
@@ -66,6 +72,8 @@ export async function archiveCommand(args: string[]) {
     process.exit(1);
   }
 
+  const engineeringUpdate = prepareEngineeringDeltaMerge(trackDir);
+
   // Apply behavior/spec registry updates BEFORE moving the track. The registry
   // write is all-or-nothing (applySpecXmlPatchToRegistry stages every mutation in
   // memory and only flushes on success), so a delta failure now leaves the track
@@ -74,6 +82,8 @@ export async function archiveCommand(args: string[]) {
   if (!skipSpecs) {
     updatedRegistries = applyArchivedSpecDeltas(trackDir);
   }
+
+  const updatedEngineeringFiles = engineeringUpdate?.apply() ?? [];
 
   // Move track to archive
   fs.renameSync(trackDir, archiveDir);
@@ -86,6 +96,12 @@ export async function archiveCommand(args: string[]) {
     console.log(`✓ Updated behavior/spec registry: ${updatedRegistries.join(', ')}`);
   } else {
     console.log('  No behavior/spec updates needed');
+  }
+
+  if (updatedEngineeringFiles.length > 0) {
+    console.log(`✓ Updated engineering registry: ${updatedEngineeringFiles.join(', ')}`);
+  } else if (engineeringUpdate) {
+    console.log('  No engineering updates needed');
   }
 
   const promotedDecision = promoteDecisionRecord(archiveDir, archiveId, trackId, updatedDate);
@@ -147,6 +163,129 @@ function applyArchivedSpecDeltas(archiveDir: string): string[] {
   }
 
   return [];
+}
+
+interface PreparedEngineeringMerge {
+  apply(): string[];
+}
+
+interface MergedEngineeringFile {
+  relFile: string;
+  nodes: XnlNode[];
+}
+
+function prepareEngineeringDeltaMerge(trackDir: string): PreparedEngineeringMerge | null {
+  const config = loadEngineeringConfig();
+  if (!config.enabled) {
+    return null;
+  }
+
+  const deltaDir = path.join(trackDir, 'engineering_deltas');
+  if (!fs.existsSync(deltaDir)) {
+    return null;
+  }
+
+  const theirs = loadEngineeringRegistry(deltaDir);
+  if (theirs.files.size === 0) {
+    return { apply: () => [] };
+  }
+
+  const registryDir = config.registryDir;
+  const baseDir = materializeEngineeringBase(trackDir, registryDir);
+  const base = loadEngineeringRegistry(baseDir);
+  const ours = loadEngineeringRegistry(registryDir);
+  const mergedFiles: MergedEngineeringFile[] = [];
+  const conflicts: MergeConflict[] = [];
+
+  for (const relFile of theirs.files.keys()) {
+    const result = mergeEngineering(
+      base.files.get(relFile) ?? [],
+      ours.files.get(relFile) ?? [],
+      theirs.files.get(relFile) ?? [],
+      config.mergePolicy,
+    );
+    conflicts.push(...result.conflicts);
+    mergedFiles.push({ relFile, nodes: [...result.merged.values()] });
+  }
+
+  if (conflicts.length > 0) {
+    console.error('Engineering delta merge conflicts:');
+    for (const conflict of conflicts) {
+      console.error(`  - ${conflict.id}: ${conflict.type}`);
+    }
+    console.error('Resolve conflicts manually or adjust codument/config/engineering.xml MergePolicy.');
+    process.exit(1);
+  }
+
+  return {
+    apply(): string[] {
+      if (!fs.existsSync(registryDir)) {
+        fs.mkdirSync(registryDir, { recursive: true });
+      }
+      const updated: string[] = [];
+      for (const file of mergedFiles) {
+        const abs = path.join(registryDir, file.relFile);
+        if (file.nodes.length === 0) {
+          if (fs.existsSync(abs)) {
+            fs.rmSync(abs);
+            updated.push(file.relFile);
+          }
+          continue;
+        }
+        saveEngineeringFile(registryDir, file.relFile, file.nodes);
+        updated.push(file.relFile);
+      }
+      return updated.sort();
+    },
+  };
+}
+
+function materializeEngineeringBase(trackDir: string, registryDir: string): string {
+  const commit = readEngineeringBaseCommit(trackDir);
+  if (!commit) {
+    return registryDir;
+  }
+
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'codument-engineering-base-'));
+  const gitPath = registryDir.split(path.sep).join('/');
+  let files: string;
+  try {
+    files = execFileSync('git', ['ls-tree', '-r', '--name-only', commit, '--', gitPath], {
+      encoding: 'utf-8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+  } catch (err) {
+    throw new Error(`Unable to read engineering base commit '${commit}': ${String(err)}`);
+  }
+
+  for (const fullPath of files.split('\n').filter(Boolean)) {
+    if (!fullPath.endsWith('.xnl')) {
+      continue;
+    }
+    const prefix = `${gitPath}/`;
+    if (!fullPath.startsWith(prefix)) {
+      continue;
+    }
+    const relFile = fullPath.slice(prefix.length).split('/').join(path.sep);
+    const content = execFileSync('git', ['show', `${commit}:${fullPath}`], {
+      encoding: 'utf-8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+    const out = path.join(tempDir, relFile);
+    fs.mkdirSync(path.dirname(out), { recursive: true });
+    fs.writeFileSync(out, content, 'utf-8');
+  }
+
+  return tempDir;
+}
+
+function readEngineeringBaseCommit(trackDir: string): string | null {
+  const trackXml = path.join(trackDir, 'track.xml');
+  if (!fs.existsSync(trackXml)) {
+    return null;
+  }
+  const content = fs.readFileSync(trackXml, 'utf-8');
+  return content.match(/<EngineeringBaseCommit>([^<]+)<\/EngineeringBaseCommit>/)?.[1]?.trim() || null;
 }
 
 function collectXmlPatches(archiveDir: string, rootNames: string[]): string[] {

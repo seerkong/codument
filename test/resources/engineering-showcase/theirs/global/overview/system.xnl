@@ -1,0 +1,4 @@
+<overview #global.overview.system.knowledge_system kind="overview" [
+  <desc ?>工程知识系统的心智模型。</?>
+  <mental-model ?>engineering 保存人和 AI 如何实现、维护、排障；modeling 保存结构真相；behavior 保存可测契约。</?>
+]>

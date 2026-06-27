@@ -98,6 +98,10 @@
 §3.3b 参考 behavior_deltas，起草 modeling_deltas/<plane>/<context>.xnl（目标态节点，XNL）；记录当前 codument/modeling 的宿主 git commit 作 3-way base（写入 track 元信息）。规范见 std/spec/modeling-{registry,delta,node-schema}.md（其 §9 语言约定：描述/注释/pseudo/mermaid 标签用中文，interface/字段/kind/枚举/#id 等标识符保持英文）。modeling 未启用则跳过。
 §3.3b 自检：写完 / 编辑 modeling_deltas 后，运行 `codument modeling validate --deltas <track_id>`；若报 error，按报告（file/line/layer/reason）修正 modeling_deltas 再继续，直到 0 error。本自检与 §3.3b 同样 gated on config/modeling.xml——modeling 未启用（无 config/modeling.xml 或 enabled=false）则跳过。
 ---- /?s3m
+---- #if ?s3e cond="config/engineering.xml 存在且 enabled=true"
+§3.3c 参考 docs-impl-fractal 与 engineering specs，起草 engineering_deltas/<plane>/<category>/<topic>.xnl（长期工程知识目标态节点，XNL）；记录当前 codument/engineering 的宿主 git commit 作 3-way base（写入 track 元信息）。规范见 std/spec/engineering-{registry,delta,node-schema}.md。engineering 未启用则跳过。
+§3.3c 自检：写完 / 编辑 engineering_deltas 后，运行 `codument engineering validate --deltas <track_id>`；若报 error，按报告（file/line/layer/reason）修正 engineering_deltas 再继续，直到 0 error。本自检与 §3.3c 同样 gated on config/engineering.xml。
+---- /?s3e
 ---- #step ?s4
 §3.4 起草 proposal.md → 用户确认
 ---- /?s4

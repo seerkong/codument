@@ -19,13 +19,15 @@ AI 编程助手用 Codument 做行为驱动开发的**入口与路由**。本文
 | 选下一个该做的任务（候选 + 自主度） | `backlog/README.md` |
 | 规划跨多个 track 的路线 / mission | `missions/README.md`、`std/spec/mission-xml-spec.md` |
 | 长期记忆（lessons/incidents/patterns） | `attractors/project-memory.md` + `memory/`（memory profile） |
-| docs/ 怎么写（modeling/impl 分形、frontmatter） | `attractors/model-driven-docs.md` → `std/docs-{modeling,impl}-fractal/index.md` |
+| engineering/modeling 长期知识 registry 怎么写 | `std/spec/{modeling,engineering}-registry.md`、`std/spec/{modeling,engineering}-node-schema.md` |
+| legacy docs/ 怎么写（modeling/impl 分形、frontmatter） | `attractors/model-driven-docs.md` → `std/docs-{modeling,impl}-fractal/index.md` |
 | 怎么提问/确认/纠偏（协议） | `std/sop/questioning.md`、`std/sop/validation.md` |
 | 执行套路（TDD / wave 调度 / gap-loop） | `std/sop/{tdd,wave-exec,gap-loop}.md` |
 | track 文件（track.xml）格式 | `std/spec/track-xml-spec.md` |
 | mission 文件（mission.xml）格式 | `std/spec/mission-xml-spec.md` |
 | 流程标记块（flow notation）格式 | `std/spec/flow-notation.md` |
 | 怎么写 behavior delta / behavior 登记表格式 | `std/spec/behavior-delta.md`、`std/spec/behavior-registry.md` |
+| 怎么写 engineering delta / engineering 登记表格式 | `std/spec/engineering-delta.md`、`std/spec/engineering-registry.md` |
 | 具体某个操作怎么做 | `std/operations/<name>.md`（索引见 `std/operations/README.md`） |
 | 命令级 hook、attractor profile、能力开关 | `config/operation-hooks.xml`、`config/attractor-profiles.xml` |
 
@@ -43,11 +45,11 @@ mission 是更长周期的控制面对象：
 
 ## 知识沉淀与晋升（务必，详见 attractors/knowledge-tiers.md）
 
-codument 是 **track 中心**的：迭代记忆强，但 **owner 文档（`docs/modeling`/`docs/impl`）的维护是弱环**，要刻意补强：
+codument 是 **track 中心**的：迭代记忆强，但 **owner registry（`codument/modeling`/`codument/engineering`）和 legacy owner docs（`docs/modeling`/`docs/impl`）的维护是弱环**，要刻意补强：
 
 - **file-in/file-out**：重要输入/结论落文件，别只留 chat；按职责分类写回（见分层表）。
-- **实时维护，不只归档**：澄清（discuss）期一旦某概念/行为/policy/架构**稳定**，**当轮就**收敛进 `docs/modeling`/`docs/impl`，不要拖到归档才补、也不要只留在 proposal。
-- **晋升阶梯**：track → `behaviors/`（行为，归档必做）/ `docs/modeling·impl`（稳定领域知识）/ `decisions/`（承重决策）/ `memory/`（复用教训）；`memory` 中**反复复发**的再固化为 sop/skill/check。触发条件见 knowledge-tiers.md §5。
+- **实时维护，不只归档**：澄清（discuss）期一旦某概念/行为/policy/架构**稳定**，**当轮就**收敛进 `codument/modeling` / `codument/engineering` 的 delta（或 legacy docs），不要拖到归档才补、也不要只留在 proposal。
+- **晋升阶梯**：track → `behaviors/`（行为，归档必做）/ `codument/modeling`（结构真源）/ `codument/engineering`（工程知识真源）/ `decisions/`（承重决策）/ `memory/`（复用教训）；`memory` 中**反复复发**的再固化为 sop/skill/check。触发条件见 knowledge-tiers.md §5。
 - **新建目录自带职责**：在 docs/ 下新建文件夹时，按 `std/spec/folder-manifest.md` 给它写"目录职责"块（或跑补齐）。
 
 ## skill 入口（优先用 skill）
@@ -68,6 +70,8 @@ codument list [--behaviors]      # 列活跃 track / 行为登记表
 codument show [item] [--json]
 codument validate [item] [--strict]
 codument archive <track-id>
+codument modeling validate|lint
+codument engineering validate|lint
 codument init [path] / upgrade-workspace / upgrade-track <id> / status
 ```
 
