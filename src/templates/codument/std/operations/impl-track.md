@@ -505,7 +505,7 @@ track 终态 hook（如 <Track><Hooks> 的 cdt:GapLoop）执行完才算实现�
 宣布完成：
   "🎉 Track '<track_id>' 实现完成！
    统计 — 阶段 <n>/<n> · 任务 <n>/<n> · 验证全部通过
-   下一步：请使用 codument-archive skill 归档此 track: <track_id>"
+   下一步：请使用 codument-archive-track skill 归档此 track: <track_id>"
 ---- /?f3
 -- /?finalize
 ```
@@ -521,7 +521,7 @@ track 达到 completed 后，按**显式 hook**做文档同步——**不要**�
 - **modeling（条件·modeling 启用）**：实现过程中若领域结构（对象/状态机/模块依赖/事实源/组件 IO）发生变化，把目标态节点写进 track 的 `modeling_deltas/<plane>/<context>.xnl`（不直接改 `codument/modeling/`——那由归档 §5.5 的 3-way 合并落盘）。**写完 / 编辑 modeling_deltas 后自检**：运行 `codument modeling validate --deltas <track_id>`；若报 error，按报告（file/line/layer/reason）修正 modeling_deltas 再继续，直到 0 error。该步骤与本条同样 gated——modeling 未启用（无 `config/modeling.xml` 或 `enabled=false`）则跳过。规范见 `std/spec/modeling-{registry,delta,node-schema}.md`（其 §9 语言约定：描述/注释/pseudo/mermaid 标签用中文，interface/字段/kind/枚举/#id 等标识符保持英文）。
 - **artifact / knowledge sync**：仅当 `codument/config/operation-hooks.xml` 为当前 operation point 显式配了 `<artifact-sync artifact="…"/>` 且该 artifact 存在于 `codument/config/artifacts.xml` 时才执行；同步时读 artifact 的 `<uses>`/`<targets>`/`<policy>` 与其 `attractor-profile` resource 指定的吸引子。详见 `codument/std/operations/artifact-sync.md`。
 - **product/project 类 attractor 更新**：分析 `behavior_deltas/**/*.xml`，若已完成功能显著影响产品描述或架构决策，生成提议 diff 并用 `ask-single-question-closed` 请求确认，**仅在明确确认后**编辑 `codument/attractors/` 下相关文件。
-- **track 清理**：交由 `codument-archive` skill（归档 / 删除 / 保留三选一），本 skill 不直接删 track 目录。
+- **track 清理**：交由 `codument-archive-track` skill（归档 / 删除 / 保留三选一），本 skill 不直接删 track 目录。
 
 ---
 

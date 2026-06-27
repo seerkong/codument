@@ -221,7 +221,7 @@ docs/_assets/
 
 > **两个时机，别只在归档**：
 > - **澄清/实现期（实时）**：discuss 一旦把某概念/行为/policy/架构**澄清并稳定**，**当轮就**把它收敛进对应 owner 文档（`docs/modeling`/`docs/impl`），而不是只写进 proposal 等归档再补。这是 owner 文档保持新鲜的主路径。
-> - **归档期（兜底）**：`codument-archive` 按显式 hook 对该 track 全量复查、补齐遗漏（见 `std/operations/artifact-sync.md`）。
+> - **归档期（兜底）**：`codument-archive-track` 按显式 hook 对该 track 全量复查、补齐遗漏（见 `std/operations/artifact-sync.md`）。
 >
 > 晋升判定（落 `docs/` 还是 behaviors/decisions/memory、何时晋升）见 [knowledge-tiers.md](./knowledge-tiers.md) §4–§5。
 

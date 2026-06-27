@@ -1,9 +1,9 @@
 ---
-name: codument-archive
-description: [已更名为 codument-archive-track] 归档已完成 track——提升 behavior 进 behaviors/、移入 archive/、按开关条件提升 decision/memory、按显式 hook 同步 docs/制品、校验。track 完成并部署后收口时使用。
+name: codument-archive-track
+description: 归档已完成 track——提升 behavior 进 behaviors/、移入 archive/、按开关条件提升 decision/memory、按显式 hook 同步 docs/制品、校验。track 完成并部署后收口时使用。
 ---
 
-# Codument · archive
+# Codument · archive-track
 
 这是 codument **archive** 操作的 skill 壳。**权威提示词在工作区** body——打开并**严格遵循**：
 

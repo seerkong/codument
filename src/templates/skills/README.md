@@ -22,7 +22,7 @@
 | `codument-revise-track/` | `@/codument/std/operations/revise-track.md` |
 | `codument-validate/` | `@/codument/std/operations/validate.md` |
 | `codument-status/` | `@/codument/std/operations/status.md` |
-| `codument-archive/` | `@/codument/std/operations/archive.md` |
+| `codument-archive-track/` | `@/codument/std/operations/archive-track.md` |
 | `codument-artifact-sync/` | `@/codument/std/operations/artifact-sync.md` |
 | `codument-docs-bootstrap/` | `@/codument/std/operations/docs-bootstrap.md` |
 | `codument-migrate/` | `@/codument/std/operations/migrate.md` |

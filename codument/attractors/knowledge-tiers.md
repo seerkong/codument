@@ -123,4 +123,4 @@ tracks/<id>/ ── proposal.md · design.md · discussion · behavior_deltas/ �
 
 - 文件级目录规范（modeling/impl 怎么写、frontmatter）：[model-driven-docs.md](./model-driven-docs.md) → [docs-modeling-fractal](@codument/std/docs-modeling-fractal/index.md) / [docs-impl-fractal](@codument/std/docs-impl-fractal/index.md)。
 - 每个标准文件夹"装什么"的自描述与补齐：[std/spec/folder-manifest.md](@codument/std/spec/folder-manifest.md)。
-- 晋升动作落在流程里：归档晋升见 `std/operations/archive.md`；docs 同步见 `std/operations/artifact-sync.md`；澄清期实时更新见 `std/sop/questioning.md`。
+- 晋升动作落在流程里：归档晋升见 `std/operations/archive-track.md`；docs 同步见 `std/operations/artifact-sync.md`；澄清期实时更新见 `std/sop/questioning.md`。

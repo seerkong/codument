@@ -54,7 +54,7 @@ code-map.md   # 把本 context 的建模知识连到源码 / 测试
 contexts/<ctx>/{ objects/  policies/  workflows/ }
                   对象       跨对象规则   多步流程
 
-# backend 平面（后端投影，实例）—— 服务端真源
+# backend 平面（后端投影）—— 服务端真源
 contexts/<ctx>/{ routes  dto_maps  errors  contracts  storage  read-models  sync-flows }
 
 # surface 平面（前端投影）—— 前端真源

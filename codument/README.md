@@ -52,7 +52,7 @@
 codument 强在 **track 迭代记忆**，弱在 **owner 文档（docs/modeling·impl）维护**。本轮吸收参考项目（`/Users/kongweixian/ai/src/attractor-guided-engineering-template`）的三处长处：
 - **信息晋升（promotion）**：新建 `attractors/knowledge-tiers.md`——知识分层表 + **AGE 扁平类目→codument 层级映射** + 晋升阶梯（track→behaviors/docs/decisions/memory，memory 复发→sop/skill/check）+ 真源优先级 + 时效性。
 - **目录自描述 + 补齐**：新建 `std/spec/folder-manifest.md`——每个标准文件夹在自己 `index.md` 里就地声明「目录职责」块（解除对单份中心规范的强依赖），自定义类目必填；缺块由 backfill 机制补齐。两份分形 index 与 docs-bootstrap/artifact-sync 接入。
-- **实时维护，不只归档**：discuss/澄清期一旦概念稳定就**当轮**收敛进 owner 文档；`questioning.md`/`discuss.md`/`workflow.md`/`artifact-sync.md`/`archive.md` 同步加入「澄清即沉淀 + 晋升判定权威=knowledge-tiers」。
+- **实时维护，不只归档**：discuss/澄清期一旦概念稳定就**当轮**收敛进 owner 文档；`questioning.md`/`discuss.md`/`workflow.md`/`artifact-sync.md`/`archive-track.md` 同步加入「澄清即沉淀 + 晋升判定权威=knowledge-tiers」。
 - 路由全部接进 `std/AGENTS.md`；修复 reorg 遗留的 `attractors/docs-*-fractal`→`std/`、`docs-knowledge`→`model-driven-docs`、`specs/`→`behaviors/` 等陈旧引用（config/init 内）。
 
 ### 6. 补 backlog tier + 回填 src/ 漏掉的提示词功能（本轮，目标：codument 文件夹自包含）
@@ -82,7 +82,7 @@ draft-d/codument/
 │   ├── docs-impl-fractal/index.md      实现侧分形规范（docs/impl/，类目可替换）
 │   ├── sop/                        内置执行规程（原 workflow.md + 拆分的 protocols + 方法论）
 │   │   ├── workflow.md · questioning.md · validation.md
-│   │   └── tdd.md · wave-exec.md · gap-loop.md · archive.md · artifact-sync.md
+│   │   └── tdd.md · wave-exec.md · gap-loop.md
 │   └── operations/                 14 个操作 body（每个 = `codument-<x>` 的完整提示词）+ _operation-spec.md + README 索引
 ├── attractors/                     吸引子载体（init 落盘 project/product/tiers；按 profile 加 docs/memory）
 │   ├── project.md · product.md     项目/产品级吸引子

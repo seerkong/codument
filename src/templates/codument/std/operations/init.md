@@ -31,7 +31,7 @@ codument/
 │   ├── docs-impl-fractal/index.md      实现侧分形规范
 │   ├── sop/                        内置执行规程
 │   │   ├── workflow.md · questioning.md · validation.md
-│   │   └── tdd.md · wave-exec.md · gap-loop.md · archive.md · artifact-sync.md
+│   │   └── tdd.md · wave-exec.md · gap-loop.md
 │   └── skills/                     全部操作 skill（Markdown + 流程块）+ _operation-spec.md + README 索引
 ├── attractors/                     吸引子载体
 │   ├── project.md · product.md     项目/产品级吸引子

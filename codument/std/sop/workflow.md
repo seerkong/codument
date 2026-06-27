@@ -22,8 +22,8 @@
 ### 二、实现（`codument-impl-track` 等）
 读 proposal/design/behavior_deltas/analysis/findings → 按 TaskSpace 顺序遍历 phase、层内按 Schedule（默认顺序 / `cdt:child-mode="dag"` 则 DAG，见 `wave-exec.md`）派发子代理 → 独立 spot-check → 回写 status 与 findings → 在 phase/task/track 生命周期跑 `cdt:` hook（`validation.md`）。可按需 `discuss` / `plan-track-wave` / `gap-loop` / `verify` / `revise-track`。
 
-### 三、归档（`codument-archive`）
-提升 behavior delta 进 `codument/behaviors/` → 移 track 到 `archive/YYYY-MM/...` → 条件提升 decision/memory → 显式 hook 触发 artifact/docs 同步（`archive.md` / `artifact-sync.md`）。
+### 三、归档（`codument-archive-track`）
+提升 behavior delta 进 `codument/behaviors/` → 移 track 到 `archive/YYYY-MM/...` → 条件提升 decision/memory → 显式 hook 触发 artifact/docs 同步（`archive-track.md` / `artifact-sync.md`）。
 
 ## 何时建 track / 跳过
 

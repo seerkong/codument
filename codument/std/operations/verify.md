@@ -124,7 +124,7 @@ verify 的核心是**派发 fresh-subagent 实际运行**——不是父代理�
 ---- /?report
 ---- #switch ?conclude on="是否存在 FAIL"
 ------ #case ?allpass when="全部 PASS"
--------- #return ?ok value="PASS：报告可进归档（codument-archive）"
+-------- #return ?ok value="PASS：报告可进归档（codument-archive-track）"
 -------- /?ok
 ------ /?allpass
 ------ #case ?hasfail when="存在 FAIL"
@@ -168,7 +168,7 @@ Summary:
 - 通过：<n>
 - 失败：<n>
 - 结论：PASS | FAIL
-- 下一步：全 PASS → codument-archive；有 FAIL → codument-impl-track / codument-gap-loop
+- 下一步：全 PASS → codument-archive-track；有 FAIL → codument-impl-track / codument-gap-loop
 ```
 
 > 全 PASS 才可进归档；有 FAIL 则列差距并建议回 `implement`（补实现）或 `gap-loop`（目标对比纠偏修复）。报告/状态对照失败时不轻易判 PASS。

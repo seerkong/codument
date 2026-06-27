@@ -49,7 +49,7 @@ tracks/<id>/
 - `track.xml`/`proposal`/`behavior_deltas` 必有；其余按需。
 - `analysis/` 是**迭代期外部记忆**，不是 owner 真源——稳定结论按 `knowledge-tiers.md` 晋升进 `docs/`/`behaviors/`，不滞留 analysis。
 - `analysis/findings.md` 应记录可复用的事实锚：spot-check 证据、测试/指标结果、失败归因、环境约束、机制漏洞、phase/wave 完成小结。新会话接手或续跑时优先读取它，避免只依赖对话记忆。
-- `decisions/`→`decision://`、`memory/`→`memory://`、`behavior_deltas/`→`behaviors/` 的提升时机见 `std/operations/archive.md` 与 `knowledge-tiers.md` §4–§5。
+- `decisions/`→`decision://`、`memory/`→`memory://`、`behavior_deltas/`→`behaviors/` 的提升时机见 `std/operations/archive-track.md` 与 `knowledge-tiers.md` §4–§5。
 - 子代理只接收**路径/引用**自读（见 `implement.md`），不把这些目录正文塞进编排者上下文。
 
 ---

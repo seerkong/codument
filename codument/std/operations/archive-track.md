@@ -1,10 +1,10 @@
-# skill: codument-archive（归档已完成的 track）
+# skill: codument-archive-track（归档已完成的 track）
 
 **描述：** 归档已完成的变更追踪。把 track 的产出"落盘"成持久真源——核心动作是把行为增量提升进行为登记表 `codument/behaviors/`，并把 track 移进 `archive/`；再按开关条件提升 decision / memory、按显式 hook 触发 artifact/docs 同步。
 
 > 本文是完整提示词（口径已对齐当前标准）。**程序化的执行流程**（有序的提升流水线 + 条件门）用流程标记块（` ```text ` + `@delimiter: --`，构造词汇见 [`_operation-spec.md`](./_operation-spec.md)）表达；**说明、规则、背景、示例**用 Markdown，内嵌 XML 用 ```` ```xml ```` 围栏。
 >
-> 口径映射（旧→新）：`codument:archive`→`codument-archive`；`plan.xml`→`track.xml`，其 `metadata.status`→`<Metadata><Status>`；`tracks/<id>/`→`archive/YYYY-MM/YYYY-MM-DD-HHmm-<id>/`（时间取 track **最后更新**时间，不是执行归档命令当天）；`spec_deltas/**`→`behavior_deltas/**`、`<spec-patch>`→`<behavior-patch>`、`spec://`→`behavior://`、`codument/specs/`→`codument/behaviors/`；`feature.json` 的 `knowledgeSync.enabled` / `projectMemory.enabled`→`config/attractor-profiles.xml` 里 `docs` / `memory` profile 的 `enabled`；`artifacts.xml` 的零散 source/target → track 的 `output` MaterialBundle（来源）+ artifact 规则的目标根（目标）；`<artifact-sync>` hook → `<cdt:ArtifactSync>`；`<attractor-check>` → `<cdt:AttractorCheck>`。
+> 口径映射（旧→新）：`codument:archive`→`codument-archive-track`（旧 `codument-archive` 为别名）；`plan.xml`→`track.xml`，其 `metadata.status`→`<Metadata><Status>`；`tracks/<id>/`→`archive/YYYY-MM/YYYY-MM-DD-HHmm-<id>/`（时间取 track **最后更新**时间，不是执行归档命令当天）；`spec_deltas/**`→`behavior_deltas/**`、`<spec-patch>`→`<behavior-patch>`、`spec://`→`behavior://`、`codument/specs/`→`codument/behaviors/`；`feature.json` 的 `knowledgeSync.enabled` / `projectMemory.enabled`→`config/attractor-profiles.xml` 里 `docs` / `memory` profile 的 `enabled`；`artifacts.xml` 的零散 source/target → track 的 `output` MaterialBundle（来源）+ artifact 规则的目标根（目标）；`<artifact-sync>` hook → `<cdt:ArtifactSync>`；`<attractor-check>` → `<cdt:AttractorCheck>`。
 
 ---
 
@@ -216,7 +216,7 @@ track 完成后更新行为登记表 `codument/behaviors/`（旧称 spec registr
 - 使用 `codument list` 确认 track ID。
 - 使用 `codument list --behaviors` 查看更新后的行为登记表（XML registry）。
 - behavior 登记表布局 / delta 应用：[std/spec/behavior-registry.md](@codument/std/spec/behavior-registry.md)。
-- 归档执行套路：本文（codument-archive skill 即完整归档规程）。
+- 归档执行套路：本文（codument-archive-track skill 即完整归档规程；codument-archive 为旧名别名）。
 - 晋升阶梯与触发条件：[knowledge-tiers.md](@codument/attractors/knowledge-tiers.md) §4–§5。
 - 显式 artifact 同步：[codument-artifact-sync skill](./artifact-sync.md)（含 §4.5 docs 路由）。
 - 检查归档后 `codument validate --strict` 通过；如果系统找不到 `codument` 命令，则记录该外部 CLI validate 步骤已跳过。

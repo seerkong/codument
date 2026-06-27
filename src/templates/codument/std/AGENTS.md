@@ -21,7 +21,7 @@ AI 编程助手用 Codument 做行为驱动开发的**入口与路由**。本文
 | 长期记忆（lessons/incidents/patterns） | `attractors/project-memory.md` + `memory/`（memory profile） |
 | docs/ 怎么写（modeling/impl 分形、frontmatter） | `attractors/model-driven-docs.md` → `std/docs-{modeling,impl}-fractal/index.md` |
 | 怎么提问/确认/纠偏（协议） | `std/sop/questioning.md`、`std/sop/validation.md` |
-| 执行套路（TDD / wave 调度 / 归档 / 同步） | `std/sop/{tdd,wave-exec,gap-loop,archive,artifact-sync}.md` |
+| 执行套路（TDD / wave 调度 / gap-loop） | `std/sop/{tdd,wave-exec,gap-loop}.md` |
 | track 文件（track.xml）格式 | `std/spec/track-xml-spec.md` |
 | 怎么写 behavior delta / behavior 登记表格式 | `std/spec/behavior-delta.md`、`std/spec/behavior-registry.md` |
 | 具体某个操作怎么做 | `std/operations/<name>.md`（索引见 `std/operations/README.md`） |
@@ -31,7 +31,7 @@ AI 编程助手用 Codument 做行为驱动开发的**入口与路由**。本文
 
 1. **创建 track**：`codument-plan-track` → behavior delta（`behavior_deltas/`）+ proposal + `track.xml`（TaskSpace/Schedule/Hooks）。
 2. **实现**：`codument-discuss` / `codument-plan-track-wave` / `codument-impl-track`，按需 `codument-gap-loop` / `codument-verify` / `codument-revise-track`。
-3. **归档**：`codument-archive` → 提升 behavior 进 `codument/behaviors/`、移入 `archive/`、按显式 hook 同步 artifact/docs。
+3. **归档**：`codument-archive-track` → 提升 behavior 进 `codument/behaviors/`、移入 `archive/`、按显式 hook 同步 artifact/docs。
 
 ## 知识沉淀与晋升（务必，详见 attractors/knowledge-tiers.md）
 
@@ -48,7 +48,7 @@ codument 是 **track 中心**的：迭代记忆强，但 **owner 文档（`docs/
 请使用 codument-plan-track skill, 创建 track: <track-id>
 请使用 codument-discuss / codument-plan-track-wave / codument-impl-track skill, 处理 track: <track-id>
 请使用 codument-gap-loop / codument-verify / codument-revise-track skill, 校验/验证/修订 track: <track-id>
-请使用 codument-archive / codument-validate / codument-status skill
+请使用 codument-archive-track / codument-validate / codument-status skill
 请使用 codument-docs-bootstrap / codument-artifact-sync / codument-migrate skill
 ```
 

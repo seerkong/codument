@@ -169,4 +169,4 @@ docs 类 artifact 的内容选择 / 路由 / 质量 / 晋升判定 + 目录职�
 - 晋升阶梯与触发条件：[knowledge-tiers.md](@codument/attractors/knowledge-tiers.md) §4–§5。
 - profile 开关（`docs` / `memory` 的 `enabled`）：[config/attractor-profiles.xml](@codument/config/attractor-profiles.xml)。
 - 新建目录写"目录职责"块：[std/spec/folder-manifest.md](@codument/std/spec/folder-manifest.md)。
-- 归档时如何触发本同步：[codument-archive skill](./archive.md) §6。
+- 归档时如何触发本同步：[codument-archive-track skill](./archive-track.md) §6。
