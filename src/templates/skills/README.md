@@ -23,6 +23,9 @@
 | `codument-validate/` | `@/codument/std/operations/validate.md` |
 | `codument-status/` | `@/codument/std/operations/status.md` |
 | `codument-archive-track/` | `@/codument/std/operations/archive-track.md` |
+| `codument-plan-mission/` | `@/codument/std/operations/plan-mission.md` |
+| `codument-impl-mission/` | `@/codument/std/operations/impl-mission.md` |
+| `codument-archive-mission/` | `@/codument/std/operations/archive-mission.md` |
 | `codument-artifact-sync/` | `@/codument/std/operations/artifact-sync.md` |
 | `codument-docs-bootstrap/` | `@/codument/std/operations/docs-bootstrap.md` |
 | `codument-migrate/` | `@/codument/std/operations/migrate.md` |

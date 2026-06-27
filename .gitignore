@@ -16,6 +16,8 @@ codument/tracks/**/analysis/
 codument/tracks/**/reports/
 codument/archive/**/analysis/
 codument/archive/**/reports/
+codument/missions/*/*/analysis/
+codument/missions/*/*/reports/
 
 # Logs
 logs

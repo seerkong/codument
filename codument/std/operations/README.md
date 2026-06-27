@@ -17,6 +17,9 @@
 | codument-validate | `validate.md` | 校验 track.xml / spec 结构 |
 | codument-status | `status.md` | 项目/track 状态总览（从 track.xml 派生） |
 | codument-archive-track | `archive-track.md` | 归档 track + 提升 behavior 进 `codument/behaviors/` + 可选 artifact/memory 同步 |
+| codument-plan-mission | `plan-mission.md` | 创建长周期 mission（mission.xml + proposal.md + design.md） |
+| codument-impl-mission | `impl-mission.md` | 按 mission.xml DAG 执行 mission，支持控制论 actor loop 与受控重规划 |
+| codument-archive-mission | `archive-mission.md` | 归档 mission 到 `missions/archived/YYYY-MM-DD-<mission-id>/` |
 | codument-artifact-sync | `artifact-sync.md` | 按 output MaterialBundle 同步制品到目标 |
 | codument-docs-bootstrap | `docs-bootstrap.md` | 把现存项目总结进 docs/modeling 与 docs/impl |
 | codument-migrate | `migrate.md` | 迁移旧 plan.xml→track.xml、md specs→xml、旧 archive 布局 |

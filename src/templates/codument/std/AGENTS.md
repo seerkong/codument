@@ -4,7 +4,7 @@ AI 编程助手用 Codument 做行为驱动开发的**入口与路由**。本文
 
 ## 何时打开本指南
 
-- 提到 planning / proposal / track（proposal、behavior、change、plan、track、implement）
+- 提到 planning / proposal / track / mission（proposal、behavior、change、plan、track、mission、implement）
 - 新增能力、破坏性变更、架构/模式调整、性能/安全工作
 - 需求模糊、需要权威行为规范再动手
 - 用户补充需求属于某进行中 track 范围
@@ -17,12 +17,14 @@ AI 编程助手用 Codument 做行为驱动开发的**入口与路由**。本文
 | **一条信息该落哪层 / 何时晋升 / 冲突谁赢** | `attractors/knowledge-tiers.md`（分层 + 信息晋升 + 真源优先级） |
 | 某标准文件夹"装什么" / 给目录补职责说明 | `std/spec/folder-manifest.md`（目录职责自描述 + 补齐机制） |
 | 选下一个该做的任务（候选 + 自主度） | `backlog/README.md` |
-| 规划跨多个 track 的路线 / mission | `missions/README.md` |
+| 规划跨多个 track 的路线 / mission | `missions/README.md`、`std/spec/mission-xml-spec.md` |
 | 长期记忆（lessons/incidents/patterns） | `attractors/project-memory.md` + `memory/`（memory profile） |
 | docs/ 怎么写（modeling/impl 分形、frontmatter） | `attractors/model-driven-docs.md` → `std/docs-{modeling,impl}-fractal/index.md` |
 | 怎么提问/确认/纠偏（协议） | `std/sop/questioning.md`、`std/sop/validation.md` |
 | 执行套路（TDD / wave 调度 / gap-loop） | `std/sop/{tdd,wave-exec,gap-loop}.md` |
 | track 文件（track.xml）格式 | `std/spec/track-xml-spec.md` |
+| mission 文件（mission.xml）格式 | `std/spec/mission-xml-spec.md` |
+| 流程标记块（flow notation）格式 | `std/spec/flow-notation.md` |
 | 怎么写 behavior delta / behavior 登记表格式 | `std/spec/behavior-delta.md`、`std/spec/behavior-registry.md` |
 | 具体某个操作怎么做 | `std/operations/<name>.md`（索引见 `std/operations/README.md`） |
 | 命令级 hook、attractor profile、能力开关 | `config/operation-hooks.xml`、`config/attractor-profiles.xml` |
@@ -32,6 +34,12 @@ AI 编程助手用 Codument 做行为驱动开发的**入口与路由**。本文
 1. **创建 track**：`codument-plan-track` → behavior delta（`behavior_deltas/`）+ proposal + `track.xml`（TaskSpace/Schedule/Hooks）。
 2. **实现**：`codument-discuss` / `codument-plan-track-wave` / `codument-impl-track`，按需 `codument-gap-loop` / `codument-verify` / `codument-revise-track`。
 3. **归档**：`codument-archive-track` → 提升 behavior 进 `codument/behaviors/`、移入 `archive/`、按显式 hook 同步 artifact/docs。
+
+mission 是更长周期的控制面对象：
+
+1. **创建 mission**：`codument-plan-mission` → `codument/missions/pending/<id>/mission.xml` + `proposal.md` + `design.md`。
+2. **执行 mission**：`codument-impl-mission` → 按 `mission.xml` DAG + MissionPlanner/Observer/Reconciler/Applier 控制论 actor loop 推进，允许受控重规划。
+3. **归档 mission**：`codument-archive-mission` → 移入 `codument/missions/archived/YYYY-MM-DD-<id>/`，按条件提升 decisions/memory。
 
 ## 知识沉淀与晋升（务必，详见 attractors/knowledge-tiers.md）
 
@@ -49,6 +57,7 @@ codument 是 **track 中心**的：迭代记忆强，但 **owner 文档（`docs/
 请使用 codument-discuss / codument-plan-track-wave / codument-impl-track skill, 处理 track: <track-id>
 请使用 codument-gap-loop / codument-verify / codument-revise-track skill, 校验/验证/修订 track: <track-id>
 请使用 codument-archive-track / codument-validate / codument-status skill
+请使用 codument-plan-mission / codument-impl-mission / codument-archive-mission skill
 请使用 codument-docs-bootstrap / codument-artifact-sync / codument-migrate skill
 ```
 
