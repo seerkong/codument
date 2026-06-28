@@ -73,7 +73,7 @@ docs/impl/<plane>/<category>/<topic>/<leaf>.md   # legacy / 展示层
 
 ## 5. Frontmatter（用受控精简 schema）
 
-字段集与含义在 [model-driven-docs.md](../../attractors/model-driven-docs.md) 统一定义。impl 侧附加约定：
+字段集与含义在 [model-driven-docs.md](../attractors/model-driven-docs.md) 统一定义。impl 侧附加约定：
 
 - impl 文档**可在正文写代码路径**；frontmatter 保持稳定、低冲突，**不堆 `code_paths` / `topics` 数组**。
 - 实现规则**不复制** modeling policy——链接到 `docs/modeling/<plane>/contexts/<ctx>/policies/...`，本文件只写 enforcement。

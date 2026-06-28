@@ -18,7 +18,7 @@ docs/impl/      # 实现、操作、示例、参考、排障知识
 
 本文件只保留路由规则、通用元数据、track 同步检查清单。不要把具体建模文件模板或实现平面细则塞回本文件；这些内容应维护在两份分形标准中。
 
-> **上层语义**：一条信息该落 `docs/` 还是 track/behaviors/decisions/memory、何时从 track **晋升**进 owner 文档、冲突时谁是真源——见 [attractors/knowledge-tiers.md](./knowledge-tiers.md)。每个标准文件夹"装什么"由其 `index.md` 的**目录职责块**就地声明，规范与补齐见 [std/spec/folder-manifest.md](@codument/std/spec/folder-manifest.md)。
+> **上层语义**：一条信息该落 `docs/` 还是 track/behaviors/decisions/memory、何时从 track **晋升**进 owner 文档、冲突时谁是真源——见 [knowledge-tiers.md](./knowledge-tiers.md)。每个标准文件夹"装什么"由其 `index.md` 的**目录职责块**就地声明，规范与补齐见 [std/spec/folder-manifest.md](@codument/std/spec/folder-manifest.md)。
 
 ## 真源边界
 

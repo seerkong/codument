@@ -112,6 +112,9 @@ function removeLegacyWorkspacePaths(backupRoot: string): number {
     'codument/std/protocols.md',
     'codument/std/plan-xml-spec.md',
     'codument/std/track-impl-gap-report-1.md',
+    'codument/attractors/knowledge-tiers.md',
+    'codument/attractors/model-driven-docs.md',
+    'codument/attractors/project-memory.md',
   ];
 
   let removed = 0;

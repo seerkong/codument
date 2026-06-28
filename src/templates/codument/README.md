@@ -21,9 +21,10 @@ codument/
 │   ├── root-agents.md           项目根 AGENTS.md 受管块模板
 │   ├── kernel-pointer.md        Codument 与通用 workflow/task 内核的关系
 │   ├── spec/                    文件格式规范
+│   ├── attractors/              可升级标准 attractor（knowledge/docs/memory/DEPA）
 │   ├── sop/                     内置执行规程
 │   └── operations/              codument-* skill 的权威操作 body
-├── attractors/                  项目、产品、知识分层、docs、memory 等吸引子
+├── attractors/                  项目、产品等项目自有吸引子
 ├── config/                      profile 与 operation hook 配置
 ├── workflows/                   结构化 workflow definitions / instances
 ├── sop/                         项目自定义执行流程

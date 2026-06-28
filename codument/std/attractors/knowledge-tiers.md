@@ -1,4 +1,4 @@
-# Knowledge Tiers & 信息晋升（attractors/knowledge-tiers.md）
+# Knowledge Tiers & 信息晋升（std/attractors/knowledge-tiers.md）
 
 > codument 的**知识分层地图 + 信息晋升阶梯 + 真源优先级**。它回答三个问题：
 > 1. 一条信息该落到哪个目录（**分层与职责**）；
@@ -26,7 +26,6 @@
 | 承重决策 | `decisions/`（`decision://`） | 从 track 提升的长期决策 | 稳定·追加 | "为什么这么定" |
 | 长期教训 | `memory/`（`memory://`） | lessons / incidents / patterns / summaries | 稳定·追加 | "反复踩的坑 / 复用模式" |
 | 候选工作 | `backlog/` | 跨 track 的下一步候选 + 自主度 | 活的·就地改 | "下一个该做什么"（非真源） |
-| 跨 track 路线 | `missions/<id>/roadmap.md` | 一组相关 track 的阶段路线、依赖、进度证据 | 活的·就地改 | "多个 track 如何排布"（非行为真源） |
 | 迭代工作面 | `tracks/<id>/` | proposal、design、discussion、`track.xml`、`behavior_deltas/`、`analysis/`、`decisions*`、`reports/` | **带日期·迭代内可变** | "本次要建什么 / 怎么收口 / 发生了什么" |
 | 轨迹历史 | `archive/YYYY-MM/...` | 已完成 track | **带日期·归档后不可变** | "历史上做过什么" |
 
@@ -45,7 +44,7 @@ attractor-guided-engineering 把这些都摊在 `docs/` 根下；codument 把**�
 | `docs/architecture/` 技术基线 + 边界 | `docs/impl/global/overview/` + `docs/impl/<plane>/overview/` + `.../rules/` + `code-map.md` | **fractal** |
 | `docs/references/` 查阅 + code map + API/schema/兼容表 | `docs/impl/<plane>/reference/` 类目 + modeling `code-map.md` | **fractal** |
 | `docs/lessons/` durable 教训 | `codument/memory/`（lessons/incidents/patterns） | tier(memory) |
-| `docs/examples/` 示例 + 骨架 | 文档内示例→`docs/impl/<plane>/examples/`；工作文档骨架→`std/operations/plan-track.md` + `std/spec/track-xml-spec.md` 的内嵌示例 | **fractal** + std |
+| `docs/examples/` 示例 + 骨架 | 文档内示例→`docs/impl/<plane>/examples/`；工作文档骨架→`std/operations/` + `tracks/demo-track/` | **fractal** + std |
 | `docs/process/` 流程/规程 | `codument/sop/`（`std/sop/` 内置 + 顶层 `sop/` 自定义） | sop |
 | `docs/skills/` 可复用 prompt/playbook | `std/operations/`（操作）+ `std/sop/`（规程）+ attractor-check profile | std |
 
@@ -60,7 +59,6 @@ attractor-guided-engineering 把这些都摊在 `docs/` 根下；codument 把**�
 | `docs/logs/` `docs/audits/` `docs/testing/` 证据 | `tracks/<id>/reports/` + `archive/` |
 | `docs/bugs/` `docs/retrospectives/` | 复发的进 `memory/`（incidents/patterns） |
 | `docs/backlog/` 候选工作 | `codument/backlog/README.md`（候选 + 自主度，活的清单，非 owner 真源） |
-| 跨 track roadmap / mission | `codument/missions/<id>/roadmap.md`（阶段路线 + 依赖 + 证据，非 owner 真源） |
 
 > 只有 `context`→`attractors/`、`lessons`→`memory/` 不靠 fractal 而靠 tier——因为它们跨领域、不属于某个 modeling/impl 平面。其余持久类都落在 fractal 类目里。
 

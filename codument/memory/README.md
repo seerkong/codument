@@ -2,7 +2,7 @@
 
 > 目录职责 · holds: 跨 track 的耐久 lessons/incidents/patterns/summaries · excludes: 任务日志(→track reports)、behaviors/docs/源码里的事实、未解决的猜测 · tier: stable·追加（每条目录自包含，无全局 index） · ⬆from: track 复盘提供的候选 · ⬇to: 复发的固化为 sop/skill/check
 
-记忆规则、类别语义、提升判定见吸引子 [attractors/project-memory.md](../attractors/project-memory.md)；分层与晋升阶梯见 [attractors/knowledge-tiers.md](../attractors/knowledge-tiers.md)。
+记忆规则、类别语义、提升判定见吸引子 [std/attractors/project-memory.md](../std/attractors/project-memory.md)；分层与晋升阶梯见 [std/attractors/knowledge-tiers.md](../std/attractors/knowledge-tiers.md)。
 
 ## 结构
 

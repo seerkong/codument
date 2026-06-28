@@ -50,7 +50,7 @@
 
 ### 5. 吸收 attractor-guided-engineering 的文档沉淀纪律（本轮）
 codument 强在 **track 迭代记忆**，弱在 **owner 文档（docs/modeling·impl）维护**。本轮吸收参考项目（`/Users/kongweixian/ai/src/attractor-guided-engineering-template`）的三处长处：
-- **信息晋升（promotion）**：新建 `attractors/knowledge-tiers.md`——知识分层表 + **AGE 扁平类目→codument 层级映射** + 晋升阶梯（track→behaviors/docs/decisions/memory，memory 复发→sop/skill/check）+ 真源优先级 + 时效性。
+- **信息晋升（promotion）**：新建 `std/attractors/knowledge-tiers.md`——知识分层表 + **AGE 扁平类目→codument 层级映射** + 晋升阶梯（track→behaviors/docs/decisions/memory，memory 复发→sop/skill/check）+ 真源优先级 + 时效性。
 - **目录自描述 + 补齐**：新建 `std/spec/folder-manifest.md`——每个标准文件夹在自己 `index.md` 里就地声明「目录职责」块（解除对单份中心规范的强依赖），自定义类目必填；缺块由 backfill 机制补齐。两份分形 index 与 docs-bootstrap/artifact-sync 接入。
 - **实时维护，不只归档**：discuss/澄清期一旦概念稳定就**当轮**收敛进 owner 文档；`questioning.md`/`discuss.md`/`workflow.md`/`artifact-sync.md`/`archive-track.md` 同步加入「澄清即沉淀 + 晋升判定权威=knowledge-tiers」。
 - 路由全部接进 `std/AGENTS.md`；修复 reorg 遗留的 `attractors/docs-*-fractal`→`std/`、`docs-knowledge`→`model-driven-docs`、`specs/`→`behaviors/` 等陈旧引用（config/init 内）。
@@ -59,7 +59,7 @@ codument 强在 **track 迭代记忆**，弱在 **owner 文档（docs/modeling·
 对照真实 `src/prompts/*` 逐项核查"哪些文本提示词功能还没映射进 draft-d"，补齐缺口：
 - **backlog tier**：新建 `backlog/README.md`（AGE `docs/backlog/` 的对应）——候选工作 + AI 自主度 + ready 不变量 + 选择规则；接进 knowledge-tiers/AGENTS/init。
 - **root AGENTS 受管块**：新建 `std/root-agents.md`（src `root_agents.md` 的对应）——init 据此写/刷新项目根 `AGENTS.md` 的 `<!-- codument:begin/end -->` 指针块。
-- **memory tier**：新建 `attractors/project-memory.md`（src `templates/project-memory.md` 的对应）+ `memory/README.md` + config 加 `memory` profile（取代旧 `projectMemory` 开关）。
+- **memory tier**：新建 `std/attractors/project-memory.md`（src `templates/project-memory.md` 的对应）+ `memory/README.md` + config 加 `memory` profile（取代旧 `projectMemory` 开关）。
 - **track 目录布局**：track-xml-spec 加 §0.5，文档化 `tracks/<id>/` 全布局（含 `analysis/`(findings/knowledge planning-with-files)、`decisions.md`+`decisions/`、`memory/`、`reports/`）；track skill 接入。
 - **中断恢复**：implement skill 加 step 0 续跑检测——以 track.xml 的 `status=ACTIVE` 为恢复点（取代旧 `state.json`），让用户选 继续/重做/跳过。
 - **确认不是 gap**：`artifacts.xml`（→ track.xml MaterialBundle）、wave `context.md`/`state.md`/`phases/`/`waves/`（→ TaskSpace status-in-XML）、`tech-stack.md`、`knowledge-hint`（弱链，低价值）均为**有意丢弃**，未回填。
@@ -80,15 +80,13 @@ draft-d/codument/
 │   │   └── folder-manifest.md      ★ 目录职责自描述 + 补齐机制（每个标准文件夹就地声明装什么）
 │   ├── docs-modeling-fractal/index.md  建模侧分形规范（领域中立、生成式）
 │   ├── docs-impl-fractal/index.md      实现侧分形规范（docs/impl/，类目可替换）
+│   ├── attractors/                 可升级标准 attractor（knowledge/docs/memory/DEPA）
 │   ├── sop/                        内置执行规程（原 workflow.md + 拆分的 protocols + 方法论）
 │   │   ├── workflow.md · questioning.md · validation.md
 │   │   └── tdd.md · wave-exec.md · gap-loop.md
 │   └── operations/                 14 个操作 body（每个 = `codument-<x>` 的完整提示词）+ _operation-spec.md + README 索引
-├── attractors/                     吸引子载体（init 落盘 project/product/tiers；按 profile 加 docs/memory）
-│   ├── project.md · product.md     项目/产品级吸引子
-│   ├── knowledge-tiers.md          ★ 知识分层 + 信息晋升阶梯 + 真源优先级（吸收 AGE 纪律）
-│   ├── model-driven-docs.md        docs 知识入口（路由到两份分形 + frontmatter）
-│   └── project-memory.md           memory tier 吸引子（lessons/incidents/patterns/summaries）
+├── attractors/                     项目自有吸引子（用户可编辑，不随升级覆盖）
+│   └── project.md · product.md     项目/产品级吸引子
 ├── config/
 │   └── attractor-profiles.xml · operation-hooks.xml   （coding/docs/memory profile；feature.json 已删，开关并入 enabled）
 ├── workflows/{definitions,instances}/  dynamic-workflow（Process Surface）存放目录

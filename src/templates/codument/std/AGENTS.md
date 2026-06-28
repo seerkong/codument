@@ -14,13 +14,13 @@ AI 编程助手用 Codument 做行为驱动开发的**入口与路由**。本文
 | 你要做的事 | 去读 |
 |---|---|
 | 了解工作流程总纲 | `std/sop/workflow.md` |
-| **一条信息该落哪层 / 何时晋升 / 冲突谁赢** | `attractors/knowledge-tiers.md`（分层 + 信息晋升 + 真源优先级） |
+| **一条信息该落哪层 / 何时晋升 / 冲突谁赢** | `std/attractors/knowledge-tiers.md`（分层 + 信息晋升 + 真源优先级） |
 | 某标准文件夹"装什么" / 给目录补职责说明 | `std/spec/folder-manifest.md`（目录职责自描述 + 补齐机制） |
 | 选下一个该做的任务（候选 + 自主度） | `backlog/README.md` |
 | 规划跨多个 track 的路线 / mission | `missions/README.md`、`std/spec/mission-xml-spec.md` |
-| 长期记忆（lessons/incidents/patterns） | `attractors/project-memory.md` + `memory/`（memory profile） |
+| 长期记忆（lessons/incidents/patterns） | `std/attractors/project-memory.md` + `memory/`（memory profile） |
 | engineering/modeling 长期知识 registry 怎么写 | `std/spec/{modeling,engineering}-registry.md`、`std/spec/{modeling,engineering}-node-schema.md` |
-| legacy docs/ 怎么写（modeling/impl 分形、frontmatter） | `attractors/model-driven-docs.md` → `std/docs-{modeling,impl}-fractal/index.md` |
+| legacy docs/ 怎么写（modeling/impl 分形、frontmatter） | `std/attractors/model-driven-docs.md` → `std/docs-{modeling,impl}-fractal/index.md` |
 | 怎么提问/确认/纠偏（协议） | `std/sop/questioning.md`、`std/sop/validation.md` |
 | 执行套路（TDD / wave 调度 / gap-loop） | `std/sop/{tdd,wave-exec,gap-loop}.md` |
 | track 文件（track.xml）格式 | `std/spec/track-xml-spec.md` |
@@ -43,7 +43,7 @@ mission 是更长周期的控制面对象：
 2. **执行 mission**：`codument-impl-mission` → 按 `mission.xml` DAG + MissionPlanner/Observer/Reconciler/Applier 控制论 actor loop 推进，允许受控重规划。
 3. **归档 mission**：`codument-archive-mission` → 移入 `codument/missions/archived/YYYY-MM-DD-<id>/`，按条件提升 decisions/memory。
 
-## 知识沉淀与晋升（务必，详见 attractors/knowledge-tiers.md）
+## 知识沉淀与晋升（务必，详见 std/attractors/knowledge-tiers.md）
 
 codument 是 **track 中心**的：迭代记忆强，但 **owner registry（`codument/modeling`/`codument/engineering`）和 legacy owner docs（`docs/modeling`/`docs/impl`）的维护是弱环**，要刻意补强：
 

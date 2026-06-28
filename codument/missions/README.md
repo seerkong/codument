@@ -22,7 +22,7 @@ missions/<mission-id>/
 - mission 只回答"多个 track 如何排布"，不替代单个 track 的 proposal/design/track.xml。
 - 选中某个阶段真正执行时，必须创建或续跑对应 `tracks/<id>/`。
 - 每个 track 完成/归档后，更新 mission 的进度、证据链接和下一阶段判断。
-- 发现稳定领域知识、承重决策、复用教训时，仍按 `attractors/knowledge-tiers.md` 晋升到 owner 层；不要让 mission 成为长期知识垃圾桶。
+- 发现稳定领域知识、承重决策、复用教训时，仍按 `std/attractors/knowledge-tiers.md` 晋升到 owner 层；不要让 mission 成为长期知识垃圾桶。
 
 ## roadmap.md 骨架
 

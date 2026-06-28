@@ -26,7 +26,7 @@
 - **memory 提升（条件）**——`memory` profile `enabled` 且 track 显式给候选时才升 `memory://`。
 - **artifact/docs 同步（条件·显式触发）**——只有 `operation-hooks.xml` 显式配了 `archive:after <cdt:ArtifactSync>` 且 `docs` profile `enabled` 才同步。
 
-> **晋升判定权威**：每类提升（behaviors / docs / decisions / memory）的"该不该升、升到哪层"以 [knowledge-tiers.md](@codument/attractors/knowledge-tiers.md) §4–§5 的触发条件为准。归档是**兜底**——discuss / 实现期已实时收敛进 owner 文档的，本步只复查补漏（见 [model-driven-docs.md](@codument/attractors/model-driven-docs.md) 的"两个时机，别只在归档"）。
+> **晋升判定权威**：每类提升（behaviors / docs / decisions / memory）的"该不该升、升到哪层"以 [knowledge-tiers.md](@codument/std/attractors/knowledge-tiers.md) §4–§5 的触发条件为准。归档是**兜底**——discuss / 实现期已实时收敛进 owner 文档的，本步只复查补漏（见 [model-driven-docs.md](@codument/std/attractors/model-driven-docs.md) 的"两个时机，别只在归档"）。
 
 ---
 
@@ -173,7 +173,7 @@ track 完成后更新行为登记表 `codument/behaviors/`（旧称 spec registr
 
 ## 5.0 条件提升（decision / memory）
 
-- **承重决策 → `decision://`**：优先读取 `decisions/*.md` 中明确标记为 durable / 长期项目决策的单文件决策（旧 track 可兼容读取 `decisions.md`）。把 durable 决策提升到 `codument/decisions/YYYY-MM/YYYY-MM-DD-HHmm-slug/decision.md`，并用 `decision://<slug>` 作长期引用；普通过程决策只保留在 archive。触发条件：一个原本一次性的取舍变成"以后都按这个来"的承重决策（见 [knowledge-tiers.md](@codument/attractors/knowledge-tiers.md) §5）。
+- **承重决策 → `decision://`**：优先读取 `decisions/*.md` 中明确标记为 durable / 长期项目决策的单文件决策（旧 track 可兼容读取 `decisions.md`）。把 durable 决策提升到 `codument/decisions/YYYY-MM/YYYY-MM-DD-HHmm-slug/decision.md`，并用 `decision://<slug>` 作长期引用；普通过程决策只保留在 archive。触发条件：一个原本一次性的取舍变成"以后都按这个来"的承重决策（见 [knowledge-tiers.md](@codument/std/attractors/knowledge-tiers.md) §5）。
 - **长期记忆 → `memory://`**：**仅当** `config/attractor-profiles.xml` 的 `memory` profile `enabled=true` **且** track 中显式存在 `memory/{lessons,incidents,patterns,summaries}/*.md` 候选时，才提升 `memory://` 内容。**不要**从 proposal 或普通日志自动合成 memory。
 
 > `docs` profile `enabled` 本身**不**代表复制 durable decision 记录，也**不**触发隐式 docs/knowledge sync；旧 `feature.json` 的 `knowledgeSync.targets` 应由 `upgrade-workspace`/`migrate` 迁移为 docs profile + artifact 规则的目标。
@@ -233,6 +233,6 @@ track 完成后更新行为登记表 `codument/behaviors/`（旧称 spec registr
 - 使用 `codument list --behaviors` 查看更新后的行为登记表（XML registry）。
 - behavior 登记表布局 / delta 应用：[std/spec/behavior-registry.md](@codument/std/spec/behavior-registry.md)。
 - 归档执行套路：本文（codument-archive-track skill 即完整归档规程；codument-archive 为旧名别名）。
-- 晋升阶梯与触发条件：[knowledge-tiers.md](@codument/attractors/knowledge-tiers.md) §4–§5。
+- 晋升阶梯与触发条件：[knowledge-tiers.md](@codument/std/attractors/knowledge-tiers.md) §4–§5。
 - 显式 artifact 同步：[codument-artifact-sync skill](./artifact-sync.md)（含 §4.5 docs 路由）。
 - 检查归档后 `codument validate --strict` 通过；如果系统找不到 `codument` 命令，则记录该外部 CLI validate 步骤已跳过。

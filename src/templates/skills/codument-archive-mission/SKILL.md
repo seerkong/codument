@@ -9,7 +9,7 @@ description: 归档 mission——把 completed/cancelled/superseded mission 移�
 
 `@/codument/std/operations/archive-mission.md`
 
-mission.xml 规范见 `@/codument/std/spec/mission-xml-spec.md`；归档晋升判定见 `@/codument/attractors/knowledge-tiers.md`。
+mission.xml 规范见 `@/codument/std/spec/mission-xml-spec.md`；归档晋升判定见 `@/codument/std/attractors/knowledge-tiers.md`。
 
 - **前置**：项目已 `codument-init`，目标 mission 已完成、取消、废弃或被替代。
 - **用法**：归档 mission: `<mission-id>`。

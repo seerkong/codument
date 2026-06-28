@@ -8,7 +8,7 @@ description: 为 plan-track / plan-mission / discuss 做有界决策树式澄清
 用于给 track / mission / discuss 增加有界决策树式澄清。权威规则在工作区：
 
 - `@/codument/std/sop/questioning.md`
-- `@/codument/attractors/knowledge-tiers.md`
+- `@/codument/std/attractors/knowledge-tiers.md`
 
 ## 输入
 

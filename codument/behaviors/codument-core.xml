@@ -269,7 +269,7 @@
         <given>`projectMemory.enabled=true`.</given>
         <and>`codument/config/artifacts.xml` does not exist.</and>
         <when>The user runs `codument upgrade-workspace`.</when>
-        <then>The generated artifacts.xml SHALL include a project memory artifact that uses a `memory` attractor profile containing `codument/attractors/project-memory.md`.</then>
+        <then>The generated artifacts.xml SHALL include a project memory artifact that uses a `memory` attractor profile containing `codument/std/attractors/project-memory.md`.</then>
         <and>If `codument/config/operation-hooks.xml` does not exist, the system SHALL create a default archive `after-archive` hook that triggers the generated memory artifact.</and>
       </case>
       <case id="docs-fractal-attractors">

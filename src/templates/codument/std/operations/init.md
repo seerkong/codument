@@ -29,15 +29,13 @@ codument/
 │   │   └── folder-manifest.md      目录职责自描述 + 补齐机制
 │   ├── docs-modeling-fractal/index.md  建模侧分形规范
 │   ├── docs-impl-fractal/index.md      实现侧分形规范
+│   ├── attractors/                 可升级标准 attractor（knowledge/docs/memory/DEPA）
 │   ├── sop/                        内置执行规程
 │   │   ├── workflow.md · questioning.md · validation.md
 │   │   └── tdd.md · wave-exec.md · gap-loop.md
 │   └── skills/                     全部操作 skill（Markdown + 流程块）+ _operation-spec.md + README 索引
 ├── attractors/                     吸引子载体
-│   ├── project.md · product.md     项目/产品级吸引子
-│   ├── knowledge-tiers.md          知识分层 + 信息晋升阶梯 + 真源优先级
-│   ├── model-driven-docs.md        （docs profile enabled 时）docs 知识入口
-│   └── project-memory.md           （memory profile enabled 时）memory tier 吸引子
+│   └── project.md · product.md     项目/产品级吸引子（用户可编辑，不随升级覆盖）
 ├── config/
 │   ├── attractor-profiles.xml      命名 attractor 组合（coding/docs/memory profile；feature.json 已删）
 │   └── operation-hooks.xml         命令生命周期 hook 模板（默认稀疏/空）
@@ -72,7 +70,7 @@ upgrade 语义：仅刷新 std/**（含 skills/、spec/、sop/、分形 index）
 config/：补齐缺失的 profile/hook 模板，保留用户已设的 enabled/取值，不覆写
 -------- /?u2
 -------- #step ?u3
-attractors/：按当前 profile enabled 补齐缺失文件（docs→model-driven-docs.md、memory→project-memory.md），已存在正文不动
+std/attractors/：随升级刷新标准 attractor；attractors/：只保留 project.md + product.md 等项目自有吸引子，已存在正文不动
 -------- /?u3
 -------- #step ?u4
 用 std/root-agents.md 模板幂等刷新项目根 AGENTS.md 的 codument 受管块（块外内容不动）
@@ -88,7 +86,7 @@ attractors/：按当前 profile enabled 补齐缺失文件（docs→model-driven
 落盘 config/：attractor-profiles.xml（coding/docs/memory profile，默认 enabled=true）、operation-hooks.xml（稀疏/空模板）
 -------- /?f2
 -------- #step ?f3
-落盘 attractors/：project.md + product.md + knowledge-tiers.md；docs profile enabled→加 model-driven-docs.md；memory profile enabled→加 project-memory.md；不写废弃的 tech-stack.md
+落盘 attractors/：project.md + product.md；标准 knowledge-tiers/model-driven-docs/project-memory/depa-attractor 由 std/attractors/ 随包落盘；不写废弃的 tech-stack.md
 -------- /?f3
 -------- #step ?f4
 建空目录骨架：sop/（含 README）、behaviors/、backlog/（含 README）、memory/（含 README）、workflows/{definitions,instances}/、tracks/（含 README）
@@ -254,5 +252,5 @@ attractors/：按当前 profile enabled 补齐缺失文件（docs→model-driven
 - track 文件格式：`codument/std/spec/track-xml-spec.md`
 - 根 AGENTS 受管块模板：`codument/std/root-agents.md`
 - 提问协议（ask-*）：`codument/std/sop/questioning.md`
-- 知识分层与晋升：`codument/attractors/knowledge-tiers.md`
+- 知识分层与晋升：`codument/std/attractors/knowledge-tiers.md`
 - profile / hook 配置：`codument/config/attractor-profiles.xml`、`codument/config/operation-hooks.xml`

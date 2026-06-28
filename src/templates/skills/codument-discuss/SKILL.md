@@ -9,7 +9,7 @@ description: 执行前讨论并细化某 phase 的任务拆分、调度与风险
 
 `@/codument/std/operations/discuss.md`
 
-按其中的 Markdown 说明 + `--` 流程标记块执行；track.xml 格式见 `@/codument/std/spec/track-xml-spec.md`，知识晋升/路由见 `@/codument/attractors/knowledge-tiers.md` 与 `model-driven-docs.md`（均由 body 按需引用）。
+按其中的 Markdown 说明 + `--` 流程标记块执行；track.xml 格式见 `@/codument/std/spec/track-xml-spec.md`，知识晋升/路由见 `@/codument/std/attractors/knowledge-tiers.md` 与 `model-driven-docs.md`（均由 body 按需引用）。
 
 - **前置**：项目已 `codument-init`，且目标 track 已创建。
 - **用法**：讨论 track: `<track-id>` [phase]（缺省下一个未完成 phase）。

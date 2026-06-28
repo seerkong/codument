@@ -192,7 +192,7 @@ discuss 中一旦把某领域概念/行为/policy/架构澄清到**稳定**（�
 -- /?promote
 ```
 
-> 晋升判定细则（落 `docs/` 还是 behaviors/decisions/memory、何时晋升、触发条件）见 `codument/attractors/knowledge-tiers.md` §4–§5；docs profile 未启用时，仅记 track 待归档兜底，不强行写 `docs/`。
+> 晋升判定细则（落 `docs/` 还是 behaviors/decisions/memory、何时晋升、触发条件）见 `codument/std/attractors/knowledge-tiers.md` §4–§5；docs profile 未启用时，仅记 track 待归档兜底，不强行写 `docs/`。
 
 ---
 
@@ -210,5 +210,5 @@ discuss 中一旦把某领域概念/行为/policy/架构澄清到**稳定**（�
 - `codument/std/spec/track-xml-spec.md`（TaskSpace/Schedule/Hooks、phase=第一层 TaskGroup、`cdt:` 概念）
 - `codument/std/operations/plan-track-wave.md`（`cdt:child-mode=dag` 层的依赖边声明）
 - `codument/std/sop/questioning.md`（ask-single-question-free / -closed / ask-multi-question-free）
-- `codument/attractors/knowledge-tiers.md`（晋升阶梯、真源优先级）
-- `codument/attractors/model-driven-docs.md`（docs/modeling 与 docs/impl 路由、frontmatter）
+- `codument/std/attractors/knowledge-tiers.md`（晋升阶梯、真源优先级）
+- `codument/std/attractors/model-driven-docs.md`（docs/modeling 与 docs/impl 路由、frontmatter）

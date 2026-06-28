@@ -119,5 +119,5 @@ active mission 执行中允许：
 - 用 `codument-plan-mission` 创建 pending mission。
 - 用 `codument-impl-mission` 启动或续跑 active mission。
 - 用 `codument-archive-mission` 归档 completed / cancelled / superseded mission。
-- mission 中稳定下来的领域知识、承重决策、复用教训，仍按 `attractors/knowledge-tiers.md` 晋升到 owner 层；不要让 mission 成为长期知识垃圾桶。
+- mission 中稳定下来的领域知识、承重决策、复用教训，仍按 `std/attractors/knowledge-tiers.md` 晋升到 owner 层；不要让 mission 成为长期知识垃圾桶。
 - 旧 `missions/<mission-id>/roadmap.md` 形态可以手工迁移为新结构；新规范不要求自动迁移旧 mission。
