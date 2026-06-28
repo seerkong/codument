@@ -12,8 +12,10 @@
 
 | skill 壳目录 | 指向的 body |
 |---|---|
-| `codument-plan-track/` | `@/codument/std/operations/plan-track.md` |
+| `codument-impl-quick/` | `@/codument/std/operations/impl-quick.md` |
 | `codument-discuss/` | `@/codument/std/operations/discuss.md` |
+| `codument-plan-track/` | `@/codument/std/operations/plan-track.md` |
+| `codument-discuss-phase/` | `@/codument/std/operations/discuss-phase.md` |
 | `codument-plan-track-wave/` | `@/codument/std/operations/plan-track-wave.md` |
 | `codument-impl-track/` | `@/codument/std/operations/impl-track.md` |
 | `codument-gap-loop/` | `@/codument/std/operations/gap-loop.md` |

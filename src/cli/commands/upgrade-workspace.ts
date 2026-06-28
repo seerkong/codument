@@ -5,6 +5,7 @@ import { parseOptions, codumentExists } from '../utils';
 import {
   installSkillTemplates,
   installTemplates,
+  ensureCodumentGitignoreRules,
   injectAgentsBlock,
   parseAgents,
   readCliToolsConfig,
@@ -53,6 +54,7 @@ export async function upgradeWorkspaceCommand(args: string[]): Promise<void> {
     skillResults.push({ ...target, ...installSkillTemplates(target.skillsDir) });
   }
   injectAgentsBlock();
+  const gitignoreRulesAdded = ensureCodumentGitignoreRules();
 
   console.log('Codument workspace upgraded.');
   console.log(`  backup    : ${backupRoot}`);
@@ -66,6 +68,9 @@ export async function upgradeWorkspaceCommand(args: string[]): Promise<void> {
   }
   if (removedLegacyPaths > 0) {
     console.log(`  cleanup   : ${removedLegacyPaths} legacy path(s) removed`);
+  }
+  if (gitignoreRulesAdded > 0) {
+    console.log(`  .gitignore: ${gitignoreRulesAdded} codument rule(s) added`);
   }
   console.log('  AGENTS.md : managed block refreshed');
 }

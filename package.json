@@ -1,11 +1,31 @@
 {
-  "name": "codument",
-  "version": "0.4.1",
-  "description": "Spec-driven development tool for AI coding assistants",
+  "name": "depa-codument",
+  "version": "0.4.2",
+  "description": "DEPA-oriented Codument workflow tool for AI coding assistants",
   "type": "module",
   "main": "src/cli/index.ts",
   "bin": {
-    "codument": "src/cli/index.ts"
+    "codument": "src/cli/index.ts",
+    "depa-codument": "src/cli/index.ts"
+  },
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/seerkong/depa-codument.git"
+  },
+  "bugs": {
+    "url": "https://github.com/seerkong/depa-codument/issues"
+  },
+  "homepage": "https://github.com/seerkong/depa-codument#readme",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.com"
+  },
+  "engines": {
+    "bun": ">=1.0.0"
   },
   "scripts": {
     "gen:templates": "bun run scripts/gen-template-manifest.ts",

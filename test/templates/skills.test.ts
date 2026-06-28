@@ -98,4 +98,28 @@ describe('codument skill templates', () => {
       expect(skills, `${operation} has no skill shell`).not.toHaveLength(0);
     }
   });
+
+  it('keeps codument-discuss conversation-first instead of fixed report generation', () => {
+    const operation = fs.readFileSync(
+      path.join(ROOT, 'src', 'templates', 'codument', 'std', 'operations', 'discuss.md'),
+      'utf-8'
+    );
+    const skill = fs.readFileSync(
+      path.join(ROOT, 'src', 'templates', 'skills', 'codument-discuss', 'SKILL.md'),
+      'utf-8'
+    );
+
+    expect(operation).toContain('这是一次**对话**');
+    expect(operation).toContain('必须与用户进行讨论、提问、确认或澄清');
+    expect(operation).toContain('findings.md');
+    expect(operation).toContain('knowledge.md');
+    expect(operation).not.toContain('`context.md`：');
+    expect(operation).not.toContain('`decision-tree.md`：');
+    expect(operation).not.toContain('`recommendation.md`：');
+    expect(operation).not.toContain('analysis_files:');
+
+    expect(skill).toContain('人机讨论入口');
+    expect(skill).toContain('与用户对话澄清');
+    expect(skill).not.toContain('使用 `codument/analysis/` 作为临时 scratch');
+  });
 });

@@ -2,6 +2,7 @@ import { parseOptions, codumentExists } from '../utils';
 import {
   installSkillTemplates,
   installTemplates,
+  ensureCodumentGitignoreRules,
   injectAgentsBlock,
   parseAgents,
   resolveSkillsTargets,
@@ -33,6 +34,7 @@ export async function initCommand(args: string[]): Promise<void> {
     skillResults.push({ ...target, ...installSkillTemplates(target.skillsDir) });
   }
   injectAgentsBlock();
+  const gitignoreRulesAdded = ensureCodumentGitignoreRules();
 
   console.log('Codument initialized.');
   console.log(`  codument/ : ${result.workspaceWritten} written, ${result.workspaceSkipped} kept`);
@@ -43,6 +45,9 @@ export async function initCommand(args: string[]): Promise<void> {
   writeCliToolsConfig(selectedTools);
   console.log('  config/cli-tools.json: tools updated');
   console.log('  AGENTS.md : managed block written');
+  if (gitignoreRulesAdded > 0) {
+    console.log(`  .gitignore: ${gitignoreRulesAdded} codument rule(s) added`);
+  }
   if (codumentExists()) {
     console.log('\nNext: edit codument/attractors/{project,product}.md, then use the codument-plan-track skill.');
   }

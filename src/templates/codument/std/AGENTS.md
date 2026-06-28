@@ -33,9 +33,11 @@ AI 编程助手用 Codument 做行为驱动开发的**入口与路由**。本文
 
 ## 三阶段（详见 std/sop/workflow.md）
 
-1. **创建 track**：`codument-plan-track` → behavior delta（`behavior_deltas/`）+ proposal + `track.xml`（TaskSpace/Schedule/Hooks）。
-2. **实现**：`codument-discuss` / `codument-plan-track-wave` / `codument-impl-track`，按需 `codument-gap-loop` / `codument-verify` / `codument-revise-track`。
-3. **归档**：`codument-archive-track` → 提升 behavior 进 `codument/behaviors/`、移入 `archive/`、按显式 hook 同步 artifact/docs。
+0. **小改动**：`codument-impl-quick` → 读取 Codument 上下文后直接实现；若超出 quick 范围则转 track/mission。
+1. **创建 track 前讨论**：`codument-discuss` → 与用户讨论、搜集上下文并分流到 quick / track / mission / blocked。
+2. **创建 track**：`codument-plan-track` → behavior delta（`behavior_deltas/`）+ proposal + `track.xml`（TaskSpace/Schedule/Hooks）。
+3. **实现**：`codument-discuss-phase` / `codument-plan-track-wave` / `codument-impl-track`，按需 `codument-gap-loop` / `codument-verify` / `codument-revise-track`。
+4. **归档**：`codument-archive-track` → 提升 behavior 进 `codument/behaviors/`、移入 `archive/`、按显式 hook 同步 artifact/docs。
 
 mission 是更长周期的控制面对象：
 
@@ -56,7 +58,9 @@ codument 是 **track 中心**的：迭代记忆强，但 **owner registry（`cod
 
 ```
 请使用 codument-plan-track skill, 创建 track: <track-id>
-请使用 codument-discuss / codument-plan-track-wave / codument-impl-track skill, 处理 track: <track-id>
+请使用 codument-discuss skill, 讨论尚未确定 quick/track/mission 的需求
+请使用 codument-impl-quick skill, 快速实现小改动
+请使用 codument-discuss-phase / codument-plan-track-wave / codument-impl-track skill, 处理 track: <track-id>
 请使用 codument-gap-loop / codument-verify / codument-revise-track skill, 校验/验证/修订 track: <track-id>
 请使用 codument-archive-track / codument-validate skill
 请使用 codument-plan-mission / codument-impl-mission / codument-archive-mission skill

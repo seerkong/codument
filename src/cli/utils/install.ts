@@ -28,6 +28,10 @@ export const SKILLS_DIR_BY_AGENT: Record<CLITool, string> = {
 
 const AGENTS_BEGIN = '<!-- codument:begin -->';
 const AGENTS_END = '<!-- codument:end -->';
+const CODUMENT_GITIGNORE_RULES = [
+  'codument/**/analysis',
+  'codument/**/reports',
+];
 const DEPRECATED_SKILLS = [
   'codument-execute-wave',
   'codument-init',
@@ -136,6 +140,23 @@ export function writeCliToolsConfig(tools: CLITool[]): void {
     updated_at: new Date().toISOString(),
   };
   fs.writeFileSync(CLI_TOOLS_CONFIG_FILE, `${JSON.stringify(config, null, 2)}\n`, 'utf-8');
+}
+
+export function ensureCodumentGitignoreRules(file = '.gitignore'): number {
+  if (!fs.existsSync(file)) {
+    return 0;
+  }
+
+  const existing = fs.readFileSync(file, 'utf-8');
+  const lines = new Set(existing.split(/\r?\n/).map((line) => line.trim()));
+  const missing = CODUMENT_GITIGNORE_RULES.filter((rule) => !lines.has(rule));
+  if (missing.length === 0) {
+    return 0;
+  }
+
+  const prefix = existing.length > 0 && !existing.endsWith('\n') ? '\n' : '';
+  fs.writeFileSync(file, `${existing}${prefix}${missing.join('\n')}\n`, 'utf-8');
+  return missing.length;
 }
 
 function writeFile(dest: string, content: string): void {

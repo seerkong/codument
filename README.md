@@ -1,336 +1,259 @@
-# Codument
+# DEPA Codument
 
-**Spec-Driven Development Tool for AI Coding Assistants**
+DEPA Codument is a spec-driven workflow tool for AI coding assistants. It installs a self-contained `codument/` workspace into a project and gives agents durable prompts, specs, attractors, behavior registries, track/mission workflows, and validation commands.
 
-Codument is a CLI tool that brings structure and traceability to AI-assisted software development. It helps you manage features, bug fixes, and refactoring through a systematic "track" workflow with structured specifications and task breakdowns.
+The npm package is named `depa-codument`. The CLI command remains `codument`.
 
-[中文文档](./README-cn.md)
+## Install And Run
 
-## Why Codument?
-
-When working with AI coding assistants, it's easy to lose track of what was planned, what's been implemented, and what still needs to be done. Codument solves this by:
-
-- **Structured Planning**: Break down work into phases, tasks, and subtasks in `plan.xml`
-- **Specification First**: Define requirements in XML spec deltas before coding
-- **Progress Tracking**: Track TODO / IN_PROGRESS / DONE / BLOCKED status from `plan.xml`
-- **Gap Loop Validation**: Run fresh verification-and-fix rounds before closing a track
-- **Wave Workflow Support**: Supports discuss / plan-wave / execute-wave / verify command flows
-- **Multi-Tool Support**: Works with Claude Code, CodeFlicker, OpenAI Codex CLI, Eidolon, Sparrow, and OpenCode
-
-## Features
-
-### Track-Based Workflow
-
-Each feature or bug fix is managed as a "track" with:
-- **proposal.md** - Change proposal with background and scope
-- **spec_deltas/** - XML behavioral specifications and requirement deltas
-- **plan.xml** - Phase / task / subtask plan, status, commit mode, and optional wave DAG
-- **proposal/** and **design/** - Optional subdirectories for large tracks
-- **decisions/** and **memory/** - Optional track-local durable decision and memory candidates
-- **design.md** - Optional technical design
-
-### Hierarchical Task Management
-
-```
-Track
-└── Phase (P1, P2, ...)
-    └── Task (T1.1, T1.2, ...)
-        └── Subtask (T1.1.1, T1.1.2, ...)
-```
-
-### Supported AI CLI Tools
-
-| Tool | Generated workflow entry location | Typical invocation |
-|------|-----------------------------------|--------------------|
-| Claude Code | `.claude/skills/codument-*/` + `.claude/commands/codument/` | `/codument:init`, `/codument:track`, `/codument:gap-loop` |
-| CodeFlicker | `.codeflicker/skills/codument-*/` + `.codeflicker/commands/codument/` | `/codument:init`, `/codument:track`, `/codument:gap-loop` |
-| OpenAI Codex CLI | `~/.codex/skills/codument-*/` | `Use codument:track or codument-track` |
-| Eidolon | `.eidolon/skills/codument-*/` + `.eidolon/commands/codument/` | `/codument:init`, `/codument:track`, `/codument:gap-loop` |
-| Sparrow | `.sparrow/skills/codument-*/` | `Use codument:track or codument-track` |
-| OpenCode | `.opencode/skills/codument-*/` + `.opencode/command/` | Generated from `codument-*.md` wrapper commands |
-
-## Installation
-
-### Prerequisites
-
-- [Bun](https://bun.sh) runtime (v1.0+)
-
-### Build from Source
+Use it directly with npx:
 
 ```bash
-# Clone the repository
-git clone https://github.com/seerkong/codument.git
-cd codument
-
-# Install dependencies
-bun install
-
-# Build the CLI
-bun run build
-
-# Optional: install to ~/.local/bin (or CODUMENT_BIN_DIR)
-bun run scripts/install.ts
+npx depa-codument --help
+npx depa-codument init --agent=codex,claude
 ```
 
-After build, the binary is at `dist/codument`.
-The install script places `codument` in `~/.local/bin` by default and prints PATH instructions if needed.
+Or install globally:
+
+```bash
+npm install -g depa-codument
+codument --help
+```
+
+The package also exposes a `depa-codument` bin alias, so this works too:
+
+```bash
+depa-codument --help
+```
+
+## Requirements
+
+- Bun runtime available on the machine that runs the CLI.
+- An AI coding assistant that can read installed skills, such as Codex, Claude Code, or OpenCode.
+
+## What It Provides
+
+Codument organizes AI-assisted development by task scale:
+
+| Scale | Skill / Operation | Use |
+|---|---|---|
+| Small change | `codument-impl-quick` | Read Codument context and implement a small bug fix, test, local refactor, or config change without creating a track. |
+| Pre-plan discussion | `codument-discuss` | Gather context before deciding whether work should be quick, track, mission, or blocked. Temporary notes go to `codument/analysis/` and are cleaned by the workflow. |
+| Medium task | `codument-plan-track` / `codument-impl-track` / `codument-archive-track` | Plan, implement, verify, and archive a bounded change. |
+| Long task | `codument-plan-mission` / `codument-impl-mission` / `codument-archive-mission` | Coordinate longer work across multiple tracks with a mission DAG and controlled replanning. |
+
+Codument also includes:
+
+- `codument/modeling/` registry support for domain, backend, surface, and other structural models in XNL.
+- `codument/engineering/` registry support for long-lived implementation knowledge.
+- `codument/behaviors/` as the behavior contract registry.
+- `behavior_deltas/`, `modeling_deltas/`, and `engineering_deltas/` for track-local proposed changes.
+- `operation-hooks.xml` for command lifecycle hooks such as coding attractor checks before planning.
+- `codument/**/analysis` and `codument/**/reports` gitignore rules for scratch evidence and run reports.
 
 ## Quick Start
 
-### 1. Initialize a Project
+Initialize a project:
 
 ```bash
 cd your-project
-codument init
-codument init --agent=claude,codeflicker,codex,eidolon,sparrow,opencode
+npx depa-codument init --agent=codex,claude
 ```
 
-This will:
-- Create the `codument/` directory structure
-- Generate `codument/attractors/project.md`, `codument/attractors/product.md`, `codument/config/feature.json`, and `state.json`
-- Generate `codument/std/` and `codument/workflows/workflow.md`
-- Generate the selected targets' standalone `codument-*` skill directories
-- Generate command wrappers for the targets that support command entrypoints
+This writes:
 
-When `--agent=<tool>[,<tool>...]` is provided, `codument init` skips the interactive target picker and does not prompt for project or product names. Supported tool ids are `claude`, `codeflicker`, `codex`, `eidolon`, `sparrow`, and `opencode`.
+- `codument/std/` with operation prompts, specs, SOPs, and standard attractors.
+- `codument/config/` with attractor profiles, operation hooks, modeling, and engineering config.
+- `codument/attractors/project.md` and `codument/attractors/product.md`.
+- Skill shells for the selected agents.
+- A managed `AGENTS.md` block pointing assistants to `codument/std/AGENTS.md`.
 
-### 2. Create a Change Track
+If `.gitignore` already exists, init also ensures:
 
-Use the generated command for your selected AI tool.
-Examples:
+```gitignore
+codument/**/analysis
+codument/**/reports
+```
+
+## Common Workflows
+
+### Small Change
+
+Ask the agent:
 
 ```text
-Claude / CodeFlicker / Eidolon / OpenCode: /codument:track Add user authentication feature
-Codex: Use codument:track or codument-track to create a track for "Add user authentication feature"
-Sparrow: Use codument:track or codument-track to create a track for "Add user authentication feature"
+请使用 codument-impl-quick skill, 快速实现这个小改动: <description>
 ```
 
-For Claude, CodeFlicker, Eidolon, and OpenCode, the generated command wrappers load the matching standalone `codument-*` skills.
+`impl-quick` reads Codument context and project files first. If the request is actually a new feature, behavior change, architecture change, or multi-stage task, it should stop and recommend a track or mission.
 
-The assistant will guide you through:
-1. Discussing requirements
-2. Creating XML spec deltas, `proposal.md`, and `plan.xml`
-3. Breaking down work into phases, tasks, and subtasks
-4. Choosing commit mode (`auto` / `manual`)
+### Pre-plan Discussion
 
-### 3. Implement Tasks
+Ask the agent:
 
 ```text
-Claude / CodeFlicker / Eidolon / OpenCode: /codument:implement <track-id>
-Codex: Use codument:implement or codument-implement to implement track <track-id>
-Sparrow: Use codument:implement or codument-implement to implement track <track-id>
+请使用 codument-discuss skill, 分析这个需求应该 quick / track / mission: <description>
 ```
 
-For wave-based execution, the generated command set also includes:
-- `discuss`
-- `plan-wave`
-- `execute-wave`
-- `gap-loop`
-- `verify`
+The result should include:
 
-For `yield-gap-loop`, use fresh rounds; if a higher-level orchestration app already owns the protocol, follow that app instead of starting a nested loop here.
+- `route: quick | track | mission | blocked`
+- reason
+- suggested next command
+- evidence read
+- open questions
 
-### 4. Archive Completed Track
+### Track Workflow
+
+Create a track:
 
 ```text
-Claude / CodeFlicker / Eidolon / OpenCode: /codument:archive add-user-auth
-Codex: Use codument:archive or codument-archive to archive track add-user-auth
-Sparrow: Use codument:archive or codument-archive to archive track add-user-auth
+请使用 codument-plan-track skill, 创建 track: <track-id or description>
 ```
 
-Moves the track to `codument/archive/YYYY-MM/YYYY-MM-DD-HHmm-add-user-auth/`, using the track's last updated time.
+A track is stored in `codument/tracks/<track-id>/` and uses `track.xml` as the state source. A typical track contains:
 
-## Upgrade An Existing Workspace
-
-If your project already has a `codument/` folder and you updated the Codument CLI, you can upgrade the workspace files to the latest embedded versions:
-
-```bash
-codument upgrade-workspace
+```text
+codument/tracks/<track-id>/
+  track.xml
+  proposal.md
+  design.md
+  decisions.md
+  behavior_deltas/
+  modeling_deltas/
+  engineering_deltas/
+  analysis/   # gitignored scratch
+  reports/    # gitignored run reports
 ```
 
-This updates `codument/std/` and regenerates assistant workflow entrypoints for the CLI tools listed in `codument/state.json` (`cli_tools`).
-For command-first targets, the workspace skill directory is refreshed before command wrappers are regenerated.
-For Claude, the embedded skill templates are synced to `.claude/skills/codument-*/`.
-For CodeFlicker, the embedded skill templates are synced to `.codeflicker/skills/codument-*/`.
-For Codex, the embedded skill templates are synced to `~/.codex/skills/codument-*/`.
-For Eidolon, the embedded skill templates are synced to `.eidolon/skills/codument-*/`.
-For Sparrow, the embedded skill templates are synced to `.sparrow/skills/codument-*/`.
-For OpenCode, the embedded skill templates are synced to `.opencode/skills/codument-*/`.
-A rollback backup is created under `./.tmp/codument/` by default.
+Implement it:
 
-See `UPGRADE_WORKSPACE.md` for details.
-
-## Upgrade An Existing Track
-
-To upgrade a single existing track (active or archived) to the latest plan.xml conventions that support wave execution:
-
-```bash
-codument upgrade-track <track-id-or-archive-id>
+```text
+请使用 codument-impl-track skill, 实现 track: <track-id>
 ```
 
-See `UPGRADE_TRACK.md` for details.
+Discuss or refine a phase:
+
+```text
+请使用 codument-discuss-phase skill, 讨论 track phase: <track-id> P1
+```
+
+Verify or correct:
+
+```text
+请使用 codument-verify skill, 验证 track: <track-id>
+请使用 codument-gap-loop skill, 校验并修复 track: <track-id>
+```
+
+Archive when done:
+
+```text
+请使用 codument-archive-track skill, 归档 track: <track-id>
+```
+
+Archive promotes behavior deltas into `codument/behaviors/` and, when enabled, merges modeling/engineering deltas into their registries.
+
+### Mission Workflow
+
+Create a mission:
+
+```text
+请使用 codument-plan-mission skill, 创建 mission: <long-running goal>
+```
+
+Missions live under:
+
+```text
+codument/missions/
+  pending/
+  active/
+  archived/
+```
+
+Each mission has `mission.xml`, `proposal.md`, and `design.md`. The mission DAG coordinates groups of tasks and can bind leaf tasks to real tracks via `cdt:TrackLink`.
 
 ## CLI Commands
 
-| Command | Description |
-|---------|-------------|
-| `codument init [--agent <tool[,tool...]>]` | Initialize Codument in the current project; `--agent` skips target prompts |
-| `codument list [--specs] [--json]` | List active tracks or specs |
-| `codument show <id> [--type track\|spec] [--json]` | Show track or spec details |
-| `codument status` | Show project status overview |
-| `codument validate [id] [--type track\|spec] [--strict]` | Validate tracks or specs |
-| `codument archive <track-id> [--skip-specs] [--yes]` | Archive a completed track |
-| `codument upgrade-workspace [--no-backup] [--backup-dir <path>]` | Upgrade embedded workspace files and assistant commands |
-| `codument upgrade-track <track-id-or-archive-id> [--mode wave\|sequential]` | Upgrade one track to the current `plan.xml` conventions |
-| `codument --help` / `codument --version` | Show help or version |
+```bash
+codument init [--agent <tool[,tool...]>] [--skills-dir <path>] [--force]
+codument upgrade-workspace [--agent <tool[,tool...]>] [--skills-dir <path>]
+codument upgrade-track <track-id-or-archive-id>
+codument list [--behaviors] [--json]
+codument show [item] [--json]
+codument validate [item] [--strict]
+codument archive <track-id> [--yes]
+codument modeling lint
+codument modeling validate [--deltas <track-id>]
+codument engineering lint
+codument engineering validate [--deltas <track-id>]
+codument decisions validate [track-id]
+codument status
+```
 
-### Global Options
+Global option:
 
-| Option | Description |
-|--------|-------------|
-| `-w, --workspace-dir <path>` | Specify working directory |
+```bash
+codument --workspace-dir <path> <command>
+```
 
-## Directory Structure
+## Agent Skill Targets
 
-After initialization:
+Supported `--agent` values:
+
+| Agent | Skill destination |
+|---|---|
+| `codex` | `~/.codex/skills` |
+| `claude` | `.claude/skills` |
+| `opencode` | `.opencode/skills` |
+
+You can also provide an explicit destination:
+
+```bash
+codument init --skills-dir .agents/skills
+```
+
+## Workspace Layout
+
+After init:
 
 ```text
-your-project/
-├── codument/
-│   ├── state.json
-│   ├── attractors/
-│   │   ├── project.md
-│   │   └── product.md
-│   ├── config/
-│   │   └── feature.json
-│   ├── std/
-│   │   ├── AGENTS.md
-│   │   ├── plan-xml-spec.md
-│   │   ├── workflow.md
-│   │   └── protocols.md
-│   ├── workflows/
-│   │   └── workflow.md
-│   ├── tracks/
-│   │   └── <track-id>/          # Created later by the AI commands
-│   │       ├── spec_deltas/
-│   │       ├── proposal.md
-│   │       ├── plan.xml
-│   │       ├── design.md        # optional
-│   │       ├── proposal/        # optional, large tracks
-│   │       ├── design/          # optional, large tracks
-│   │       ├── decisions/       # optional decision records
-│   │       ├── memory/          # optional memory candidates
-│   │       ├── analysis/        # optional planning artifacts
-│   │       ├── context.md       # optional, wave workflow
-│   │       ├── state.md         # optional, wave workflow
-│   │       ├── phases/          # optional, wave workflow
-│   │       └── waves/           # optional, wave workflow
-│   ├── decisions/
-│   ├── legacy/
-│   ├── specs/
-│   └── archive/
-├── .claude/skills/codument-*/    # if Claude Code was selected
-├── .claude/commands/codument/    # if Claude Code was selected
-├── .codeflicker/skills/codument-*/ # if CodeFlicker was selected
-├── .codeflicker/commands/codument/    # if CodeFlicker was selected
-├── ~/.codex/skills/codument-*/   # if Codex CLI was selected
-├── .eidolon/skills/codument-*/   # if Eidolon was selected
-├── .eidolon/commands/codument/   # if Eidolon was selected
-├── .sparrow/skills/codument-*/   # if Sparrow was selected
-├── .opencode/skills/codument-*/  # if OpenCode was selected
-├── .opencode/command/            # if OpenCode was selected
-└── AGENTS.md
+codument/
+  attractors/          project-owned attractors
+  config/              attractor profiles, operation hooks, modeling/engineering gates
+  std/                 upgrade-managed standards, specs, SOPs, operation prompts
+  behaviors/           behavior registry
+  modeling/            optional XNL modeling registry
+  engineering/         optional XNL engineering registry
+  tracks/              active tracks
+  archive/             archived tracks
+  missions/            pending / active / archived missions
+  decisions/           durable decisions
+  memory/              durable lessons/incidents/patterns/summaries
 ```
 
-## plan.xml Format
+## Development
 
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<plan>
-  <metadata>
-    <track_id>add-user-auth</track_id>
-    <track_name>Add User Authentication</track_name>
-    <goal>Implement login and registration</goal>
-    <created_at>2026-01-01T10:00:00Z</created_at>
-    <updated_at>2026-01-01T10:00:00Z</updated_at>
-    <status>new</status>
-    <commit_mode>auto</commit_mode>
-  </metadata>
-
-  <phases>
-    <phase id="P1" name="Infrastructure">
-      <goal>Set up authentication infrastructure</goal>
-      <tasks>
-        <task id="T1.1" name="Create User Model" status="TODO" priority="P0">
-          <description>Define User model with username, password hash, email</description>
-          <acceptance_criteria>
-            <criterion id="T1.1-AC1" checked="false">User model has required fields</criterion>
-          </acceptance_criteria>
-          <subtasks>
-            <subtask id="T1.1.1" name="Write tests" status="TODO" estimated_hours="2"/>
-            <subtask id="T1.1.2" name="Implement model" status="TODO" estimated_hours="4"/>
-          </subtasks>
-        </task>
-      </tasks>
-      <gate_criteria>
-        <criterion>All P0 tasks completed</criterion>
-        <criterion>Test coverage >80%</criterion>
-      </gate_criteria>
-    </phase>
-  </phases>
-
-  <summary>
-    <total_phases>1</total_phases>
-    <total_tasks>1</total_tasks>
-    <completed>0</completed>
-    <in_progress>0</in_progress>
-    <todo>1</todo>
-    <blocked>0</blocked>
-  </summary>
-</plan>
+```bash
+bun install
+bun run check
+bun run build:all
 ```
 
-### Priority Levels
+Build outputs:
 
-| Priority | Description |
-|----------|-------------|
-| P0 | Critical - blocks core functionality |
-| P1 | High - important but not blocking |
-| P2 | Medium - nice to have |
+```text
+dist/codument
+dist/codument-dev
+```
 
-### Task Status
+Local install:
 
-| Status | Description |
-|--------|-------------|
-| TODO | Not started |
-| IN_PROGRESS | Currently being worked on |
-| DONE | Completed |
-| BLOCKED | Blocked by dependency or issue |
-| CANCELLED | No longer needed |
+```bash
+bun run install:local
+```
 
-## Commit Modes
+## Repository
 
-### Auto Mode
-- Automatically commits after each task completion
-- Creates checkpoint commits at phase boundaries
-- Whether commits happen automatically depends on the workflow and assistant executing the prompt
-
-### Manual Mode
-- You control when to commit
-- No automatic Git operations
-
-## Best Practices
-
-1. **Start with Spec**: Always define XML spec deltas before implementing
-2. **Small Tasks**: Break down tasks into 1-4 hour chunks
-3. **TDD Workflow**: Write tests before implementation
-4. **Phase Gates**: Verify gate criteria before moving to next phase
-5. **Regular Status**: Run `codument status` to track progress
-
-## License
-
-MIT License - see [LICENSE](LICENSE) for details.
-
----
-
-Built with Bun and TypeScript.
+```text
+git@github.com:seerkong/depa-codument.git
+```

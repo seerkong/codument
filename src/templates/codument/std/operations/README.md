@@ -6,8 +6,10 @@
 
 | skill | 文件 | 作用 |
 |---|---|---|
+| codument-impl-quick | `impl-quick.md` | 基于 Codument 上下文快速实现小改动，不创建 track/mission |
+| codument-discuss | `discuss.md` | 创建 track/mission 前的人机讨论与 quick/track/mission 分流 |
 | codument-plan-track | `plan-track.md` | 创建变更追踪（behavior delta + track.xml） |
-| codument-discuss | `discuss.md` | 执行前讨论/细化某 phase 的任务与调度 |
+| codument-discuss-phase | `discuss-phase.md` | 执行前讨论/细化某 phase 的任务与调度 |
 | codument-plan-track-wave | `plan-track-wave.md` | 规划 Schedule：标 `cdt:child-mode="dag"` + 写 `<Dag>` |
 | codument-impl-track | `impl-track.md` | 按 TaskSpace + Schedule 执行任务（顺序/DAG，编排子代理） |
 | codument-gap-loop | `gap-loop.md` | 有界目标对比纠偏（fresh 子代理） |

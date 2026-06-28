@@ -33,6 +33,7 @@ describe('codument upgrade-workspace', () => {
     writeFile(path.join(skillsDir, 'codument-status', 'SKILL.md'), '# old status skill\n');
     writeFile(path.join(skillsDir, 'codument-plan-schedule', 'SKILL.md'), '# old plan schedule skill\n');
     writeFile(path.join(ws, 'AGENTS.md'), '# Existing project notes\n');
+    writeFile(path.join(ws, '.gitignore'), 'node_modules\ncodument/**/analysis\n');
 
     const proc = Bun.spawn([
       'bun',
@@ -72,6 +73,10 @@ describe('codument upgrade-workspace', () => {
     const agents = fs.readFileSync(path.join(ws, 'AGENTS.md'), 'utf-8');
     expect(agents).toContain('@/codument/std/attractors/knowledge-tiers.md');
     expect(agents).toContain('# Existing project notes');
+
+    const gitignore = fs.readFileSync(path.join(ws, '.gitignore'), 'utf-8');
+    expect(gitignore.match(/codument\/\*\*\/analysis/g)?.length).toBe(1);
+    expect(gitignore.match(/codument\/\*\*\/reports/g)?.length).toBe(1);
 
     expect(fs.existsSync(path.join(skillsDir, 'codument-init', 'SKILL.md'))).toBe(false);
     expect(fs.existsSync(path.join(skillsDir, 'codument-status', 'SKILL.md'))).toBe(false);

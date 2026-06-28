@@ -19,6 +19,18 @@
     </Hooks>
   </Operation>
 
+  <Operation name="discuss">
+    <Hooks>
+      <Hook on="discuss:before"><cdt:AttractorCheck use="coding"/></Hook>
+    </Hooks>
+  </Operation>
+
+  <Operation name="impl-quick">
+    <Hooks>
+      <Hook on="impl-quick:before"><cdt:AttractorCheck use="coding"/></Hook>
+    </Hooks>
+  </Operation>
+
   <Operation name="archive-track">
     <Hooks>
       <Hook on="archive-track:after"><cdt:ArtifactSync use="docs"/></Hook>
