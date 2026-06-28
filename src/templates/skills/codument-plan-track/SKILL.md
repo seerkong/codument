@@ -11,7 +11,7 @@ description: 创建 codument 变更追踪（track）——起草 behavior delta 
 
 按其中的 Markdown 说明 + `--` 流程标记块执行；track.xml 格式见 `@/codument/std/spec/track-xml-spec.md`，提问/确认协议见 `@/codument/std/sop/questioning.md`（均由 body 按需引用）。
 
-- **前置**：项目已 `codument-init`（存在 `@/codument/std/operations/`）；否则先 `codument-init`。
+- **前置**：项目已通过 `codument init` 初始化（存在 `@/codument/std/operations/`）；否则先运行 `codument init`。
 - **用法**：创建 track: `<track-id>`（动词开头 kebab，如 `add-csv-export`）。
 
 > 壳只做路由，不重述规则。一切以 `@/codument/std/operations/plan-track.md` 为准。

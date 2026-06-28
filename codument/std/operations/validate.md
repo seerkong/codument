@@ -191,8 +191,8 @@
 
 如果存在 `codument/config/operation-hooks.xml`：
 
-- [ ] 根节点是 `<operation-hooks version="1">`（或等价 `<Hook on>` 同构语法）。
-- [ ] `<Hook on="...">` 使用已知 operation 生命周期点，例如 `track:after-design`、`archive:before`、`revise-track:before`。
+- [ ] 根节点是 `<OperationHooks version="1">`（或等价 `<Hook on>` 同构语法）。
+- [ ] `<Hook on="...">` 使用已知 operation 生命周期点，例如 `plan-track:before`、`plan-mission:before`、`archive-track:after`、`revise-track:before`。
 - [ ] hook 内嵌套的 `<cdt:AttractorCheck>`/`<cdt:ArtifactSync>`/`<cdt:GapLoop>`/`<cdt:HumanConfirm>` 遵循同一套 DSL。
 - [ ] `<cdt:AttractorCheck use="...">` 解析到 `attractor-profiles.xml` 的 profile，不使用 direct 文件属性。
 - [ ] 缺失 `operation-hooks.xml` 是合法状态，不产生错误。

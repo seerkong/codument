@@ -1,6 +1,6 @@
 # 根 AGENTS 受管块模板（std/root-agents.md）
 
-> `codument-init` 把下面的**受管块**写进项目根 `AGENTS.md`（已有则更新该块），让任意 AI 助手从项目根就能找到 codument 入口。`upgrade-workspace` 刷新它。它**只是指针**——真正的指南在 `@/codument/std/AGENTS.md`，不要把规则正文搬到根。
+> `codument init` 把下面的**受管块**写进项目根 `AGENTS.md`（已有则更新该块），让任意 AI 助手从项目根就能找到 codument 入口。`upgrade-workspace` 刷新它。它**只是指针**——真正的指南在 `@/codument/std/AGENTS.md`，不要把规则正文搬到根。
 
 ## 受管块内容（落进项目根 AGENTS.md）
 

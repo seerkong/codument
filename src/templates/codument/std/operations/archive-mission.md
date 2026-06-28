@@ -26,6 +26,9 @@
 ---- #step ?validate
 best-effort 校验 mission.xml XML 格式、必备 proposal.md/design.md、reports/mission-complete.md 或等价收口证据。
 ---- /?validate
+---- #step ?track_precheck
+扫描 mission.xml 中所有 `cdt:TrackLink state="bound"`：通过 id 解析 active track（codument/tracks/<id>/track.xml）或 archived track（codument/archive/**/<timestamp>-<id>/track.xml）。若存在 active 或 missing 的 bound track，issues-first 列出并请求用户选择：逐个调用 codument-archive-track 归档 eligible active tracks、保留不归档并继续、或停止归档。
+---- /?track_precheck
 ---- #step ?promote_decisions
 若 decisions/ 中有 durable 决策，按 knowledge-tiers 与 archive-track 经验提升到 codument/decisions/。
 ---- /?promote_decisions
@@ -53,7 +56,7 @@ codument/missions/archived/YYYY-MM-DD-<mission-id>/
 
 - 不把 mission 当作 behavior delta 提升。
 - 不删除 analysis / reports。
-- 不自动归档 mission 引用的 tracks；track 归档由 `codument-archive-track` 执行。
+- 不静默批量归档 mission 引用的 tracks；归档前必须 precheck `cdt:TrackLink state="bound"`，并在用户明确选择时才逐个调用 `codument-archive-track`。
 - 不把 `roadmap.md` 作为新 mission 必备文件。
 
 ## 5. 输出

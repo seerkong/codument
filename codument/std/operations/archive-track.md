@@ -24,7 +24,7 @@
 - **track 归档（必做）**——把 `tracks/<id>/` 移进 `archive/`，`<Status>completed`。
 - **decision 提升（条件）**——有 durable decision 才升 `decision://`。
 - **memory 提升（条件）**——`memory` profile `enabled` 且 track 显式给候选时才升 `memory://`。
-- **artifact/docs 同步（条件·显式触发）**——只有 `operation-hooks.xml` 显式配了 `archive:after <cdt:ArtifactSync>` 且 `docs` profile `enabled` 才同步。
+- **artifact/docs 同步（条件·显式触发）**——只有 `operation-hooks.xml` 显式配了 `archive-track:after <cdt:ArtifactSync>` 且 `docs` profile `enabled` 才同步。
 
 > **晋升判定权威**：每类提升（behaviors / docs / decisions / memory）的"该不该升、升到哪层"以 [knowledge-tiers.md](@codument/std/attractors/knowledge-tiers.md) §4–§5 的触发条件为准。归档是**兜底**——discuss / 实现期已实时收敛进 owner 文档的，本步只复查补漏（见 [model-driven-docs.md](@codument/std/attractors/model-driven-docs.md) 的"两个时机，别只在归档"）。
 
@@ -56,9 +56,9 @@
 ---- #if ?notdone cond="Status 不是 completed"
 警告用户该 track 未完成，询问是否仍要归档（Protocol: ask-single-question-closed）；用户拒绝则 #exit
 ---- /?notdone
----- #if ?before cond="operation-hooks.xml 为 archive 配了 archive:before（如 <cdt:AttractorCheck use=\"docs\">）"
+---- #if ?before cond="operation-hooks.xml 为 archive-track 配了 archive-track:before（如 <cdt:AttractorCheck use=\"docs\">）"
 ------ #step ?run-before
-先执行 archive:before hook（常见用途：用 docs profile 做归档前吸引子方向审查）
+先执行 archive-track:before hook（常见用途：用 docs profile 做归档前吸引子方向审查）
 ------ /?run-before
 ---- /?before
 ---- #step ?behavior
@@ -85,12 +85,12 @@
 把 engineering_deltas/** 作为 theirs，与 base（track 元信息记录的宿主 git commit）和 ours（当前 codument/engineering/）做节点级 3-way 合并；冲突按 config/engineering.xml MergePolicy issues-first 处理；合并结果写回 codument/engineering/ 并运行 codument engineering lint
 ------ /?engineering-merge
 ---- /?engineering
----- #if ?sync cond="operation-hooks.xml 为 archive:after 显式配了 <cdt:ArtifactSync use=\"...\"> 且 docs profile enabled"
+---- #if ?sync cond="operation-hooks.xml 为 archive-track:after 显式配了 <cdt:ArtifactSync use=\"...\"> 且 docs profile enabled"
 ------ #step ?artifact-sync
 读 track 的 output MaterialBundle（如 docs 目录），按 operations/artifact-sync.md / codument-artifact-sync skill 同步到目标；只同步 hook 引用的 artifact
 ------ /?artifact-sync
 ---- /?sync
----- #else ?no-sync cond="缺显式 archive:after <cdt:ArtifactSync> hook 或 docs profile 未 enabled"
+---- #else ?no-sync cond="缺显式 archive-track:after <cdt:ArtifactSync> hook 或 docs profile 未 enabled"
 不同步：不因为 docs profile enabled 或 artifact 配置存在就隐式同步
 ---- /?no-sync
 ---- #step ?validate
@@ -207,7 +207,7 @@ track 完成后更新行为登记表 `codument/behaviors/`（旧称 spec registr
 
 ## 6.0 artifact / docs 同步（显式触发，不隐式）
 
-**只有**当 `config/operation-hooks.xml` 为 `archive` 的 `archive:after` hook point 显式配了 `<cdt:ArtifactSync use="...">` **且** `docs` profile `enabled` 时才触发同步：
+**只有**当 `config/operation-hooks.xml` 为 `archive-track` 的 `archive-track:after` hook point 显式配了 `<cdt:ArtifactSync use="...">` **且** `docs` profile `enabled` 时才触发同步：
 
 - 来源 = track 的 `output` MaterialBundle（如 docs 目录）——**直接读 track 的 output MaterialBundle，不再引用 `artifacts.xml` 作为单独配置**。
 - 目标 = artifact 规则里的一个/多个目标根（base-dir + relative-dir/file）。

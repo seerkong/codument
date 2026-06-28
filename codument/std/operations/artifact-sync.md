@@ -26,7 +26,7 @@
 ---- #if ?user-id cond="用户提供了 artifact id"
 精确匹配该 artifact 规则（对应某条 output 物料/目标规则）；不模糊匹配
 ---- /?user-id
----- #else-if ?hook cond="当前来自 operation-hooks.xml 的 archive:after <cdt:ArtifactSync use=\"...\">"
+---- #else-if ?hook cond="当前来自 operation-hooks.xml 的 archive-track:after <cdt:ArtifactSync use=\"...\">"
 只执行该 hook 引用的 artifact（如 use="docs"）
 ---- /?hook
 ---- #else ?ambiguous
@@ -106,7 +106,7 @@ docs 类 artifact 的内容选择 / 路由 / 质量 / 晋升判定 + 目录职�
 @delimiter: --
 -- #sequence ?sync
 ---- #step ?scope
-确认 artifact id、触发来源（用户 / archive:after hook）和目标范围
+确认 artifact id、触发来源（用户 / archive-track:after hook）和目标范围
 ---- /?scope
 ---- #if ?disabled cond="docs profile 未 enabled（docs 类 artifact）"
 ------ #return ?skip value="不同步：对应 profile 未启用"

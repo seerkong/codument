@@ -64,7 +64,7 @@
 - 存在 `codument/std/`（含 `std/spec/track-xml-spec.md`、`std/sop/workflow.md`）；
 - 存在项目上下文：优先 `codument/attractors/`（如 `attractors/project.md`、`attractors/product.md`）；旧项目兼容 `codument/project.md` + `codument/product.md` 组合。
 
-任何一项缺失就**立即停止**，宣告"Codument 未设置。请使用 `codument-init` skill 设置环境。"，**不要**继续建 track。
+任何一项缺失就**立即停止**，宣告"Codument 未设置。请先运行 `codument init` 初始化工作区。"，**不要**继续建 track。
 
 ---
 
@@ -80,11 +80,16 @@
 
 ## 3. 新建 Track（主流程）
 
-严格按下面顺序执行。开始时先解析 questioning severity（见 `codument/std/sop/questioning.md`）：**未指定时默认 `light`**；用户明确说“无问答 / 高自主 / 不要问我 / auto”时使用 `auto`。每个"起草 + 用户确认"步骤都按 severity 执行：`auto` 模式下不提问、不等待确认，改为写入假设并选择保守默认；其他模式才按 **ask-single-question-free** / **ask-multi-question-free** 提问。
+严格按下面顺序执行。正式进入规划前，先执行命令级前置 hook：若 `codument/config/operation-hooks.xml` 中存在 `Operation name="plan-track"` 的 `<Hook on="plan-track:before">`，按其中 hook DSL 执行。默认配置会运行 `<cdt:AttractorCheck use="coding"/>`，即读取 `config/attractor-profiles.xml` 的 `coding` profile 及其引用的 attractor，先把项目工程理念、边界和取舍装入上下文，再创建 track。`operation-hooks.xml` 缺失或没有该 hook 时按默认流程继续。
+
+开始时先解析 questioning severity（见 `codument/std/sop/questioning.md`）：**未指定时默认 `light`**；用户明确说“无问答 / 高自主 / 不要问我 / auto”时使用 `auto`。每个"起草 + 用户确认"步骤都按 severity 执行：`auto` 模式下不提问、不等待确认，改为写入假设并选择保守默认；其他模式才按 **ask-single-question-free** / **ask-multi-question-free** 提问。
 
 ```text
 @delimiter: --
 -- #sequence ?create
+---- #if ?before cond="operation-hooks.xml 为 plan-track 配了 plan-track:before（默认 <cdt:AttractorCheck use=\"coding\">）"
+执行 plan-track:before hook；AttractorCheck 必须读取 coding profile 与其引用的 attractor，将项目理念作为后续 proposal/design/track.xml 的约束上下文
+---- /?before
 ---- #step ?s1
 §3.0 解析 questioning severity（默认 light；auto=无问答）并建立 decision-tree 初稿；§3.1 取得 track 描述、推断类型、加载项目上下文
 ---- /?s1
@@ -562,7 +567,7 @@ proposal 获批后："现在我将根据规范创建结构化实现计划（`tra
 ## 4. 门控（gates）
 
 - **提案获批前不开始实现**（这是 `codument-impl-track` 的前置门控）。
-- 若 `codument/config/operation-hooks.xml` 为 `operation name="track"` 配置了 `track:after-design` 或 `track:after-plan` hook（如设计后方向审查），按其 hook DSL 执行——这是**命令级 hook**（无 track.xml 宿主的操作走 `operation-hooks.xml`），与 track.xml 里的节点级 `<Hook>` **同语法、不同宿主**。`operation-hooks.xml` 缺失时按默认流程继续，不加额外等待。
+- 若 `codument/config/operation-hooks.xml` 为 `operation name="plan-track"` 配置了 `plan-track:before` hook（默认 `<cdt:AttractorCheck use="coding"/>`），在规划前执行——这是**命令级 hook**（无 track.xml 宿主的操作走 `operation-hooks.xml`），与 track.xml 里的节点级 `<Hook>` **同语法、不同宿主**。`operation-hooks.xml` 缺失时按默认流程继续，不加额外等待。
 
 ---
 

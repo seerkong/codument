@@ -38,7 +38,7 @@
 ------ /?reload_active
 ---- /?pending_start
 ---- #step ?observe
-MissionObserver 读取 actual state：mission.xml 当前状态、相关 tracks、archive、测试结果、用户新约束、reports。
+MissionObserver 读取 actual state：mission.xml 当前状态、`cdt:TrackLink` 绑定的真实 tracks、archive、测试结果、用户新约束、reports。
 ---- /?observe
 ---- #step ?reconcile
 MissionReconciler 比较 desired vs actual，判定：ready-node / drift / blocked / completed。
@@ -93,13 +93,33 @@ MissionApplier 写 reports/replan-XXX.md，更新 mission.xml，递增 Revision�
 
 ## 4. ready node 处理
 
-ready node 来自 `mission.xml` 顶层 DAG：所有 `<After>` 前驱已 DONE / SUPERSEDED，且节点自身未完成。
+ready node 来自 `mission.xml` 顶层 `TaskGroup` DAG：所有 `<After>` 前驱已 DONE / SUPERSEDED，且节点自身未完成。进入某个 ready `TaskGroup` 后，按其内部叶子 `Task` 的 `order` 顺序执行第一个未完成 Task；除非未来显式扩展 nested DAG，否则组内 Task 不并行、不写进顶层 DAG。
 
 常见节点类型：
 
-- `PLAN-*`：做证据盘点 / 设计收敛 / track 切片；产物写 `analysis/`，稳定结论写 `design.md` 或 decisions。
-- `TRACK-*`：创建或续跑一个 codument track；真实实现交 `codument-plan-track` / `codument-impl-track` / `codument-archive-track`。
-- `VERIFY`：独立验证 mission 成功判据。
+- 普通 leaf `Task`：做证据盘点 / 设计收敛 / track 切片；产物写 `analysis/`，稳定结论写 `design.md` 或 decisions。
+- 带 `cdt:TrackLink` 的 leaf `Task`：创建、续跑、验证或归档一个 codument track；真实实现交 `codument-plan-track` / `codument-impl-track` / `codument-archive-track`。
+- 验证 leaf `Task`：独立验证 mission 成功判据。
+
+### 4.1 TrackLink 绑定写回
+
+`cdt:TrackLink` 只挂在叶子 `Task` 上：
+
+```xml
+<Task id="G3-T1" name="创建并执行 runtime contracts track" status="NOT_STARTED" order="0">
+  <cdt:TrackLink state="candidate" id="add-runtime-contracts"/>
+</Task>
+```
+
+当 `MissionApplier` 创建真实 track 后，必须立即更新 `mission.xml`：
+
+1. 将同一个 `cdt:TrackLink` 的 `state` 从 `candidate` 改为 `bound`。
+2. 将 `id` 写成真实 track id；如果真实 id 与 candidate id 不同，用真实 id 覆盖。
+3. 不写 `path`、`archive-path` 或 track 状态；active/archive 位置后续通过 id 解析。
+4. 更新该 leaf `Task.status`，并更新 `Metadata.Revision` / `UpdatedAt`。
+5. 写 `reports/track-bind-XXX.md`，至少包含 mission task id、candidate id、real track id、创建证据和时间。
+
+如果 `cdt:TrackLink state="candidate"` 指向的 track 已经存在，也按同样规则绑定为 `bound` 并写 report；不得重复创建 track。
 
 ## 5. 受控重规划
 
@@ -109,7 +129,7 @@ ready node 来自 `mission.xml` 顶层 DAG：所有 `<After>` 前驱已 DONE / S
 - 删除 / supersede mission 节点。
 - 修改节点描述、验收、状态。
 - 修改 DAG 依赖。
-- 改变某候选 track 的边界或顺序。
+- 改变某 `cdt:TrackLink state="candidate"` 的边界、id 或顺序。
 
 硬要求：
 

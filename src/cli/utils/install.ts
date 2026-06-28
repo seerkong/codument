@@ -28,6 +28,13 @@ export const SKILLS_DIR_BY_AGENT: Record<CLITool, string> = {
 
 const AGENTS_BEGIN = '<!-- codument:begin -->';
 const AGENTS_END = '<!-- codument:end -->';
+const DEPRECATED_SKILLS = [
+  'codument-execute-wave',
+  'codument-init',
+  'codument-plan-schedule',
+  'codument-plan-wave',
+  'codument-status',
+];
 
 const AGENTS_MANAGED_BODY = `# Codument Instructions
 
@@ -140,6 +147,12 @@ export interface InstallResult {
   workspaceWritten: number;
   workspaceSkipped: number;
   skillsWritten: number;
+  skillsRemoved: number;
+}
+
+export interface SkillInstallResult {
+  skillsWritten: number;
+  skillsRemoved: number;
 }
 
 export interface InstallOptions {
@@ -157,7 +170,12 @@ export interface InstallOptions {
  * - other codument/**   → written only if missing (preserves user content), unless force.
  */
 export function installTemplates(opts: InstallOptions): InstallResult {
-  const result: InstallResult = { workspaceWritten: 0, workspaceSkipped: 0, skillsWritten: 0 };
+  const result: InstallResult = {
+    workspaceWritten: 0,
+    workspaceSkipped: 0,
+    skillsWritten: 0,
+    skillsRemoved: cleanupDeprecatedSkills(opts.skillsDir),
+  };
 
   for (const file of TEMPLATE_FILES) {
     if (file.path.startsWith('skills/')) {
@@ -186,17 +204,30 @@ export function installTemplates(opts: InstallOptions): InstallResult {
   return result;
 }
 
-export function installSkillTemplates(skillsDir: string): number {
-  let skillsWritten = 0;
+export function installSkillTemplates(skillsDir: string): SkillInstallResult {
+  const result: SkillInstallResult = { skillsWritten: 0, skillsRemoved: cleanupDeprecatedSkills(skillsDir) };
   for (const file of TEMPLATE_FILES) {
     if (!file.path.startsWith('skills/')) {
       continue;
     }
     const dest = path.join(skillsDir, file.path.slice('skills/'.length));
     writeFile(dest, file.content);
-    skillsWritten++;
+    result.skillsWritten++;
   }
-  return skillsWritten;
+  return result;
+}
+
+export function cleanupDeprecatedSkills(skillsDir: string): number {
+  let removed = 0;
+  for (const skill of DEPRECATED_SKILLS) {
+    const dir = path.join(skillsDir, skill);
+    if (!fs.existsSync(dir)) {
+      continue;
+    }
+    fs.rmSync(dir, { recursive: true, force: true });
+    removed++;
+  }
+  return removed;
 }
 
 /**

@@ -37,7 +37,7 @@
 - `codument/std/`（标准提示词 / spec / sop 已落盘）
 - 旧项目兼容：无 `codument/attractors/` 时读 `codument/project.md` + `codument/product.md`；`codument/tech-stack.md` 是旧兼容文件，新项目不必需。
 
-任一**必需**入口缺失则立即停止，宣布：「Codument 未设置。请使用 `codument-init` skill 设置环境。」**不要**继续 track 选择。
+任一**必需**入口缺失则立即停止，宣布：「Codument 未设置。请先运行 `codument init` 初始化工作区。」**不要**继续 track 选择。
 
 ### 1.2 交互式问答（克制提问）
 
@@ -520,7 +520,7 @@ track 达到 completed 后，按**显式 hook**做文档同步——**不要**�
 
 - **modeling（条件·modeling 启用）**：实现过程中若领域结构（对象/状态机/模块依赖/事实源/组件 IO）发生变化，把目标态节点写进 track 的 `modeling_deltas/<plane>/<context>.xnl`（不直接改 `codument/modeling/`——那由归档 §5.5 的 3-way 合并落盘）。**写完 / 编辑 modeling_deltas 后自检**：运行 `codument modeling validate --deltas <track_id>`；若报 error，按报告（file/line/layer/reason）修正 modeling_deltas 再继续，直到 0 error。该步骤与本条同样 gated——modeling 未启用（无 `config/modeling.xml` 或 `enabled=false`）则跳过。规范见 `std/spec/modeling-{registry,delta,node-schema}.md`（其 §9 语言约定：描述/注释/pseudo/mermaid 标签用中文，interface/字段/kind/枚举/#id 等标识符保持英文）。
 - **engineering（条件·engineering 启用）**：实现过程中若产生长期工程知识（howto/rule/reference/troubleshooting/runbook/code-map/example/overview），把目标态节点写进 track 的 `engineering_deltas/<plane>/<category>/<topic>.xnl`（不直接改 `codument/engineering/`——由归档的 3-way 合并落盘）。**写完 / 编辑 engineering_deltas 后自检**：运行 `codument engineering validate --deltas <track_id>`；若报 error，按报告修正再继续，直到 0 error。该步骤 gated on `config/engineering.xml`。
-- **artifact / knowledge sync**：仅当 `codument/config/operation-hooks.xml` 为当前 operation point 显式配了 `<artifact-sync artifact="…"/>` 且该 artifact 存在于 `codument/config/artifacts.xml` 时才执行；同步时读 artifact 的 `<uses>`/`<targets>`/`<policy>` 与其 `attractor-profile` resource 指定的吸引子。详见 `codument/std/operations/artifact-sync.md`。
+- **artifact / knowledge sync**：仅当 `codument/config/operation-hooks.xml` 为当前 operation point 显式配了 `<cdt:ArtifactSync use="..."/>` 时才执行；同步时读 track 的 `output` MaterialBundle 与 hook 引用的 artifact/profile 规则。详见 `codument/std/operations/artifact-sync.md`。
 - **product/project 类 attractor 更新**：分析 `behavior_deltas/**/*.xml`，若已完成功能显著影响产品描述或架构决策，生成提议 diff 并用 `ask-single-question-closed` 请求确认，**仅在明确确认后**编辑 `codument/attractors/` 下相关文件。
 - **track 清理**：交由 `codument-archive-track` skill（归档 / 删除 / 保留三选一），本 skill 不直接删 track 目录。
 

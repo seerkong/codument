@@ -27,7 +27,7 @@
    - `codument/std/sop/workflow.md`（内置工作流规程；旧单体 `codument/std/workflow.md` 兼容读）
 
 2. **处理缺失：** 若标准工作流文件缺失，或既没有 `codument/attractors/` 也没有旧项目 `project.md`/`product.md` 组合，停止并提示：
-   > "Codument 未设置。请先使用 `codument-init` skill。"
+   > "Codument 未设置。请先运行 `codument init`。"
 
 ## 1.1 交互式问答
 

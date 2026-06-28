@@ -21,7 +21,7 @@ codument/missions/
 
 `mission.xml` 与 `track.xml` 同构，复用三轴模型：
 
-- `TaskSpace`：结构轴，表达 mission plan 节点、track candidate、状态。
+- `TaskSpace`：结构轴，表达 mission plan 分组、叶子任务、TrackLink 绑定和状态。
 - `Schedule`：调度轴，表达 DAG 依赖。
 - `Hooks`：行为轴，表达 mission reconcile、人工确认、方向审查等生命周期行为。
 
@@ -30,7 +30,7 @@ codument/missions/
 - 根节点是 `<Mission>`。
 - 顶层 `TaskSpace` 默认 `cdt:child-mode="dag"`。
 - active mission 允许受控重规划，须递增 `Metadata.Revision` 并写 report。
-- mission 节点可以是纯 plan 节点，也可以是 track creation / track execution 节点。
+- mission 的顶层节点应是 `TaskGroup`；真正执行单元是叶子 `Task`。track creation / track execution 通过叶子 `Task` 上的 `cdt:TrackLink` 绑定真实 track。
 
 ## 3. 最小示例
 
@@ -56,27 +56,38 @@ codument/missions/
   <TaskSpace id="space_runtime-evolution" name="runtime-evolution" version="1" cdt:child-mode="dag">
     <Description>Runtime evolution mission.</Description>
     <SubNodes>
-      <TaskGroup id="PLAN-A" name="证据盘点" status="NOT_STARTED" order="0">
+      <TaskGroup id="G1" name="证据盘点" status="NOT_STARTED" order="0">
         <Description>盘点事实源、读写路径和包边界。</Description>
+        <SubNodes>
+          <Task id="G1-T1" name="盘点事实源" status="NOT_STARTED" order="0"/>
+          <Task id="G1-T2" name="盘点包边界" status="NOT_STARTED" order="1"/>
+        </SubNodes>
       </TaskGroup>
-      <TaskGroup id="PLAN-B" name="设计收敛" status="NOT_STARTED" order="1">
+      <TaskGroup id="G2" name="设计收敛" status="NOT_STARTED" order="1">
         <Description>形成架构归属和候选 track 边界。</Description>
+        <SubNodes>
+          <Task id="G2-T1" name="形成架构方案" status="NOT_STARTED" order="0"/>
+          <Task id="G2-T2" name="确认首批 track 切片" status="NOT_STARTED" order="1">
+            <cdt:TrackLink state="candidate" id="add-runtime-data-subgraph-contracts"/>
+          </Task>
+        </SubNodes>
       </TaskGroup>
-      <TaskGroup id="PLAN-C" name="track 切片确认" status="NOT_STARTED" order="2">
-        <Description>确认第一批可落地 tracks。</Description>
-      </TaskGroup>
-      <TaskGroup id="TRACK-1" name="首批 track 落地" status="NOT_STARTED" order="3">
+      <TaskGroup id="G3" name="首批 track 落地" status="NOT_STARTED" order="2">
         <Description>创建并执行首批 track。</Description>
-        <cdt:TrackCandidate id="add-runtime-data-subgraph-contracts"/>
+        <SubNodes>
+          <Task id="G3-T1" name="创建并执行 runtime data subgraph track" status="NOT_STARTED" order="0">
+            <cdt:TrackLink state="candidate" id="add-runtime-data-subgraph-contracts"/>
+          </Task>
+          <Task id="G3-T2" name="验证首批 track 结果" status="NOT_STARTED" order="1"/>
+        </SubNodes>
       </TaskGroup>
     </SubNodes>
   </TaskSpace>
 
   <Schedule>
     <Dag for="space_runtime-evolution">
-      <Node id="PLAN-B"><After ref="PLAN-A"/></Node>
-      <Node id="PLAN-C"><After ref="PLAN-B"/></Node>
-      <Node id="TRACK-1"><After ref="PLAN-C"/></Node>
+      <Node id="G2"><After ref="G1"/></Node>
+      <Node id="G3"><After ref="G2"/></Node>
     </Dag>
   </Schedule>
 
@@ -122,11 +133,13 @@ mission status:
 
 ## 5. TaskSpace
 
-mission 顶层节点建议使用语义化 id：
+mission TaskSpace 必须保持接近 track.xml 的结构：
 
-- `PLAN-A` / `PLAN-B` / `PLAN-C`：纯计划节点。
-- `TRACK-1` / `TRACK-2`：落地 track 节点。
-- `VERIFY` / `CLOSE`：验证和收口节点。
+- 顶层直接子节点使用 `TaskGroup`，表达可 DAG 调度的 mission 工作组（如证据盘点、设计收敛、首批落地、验证收口）。
+- `TaskGroup` 内部使用叶子 `Task` 表达顺序执行的实际动作。
+- mission 任务状态只写在 `TaskGroup.status` / `Task.status` 上。
+- `cdt:TrackLink` 只允许挂在叶子 `Task` 上，不挂在 `TaskGroup` 上。
+- 顶层 `TaskGroup` id 建议使用 `G1` / `G2` / `VERIFY` / `CLOSE` 等语义化或稳定短 id；叶子 task id 建议使用 `G1-T1` 形态。
 
 节点状态复用 track TaskSpace 状态：
 
@@ -139,6 +152,38 @@ mission 顶层节点建议使用语义化 id：
 
 如果现有 validator 只支持 track 状态枚举，第一版实现可以在 mission spec 中定义语义，后续再扩 validator。
 
+### 5.1 TrackLink
+
+`cdt:TrackLink` 是 mission 叶子任务与 codument track 的绑定指针，不是任务状态，也不是路径缓存。
+
+```xml
+<Task id="G2-T2" name="确认首批 track 切片" status="NOT_STARTED" order="1">
+  <cdt:TrackLink state="candidate" id="add-runtime-data-subgraph-contracts"/>
+</Task>
+```
+
+创建真实 track 后，`codument-impl-mission` 必须原地更新同一个节点：
+
+```xml
+<Task id="G2-T2" name="确认首批 track 切片" status="DONE" order="1">
+  <cdt:TrackLink state="bound" id="add-runtime-data-subgraph-contracts"/>
+</Task>
+```
+
+属性：
+
+| 属性 | 必填 | 含义 |
+|---|---:|---|
+| `state` | 是 | `candidate` 或 `bound` |
+| `id` | 是 | `candidate` 时是推荐 track id；`bound` 时是真实 track id |
+
+禁止在 `cdt:TrackLink` 上写 `path`、`archive-path` 或 track 状态。消费者通过 `id` 解析真实位置：
+
+- active track：`codument/tracks/<id>/track.xml`
+- archived track：`codument/archive/**/<timestamp>-<id>/track.xml`
+
+如果真实创建的 track id 与 candidate id 不同，直接把 `id` 更新为真实 id，并在 `reports/track-bind-XXX.md` 记录原 candidate id。
+
 ## 6. Schedule
 
 mission 顶层默认 DAG：
@@ -149,9 +194,10 @@ mission 顶层默认 DAG：
 
 `Schedule` 规则与 track 一致：
 
-- `<Dag for="...">` 只描述该父节点的直接下层依赖。
+- `<Dag for="...">` 只描述该父节点的直接下层依赖。mission 默认只把顶层 `TaskGroup` 放进 `TaskSpace` 的 DAG。
 - `<Node id="..."><After ref="..."/></Node>` 表示前驱。
 - 不跨层、不跨父。
+- 一个 `TaskGroup` 内的叶子 `Task` 默认按 `order` 顺序执行，不在 mission 顶层 `Schedule/Dag` 中描述。
 
 ## 7. Cybernetic DEPA Actors
 
@@ -198,6 +244,6 @@ active mission 允许修改 `mission.xml`，但必须满足：
 
 - `proposal.md`：目标、非目标、成功判据、背景。
 - `design.md`：actor 模型、重规划协议、风险、plan vs track 区分。
-- `mission.xml`：节点、依赖、状态、候选 track。
+- `mission.xml`：TaskGroup/Task 节点、依赖、状态、`cdt:TrackLink` 绑定。
 - `analysis/`：执行期 evidence / findings，默认不进 git。
 - `reports/`：mission run / drift / replan / verify reports，默认不进 git。

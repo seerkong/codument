@@ -48,9 +48,9 @@ export async function upgradeWorkspaceCommand(args: string[]): Promise<void> {
   const [firstTarget, ...additionalTargets] = targets;
 
   const result = installTemplates({ skillsDir: firstTarget.skillsDir, overwriteStd: true });
-  const skillResults = [{ ...firstTarget, skillsWritten: result.skillsWritten }];
+  const skillResults = [{ ...firstTarget, skillsWritten: result.skillsWritten, skillsRemoved: result.skillsRemoved }];
   for (const target of additionalTargets) {
-    skillResults.push({ ...target, skillsWritten: installSkillTemplates(target.skillsDir) });
+    skillResults.push({ ...target, ...installSkillTemplates(target.skillsDir) });
   }
   injectAgentsBlock();
 
@@ -58,7 +58,8 @@ export async function upgradeWorkspaceCommand(args: string[]): Promise<void> {
   console.log(`  backup    : ${backupRoot}`);
   console.log(`  codument/ : ${result.workspaceWritten} written (std refreshed), ${result.workspaceSkipped} kept`);
   for (const skillResult of skillResults) {
-    console.log(`  skills    : ${skillResult.skillsWritten} → ${skillResult.skillsDir} (agent: ${skillResult.agent})`);
+    const removed = skillResult.skillsRemoved ? `, ${skillResult.skillsRemoved} deprecated removed` : '';
+    console.log(`  skills    : ${skillResult.skillsWritten} → ${skillResult.skillsDir} (agent: ${skillResult.agent}${removed})`);
   }
   if (shouldWriteCliToolsConfig) {
     console.log('  config/cli-tools.json: tools updated');
@@ -110,6 +111,8 @@ function removeLegacyWorkspacePaths(backupRoot: string): number {
     'codument/specs',
     'codument/std/workflow.md',
     'codument/std/protocols.md',
+    'codument/std/operations/init.md',
+    'codument/std/operations/status.md',
     'codument/std/plan-xml-spec.md',
     'codument/std/track-impl-gap-report-1.md',
     'codument/attractors/knowledge-tiers.md',

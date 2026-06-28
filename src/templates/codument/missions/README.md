@@ -52,19 +52,21 @@ codument/missions/
 
 新 mission 的标准制品是三件套：
 
-- `mission.xml`：唯一结构 / 状态 / 调度真源。它与 `track.xml` 同构，但根为 `<Mission>`，顶层默认 DAG。
+- `mission.xml`：唯一结构 / 状态 / 调度真源。它与 `track.xml` 同构，但根为 `<Mission>`，顶层默认 DAG。顶层 `TaskGroup` 可 DAG 调度；组内 leaf `Task` 默认按 `order` 顺序执行。
 - `proposal.md`：为什么要做、目标 / 非目标、成功判据、为什么这是 mission 而不是单个 track。
 - `design.md`：控制论 + DEPA actor 模型、执行协议、重规划规则、人工介入规则、风险与迁移。
+
+`cdt:TrackLink` 只挂在 leaf `Task` 上，用 `state="candidate|bound"` + `id` 记录推荐或真实 track id；不写 path/archive-path，active/archive 位置从真实 track id 推导。
 
 新 mission **不创建 `roadmap.md`**。旧 roadmap 内容按职责拆分：
 
 | 原路线内容 | 新落点 |
 |---|---|
 | mission 目标、Non-Goals、成功判据 | `proposal.md` |
-| 阶段路线、节点依赖、状态、track candidates | `mission.xml` |
+| 阶段路线、节点依赖、状态、TrackLink candidate/bound | `mission.xml` |
 | plan vs track 区分规则 | `design.md` |
 | 当前判断、阻塞、风险 | `design.md` + `mission.xml` 状态 |
-| 证据链接、执行报告链接 | `mission.xml` 节点扩展 + `reports/` |
+| 证据链接、执行报告链接 | `reports/` |
 | 移交项 | `design.md` 或后续 track proposal |
 
 ## 控制论 + DEPA actor 执行模型
@@ -73,7 +75,7 @@ mission execution is a cybernetic actor loop over a DAG-shaped desired state.
 
 | Actor | 控制论角色 | DEPA 归属 | 职责 |
 |---|---|---|---|
-| `MissionPlanner` | 期望态产出者 | Processor + Actor | 产出或修订 desired mission graph：节点、依赖、门禁、候选 track |
+| `MissionPlanner` | 期望态产出者 | Processor + Actor | 产出或修订 desired mission graph：TaskGroup/Task、依赖、门禁、TrackLink |
 | `MissionObserver` | 传感器 | Data + Actor | 读取 actual state projection：mission.xml、track 状态、archive、测试结果、reports、用户新约束 |
 | `MissionReconciler` | 控制器 | Processor + Actor | 比较 desired vs actual，判定 drift / ready / blocked / done |
 | `MissionApplier` | 执行器 | Effect + Actor | 唯一执行收敛动作：启动 mission、创建/续跑/归档 track、修订 mission.xml、写 reports |
@@ -119,5 +121,5 @@ active mission 执行中允许：
 - 用 `codument-plan-mission` 创建 pending mission。
 - 用 `codument-impl-mission` 启动或续跑 active mission。
 - 用 `codument-archive-mission` 归档 completed / cancelled / superseded mission。
-- mission 中稳定下来的领域知识、承重决策、复用教训，仍按 `std/attractors/knowledge-tiers.md` 晋升到 owner 层；不要让 mission 成为长期知识垃圾桶。
+- 发现稳定领域知识、承重决策、复用教训时，仍按 `std/attractors/knowledge-tiers.md` 晋升到 owner 层；不要让 mission 成为长期知识垃圾桶。
 - 旧 `missions/<mission-id>/roadmap.md` 形态可以手工迁移为新结构；新规范不要求自动迁移旧 mission。

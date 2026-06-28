@@ -21,12 +21,17 @@ describe('codument upgrade-workspace', () => {
     const skillsDir = path.join(ws, '.skills');
 
     writeFile(path.join(ws, 'codument', 'std', 'AGENTS.md'), '# old std\n');
+    writeFile(path.join(ws, 'codument', 'std', 'operations', 'init.md'), '# old init operation\n');
+    writeFile(path.join(ws, 'codument', 'std', 'operations', 'status.md'), '# old status operation\n');
     writeFile(path.join(ws, 'codument', 'config', 'cli-tools.json'), JSON.stringify({ tools: ['claude'] }, null, 2));
     writeFile(path.join(ws, 'codument', 'attractors', 'project.md'), '# custom project\n');
     writeFile(path.join(ws, 'codument', 'attractors', 'product.md'), '# custom product\n');
     writeFile(path.join(ws, 'codument', 'attractors', 'knowledge-tiers.md'), '# old knowledge\n');
     writeFile(path.join(ws, 'codument', 'attractors', 'model-driven-docs.md'), '# old docs\n');
     writeFile(path.join(ws, 'codument', 'attractors', 'project-memory.md'), '# old memory\n');
+    writeFile(path.join(skillsDir, 'codument-init', 'SKILL.md'), '# old init skill\n');
+    writeFile(path.join(skillsDir, 'codument-status', 'SKILL.md'), '# old status skill\n');
+    writeFile(path.join(skillsDir, 'codument-plan-schedule', 'SKILL.md'), '# old plan schedule skill\n');
     writeFile(path.join(ws, 'AGENTS.md'), '# Existing project notes\n');
 
     const proc = Bun.spawn([
@@ -56,6 +61,8 @@ describe('codument upgrade-workspace', () => {
     expect(fs.existsSync(path.join(ws, 'codument', 'attractors', 'knowledge-tiers.md'))).toBe(false);
     expect(fs.existsSync(path.join(ws, 'codument', 'attractors', 'model-driven-docs.md'))).toBe(false);
     expect(fs.existsSync(path.join(ws, 'codument', 'attractors', 'project-memory.md'))).toBe(false);
+    expect(fs.existsSync(path.join(ws, 'codument', 'std', 'operations', 'init.md'))).toBe(false);
+    expect(fs.existsSync(path.join(ws, 'codument', 'std', 'operations', 'status.md'))).toBe(false);
 
     expect(fs.existsSync(path.join(ws, 'codument', 'std', 'attractors', 'knowledge-tiers.md'))).toBe(true);
     expect(fs.existsSync(path.join(ws, 'codument', 'std', 'attractors', 'model-driven-docs.md'))).toBe(true);
@@ -65,5 +72,10 @@ describe('codument upgrade-workspace', () => {
     const agents = fs.readFileSync(path.join(ws, 'AGENTS.md'), 'utf-8');
     expect(agents).toContain('@/codument/std/attractors/knowledge-tiers.md');
     expect(agents).toContain('# Existing project notes');
+
+    expect(fs.existsSync(path.join(skillsDir, 'codument-init', 'SKILL.md'))).toBe(false);
+    expect(fs.existsSync(path.join(skillsDir, 'codument-status', 'SKILL.md'))).toBe(false);
+    expect(fs.existsSync(path.join(skillsDir, 'codument-plan-schedule', 'SKILL.md'))).toBe(false);
+    expect(fs.existsSync(path.join(skillsDir, 'codument-plan-track', 'SKILL.md'))).toBe(true);
   });
 });

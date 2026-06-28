@@ -11,7 +11,7 @@ description: 把现存项目现状一次性总结进分形 docs——docs/modeli
 
 按其中的 Markdown 说明 + `--` 流程标记块执行（盘点→写 modeling→写 impl→补目录职责→记不确定）；分形规范见 `@/codument/std/docs-{modeling,impl}-fractal/index.md`，目录职责见 `@/codument/std/spec/folder-manifest.md`（均由 body 引用）。
 
-- **前置**：项目已 `codument-init`。docs 同步能力未开也可纯手动跑。
+- **前置**：项目已通过 `codument init` 初始化。docs 同步能力未开也可纯手动跑。
 - **用法**：引导 docs: `[scope]`（缺省全项目）。
 
 > 壳只做路由，不重述规则。一切以 `@/codument/std/operations/docs-bootstrap.md` 为准。

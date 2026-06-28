@@ -58,7 +58,7 @@ codument 是 **track 中心**的：迭代记忆强，但 **owner registry（`cod
 请使用 codument-plan-track skill, 创建 track: <track-id>
 请使用 codument-discuss / codument-plan-track-wave / codument-impl-track skill, 处理 track: <track-id>
 请使用 codument-gap-loop / codument-verify / codument-revise-track skill, 校验/验证/修订 track: <track-id>
-请使用 codument-archive-track / codument-validate / codument-status skill
+请使用 codument-archive-track / codument-validate skill
 请使用 codument-plan-mission / codument-impl-mission / codument-archive-mission skill
 请使用 codument-docs-bootstrap / codument-artifact-sync / codument-migrate skill
 ```

@@ -1,0 +1,34 @@
+<behavior-patch capability="codument-core" version="1">
+  <upsert selector="behavior://codument-core/requirements/mission-track-binding">
+    <requirement id="mission-track-binding">
+      <statement>系统 SHALL represent mission-to-track binding with a single `cdt:TrackLink` node on leaf mission Tasks, using compact candidate/bound state and deriving track/archive location from the real track id.</statement>
+      <suite id="track-link" name="Mission TrackLink binding">
+        <case id="leaf-task-only">
+          <given>A mission TaskSpace includes a work item that may create or operate a track</given>
+          <when>The mission expresses the track relationship</when>
+          <then>The mission SHALL attach `cdt:TrackLink` to the leaf `Task`, not to a `TaskGroup`</then>
+          <and>`TaskGroup` and `Task` SHALL remain the source of mission execution status</and>
+        </case>
+        <case id="candidate-to-bound">
+          <given>A leaf Task has `cdt:TrackLink state="candidate" id="suggested-track-id"`</given>
+          <when>`codument-impl-mission` creates the real track</when>
+          <then>It SHALL update the same `cdt:TrackLink` to `state="bound"` with the real track id</then>
+          <and>It SHALL write a `reports/track-bind-XXX.md` report with candidate id, real id, task id, evidence, and timestamp</and>
+        </case>
+        <case id="no-path-projection">
+          <given>A `cdt:TrackLink` is bound to a real track id</given>
+          <when>The track moves from active tracks to archive</when>
+          <then>The mission SHALL NOT require a path or archive-path attribute update</then>
+          <and>Consumers SHALL derive active/archive location by resolving the id against `codument/tracks/` and `codument/archive/`</and>
+        </case>
+        <case id="mission-archive-precheck">
+          <given>A mission has one or more `cdt:TrackLink state="bound"` nodes</given>
+          <when>`codument-archive-mission` runs</when>
+          <then>It SHALL precheck whether each bound track id is archived, active, or missing</then>
+          <and>It SHALL NOT silently archive tracks in bulk</and>
+          <and>If bound tracks are active or missing, it SHALL report them and ask whether to run `codument-archive-track` for eligible active tracks or block</and>
+        </case>
+      </suite>
+    </requirement>
+  </upsert>
+</behavior-patch>

@@ -28,16 +28,17 @@ export async function initCommand(args: string[]): Promise<void> {
   const force = options['force'] === true;
 
   const result = installTemplates({ skillsDir: firstTarget.skillsDir, overwriteStd: false, force });
-  const skillResults = [{ ...firstTarget, skillsWritten: result.skillsWritten }];
+  const skillResults = [{ ...firstTarget, skillsWritten: result.skillsWritten, skillsRemoved: result.skillsRemoved }];
   for (const target of additionalTargets) {
-    skillResults.push({ ...target, skillsWritten: installSkillTemplates(target.skillsDir) });
+    skillResults.push({ ...target, ...installSkillTemplates(target.skillsDir) });
   }
   injectAgentsBlock();
 
   console.log('Codument initialized.');
   console.log(`  codument/ : ${result.workspaceWritten} written, ${result.workspaceSkipped} kept`);
   for (const skillResult of skillResults) {
-    console.log(`  skills    : ${skillResult.skillsWritten} → ${skillResult.skillsDir} (agent: ${skillResult.agent})`);
+    const removed = skillResult.skillsRemoved ? `, ${skillResult.skillsRemoved} deprecated removed` : '';
+    console.log(`  skills    : ${skillResult.skillsWritten} → ${skillResult.skillsDir} (agent: ${skillResult.agent}${removed})`);
   }
   writeCliToolsConfig(selectedTools);
   console.log('  config/cli-tools.json: tools updated');

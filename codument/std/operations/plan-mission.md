@@ -68,11 +68,16 @@ codument/missions/pending/<mission-id>/
 
 ## 3. 主流程
 
+正式进入 mission 规划前，先执行命令级前置 hook：若 `codument/config/operation-hooks.xml` 中存在 `Operation name="plan-mission"` 的 `<Hook on="plan-mission:before">`，按其中 hook DSL 执行。默认配置会运行 `<cdt:AttractorCheck use="coding"/>`，即读取 `config/attractor-profiles.xml` 的 `coding` profile 及其引用的 attractor，将项目工程理念、边界、长期知识沉淀方式作为 mission proposal/design/mission.xml 的规划约束。`operation-hooks.xml` 缺失或没有该 hook 时按默认流程继续。
+
 ```text
 @delimiter: --
 @node: #
 @marker: ?
 -- #sequence ?plan_mission
+---- #if ?before cond="operation-hooks.xml 为 plan-mission 配了 plan-mission:before（默认 <cdt:AttractorCheck use=\"coding\">）"
+执行 plan-mission:before hook；AttractorCheck 必须读取 coding profile 与其引用的 attractor，将项目理念作为后续 proposal/design/mission.xml 的约束上下文
+---- /?before
 ---- #step ?context
 确认 codument 已初始化；读取 codument/attractors、codument/missions/README.md、codument/std/spec/mission-xml-spec.md；解析 questioning severity（默认 light）。
 ---- /?context
@@ -137,7 +142,7 @@ best-effort 校验 XML 格式；若 validator 尚未支持 mission.xml，至少�
 
 ## 控制论模型
 
-- desired state：mission.xml 的 DAG、节点状态、门禁和候选 track。
+- desired state：mission.xml 的顶层 TaskGroup DAG、组内顺序 Task、节点状态、门禁和叶子 Task 上的 `cdt:TrackLink`。
 - actual state：当前 mission 文件、track 状态、archive、测试结果、reports、用户新约束。
 - actuation：创建/续跑/归档 track，或受控修订 mission.xml。
 - feedback / drift：reports、verify、用户介入、失败证据。
@@ -178,17 +183,34 @@ active mission 可以增删改节点和 DAG，但必须有 evidence 或 human de
   <TaskSpace id="space_runtime-evolution" name="runtime-evolution" version="1" cdt:child-mode="dag">
     <Description>Runtime evolution mission.</Description>
     <SubNodes>
-      <TaskGroup id="PLAN-A" name="证据盘点" status="NOT_STARTED" order="0"/>
-      <TaskGroup id="PLAN-B" name="设计收敛" status="NOT_STARTED" order="1"/>
-      <TaskGroup id="PLAN-C" name="track 切片确认" status="NOT_STARTED" order="2"/>
-      <TaskGroup id="TRACK-1" name="首批 track 落地" status="NOT_STARTED" order="3"/>
+      <TaskGroup id="G1" name="证据盘点" status="NOT_STARTED" order="0">
+        <SubNodes>
+          <Task id="G1-T1" name="盘点事实源" status="NOT_STARTED" order="0"/>
+          <Task id="G1-T2" name="盘点包边界" status="NOT_STARTED" order="1"/>
+        </SubNodes>
+      </TaskGroup>
+      <TaskGroup id="G2" name="设计收敛" status="NOT_STARTED" order="1">
+        <SubNodes>
+          <Task id="G2-T1" name="形成架构方案" status="NOT_STARTED" order="0"/>
+          <Task id="G2-T2" name="确认首批 track 切片" status="NOT_STARTED" order="1">
+            <cdt:TrackLink state="candidate" id="add-runtime-contracts"/>
+          </Task>
+        </SubNodes>
+      </TaskGroup>
+      <TaskGroup id="G3" name="首批落地" status="NOT_STARTED" order="2">
+        <SubNodes>
+          <Task id="G3-T1" name="创建并执行 runtime contracts track" status="NOT_STARTED" order="0">
+            <cdt:TrackLink state="candidate" id="add-runtime-contracts"/>
+          </Task>
+          <Task id="G3-T2" name="验证首批 track 结果" status="NOT_STARTED" order="1"/>
+        </SubNodes>
+      </TaskGroup>
     </SubNodes>
   </TaskSpace>
   <Schedule>
     <Dag for="space_runtime-evolution">
-      <Node id="PLAN-B"><After ref="PLAN-A"/></Node>
-      <Node id="PLAN-C"><After ref="PLAN-B"/></Node>
-      <Node id="TRACK-1"><After ref="PLAN-C"/></Node>
+      <Node id="G2"><After ref="G1"/></Node>
+      <Node id="G3"><After ref="G2"/></Node>
     </Dag>
   </Schedule>
 </Mission>

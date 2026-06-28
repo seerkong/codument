@@ -28,7 +28,7 @@
 - `codument/std/`（标准提示词 / spec / sop 已落盘）。
 - `codument/tech-stack.md` 是旧兼容文件，新项目不再推荐。
 
-标准工作流文件缺失，或既无 `codument/attractors/` 也无旧项目 `project.md`/`product.md` 组合 → 立即停止，宣布：「Codument 未设置。请使用 `codument-init` skill 设置环境。」**不要**继续 track 选择。
+标准工作流文件缺失，或既无 `codument/attractors/` 也无旧项目 `project.md`/`product.md` 组合 → 立即停止，宣布：「Codument 未设置。请先运行 `codument init` 初始化工作区。」**不要**继续 track 选择。
 
 ### 1.2 交互式问答
 
@@ -76,7 +76,7 @@
 - `design.md` — 方案设计（如存在）。
 - `analysis/` — 规划期外部记忆（`findings.md`/`knowledge.md`，大型 track 的子设计 / 子提案现归此）。
 - `codument/std/spec/track-xml-spec.md` — `track.xml` schema（特别是 §4 `cdt:child-mode`、§5 `<Schedule>`）。
-- `codument/config/operation-hooks.xml` 与 `codument/config/artifacts.xml` — **仅用于**识别显式 hook 触发的 artifact/knowledge sync 任务。
+- `codument/config/operation-hooks.xml` — **仅用于**识别显式 hook 触发的 artifact/knowledge sync 任务。
 
 ---
 
@@ -96,7 +96,7 @@
 识别并行机会：无依赖关系的子节点可并行（同 wave）；有共同前置的可在同一 wave；有顺序依赖的必须分属不同 wave（拓扑层级不同）
 ---- /?a2
 ---- #step ?a3
-仅当 plan 已有显式文档/制品同步子节点，或 operation-hooks.xml 显式 <artifact-sync artifact="…"/> 引用 artifacts.xml 中 artifact 时，才把 artifact sync 纳入该层依赖图；不要只因 docs profile 启用推断隐式同步任务
+仅当 plan 已有显式文档/制品同步子节点，或 operation-hooks.xml 显式 `<cdt:ArtifactSync use="..."/>` 时，才把 artifact sync 纳入该层依赖图；不要只因 docs profile 启用推断隐式同步任务
 ---- /?a3
 -- /?levels
 ```

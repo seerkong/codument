@@ -99,18 +99,18 @@
     <statement>系统 SHALL support `codument/config/operation-hooks.xml` as a sparse workspace-level XML hook overlay for Codument operations that do not have their own `plan.xml` execution plan.</statement>
     <suite id="sparse-overlay" name="Sparse operation hook overlay">
       <case id="only-configured-commands">
-        <given>`codument/config/operation-hooks.xml` contains a `track` operation entry but no `archive` operation entry.</given>
-        <when>The user runs `track` and later runs `archive`.</when>
-        <then>The system SHALL apply only the configured `track` hooks.</then>
-        <and>The system SHALL run `archive` with its existing default behavior.</and>
+        <given>`codument/config/operation-hooks.xml` contains a `plan-track` operation entry but no `archive-track` operation entry.</given>
+        <when>The user runs `plan-track` and later runs `archive-track`.</when>
+        <then>The system SHALL apply only the configured `plan-track` hooks.</then>
+        <and>The system SHALL run `archive-track` with its existing default behavior.</and>
       </case>
       <case id="reuse-hook-dsl">
-        <given>`codument/config/operation-hooks.xml` contains an operation hook with nested `&amp;amp;amp;amp;amp;amp;lt;attractor-check&amp;amp;amp;amp;amp;amp;gt;` and `&amp;amp;amp;amp;amp;amp;lt;confirm&amp;amp;amp;amp;amp;amp;gt;` nodes.</given>
+        <given>`codument/config/operation-hooks.xml` contains an operation hook with nested `&amp;amp;amp;amp;amp;amp;lt;cdt:AttractorCheck&amp;amp;amp;amp;amp;amp;gt;` and `&amp;amp;amp;amp;amp;amp;lt;cdt:HumanConfirm&amp;amp;amp;amp;amp;amp;gt;` nodes.</given>
         <when>The operation reaches the configured hook point.</when>
         <then>The system SHALL execute those nodes using the same protocol semantics as plan-level hooks.</then>
       </case>
       <case id="known-hook-points">
-        <given>An operation defines stable hook points such as `after-design`, `after-plan`, `before-archive`, or `before-revise`.</given>
+        <given>An operation defines stable hook points such as `plan-track:before`, `plan-mission:before`, `archive-track:after`, or `revise-track:before`.</given>
         <when>`codument/config/operation-hooks.xml` references one of those points.</when>
         <then>The system SHALL execute the hook at that point.</then>
         <and>The system SHALL report validation errors for unknown points when the operation's point list is known.</and>
@@ -132,7 +132,7 @@
         <and>The system SHALL update the minimal set of track-local artifacts needed to capture the revision.</and>
       </case>
       <case id="revise-before-hook">
-        <given>`codument/config/operation-hooks.xml` configures `operation name=&amp;amp;amp;amp;amp;amp;quot;revise-track&amp;amp;amp;amp;amp;amp;quot;` with a `before-revise` hook.</given>
+        <given>`codument/config/operation-hooks.xml` configures `Operation name=&amp;amp;amp;amp;amp;amp;quot;revise-track&amp;amp;amp;amp;amp;amp;quot;` with a `revise-track:before` hook.</given>
         <when>The user invokes `revise-track`.</when>
         <then>The system SHALL execute the configured hook before modifying the track.</then>
         <and>If the hook is `BLOCKED`, the system SHALL stop without changing track files.</and>
@@ -246,7 +246,7 @@
         <and>The generated `attractor-profile` resource SHALL reference that profile by `name` and SHALL NOT depend on direct `attractor` or `ref` attributes.</and>
         <and>Each legacy knowledge target SHALL become a directory target under the generated artifact's `targets` node using `base-dir` and `relative-dir`.</and>
         <and>The system SHALL remove migrated `knowledgeSync.targets` from `feature.json` after writing them to artifacts.xml.</and>
-        <and>If `codument/config/operation-hooks.xml` does not exist, the system SHALL create a default archive `after-archive` hook that triggers the generated docs artifact.</and>
+        <and>If `codument/config/operation-hooks.xml` does not exist, the system SHALL create a default `archive-track:after` hook that triggers the generated docs artifact.</and>
       </case>
       <case id="legacy-target-location-migration">
         <given>`codument/config/artifacts.xml` contains generated target locations using old `path` and `output-path` attributes.</given>
@@ -270,7 +270,7 @@
         <and>`codument/config/artifacts.xml` does not exist.</and>
         <when>The user runs `codument upgrade-workspace`.</when>
         <then>The generated artifacts.xml SHALL include a project memory artifact that uses a `memory` attractor profile containing `codument/std/attractors/project-memory.md`.</then>
-        <and>If `codument/config/operation-hooks.xml` does not exist, the system SHALL create a default archive `after-archive` hook that triggers the generated memory artifact.</and>
+        <and>If `codument/config/operation-hooks.xml` does not exist, the system SHALL create a default `archive-track:after` hook that triggers the generated memory artifact.</and>
       </case>
       <case id="docs-fractal-attractors">
         <given>`knowledgeSync.enabled=true`.</given>

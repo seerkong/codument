@@ -7,21 +7,27 @@
 -->
 <OperationHooks version="1" xmlns:cdt="urn:codument:v1">
 
-  <Operation name="track">
+  <Operation name="plan-track">
     <Hooks>
-      <Hook on="track:after-design"><cdt:AttractorCheck use="coding"/></Hook>
+      <Hook on="plan-track:before"><cdt:AttractorCheck use="coding"/></Hook>
     </Hooks>
   </Operation>
 
-  <Operation name="archive">
+  <Operation name="plan-mission">
     <Hooks>
-      <Hook on="archive:after"><cdt:ArtifactSync use="docs"/></Hook>
+      <Hook on="plan-mission:before"><cdt:AttractorCheck use="coding"/></Hook>
+    </Hooks>
+  </Operation>
+
+  <Operation name="archive-track">
+    <Hooks>
+      <Hook on="archive-track:after"><cdt:ArtifactSync use="docs"/></Hook>
     </Hooks>
   </Operation>
 
   <Operation name="revise-track">
     <Hooks>
-      <Hook on="revise:before"><cdt:AttractorCheck use="coding"/></Hook>
+      <Hook on="revise-track:before"><cdt:AttractorCheck use="coding"/></Hook>
     </Hooks>
   </Operation>
 

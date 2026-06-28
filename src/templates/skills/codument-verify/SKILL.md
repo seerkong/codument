@@ -11,7 +11,7 @@ description: 独立验证——派 fresh 子代理实际运行（跑测试/启�
 
 按其中的 Markdown 说明 + `--` 流程标记块执行（Goal-Backward + 三级 Exists/Substantive/Wired + fresh 子代理**实跑**、逐项 PASS/FAIL + 证据）。注意：verify **只判定不修复**（修复属 implement/gap-loop）。
 
-- **前置**：项目已 `codument-init`，目标 track 已实现部分/全部。
+- **前置**：项目已通过 `codument init` 初始化，目标 track 已实现部分/全部。
 - **用法**：验证 track: `<track-id>` [phase]。
 
 > 壳只做路由，不重述规则。一切以 `@/codument/std/operations/verify.md` 为准。

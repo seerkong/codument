@@ -12,7 +12,6 @@
 
 | skill 壳目录 | 指向的 body |
 |---|---|
-| `codument-init/` | `@/codument/std/operations/init.md` |
 | `codument-plan-track/` | `@/codument/std/operations/plan-track.md` |
 | `codument-discuss/` | `@/codument/std/operations/discuss.md` |
 | `codument-plan-track-wave/` | `@/codument/std/operations/plan-track-wave.md` |
@@ -21,7 +20,6 @@
 | `codument-verify/` | `@/codument/std/operations/verify.md` |
 | `codument-revise-track/` | `@/codument/std/operations/revise-track.md` |
 | `codument-validate/` | `@/codument/std/operations/validate.md` |
-| `codument-status/` | `@/codument/std/operations/status.md` |
 | `codument-archive-track/` | `@/codument/std/operations/archive-track.md` |
 | `codument-plan-mission/` | `@/codument/std/operations/plan-mission.md` |
 | `codument-impl-mission/` | `@/codument/std/operations/impl-mission.md` |
@@ -32,5 +30,7 @@
 | `codument-decision-tree/` | 直接遵循 `@/codument/std/sop/questioning.md`，生成 decision-tree 并回写 decisions |
 | `codument-modeling-engineering-e2e/` | 直接运行 `scripts/verify-modeling-engineering-e2e.sh` 的真实 E2E 操作 skill |
 | `codument-code-quality-score/` | 直接运行 `scripts/score-e2e-code-quality.ts` 并做证据化代码质量评价的 skill |
+
+CLI 辅助命令 `codument init` / `codument status` 不再提供 agent skill 壳；它们作为普通 CLI 命令使用。
 
 > `SKILL.md` 采用 Agent Skills 标准：`name`（=目录名，小写连字符）+ `description`（agent 据此决定何时调用）+ 薄壳正文。其它 agent 专属命令格式（codex/opencode/…）由 codument 生成器按 agent 类型从同一 body 派生。

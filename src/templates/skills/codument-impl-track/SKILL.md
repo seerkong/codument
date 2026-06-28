@@ -11,7 +11,7 @@ description: 按 track.xml 的 TaskSpace + Schedule 执行实现——编排 fre
 
 按其中的 Markdown 说明 + `--` 流程标记块执行（遍历 phase、层内顺序/DAG 调度、派发子代理、回写 status、跑 cdt: hook、续跑检测）；方法论见 `@/codument/std/sop/{tdd,wave-exec,gap-loop}.md`（均由 body 按需引用）。
 
-- **前置**：项目已 `codument-init`，目标 track 提案已批准。
+- **前置**：项目已通过 `codument init` 初始化，目标 track 提案已批准。
 - **用法**：实现 track: `<track-id>` [phase]（缺省从第一个未完成 phase 起）。
 
 > 壳只做路由，不重述规则。一切以 `@/codument/std/operations/impl-track.md` 为准。
