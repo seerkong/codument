@@ -75,6 +75,8 @@ tracks/<id>/
   <Status>in_progress</Status>          <!-- new | in_progress | completed | cancelled -->
   <Goal>为报表新增 CSV 导出</Goal>
   <Description>后端端点 + 前端按钮 + docs 同步</Description>
+  <QuestionMode>decision-tree</QuestionMode>     <!-- decision-tree -->
+  <QuestionSeverity>light</QuestionSeverity>     <!-- auto | light | normal | deep -->
   <CommitMode>manual</CommitMode>       <!-- auto | manual -->
   <CreatedAt>2026-06-14T10:00:00Z</CreatedAt>
   <UpdatedAt>2026-06-14T15:00:00Z</UpdatedAt>
@@ -82,6 +84,7 @@ tracks/<id>/
 ```
 
 - **不含** `execution_mode`（→ `<Schedule mode>`）、`validation_mode`/`validation_granularity`/`gap_loop_round`（→ `<Hooks>` 见 §6），也不含手维护的 `summary`（工具从 TaskSpace 派生）。
+- `QuestionMode` / `QuestionSeverity` 与 `CommitMode` 并列但分属不同轴：前者描述规划/澄清阶段如何问问题，后者描述实现阶段是否自动提交。`QuestionMode` 当前取 `decision-tree`；`QuestionSeverity` 当前取 `auto|light|normal|deep`，未指定按 `light` 处理。
 - 可选 `cdt:`：`<cdt:Milestones>`、`<cdt:Risks>`（旧 milestones/risks 降级；大多数 track 放 proposal.md 即可）。
 
 ---

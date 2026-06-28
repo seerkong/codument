@@ -24,14 +24,14 @@
     <statement>系统 SHALL support an explicit `plan.xml` attractor check hook that validates a track, phase, or task against a selected attractor profile.</statement>
     <suite id="plan-xml-hook" name="Plan XML hook behavior">
       <case id="hook-placement">
-        <given>A `plan.xml` contains an `&amp;amp;amp;amp;amp;lt;attractor-check profile=&amp;amp;amp;amp;amp;quot;...&amp;amp;amp;amp;amp;quot; when=&amp;amp;amp;amp;amp;quot;...&amp;amp;amp;amp;amp;quot; status=&amp;amp;amp;amp;amp;quot;...&amp;amp;amp;amp;amp;quot; /&amp;amp;amp;amp;amp;gt;` node under the track, a phase, or a task.</given>
+        <given>A `plan.xml` contains an `&amp;amp;amp;amp;amp;amp;lt;attractor-check profile=&amp;amp;amp;amp;amp;amp;quot;...&amp;amp;amp;amp;amp;amp;quot; when=&amp;amp;amp;amp;amp;amp;quot;...&amp;amp;amp;amp;amp;amp;quot; status=&amp;amp;amp;amp;amp;amp;quot;...&amp;amp;amp;amp;amp;amp;quot; /&amp;amp;amp;amp;amp;amp;gt;` node under the track, a phase, or a task.</given>
         <when>The execution workflow reaches the hook's guarded scope.</when>
         <then>The system SHALL run attractor alignment validation for that scope using the selected profile.</then>
       </case>
       <case id="when-semantics">
-        <given>An `&amp;amp;amp;amp;amp;lt;attractor-check&amp;amp;amp;amp;amp;gt;` node has `when=&amp;amp;amp;amp;amp;quot;before&amp;amp;amp;amp;amp;quot;`, `when=&amp;amp;amp;amp;amp;quot;after&amp;amp;amp;amp;amp;quot;`, or `when=&amp;amp;amp;amp;amp;quot;both&amp;amp;amp;amp;amp;quot;`.</given>
+        <given>An `&amp;amp;amp;amp;amp;amp;lt;attractor-check&amp;amp;amp;amp;amp;amp;gt;` node has `when=&amp;amp;amp;amp;amp;amp;quot;before&amp;amp;amp;amp;amp;amp;quot;`, `when=&amp;amp;amp;amp;amp;amp;quot;after&amp;amp;amp;amp;amp;amp;quot;`, or `when=&amp;amp;amp;amp;amp;amp;quot;both&amp;amp;amp;amp;amp;amp;quot;`.</given>
         <when>The guarded scope is executed.</when>
-        <then>The system SHALL apply the same before, after, and both timing semantics used by `&amp;amp;amp;amp;amp;lt;confirm&amp;amp;amp;amp;amp;gt;`.</then>
+        <then>The system SHALL apply the same before, after, and both timing semantics used by `&amp;amp;amp;amp;amp;amp;lt;confirm&amp;amp;amp;amp;amp;amp;gt;`.</then>
       </case>
       <case id="status-semantics">
         <given>An attractor check starts execution.</given>
@@ -49,17 +49,17 @@
     <statement>系统 SHALL support configurable post-check policies so attractor gaps can be repaired immediately, routed through confirmation, or blocked for user input.</statement>
     <suite id="result-policy" name="Attractor check result policy">
       <case id="fix-immediately">
-        <given>An attractor check contains `&amp;amp;amp;amp;amp;lt;result-policy on-gap=&amp;amp;amp;amp;amp;quot;fix-immediately&amp;amp;amp;amp;amp;quot; /&amp;amp;amp;amp;amp;gt;`.</given>
+        <given>An attractor check contains `&amp;amp;amp;amp;amp;amp;lt;result-policy on-gap=&amp;amp;amp;amp;amp;amp;quot;fix-immediately&amp;amp;amp;amp;amp;amp;quot; /&amp;amp;amp;amp;amp;amp;gt;`.</given>
         <when>The check returns a gap that the executor can safely repair.</when>
         <then>The system SHALL apply the repair and rerun the attractor check before marking the hook `DONE`.</then>
       </case>
       <case id="confirm-before-fix">
-        <given>An attractor check contains `&amp;amp;amp;amp;amp;lt;result-policy on-gap=&amp;amp;amp;amp;amp;quot;confirm-before-fix&amp;amp;amp;amp;amp;quot;&amp;amp;amp;amp;amp;gt;` with a nested `&amp;amp;amp;amp;amp;lt;confirm protocol=&amp;amp;amp;amp;amp;quot;yield-human-confirm&amp;amp;amp;amp;amp;quot; when=&amp;amp;amp;amp;amp;quot;after&amp;amp;amp;amp;amp;quot; status=&amp;amp;amp;amp;amp;quot;TODO&amp;amp;amp;amp;amp;quot; /&amp;amp;amp;amp;amp;gt;`.</given>
+        <given>An attractor check contains `&amp;amp;amp;amp;amp;amp;lt;result-policy on-gap=&amp;amp;amp;amp;amp;amp;quot;confirm-before-fix&amp;amp;amp;amp;amp;amp;quot;&amp;amp;amp;amp;amp;amp;gt;` with a nested `&amp;amp;amp;amp;amp;amp;lt;confirm protocol=&amp;amp;amp;amp;amp;amp;quot;yield-human-confirm&amp;amp;amp;amp;amp;amp;quot; when=&amp;amp;amp;amp;amp;amp;quot;after&amp;amp;amp;amp;amp;amp;quot; status=&amp;amp;amp;amp;amp;amp;quot;TODO&amp;amp;amp;amp;amp;amp;quot; /&amp;amp;amp;amp;amp;amp;gt;`.</given>
         <when>The check returns a gap.</when>
         <then>The system SHALL run the nested confirmation before applying the proposed repair.</then>
       </case>
       <case id="block-on-gap">
-        <given>An attractor check contains `&amp;amp;amp;amp;amp;lt;result-policy on-gap=&amp;amp;amp;amp;amp;quot;block&amp;amp;amp;amp;amp;quot; /&amp;amp;amp;amp;amp;gt;`.</given>
+        <given>An attractor check contains `&amp;amp;amp;amp;amp;amp;lt;result-policy on-gap=&amp;amp;amp;amp;amp;amp;quot;block&amp;amp;amp;amp;amp;amp;quot; /&amp;amp;amp;amp;amp;amp;gt;`.</given>
         <when>The check returns any gap.</when>
         <then>The system SHALL mark the attractor check `BLOCKED` and wait for user input.</then>
       </case>
@@ -79,7 +79,7 @@
         <then>The system SHALL validate the drafted track artifacts against the selected attractor profile before treating the design as confirmed.</then>
       </case>
       <case id="phase-check">
-        <given>A phase contains an attractor check with `when=&amp;amp;amp;amp;amp;quot;after&amp;amp;amp;amp;amp;quot;`.</given>
+        <given>A phase contains an attractor check with `when=&amp;amp;amp;amp;amp;amp;quot;after&amp;amp;amp;amp;amp;amp;quot;`.</given>
         <when>All tasks in the phase are complete.</when>
         <then>The implementation workflow SHALL run the attractor check before moving past the phase.</then>
       </case>
@@ -105,7 +105,7 @@
         <and>The system SHALL run `archive` with its existing default behavior.</and>
       </case>
       <case id="reuse-hook-dsl">
-        <given>`codument/config/operation-hooks.xml` contains an operation hook with nested `&amp;amp;amp;amp;amp;lt;attractor-check&amp;amp;amp;amp;amp;gt;` and `&amp;amp;amp;amp;amp;lt;confirm&amp;amp;amp;amp;amp;gt;` nodes.</given>
+        <given>`codument/config/operation-hooks.xml` contains an operation hook with nested `&amp;amp;amp;amp;amp;amp;lt;attractor-check&amp;amp;amp;amp;amp;amp;gt;` and `&amp;amp;amp;amp;amp;amp;lt;confirm&amp;amp;amp;amp;amp;amp;gt;` nodes.</given>
         <when>The operation reaches the configured hook point.</when>
         <then>The system SHALL execute those nodes using the same protocol semantics as plan-level hooks.</then>
       </case>
@@ -132,7 +132,7 @@
         <and>The system SHALL update the minimal set of track-local artifacts needed to capture the revision.</and>
       </case>
       <case id="revise-before-hook">
-        <given>`codument/config/operation-hooks.xml` configures `operation name=&amp;amp;amp;amp;amp;quot;revise-track&amp;amp;amp;amp;amp;quot;` with a `before-revise` hook.</given>
+        <given>`codument/config/operation-hooks.xml` configures `operation name=&amp;amp;amp;amp;amp;amp;quot;revise-track&amp;amp;amp;amp;amp;amp;quot;` with a `before-revise` hook.</given>
         <when>The user invokes `revise-track`.</when>
         <then>The system SHALL execute the configured hook before modifying the track.</then>
         <and>If the hook is `BLOCKED`, the system SHALL stop without changing track files.</and>
@@ -156,7 +156,7 @@
       <case id="root-shape">
         <given>A workspace defines `codument/config/artifacts.xml`.</given>
         <when>The system loads artifact sync configuration.</when>
-        <then>The root node SHALL be `artifact-config` with `version=&amp;amp;amp;quot;1&amp;amp;amp;quot;`.</then>
+        <then>The root node SHALL be `artifact-config` with `version=&amp;amp;amp;amp;quot;1&amp;amp;amp;amp;quot;`.</then>
         <and>The root SHALL contain `resources` and `artifacts` sections.</and>
         <and>The root SHALL NOT require or define a `pipelines` section.</and>
       </case>
@@ -330,7 +330,7 @@
         <and>The artifact-sync skill SHALL handle artifact selection, resource resolution, targets, policy, and execution.</and>
       </case>
       <case id="no-before-knowledge-sync">
-        <given>`codument/config/operation-hooks.xml` contains an archive hook with `point=&amp;amp;amp;quot;before-knowledge-sync&amp;amp;amp;quot;`.</given>
+        <given>`codument/config/operation-hooks.xml` contains an archive hook with `point=&amp;amp;amp;amp;quot;before-knowledge-sync&amp;amp;amp;amp;quot;`.</given>
         <when>The system validates operation hooks.</when>
         <then>The system SHALL report the hook point as unknown.</then>
         <and>The system SHALL use artifact-sync terminology such as `before-artifact-sync` instead.</and>
@@ -343,7 +343,7 @@
       <case id="working-tree">
         <given>A workspace enables the modeling profile.</given>
         <when>The system materializes the modeling registry.</when>
-        <then>`codument/modeling/&amp;amp;amp;amp;amp;lt;plane&amp;amp;amp;amp;amp;gt;/&amp;amp;amp;amp;amp;lt;context&amp;amp;amp;amp;amp;gt;/*.xnl` SHALL be human-readable XNL files on disk.</then>
+        <then>`codument/modeling/&amp;amp;amp;amp;amp;amp;lt;plane&amp;amp;amp;amp;amp;amp;gt;/&amp;amp;amp;amp;amp;amp;lt;context&amp;amp;amp;amp;amp;amp;gt;/*.xnl` SHALL be human-readable XNL files on disk.</then>
         <and>Node identity SHALL be stable via XNL namespaced ids or `.node-meta` sidecars.</and>
       </case>
       <case id="host-git-versioned">
@@ -386,7 +386,7 @@
       <case id="namespaced-id">
         <given>A modeling node needs a globally unique id.</given>
         <when>The id is assigned.</when>
-        <then>The id SHALL use a multi-level XNL namespaced word: `#&amp;amp;amp;amp;amp;lt;context&amp;amp;amp;amp;amp;gt;.&amp;amp;amp;amp;amp;lt;name&amp;amp;amp;amp;amp;gt;`, or fully qualified across planes as `#&amp;amp;amp;amp;amp;lt;plane&amp;amp;amp;amp;amp;gt;.&amp;amp;amp;amp;amp;lt;context&amp;amp;amp;amp;amp;gt;.&amp;amp;amp;amp;amp;lt;name&amp;amp;amp;amp;amp;gt;`.</then>
+        <then>The id SHALL use a multi-level XNL namespaced word: `#&amp;amp;amp;amp;amp;amp;lt;context&amp;amp;amp;amp;amp;amp;gt;.&amp;amp;amp;amp;amp;amp;lt;name&amp;amp;amp;amp;amp;amp;gt;`, or fully qualified across planes as `#&amp;amp;amp;amp;amp;amp;lt;plane&amp;amp;amp;amp;amp;amp;gt;.&amp;amp;amp;amp;amp;amp;lt;context&amp;amp;amp;amp;amp;amp;gt;.&amp;amp;amp;amp;amp;amp;lt;name&amp;amp;amp;amp;amp;amp;gt;`.</then>
       </case>
       <case id="modeling-references-behavior">
         <given>A modeling node describes testable behavior.</given>
@@ -396,7 +396,7 @@
       <case id="vfs-uri-references">
         <given>A modeling node references another node or a behavior.</given>
         <when>The reference is written and resolved.</when>
-        <then>The canonical reference syntax SHALL be a VFS URI (`modeling://&amp;amp;amp;amp;amp;lt;plane&amp;amp;amp;amp;amp;gt;/&amp;amp;amp;amp;amp;lt;context&amp;amp;amp;amp;amp;gt;/&amp;amp;amp;amp;amp;lt;name&amp;amp;amp;amp;amp;gt;` or `behavior://…`).</then>
+        <then>The canonical reference syntax SHALL be a VFS URI (`modeling://&amp;amp;amp;amp;amp;amp;lt;plane&amp;amp;amp;amp;amp;amp;gt;/&amp;amp;amp;amp;amp;amp;lt;context&amp;amp;amp;amp;amp;amp;gt;/&amp;amp;amp;amp;amp;amp;lt;name&amp;amp;amp;amp;amp;amp;gt;` or `behavior://…`).</then>
         <and>The resolver SHALL treat any metadata/attribute value matching a known VFS scheme as a reference (scheme self-identifying), without a fixed key whitelist.</and>
       </case>
     </suite>
@@ -407,7 +407,7 @@
       <case id="target-state-export">
         <given>A track changes modeling.</given>
         <when>The track is created and implemented.</when>
-        <then>The change SHALL be written as target-state nodes under `tracks/&amp;amp;amp;amp;amp;lt;id&amp;amp;amp;amp;amp;gt;/modeling_deltas/&amp;amp;amp;amp;amp;lt;plane&amp;amp;amp;amp;amp;gt;/&amp;amp;amp;amp;amp;lt;context&amp;amp;amp;amp;amp;gt;.xnl` (the merge `theirs` side), git-tracked and reviewable.</then>
+        <then>The change SHALL be written as target-state nodes under `tracks/&amp;amp;amp;amp;amp;amp;lt;id&amp;amp;amp;amp;amp;amp;gt;/modeling_deltas/&amp;amp;amp;amp;amp;amp;lt;plane&amp;amp;amp;amp;amp;amp;gt;/&amp;amp;amp;amp;amp;amp;lt;context&amp;amp;amp;amp;amp;amp;gt;.xnl` (the merge `theirs` side), git-tracked and reviewable.</then>
       </case>
       <case id="base-anchor">
         <given>A track modeling change.</given>
@@ -425,7 +425,7 @@
         <given>A three-way modeling merge produces conflicts.</given>
         <when>The system resolves them.</when>
         <then>By default it SHALL auto-merge only unambiguous cases (disjoint nodes, disjoint sub-parts, pure adds, pure deletes) and report true conflicts (same-field, DELETE_MODIFY, RENAME_RENAME, ADD/ADD same id) issues-first, pausing rather than silently choosing a side.</then>
-        <and>Per-conflict-type policy SHALL be configurable in `codument/config/modeling.xml` `&amp;amp;amp;amp;amp;lt;merge-policy&amp;amp;amp;amp;amp;gt;` with `resolve` of `human|ours|theirs|base`, defaulting to `human`.</and>
+        <and>Per-conflict-type policy SHALL be configurable in `codument/config/modeling.xml` `&amp;amp;amp;amp;amp;amp;lt;merge-policy&amp;amp;amp;amp;amp;amp;gt;` with `resolve` of `human|ours|theirs|base`, defaulting to `human`.</and>
       </case>
     </suite>
   </requirement>
@@ -498,7 +498,7 @@
     </suite>
     <suite id="hierarchy-layer" name="Layer 3: hierarchy / definition consistency">
       <case id="id-path-alignment">
-        <given>A node whose id namespace does not match its file path `&amp;amp;amp;amp;amp;lt;plane&amp;amp;amp;amp;amp;gt;/&amp;amp;amp;amp;amp;lt;context&amp;amp;amp;amp;amp;gt;` (e.g. `#inventory.stock` inside `domain/orders/index.xnl`).</given>
+        <given>A node whose id namespace does not match its file path `&amp;amp;amp;amp;amp;amp;lt;plane&amp;amp;amp;amp;amp;amp;gt;/&amp;amp;amp;amp;amp;amp;lt;context&amp;amp;amp;amp;amp;amp;gt;` (e.g. `#inventory.stock` inside `domain/orders/index.xnl`).</given>
         <when>validate runs.</when>
         <then>The system SHALL flag a hierarchy violation: the id's context segment MUST equal the path context, and if the id carries a plane prefix it MUST equal the path plane.</then>
       </case>
@@ -519,9 +519,9 @@
         <then>The system SHALL report the duplicate id with both file locations (as a finding, not an uncaught throw).</then>
       </case>
       <case id="delta-files-same-rules">
-        <given>A track's `modeling_deltas/&amp;amp;amp;amp;amp;lt;plane&amp;amp;amp;amp;amp;gt;/&amp;amp;amp;amp;amp;lt;context&amp;amp;amp;amp;amp;gt;.xnl` target-state file.</given>
-        <when>validate runs against deltas (e.g. `modeling validate --deltas &amp;amp;amp;amp;amp;lt;track&amp;amp;amp;amp;amp;gt;`).</when>
-        <then>The same syntax + schema + hierarchy rules SHALL apply, with the id namespace aligned to the delta file's `&amp;amp;amp;amp;amp;lt;plane&amp;amp;amp;amp;amp;gt;/&amp;amp;amp;amp;amp;lt;context&amp;amp;amp;amp;amp;gt;`.</then>
+        <given>A track's `modeling_deltas/&amp;amp;amp;amp;amp;amp;lt;plane&amp;amp;amp;amp;amp;amp;gt;/&amp;amp;amp;amp;amp;amp;lt;context&amp;amp;amp;amp;amp;amp;gt;.xnl` target-state file.</given>
+        <when>validate runs against deltas (e.g. `modeling validate --deltas &amp;amp;amp;amp;amp;amp;lt;track&amp;amp;amp;amp;amp;amp;gt;`).</when>
+        <then>The same syntax + schema + hierarchy rules SHALL apply, with the id namespace aligned to the delta file's `&amp;amp;amp;amp;amp;amp;lt;plane&amp;amp;amp;amp;amp;amp;gt;/&amp;amp;amp;amp;amp;amp;lt;context&amp;amp;amp;amp;amp;amp;gt;`.</then>
       </case>
     </suite>
     <suite id="gating-and-report" name="Gating and reporting">
@@ -558,12 +558,12 @@
       <case id="bare-io-tags-canonical">
         <given>A modeling `component` node needing runtime/input/config/output blocks.</given>
         <when>An author writes it per spec.</when>
-        <then>The canonical form SHALL be bare tags `&amp;amp;amp;amp;amp;lt;runtime&amp;amp;amp;amp;amp;gt;` / `&amp;amp;amp;amp;amp;lt;input&amp;amp;amp;amp;amp;gt;` / `&amp;amp;amp;amp;amp;lt;config&amp;amp;amp;amp;amp;gt;` / `&amp;amp;amp;amp;amp;lt;output&amp;amp;amp;amp;amp;gt;`, and `modeling-node-schema.md` + `xnl-format.md` SHALL state this explicitly with Good/Bad examples.</then>
+        <then>The canonical form SHALL be bare tags `&amp;amp;amp;amp;amp;amp;lt;runtime&amp;amp;amp;amp;amp;amp;gt;` / `&amp;amp;amp;amp;amp;amp;lt;input&amp;amp;amp;amp;amp;amp;gt;` / `&amp;amp;amp;amp;amp;amp;lt;config&amp;amp;amp;amp;amp;amp;gt;` / `&amp;amp;amp;amp;amp;amp;lt;output&amp;amp;amp;amp;amp;amp;gt;`, and `modeling-node-schema.md` + `xnl-format.md` SHALL state this explicitly with Good/Bad examples.</then>
       </case>
       <case id="role-tagged-io-accepted">
-        <given>A `component` whose IO blocks are written as `&amp;amp;amp;amp;amp;lt;types role=&amp;amp;amp;amp;amp;quot;runtime&amp;amp;amp;amp;amp;quot;&amp;amp;amp;amp;amp;gt;` (and input/config/output) instead of bare tags.</given>
+        <given>A `component` whose IO blocks are written as `&amp;amp;amp;amp;amp;amp;lt;types role=&amp;amp;amp;amp;amp;amp;quot;runtime&amp;amp;amp;amp;amp;amp;quot;&amp;amp;amp;amp;amp;amp;gt;` (and input/config/output) instead of bare tags.</given>
         <when>`modeling validate` runs.</when>
-        <then>The schema layer SHALL accept a role-tagged block as satisfying the corresponding runtime/input/config/output requirement (compatibility), without raising the &amp;amp;amp;amp;amp;quot;requires a &amp;amp;amp;amp;amp;lt;slot&amp;amp;amp;amp;amp;gt; block&amp;amp;amp;amp;amp;quot; error.</then>
+        <then>The schema layer SHALL accept a role-tagged block as satisfying the corresponding runtime/input/config/output requirement (compatibility), without raising the &amp;amp;amp;amp;amp;amp;quot;requires a &amp;amp;amp;amp;amp;amp;lt;slot&amp;amp;amp;amp;amp;amp;gt; block&amp;amp;amp;amp;amp;amp;quot; error.</then>
         <and>Bare tags remain the canonical, spec-recommended form; role-tagged is accepted-but-discouraged.</and>
       </case>
     </suite>
@@ -571,15 +571,15 @@
       <case id="plain-tag-plus-kind-attr">
         <given>A shell-kind modeling node (e.g. a backend endpoint or a surface route).</given>
         <when>An author writes its XNL element.</when>
-        <then>The element tag SHALL be a plain word (e.g. `&amp;amp;amp;amp;amp;lt;endpoint&amp;amp;amp;amp;amp;gt;`, `&amp;amp;amp;amp;amp;lt;route&amp;amp;amp;amp;amp;gt;`) carrying the namespaced kind in the `kind` attribute (`kind=&amp;amp;amp;amp;amp;quot;backend:endpoint&amp;amp;amp;amp;amp;quot;`); the element tag name MUST NOT contain a colon (XNL element tags cannot).</then>
-        <and>`modeling-node-schema.md` + `xnl-format.md` SHALL show Good (`&amp;amp;amp;amp;amp;lt;endpoint kind=&amp;amp;amp;amp;amp;quot;backend:endpoint&amp;amp;amp;amp;amp;quot;&amp;amp;amp;amp;amp;gt;`) vs Bad (`&amp;amp;amp;amp;amp;lt;backend:endpoint …&amp;amp;amp;amp;amp;gt;` → XNL syntax error) examples.</and>
+        <then>The element tag SHALL be a plain word (e.g. `&amp;amp;amp;amp;amp;amp;lt;endpoint&amp;amp;amp;amp;amp;amp;gt;`, `&amp;amp;amp;amp;amp;amp;lt;route&amp;amp;amp;amp;amp;amp;gt;`) carrying the namespaced kind in the `kind` attribute (`kind=&amp;amp;amp;amp;amp;amp;quot;backend:endpoint&amp;amp;amp;amp;amp;amp;quot;`); the element tag name MUST NOT contain a colon (XNL element tags cannot).</then>
+        <and>`modeling-node-schema.md` + `xnl-format.md` SHALL show Good (`&amp;amp;amp;amp;amp;amp;lt;endpoint kind=&amp;amp;amp;amp;amp;amp;quot;backend:endpoint&amp;amp;amp;amp;amp;amp;quot;&amp;amp;amp;amp;amp;amp;gt;`) vs Bad (`&amp;amp;amp;amp;amp;amp;lt;backend:endpoint …&amp;amp;amp;amp;amp;amp;gt;` → XNL syntax error) examples.</and>
       </case>
     </suite>
     <suite id="selfcheck-in-flow" name="Modeling self-check in track / implement">
       <case id="validate-after-generate">
         <given>A track-creation or implement step that generates/edits `modeling_deltas` while modeling is enabled.</given>
         <when>The deltas are written.</when>
-        <then>The workflow SHALL run `codument modeling validate --deltas &amp;amp;amp;amp;amp;lt;track&amp;amp;amp;amp;amp;gt;` and surface + repair findings before proceeding.</then>
+        <then>The workflow SHALL run `codument modeling validate --deltas &amp;amp;amp;amp;amp;amp;lt;track&amp;amp;amp;amp;amp;amp;gt;` and surface + repair findings before proceeding.</then>
         <and>This step SHALL be gated on `config/modeling.xml` (skipped when modeling is disabled), consistent with other modeling behavior.</and>
       </case>
     </suite>
@@ -597,8 +597,8 @@
     <suite id="dedup" name="sop / operations de-duplication">
       <case id="no-dup-files">
         <given>The std prompt tree.</given>
-        <when>An operation already has a complete prompt in `std/operations/&amp;amp;amp;amp;amp;lt;op&amp;amp;amp;amp;amp;gt;.md`.</when>
-        <then>There SHALL NOT be a same-named `std/sop/&amp;amp;amp;amp;amp;lt;op&amp;amp;amp;amp;amp;gt;.md` re-stating that operation's flow; archive/artifact-sync/gap-loop SHALL be removed from sop and consolidated into their operations file.</then>
+        <when>An operation already has a complete prompt in `std/operations/&amp;amp;amp;amp;amp;amp;lt;op&amp;amp;amp;amp;amp;amp;gt;.md`.</when>
+        <then>There SHALL NOT be a same-named `std/sop/&amp;amp;amp;amp;amp;amp;lt;op&amp;amp;amp;amp;amp;amp;gt;.md` re-stating that operation's flow; archive/artifact-sync/gap-loop SHALL be removed from sop and consolidated into their operations file.</then>
       </case>
       <case id="unique-content-preserved">
         <given>`sop/artifact-sync.md` carries unique docs-routing guidance not in `operations/artifact-sync.md`.</given>
@@ -621,7 +621,7 @@
         <then>The first-round-suspicion verification round SHALL default to OFF — the parent closes out without an extra round — governed by a global gap-loop config switch (default off).</then>
       </case>
       <case id="node-attr-override">
-        <given>A `&amp;amp;amp;amp;amp;lt;cdt:GapLoop&amp;amp;amp;amp;amp;gt;` hook node carrying `verify-round=&amp;amp;amp;amp;amp;quot;true|false&amp;amp;amp;amp;amp;quot;`.</given>
+        <given>A `&amp;amp;amp;amp;amp;amp;lt;cdt:GapLoop&amp;amp;amp;amp;amp;amp;gt;` hook node carrying `verify-round=&amp;amp;amp;amp;amp;amp;quot;true|false&amp;amp;amp;amp;amp;amp;quot;`.</given>
         <when>The parent decides whether to run the first-round verification round.</when>
         <then>The node attribute SHALL override the global default for that scope: `true` runs the verification round, `false` skips it (first-round `NO_GAP` closes out).</then>
       </case>
@@ -645,12 +645,12 @@
     </suite>
   </requirement>
   <requirement id="skill-operation-naming">
-    <statement>系统 SHALL name track planning/implement operation prompts and their skill shells consistently in a `codument-plan-&amp;amp;amp;amp;amp;lt;noun&amp;amp;amp;amp;amp;gt;` / `codument-impl-track` family, with skill name = operation base name; high-traffic renamed names keep alias shells, low-traffic ones are dropped.</statement>
+    <statement>系统 SHALL name track planning/implement operation prompts and their skill shells consistently in a `codument-plan-&amp;amp;amp;amp;amp;amp;lt;noun&amp;amp;amp;amp;amp;amp;gt;` / `codument-impl-track` family, with skill name = operation base name; high-traffic renamed names keep alias shells, low-traffic ones are dropped.</statement>
     <suite id="naming" name="Skill / operation naming">
       <case id="family-names">
         <given>The track planning/implement skills and their operation files.</given>
         <when>They are named.</when>
-        <then>`codument-implement`→`codument-impl-track`, `codument-track`→`codument-plan-track`, `codument-plan-schedule`→`codument-plan-track-wave`; each skill shell SHALL `@`-reference an operation file of the same base name (`impl-track.md` / `plan-track.md` / `plan-track-wave.md`). Future `codument-plan-mission` (default-DAG) follows the same `codument-plan-&amp;amp;amp;amp;amp;lt;noun&amp;amp;amp;amp;amp;gt;` style.</then>
+        <then>`codument-implement`→`codument-impl-track`, `codument-track`→`codument-plan-track`, `codument-plan-schedule`→`codument-plan-track-wave`; each skill shell SHALL `@`-reference an operation file of the same base name (`impl-track.md` / `plan-track.md` / `plan-track-wave.md`). Future `codument-plan-mission` (default-DAG) follows the same `codument-plan-&amp;amp;amp;amp;amp;amp;lt;noun&amp;amp;amp;amp;amp;amp;gt;` style.</then>
       </case>
       <case id="legacy-aliases">
         <given>Renamed skills are invoked by an old name.</given>
@@ -665,24 +665,24 @@
     </suite>
   </requirement>
   <requirement id="mission-lifecycle-directories">
-    <statement>系统 SHALL manage missions as first-class long-running work items under `codument/missions/{pending,active,archived}/`, not directly under `codument/missions/&amp;amp;amp;amp;amp;lt;mission-id&amp;amp;amp;amp;amp;gt;/`.</statement>
+    <statement>系统 SHALL manage missions as first-class long-running work items under `codument/missions/{pending,active,archived}/`, not directly under `codument/missions/&amp;amp;amp;amp;amp;amp;lt;mission-id&amp;amp;amp;amp;amp;amp;gt;/`.</statement>
     <suite id="mission-lifecycle" name="Mission lifecycle directories">
       <case id="plan-mission-pending">
         <given>用户使用 `codument-plan-mission` 创建 mission</given>
         <when>mission artifacts are written</when>
-        <then>系统 SHALL create `codument/missions/pending/&amp;amp;amp;amp;amp;lt;mission-id&amp;amp;amp;amp;amp;gt;/`</then>
+        <then>系统 SHALL create `codument/missions/pending/&amp;amp;amp;amp;amp;amp;lt;mission-id&amp;amp;amp;amp;amp;amp;gt;/`</then>
         <and>系统 SHALL write `mission.xml`, `proposal.md`, and `design.md` in that directory</and>
       </case>
       <case id="impl-mission-active">
         <given>用户开始执行一个 pending mission</given>
         <when>`codument-impl-mission` starts the mission</when>
-        <then>系统 SHALL move or require the mission under `codument/missions/active/&amp;amp;amp;amp;amp;lt;mission-id&amp;amp;amp;amp;amp;gt;/`</then>
-        <and>后续执行 SHALL treat `active/&amp;amp;amp;amp;amp;lt;mission-id&amp;amp;amp;amp;amp;gt;/mission.xml` as the state source</and>
+        <then>系统 SHALL move or require the mission under `codument/missions/active/&amp;amp;amp;amp;amp;amp;lt;mission-id&amp;amp;amp;amp;amp;amp;gt;/`</then>
+        <and>后续执行 SHALL treat `active/&amp;amp;amp;amp;amp;amp;lt;mission-id&amp;amp;amp;amp;amp;amp;gt;/mission.xml` as the state source</and>
       </case>
       <case id="archive-mission-date-prefix">
         <given>一个 mission 已完成、取消、废弃或被替代</given>
         <when>用户使用 `codument-archive-mission` 归档</when>
-        <then>系统 SHALL move it to `codument/missions/archived/YYYY-MM-DD-&amp;amp;amp;amp;amp;lt;mission-id&amp;amp;amp;amp;amp;gt;/`</then>
+        <then>系统 SHALL move it to `codument/missions/archived/YYYY-MM-DD-&amp;amp;amp;amp;amp;amp;lt;mission-id&amp;amp;amp;amp;amp;amp;gt;/`</then>
       </case>
     </suite>
   </requirement>
@@ -706,12 +706,12 @@
     </suite>
   </requirement>
   <requirement id="mission-xml-spec">
-    <statement>系统 SHALL define `mission.xml` as a Track-like XML state source with a `&amp;amp;amp;amp;amp;lt;Mission&amp;amp;amp;amp;amp;gt;` root, default DAG execution, and explicit support for controlled replanning.</statement>
+    <statement>系统 SHALL define `mission.xml` as a Track-like XML state source with a `&amp;amp;amp;amp;amp;amp;lt;Mission&amp;amp;amp;amp;amp;amp;gt;` root, default DAG execution, and explicit support for controlled replanning.</statement>
     <suite id="mission-xml" name="Mission XML">
       <case id="track-like-shape">
         <given>一个 mission has a `mission.xml` file</given>
         <when>the file is authored or validated</when>
-        <then>the root SHALL be `&amp;amp;amp;amp;amp;lt;Mission id=&amp;amp;amp;amp;amp;quot;...&amp;amp;amp;amp;amp;quot; version=&amp;amp;amp;amp;amp;quot;1&amp;amp;amp;amp;amp;quot; xmlns:cdt=&amp;amp;amp;amp;amp;quot;urn:codument:v1&amp;amp;amp;amp;amp;quot;&amp;amp;amp;amp;amp;gt;`</then>
+        <then>the root SHALL be `&amp;amp;amp;amp;amp;amp;lt;Mission id=&amp;amp;amp;amp;amp;amp;quot;...&amp;amp;amp;amp;amp;amp;quot; version=&amp;amp;amp;amp;amp;amp;quot;1&amp;amp;amp;amp;amp;amp;quot; xmlns:cdt=&amp;amp;amp;amp;amp;amp;quot;urn:codument:v1&amp;amp;amp;amp;amp;amp;quot;&amp;amp;amp;amp;amp;amp;gt;`</then>
         <and>the file SHALL use Track-like `Metadata`, `Ports`, `TaskSpace`, `Schedule`, and `Hooks` sections</and>
       </case>
       <case id="default-dag">
@@ -770,7 +770,7 @@
       <case id="archive-mission">
         <given>a mission is completed, cancelled, abandoned, or superseded</given>
         <when>用户使用 `codument-archive-mission`</when>
-        <then>the operation SHALL move the mission into `archived/YYYY-MM-DD-&amp;amp;amp;amp;amp;lt;mission-id&amp;amp;amp;amp;amp;gt;/`</then>
+        <then>the operation SHALL move the mission into `archived/YYYY-MM-DD-&amp;amp;amp;amp;amp;amp;lt;mission-id&amp;amp;amp;amp;amp;amp;gt;/`</then>
         <and>the operation SHALL promote durable decisions or memory candidates when configured, following archive-track experience</and>
       </case>
     </suite>
@@ -810,7 +810,7 @@
       <case id="large-xml-spec-upgrades-to-same-name-folder" name="Large XML spec upgrades to same-name folder">
         <given>一个 XML spec 文件内容过长</given>
         <when>维护者或 AI 拆分该 spec</when>
-        <then>可以将 `codument/specs/&amp;amp;amp;lt;capability&amp;amp;amp;gt;.xml` 升级为 `codument/specs/&amp;amp;amp;lt;capability&amp;amp;amp;gt;/index.xml`
+        <then>可以将 `codument/specs/&amp;amp;amp;amp;lt;capability&amp;amp;amp;amp;gt;.xml` 升级为 `codument/specs/&amp;amp;amp;amp;lt;capability&amp;amp;amp;amp;gt;/index.xml`
 通过 `include` 引用拆分出的 requirement 或 suite 文件
 逻辑 selector 不因物理拆分而改变</then>
       </case>
@@ -833,7 +833,7 @@ selector 不使用真实文件路径</then>
       <case id="knowledge-target-uses-knowledge-uri-only-when-enabled" name="Knowledge target uses knowledge URI only when enabled">
         <given>`knowledgeSync.enabled=true`</given>
         <when>spec 或 plan 需要提示 docs 同步位置</when>
-        <then>可以使用 `knowledge://&amp;amp;amp;lt;target-name&amp;amp;amp;gt;/...`
+        <then>可以使用 `knowledge://&amp;amp;amp;amp;lt;target-name&amp;amp;amp;amp;gt;/...`
 未启用 knowledge sync 时不应生成 knowledge hint</then>
       </case>
     </suite>
@@ -843,17 +843,17 @@ selector 不使用真实文件路径</then>
     <suite name="codument-must-support-generic-xml-mutation-protocol">
       <case id="upsert-xml-node" name="Upsert XML node">
         <given>track 需要新增或替换 spec case</given>
-        <when>spec patch 包含 `op=&amp;amp;amp;quot;upsert&amp;amp;amp;quot;` 和 `selector=&amp;amp;amp;quot;spec://...&amp;amp;amp;quot;`</when>
+        <when>spec patch 包含 `op=&amp;amp;amp;amp;quot;upsert&amp;amp;amp;amp;quot;` 和 `selector=&amp;amp;amp;amp;quot;spec://...&amp;amp;amp;amp;quot;`</when>
         <then>系统将该 XML 节点写入 selector 对应逻辑位置</then>
       </case>
       <case id="delete-xml-node" name="Delete XML node">
         <given>track 需要移除 spec case</given>
-        <when>spec patch 包含 `op=&amp;amp;amp;quot;delete&amp;amp;amp;quot;` 和 `selector=&amp;amp;amp;quot;spec://...&amp;amp;amp;quot;`</when>
+        <when>spec patch 包含 `op=&amp;amp;amp;amp;quot;delete&amp;amp;amp;amp;quot;` 和 `selector=&amp;amp;amp;amp;quot;spec://...&amp;amp;amp;amp;quot;`</when>
         <then>系统删除 selector 对应节点</then>
       </case>
       <case id="move-xml-node" name="Move XML node">
         <given>track 需要移动 requirement 或 suite</given>
-        <when>spec patch 包含 `op=&amp;amp;amp;quot;move&amp;amp;amp;quot;`、`selector=&amp;amp;amp;quot;spec://...&amp;amp;amp;quot;` 和 `to=&amp;amp;amp;quot;spec://...&amp;amp;amp;quot;`</when>
+        <when>spec patch 包含 `op=&amp;amp;amp;amp;quot;move&amp;amp;amp;amp;quot;`、`selector=&amp;amp;amp;amp;quot;spec://...&amp;amp;amp;amp;quot;` 和 `to=&amp;amp;amp;amp;quot;spec://...&amp;amp;amp;amp;quot;`</when>
         <then>系统移动该逻辑节点</then>
       </case>
     </suite>
@@ -1140,7 +1140,7 @@ skill 要求迁移后运行 validate/list/show 相关验证</then>
       <case id="registry-location">
         <given>The engineering profile is enabled</given>
         <when>The system materializes long-lived implementation knowledge</when>
-        <then>The knowledge SHALL be stored as XNL files under `codument/engineering/&amp;amp;lt;plane&amp;amp;gt;/&amp;amp;lt;category&amp;amp;gt;/...`</then>
+        <then>The knowledge SHALL be stored as XNL files under `codument/engineering/&amp;amp;amp;lt;plane&amp;amp;amp;gt;/&amp;amp;amp;lt;category&amp;amp;amp;gt;/...`</then>
         <and>The system SHALL preserve `engineering` as separate from `modeling`, `behaviors`, `decisions`, and `memory`</and>
       </case>
       <case id="host-git-versioned">
@@ -1175,7 +1175,7 @@ skill 要求迁移后运行 validate/list/show 相关验证</then>
       <case id="delta-location">
         <given>A track produces long-lived engineering knowledge</given>
         <when>The track is authored or implemented</when>
-        <then>The change SHALL be written under `tracks/&amp;amp;lt;id&amp;amp;gt;/engineering_deltas/&amp;amp;lt;plane&amp;amp;gt;/&amp;amp;lt;category&amp;amp;gt;/&amp;amp;lt;topic&amp;amp;gt;.xnl`</then>
+        <then>The change SHALL be written under `tracks/&amp;amp;amp;lt;id&amp;amp;amp;gt;/engineering_deltas/&amp;amp;amp;lt;plane&amp;amp;amp;gt;/&amp;amp;amp;lt;category&amp;amp;amp;gt;/&amp;amp;amp;lt;topic&amp;amp;amp;gt;.xnl`</then>
       </case>
       <case id="archive-merge">
         <given>A completed track contains engineering deltas</given>
@@ -1239,6 +1239,45 @@ skill 要求迁移后运行 validate/list/show 相关验证</then>
         <given>An agent needs to evaluate generated code quality after an E2E run or track implementation</given>
         <when>The `codument-code-quality-score` skill is used</when>
         <then>The skill SHALL guide evidence-based scoring across runnable behavior, tests, architecture, codument alignment, maintainability, and safety</then>
+      </case>
+    </suite>
+  </requirement>
+  <requirement id="decision-tree-questioning">
+    <statement>系统 SHALL 支持有界决策树式提问，并通过 severity 控制自主度和问题预算。</statement>
+    <suite id="severity" name="提问强度">
+      <case id="default-light">
+        <given>用户调用 plan-track 或 plan-mission 且未指定 severity</given>
+        <when>系统开始规划</when>
+        <then>系统 SHALL 默认使用 light 模式</then>
+        <and>系统 SHALL 在 track.xml 或 mission.xml 的 Metadata 中记录 QuestionMode=decision-tree 与 QuestionSeverity=light</and>
+      </case>
+      <case id="auto-no-question">
+        <given>用户指定 severity=auto 或明确要求无问答/高自主</given>
+        <when>系统创建 track 或 mission</when>
+        <then>系统 MUST NOT 因名称确认、产物确认或默认规划选项向用户提问</then>
+        <and>系统 SHALL 将关键假设写入 track 或 mission 文件</and>
+        <and>系统 SHALL 在 track.xml 或 mission.xml 的 Metadata 中记录 QuestionSeverity=auto</and>
+      </case>
+      <case id="bounded-frontier">
+        <given>系统需要澄清多个相关决策</given>
+        <when>severity 不是 auto</when>
+        <then>系统 SHALL 优先询问当前 decision frontier 中最阻塞下游产物的问题</then>
+        <and>系统 SHALL 遵守该 severity 的轮次和每轮问题上限</and>
+      </case>
+    </suite>
+  </requirement>
+  <requirement id="decisions-validation">
+    <statement>系统 SHALL 提供轻量 decisions.md 校验，避免未解决的阻塞决策进入 completed track。</statement>
+    <suite id="validate-decisions" name="决策校验">
+      <case id="pending-is-error">
+        <given>decisions.md 中存在状态 pending 的决策</given>
+        <when>用户运行 codument decisions validate</when>
+        <then>系统 SHALL 报告 error</then>
+      </case>
+      <case id="durable-metadata-warning">
+        <given>decisions.md 中存在 Durable candidate: yes 但缺少 Evidence、Confidence 或 Reversibility</given>
+        <when>用户运行 codument decisions validate</when>
+        <then>系统 SHALL 报告 warning</then>
       </case>
     </suite>
   </requirement>

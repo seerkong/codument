@@ -40,6 +40,8 @@ codument/missions/
     <Status>pending</Status>
     <Goal>重构 runtime 长周期架构</Goal>
     <Description>先证据盘点，再设计收敛，再切片为 tracks 落地。</Description>
+    <QuestionMode>decision-tree</QuestionMode>
+    <QuestionSeverity>light</QuestionSeverity>
     <Revision>1</Revision>
     <CreatedAt>2026-06-27T13:56:11Z</CreatedAt>
     <UpdatedAt>2026-06-27T13:56:11Z</UpdatedAt>
@@ -93,6 +95,8 @@ codument/missions/
   <Status>active</Status>
   <Goal>...</Goal>
   <Description>...</Description>
+  <QuestionMode>decision-tree</QuestionMode>
+  <QuestionSeverity>light</QuestionSeverity>
   <Revision>7</Revision>
   <CreatedAt>...</CreatedAt>
   <UpdatedAt>...</UpdatedAt>
@@ -109,6 +113,12 @@ mission status:
 - `archived`
 
 `Revision` 从 `1` 起。每次受控重规划必须递增。
+
+`QuestionMode` / `QuestionSeverity` 记录 mission 规划期的问答策略，与 track.xml 保持一致：
+
+- `QuestionMode` 当前取 `decision-tree`。
+- `QuestionSeverity` 取 `auto|light|normal|deep`；未指定按 `light` 处理。
+- 这两个字段只控制规划/澄清阶段，不等同于 track 的 `CommitMode`。
 
 ## 5. TaskSpace
 

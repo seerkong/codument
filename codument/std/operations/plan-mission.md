@@ -37,6 +37,24 @@ codument/missions/pending/<mission-id>/
 
 新 mission 不创建 `roadmap.md`。
 
+## 1.5 Questioning severity 与无问答模式
+
+创建 mission 前先解析 `codument/std/sop/questioning.md` 的 questioning severity：**未指定时默认 `light`**。
+
+| severity | mission plan 行为 |
+|---|---|
+| `auto` | 无问答 / 高自主：不因 mission-id、proposal、design、mission.xml 或 DAG 默认值向用户确认；直接推断并把假设写入 `analysis/decision-tree.md`、`decisions.md`、`proposal.md`、`design.md`。 |
+| `light` | 默认：只问 P0 用户意图 / 不可逆取舍；能查代码、archive、tracks、missions、attractors、modeling/engineering 就不问。 |
+| `normal` | 问 P0/P1，每题必须给推荐答案和取舍。 |
+| `deep` | 适用于长期不确定性；允许更深 decision-tree，但每轮必须落文件并收敛 frontier。 |
+
+`analysis/decision-tree.md` 是 mission planning 的推荐外部记忆，记录 Root Question、Severity、Decision Frontier、Assumptions。mission 的四个 actor 使用它：
+
+- `MissionObserver` 先从代码 / 文档 / track/archive / reports 查证可回答问题。
+- `MissionPlanner` 生成 desired mission graph 与 decision frontier。
+- `MissionReconciler` 判断哪些 pending decision 阻塞 DAG。
+- `MissionApplier` 在非 auto 模式下执行一个有界提问；auto 模式下写入假设并选择保守默认。
+
 ## 2. Mission Actor 模型
 
 `design.md` 必须写清楚四个控制论 + DEPA actor：
@@ -56,10 +74,13 @@ codument/missions/pending/<mission-id>/
 @marker: ?
 -- #sequence ?plan_mission
 ---- #step ?context
-确认 codument 已初始化；读取 codument/attractors、codument/missions/README.md、codument/std/spec/mission-xml-spec.md。
+确认 codument 已初始化；读取 codument/attractors、codument/missions/README.md、codument/std/spec/mission-xml-spec.md；解析 questioning severity（默认 light）。
 ---- /?context
+---- #step ?decision-tree
+写 analysis/decision-tree.md：Root Question、Severity、Decision Frontier、Assumptions；auto 模式不得提问。
+---- /?decision-tree
 ---- #step ?id
-根据用户目标生成 mission-id；查重 pending/active/archived；用户未指定时用 ask-single-question-free 确认。
+根据用户目标生成 mission-id；查重 pending/active/archived；auto 模式直接采用并记录命名依据，其他模式在必要时用 ask-single-question-free 确认。
 ---- /?id
 ---- #step ?mkdir
 创建 codument/missions/pending/<mission-id>/ 以及 decisions/ memory/ analysis/ reports/。
@@ -143,6 +164,8 @@ active mission 可以增删改节点和 DAG，但必须有 evidence 或 human de
     <Status>pending</Status>
     <Goal>重构 runtime 长周期架构</Goal>
     <Description>先证据盘点，再设计收敛，再切片为 tracks 落地。</Description>
+    <QuestionMode>decision-tree</QuestionMode>
+    <QuestionSeverity>light</QuestionSeverity>
     <Revision>1</Revision>
     <CreatedAt>2026-06-27T13:56:11Z</CreatedAt>
     <UpdatedAt>2026-06-27T13:56:11Z</UpdatedAt>

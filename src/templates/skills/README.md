@@ -29,6 +29,7 @@
 | `codument-artifact-sync/` | `@/codument/std/operations/artifact-sync.md` |
 | `codument-docs-bootstrap/` | `@/codument/std/operations/docs-bootstrap.md` |
 | `codument-migrate/` | `@/codument/std/operations/migrate.md` |
+| `codument-decision-tree/` | 直接遵循 `@/codument/std/sop/questioning.md`，生成 decision-tree 并回写 decisions |
 | `codument-modeling-engineering-e2e/` | 直接运行 `scripts/verify-modeling-engineering-e2e.sh` 的真实 E2E 操作 skill |
 | `codument-code-quality-score/` | 直接运行 `scripts/score-e2e-code-quality.ts` 并做证据化代码质量评价的 skill |
 

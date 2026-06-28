@@ -9,6 +9,7 @@ import { upgradeWorkspaceCommand } from './commands/upgrade-workspace';
 import { upgradeTrackCommand } from './commands/upgrade-track';
 import { modelingCommand } from './commands/modeling';
 import { engineeringCommand } from './commands/engineering';
+import { decisionsCommand } from './commands/decisions';
 import { setWorkspaceDir } from './utils';
 import { VERSION } from '../version';
 
@@ -32,6 +33,7 @@ Commands:
   modeling validate Validate modeling XNL (syntax + schema + hierarchy)
   engineering lint  Flag oversized engineering XNL files for fractal split
   engineering validate Validate engineering XNL (syntax + schema + hierarchy)
+  decisions validate Validate track decisions.md metadata
 
 Options:
   -h, --help              Show this help message
@@ -115,6 +117,9 @@ async function main() {
         break;
       case 'engineering':
         await engineeringCommand(commandArgs);
+        break;
+      case 'decisions':
+        await decisionsCommand(commandArgs);
         break;
       default:
         console.error(`Unknown command: ${command}`);

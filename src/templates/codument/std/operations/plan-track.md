@@ -80,19 +80,19 @@
 
 ## 3. 新建 Track（主流程）
 
-严格按下面顺序执行。每个"起草 + 用户确认"步骤都用 **ask-single-question-free**（见 `codument/std/sop/questioning.md`）等待确认后再继续。
+严格按下面顺序执行。开始时先解析 questioning severity（见 `codument/std/sop/questioning.md`）：**未指定时默认 `light`**；用户明确说“无问答 / 高自主 / 不要问我 / auto”时使用 `auto`。每个"起草 + 用户确认"步骤都按 severity 执行：`auto` 模式下不提问、不等待确认，改为写入假设并选择保守默认；其他模式才按 **ask-single-question-free** / **ask-multi-question-free** 提问。
 
 ```text
 @delimiter: --
 -- #sequence ?create
 ---- #step ?s1
-§3.1 取得 track 描述、推断类型、加载项目上下文
+§3.0 解析 questioning severity（默认 light；auto=无问答）并建立 decision-tree 初稿；§3.1 取得 track 描述、推断类型、加载项目上下文
 ---- /?s1
 ---- #step ?s2
-§3.2 起 track-id、查重、用户确认、建目录与 analysis/ decisions/ memory/，写 Metadata
+§3.2 起 track-id、查重、按 severity 决定是否确认、建目录与 analysis/ decisions/ memory/，写 Metadata
 ---- /?s2
 ---- #step ?s3
-§3.3 交互式起草 behavior_deltas/<cap>/delta.xml → 用户确认
+§3.3 按 severity 起草 behavior_deltas/<cap>/delta.xml；auto 不确认，其他模式按需确认
 ---- /?s3
 ---- #if ?s3m cond="config/modeling.xml 存在且 enabled=true"
 §3.3b 参考 behavior_deltas，起草 modeling_deltas/<plane>/<context>.xnl（目标态节点，XNL）；记录当前 codument/modeling 的宿主 git commit 作 3-way base（写入 track 元信息）。规范见 std/spec/modeling-{registry,delta,node-schema}.md（其 §9 语言约定：描述/注释/pseudo/mermaid 标签用中文，interface/字段/kind/枚举/#id 等标识符保持英文）。modeling 未启用则跳过。
@@ -103,16 +103,16 @@
 §3.3c 自检：写完 / 编辑 engineering_deltas 后，运行 `codument engineering validate --deltas <track_id>`；若报 error，按报告（file/line/layer/reason）修正 engineering_deltas 再继续，直到 0 error。本自检与 §3.3c 同样 gated on config/engineering.xml。
 ---- /?s3e
 ---- #step ?s4
-§3.4 起草 proposal.md → 用户确认
+§3.4 起草 proposal.md；auto 不确认，其他模式按需确认
 ---- /?s4
 ---- #if ?s5 cond="满足 §3.5 的 design 触发条件"
-§3.5 起草 decisions.md（如需）+ design.md → 用户确认
+§3.5 起草 decisions.md（如需）+ design.md；auto 不确认，其他模式按需确认
 ---- /?s5
 ---- #step ?s6
 §3.6 起草 track.xml（结构 + 调度）
 ---- /?s6
 ---- #step ?s7
-§3.7 同一轮确认：提交模式 + 校验模式（+gap-loop 粒度）+ 方向审查 → 写 Hooks
+§3.7 按 severity 处理提交模式 + 校验模式（+gap-loop 粒度）+ 方向审查 → 写 Hooks；auto 使用默认值不提问
 ---- /?s7
 ---- #step ?s8
 §3.8 收尾：validate（best-effort）+ 宣布完成与下一步
@@ -120,10 +120,19 @@
 -- /?create
 ```
 
+### 3.0 Questioning severity 与 decision-tree pass
+
+1. **解析 severity**：从用户话语 / 参数中识别 `severity=auto|light|normal|deep`；未指定时默认 `light`。
+2. **auto（无问答）硬规则**：不得因 track-id、behavior/proposal/design/track.xml 确认、提交模式、校验模式或方向审查范围向用户提问；必须把推断依据和假设写入 `analysis/decision-tree.md` 或 `decisions.md`。
+3. **decision-tree pass**：复杂规划先写 `analysis/decision-tree.md`，列出 Root Question、Severity、Decision Frontier、Assumptions。
+4. **能查证就不问**：先读代码、测试、schema、config、behaviors、modeling、engineering、decisions；只有用户意图 / 不可逆 trade-off 才进入 frontier。
+5. **默认值（auto）**：`CommitMode=manual`；默认不挂 `cdt:HumanConfirm`；每个第一层 phase 挂 `<cdt:AttractorCheck use="coding"/>`；仅当用户或上下文明确要求 gap-loop 时挂 `cdt:GapLoop`。
+6. **轴分离**：`severity=auto` 只表示无问答高自主规划；它不等于 `CommitMode=auto`。auto severity 的提交模式默认仍是 `manual`。
+
 ### 3.1 取得描述、确定类型、加载上下文
 
 1. **加载项目上下文**：优先读 `codument/attractors/` 下与任务相关的吸引子；旧项目无 attractors 时兼容读 `codument/project.md` + `codument/product.md`。先 `codument list` / `codument list --behaviors` 看现状，避免重复能力——**能改既有 behavior 就不要新建**。
-2. **取得 Track 描述**：`{{args}}` 含描述则用之；为空则问"请提供你想开始的变更追踪的简要描述（功能、Bug 修复、重构等）。"并等待回复（**ask-single-question-free**）。
+2. **取得 Track 描述**：`{{args}}` 含描述则用之；为空时按 severity 处理：`auto` 模式从当前用户请求和上下文推断，不提问；其他模式问"请提供你想开始的变更追踪的简要描述（功能、Bug 修复、重构等）。"并等待回复（**ask-single-question-free**）。
 3. **推断类型**：分析描述判定"功能"或"其他（Bug、重构等）"，**不要**让用户分类。
 
 > **提问纪律**：问答 ToolCall 只用于真实澄清 / 选择 / 确认；**禁止**为测试运行环境能力发占位问题。当前没有要问的就直接往下。
@@ -132,7 +141,7 @@
 
 1. **查重**：列出 `codument/tracks/` 现有目录；若提议短名与现有重复，停止并建议换名。
 2. **生成 Track ID**：小写英文 + 中横线的简短描述，**动词开头**（`add-`、`update-`、`remove-`、`refactor-`），如 `add-user-auth`、`fix-login-bug`。**不含日期**（日期只在归档时加）；若已被占用，追加 `-2`、`-3`。
-3. **用户确认 ID**：展示起草的 track-id —— "我已起草了新的 Track ID：`<track_id>`。这是否准确捕获了需求？请建议更改或确认。" 等待并修改至确认。
+3. **按 severity 处理 ID 确认**：`auto` 模式直接采用生成的 track-id，并把命名依据写入 `analysis/decision-tree.md`；其他模式展示起草的 track-id —— "我已起草了新的 Track ID：`<track_id>`。这是否准确捕获了需求？请建议更改或确认。" 等待并修改至确认。
 4. **建目录**：`codument/tracks/<track_id>/`。
 5. **建 `analysis/`（外部记忆）**：建 `analysis/findings.md` 与 `analysis/knowledge.md`。
    - **硬规则：仅缺失时创建，绝不覆盖已有内容**——目录已存在则不删不重写；文件已存在则绝不改写（哪怕你觉得不完整），不存在才按模板创建。
@@ -187,6 +196,8 @@
      <Status>new</Status>                  <!-- new | in_progress | completed | cancelled -->
      <Goal>初始目标</Goal>
      <Description>初始描述</Description>
+     <QuestionMode>decision-tree</QuestionMode>
+     <QuestionSeverity>light</QuestionSeverity>  <!-- auto | light | normal | deep；§3.0 解析所得 -->
      <CommitMode>manual</CommitMode>       <!-- §3.7 据用户选择写 auto | manual -->
      <CreatedAt>2026-06-14T10:00:00Z</CreatedAt>
      <UpdatedAt>2026-06-14T10:00:00Z</UpdatedAt>
@@ -246,7 +257,7 @@
    - **常见陷阱**：用 MODIFIED 加新关注点却不含原文本 → 归档时细节丢失。若并未明确改既有需求，请在 ADDED 下加新需求。
 
 4. **写入文件** → `codument/tracks/<track_id>/behavior_deltas/<capability>/delta.xml`。
-5. **用户确认**："我已起草了行为规范。请审查：文件路径在 `codument/tracks/<track_id>/behavior_deltas/<capability>/delta.xml`。这是否准确捕获了需求？请建议更改或确认。" 等待并修改至确认。
+5. **按 severity 处理确认**：`auto` 模式不提问，直接继续，并把关键假设写入 `analysis/decision-tree.md` / `decisions.md`；其他模式询问："我已起草了行为规范。请审查：文件路径在 `codument/tracks/<track_id>/behavior_deltas/<capability>/delta.xml`。这是否准确捕获了需求？请建议更改或确认。" 等待并修改至确认。
 
 > Track 至少要有一个 delta。常见错误 **"Track must have at least one delta"**：检查 `behavior_deltas/**/*.xml` 是否存在、根是否 `<behavior-patch capability="<capability>" version="1">` 且至少一个带 `selector="behavior://..."` 的 `<upsert>` / `<delete>` / `<move>` mutation。**"root must be <behavior-patch>"**：别误写成 Markdown delta，把 Requirement/Scenario 改写为 `<requirement>`/`<statement>`/`<suite>`/`<case>`。
 
@@ -282,7 +293,7 @@ behavior delta 确认后："现在我将创建完整的变更提案"。按下面
 - 若背景 / 范围 / 兼容 / 迁移 / rollout 内容较多，建 `proposal/` 子目录把子方向写入子文件，由 `proposal.md` 作为总览引用。
   - **Good**：`proposal.md` 概述目标并链接 `proposal/problem-statement.md`、`proposal/scope-and-compatibility.md`。
   - **Bad**：把 200 行兼容性分析全塞进 `proposal.md`；或引用 track 外部文档才能读懂提案。
-- **用户确认**："我已起草了变更提案。请审查：`codument/tracks/<track_id>/proposal.md`。此提案是否正确？请建议更改或确认。" 等待并修改至确认。
+- **按 severity 处理确认**：`auto` 模式不提问，直接继续，并把未确认假设保留在提案 / decision-tree；其他模式询问："我已起草了变更提案。请审查：`codument/tracks/<track_id>/proposal.md`。此提案是否正确？请建议更改或确认。" 等待并修改至确认。
 
 ### 3.5 交互式方案设计（design.md，按需）
 
@@ -362,7 +373,7 @@ behavior delta 确认后："现在我将创建完整的变更提案"。按下面
 - [...]
 ```
 
-写入 `codument/tracks/<track_id>/design.md`，**用户确认**："我已起草了方案设计。请审查：`codument/tracks/<track_id>/design.md`。此方案设计是否正确？请建议更改或确认。" 等待并修改至确认。
+写入 `codument/tracks/<track_id>/design.md`，**按 severity 处理确认**：`auto` 模式不提问，直接继续；其他模式询问："我已起草了方案设计。请审查：`codument/tracks/<track_id>/design.md`。此方案设计是否正确？请建议更改或确认。" 等待并修改至确认。
 
 ### 3.6 起草 track.xml（核心）
 
@@ -381,6 +392,8 @@ proposal 获批后："现在我将根据规范创建结构化实现计划（`tra
     <Status>new</Status>
     <Goal>实现用户登录和注册功能</Goal>
     <Description>添加用户认证功能</Description>
+    <QuestionMode>decision-tree</QuestionMode>
+    <QuestionSeverity>light</QuestionSeverity>
     <CommitMode>manual</CommitMode>
     <CreatedAt>2026-06-14T10:00:00Z</CreatedAt>
     <UpdatedAt>2026-06-14T10:00:00Z</UpdatedAt>
@@ -440,7 +453,7 @@ proposal 获批后："现在我将根据规范创建结构化实现计划（`tra
 
 ### 3.7 同轮确认：提交模式 + 校验模式 + 方向审查
 
-这是关键交互：展示起草的 `track.xml`，在**同一条**回复里让用户给出全部选择：
+这是关键交互：展示起草的 `track.xml`，在**同一条**回复里让用户给出全部选择。若 severity 为 `auto`，跳过本交互，使用默认值：`CommitMode=manual`、不挂 `HumanConfirm`、每个第一层 phase 挂 `AttractorCheck use="coding"`，仅在用户或上下文明确要求时挂 `GapLoop`：
 
 > "我已起草了实现计划。请审查：`codument/tracks/<track_id>/track.xml`。如需修改请直接说明。
 >

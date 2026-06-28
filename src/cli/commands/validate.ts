@@ -17,6 +17,8 @@ interface ValidationError {
 }
 
 const METADATA_STATUS = new Set(['new', 'in_progress', 'completed', 'cancelled']);
+const QUESTION_MODE = new Set(['decision-tree']);
+const QUESTION_SEVERITY = new Set(['auto', 'light', 'normal', 'deep']);
 const NODE_STATUS = new Set([
   'NOT_STARTED', 'ACTIVE', 'DELEGATED', 'FORWARDED', 'DONE', 'REFUSED', 'ABANDONED',
 ]);
@@ -188,9 +190,18 @@ function validateTrackXml(content: string, file: string, errors: ValidationError
     errors.push({ file, severity: 'error', message: `<Track> 未声明 xmlns:cdt 命名空间` });
   }
 
-  const status = firstChild(firstChild(root, 'Metadata') ?? root, 'Status');
+  const metadata = firstChild(root, 'Metadata') ?? root;
+  const status = firstChild(metadata, 'Status');
   if (status && status.text && !METADATA_STATUS.has(status.text.trim())) {
     errors.push({ file, severity: 'error', message: `<Metadata><Status>${status.text.trim()}</Status> 非法（new|in_progress|completed|cancelled）` });
+  }
+  const questionMode = firstChild(metadata, 'QuestionMode');
+  if (questionMode?.text && !QUESTION_MODE.has(questionMode.text.trim())) {
+    errors.push({ file, severity: 'error', message: `<Metadata><QuestionMode>${questionMode.text.trim()}</QuestionMode> 非法（decision-tree）` });
+  }
+  const questionSeverity = firstChild(metadata, 'QuestionSeverity');
+  if (questionSeverity?.text && !QUESTION_SEVERITY.has(questionSeverity.text.trim())) {
+    errors.push({ file, severity: 'error', message: `<Metadata><QuestionSeverity>${questionSeverity.text.trim()}</QuestionSeverity> 非法（auto|light|normal|deep）` });
   }
 
   const taskSpace = firstChild(root, 'TaskSpace');

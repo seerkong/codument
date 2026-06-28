@@ -71,6 +71,8 @@
 | `<Status>` | 必需，`new\|in_progress\|completed\|cancelled` 之一 |
 | `<Goal>` | 必需，字符串（旧 `goal`/`description`） |
 | `<CreatedAt>` / `<UpdatedAt>` | 必需，ISO 8601 |
+| `<QuestionMode>` | 可选，`decision-tree`（未指定按 `decision-tree` 处理） |
+| `<QuestionSeverity>` | 可选，`auto\|light\|normal\|deep`（未指定按 `light` 处理） |
 | `<CommitMode>` | 可选，`auto\|manual` |
 
 > 旧 metadata 的 `type`（feature/bug/chore/refactor）若保留则校验枚举；`execution_mode`/`validation_mode`/`summary` 已迁出 `<Metadata>`（分别到 `<Schedule>`/`<Hooks>`/工具派生），不应出现在 `<Metadata>`。

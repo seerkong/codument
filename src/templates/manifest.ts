@@ -65,23 +65,24 @@ import f59 from './skills/codument-archive-track/SKILL.md' with { type: 'text' }
 import f60 from './skills/codument-archive/SKILL.md' with { type: 'text' };
 import f61 from './skills/codument-artifact-sync/SKILL.md' with { type: 'text' };
 import f62 from './skills/codument-code-quality-score/SKILL.md' with { type: 'text' };
-import f63 from './skills/codument-discuss/SKILL.md' with { type: 'text' };
-import f64 from './skills/codument-docs-bootstrap/SKILL.md' with { type: 'text' };
-import f65 from './skills/codument-gap-loop/SKILL.md' with { type: 'text' };
-import f66 from './skills/codument-impl-mission/SKILL.md' with { type: 'text' };
-import f67 from './skills/codument-impl-track/SKILL.md' with { type: 'text' };
-import f68 from './skills/codument-implement/SKILL.md' with { type: 'text' };
-import f69 from './skills/codument-init/SKILL.md' with { type: 'text' };
-import f70 from './skills/codument-migrate/SKILL.md' with { type: 'text' };
-import f71 from './skills/codument-modeling-engineering-e2e/SKILL.md' with { type: 'text' };
-import f72 from './skills/codument-plan-mission/SKILL.md' with { type: 'text' };
-import f73 from './skills/codument-plan-track-wave/SKILL.md' with { type: 'text' };
-import f74 from './skills/codument-plan-track/SKILL.md' with { type: 'text' };
-import f75 from './skills/codument-revise-track/SKILL.md' with { type: 'text' };
-import f76 from './skills/codument-status/SKILL.md' with { type: 'text' };
-import f77 from './skills/codument-track/SKILL.md' with { type: 'text' };
-import f78 from './skills/codument-validate/SKILL.md' with { type: 'text' };
-import f79 from './skills/codument-verify/SKILL.md' with { type: 'text' };
+import f63 from './skills/codument-decision-tree/SKILL.md' with { type: 'text' };
+import f64 from './skills/codument-discuss/SKILL.md' with { type: 'text' };
+import f65 from './skills/codument-docs-bootstrap/SKILL.md' with { type: 'text' };
+import f66 from './skills/codument-gap-loop/SKILL.md' with { type: 'text' };
+import f67 from './skills/codument-impl-mission/SKILL.md' with { type: 'text' };
+import f68 from './skills/codument-impl-track/SKILL.md' with { type: 'text' };
+import f69 from './skills/codument-implement/SKILL.md' with { type: 'text' };
+import f70 from './skills/codument-init/SKILL.md' with { type: 'text' };
+import f71 from './skills/codument-migrate/SKILL.md' with { type: 'text' };
+import f72 from './skills/codument-modeling-engineering-e2e/SKILL.md' with { type: 'text' };
+import f73 from './skills/codument-plan-mission/SKILL.md' with { type: 'text' };
+import f74 from './skills/codument-plan-track-wave/SKILL.md' with { type: 'text' };
+import f75 from './skills/codument-plan-track/SKILL.md' with { type: 'text' };
+import f76 from './skills/codument-revise-track/SKILL.md' with { type: 'text' };
+import f77 from './skills/codument-status/SKILL.md' with { type: 'text' };
+import f78 from './skills/codument-track/SKILL.md' with { type: 'text' };
+import f79 from './skills/codument-validate/SKILL.md' with { type: 'text' };
+import f80 from './skills/codument-verify/SKILL.md' with { type: 'text' };
 
 export interface TemplateFile {
   /** Path relative to src/templates/, e.g. "codument/std/AGENTS.md" or "skills/codument-track/SKILL.md". */
@@ -153,21 +154,22 @@ export const TEMPLATE_FILES: TemplateFile[] = [
   { path: "skills/codument-archive/SKILL.md", content: f60 },
   { path: "skills/codument-artifact-sync/SKILL.md", content: f61 },
   { path: "skills/codument-code-quality-score/SKILL.md", content: f62 },
-  { path: "skills/codument-discuss/SKILL.md", content: f63 },
-  { path: "skills/codument-docs-bootstrap/SKILL.md", content: f64 },
-  { path: "skills/codument-gap-loop/SKILL.md", content: f65 },
-  { path: "skills/codument-impl-mission/SKILL.md", content: f66 },
-  { path: "skills/codument-impl-track/SKILL.md", content: f67 },
-  { path: "skills/codument-implement/SKILL.md", content: f68 },
-  { path: "skills/codument-init/SKILL.md", content: f69 },
-  { path: "skills/codument-migrate/SKILL.md", content: f70 },
-  { path: "skills/codument-modeling-engineering-e2e/SKILL.md", content: f71 },
-  { path: "skills/codument-plan-mission/SKILL.md", content: f72 },
-  { path: "skills/codument-plan-track-wave/SKILL.md", content: f73 },
-  { path: "skills/codument-plan-track/SKILL.md", content: f74 },
-  { path: "skills/codument-revise-track/SKILL.md", content: f75 },
-  { path: "skills/codument-status/SKILL.md", content: f76 },
-  { path: "skills/codument-track/SKILL.md", content: f77 },
-  { path: "skills/codument-validate/SKILL.md", content: f78 },
-  { path: "skills/codument-verify/SKILL.md", content: f79 },
+  { path: "skills/codument-decision-tree/SKILL.md", content: f63 },
+  { path: "skills/codument-discuss/SKILL.md", content: f64 },
+  { path: "skills/codument-docs-bootstrap/SKILL.md", content: f65 },
+  { path: "skills/codument-gap-loop/SKILL.md", content: f66 },
+  { path: "skills/codument-impl-mission/SKILL.md", content: f67 },
+  { path: "skills/codument-impl-track/SKILL.md", content: f68 },
+  { path: "skills/codument-implement/SKILL.md", content: f69 },
+  { path: "skills/codument-init/SKILL.md", content: f70 },
+  { path: "skills/codument-migrate/SKILL.md", content: f71 },
+  { path: "skills/codument-modeling-engineering-e2e/SKILL.md", content: f72 },
+  { path: "skills/codument-plan-mission/SKILL.md", content: f73 },
+  { path: "skills/codument-plan-track-wave/SKILL.md", content: f74 },
+  { path: "skills/codument-plan-track/SKILL.md", content: f75 },
+  { path: "skills/codument-revise-track/SKILL.md", content: f76 },
+  { path: "skills/codument-status/SKILL.md", content: f77 },
+  { path: "skills/codument-track/SKILL.md", content: f78 },
+  { path: "skills/codument-validate/SKILL.md", content: f79 },
+  { path: "skills/codument-verify/SKILL.md", content: f80 },
 ];

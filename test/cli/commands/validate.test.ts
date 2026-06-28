@@ -78,6 +78,17 @@ test('validate rejects a bad cdt:GapLoop verify-round value', async () => {
   expect(code).toBe(1);
 });
 
+test('validate rejects invalid QuestionSeverity metadata', async () => {
+  const ws = tmpWorkspace();
+  writeTrack(ws, 'tqs',
+    GOOD_TRACK.replace('id="t1"', 'id="tqs"')
+      .replace('<Metadata><Status>in_progress</Status></Metadata>',
+        '<Metadata><Status>in_progress</Status><QuestionMode>decision-tree</QuestionMode><QuestionSeverity>chatty</QuestionSeverity></Metadata>'));
+  const { code, out } = await runValidate(ws, ['tqs']);
+  expect(out).toContain('<Metadata><QuestionSeverity>chatty</QuestionSeverity>');
+  expect(code).toBe(1);
+});
+
 test('validate rejects a invalid task status', async () => {
   const ws = tmpWorkspace();
   writeTrack(ws, 't2', GOOD_TRACK.replace('id="t1"', 'id="t2"').replace('status="DONE"', 'status="TODO"'));
