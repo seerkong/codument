@@ -18,29 +18,29 @@ import f12 from './codument/std/attractors/depa-attractor.md' with { type: 'text
 import f13 from './codument/std/attractors/knowledge-tiers.md' with { type: 'text' };
 import f14 from './codument/std/attractors/model-driven-docs.md' with { type: 'text' };
 import f15 from './codument/std/attractors/project-memory.md' with { type: 'text' };
-import f16 from './codument/std/docs-impl-fractal/index.md' with { type: 'text' };
-import f17 from './codument/std/docs-modeling-fractal/index.md' with { type: 'text' };
-import f18 from './codument/std/kernel-pointer.md' with { type: 'text' };
-import f19 from './codument/std/operations/README.md' with { type: 'text' };
-import f20 from './codument/std/operations/_operation-spec.md' with { type: 'text' };
-import f21 from './codument/std/operations/archive-mission.md' with { type: 'text' };
-import f22 from './codument/std/operations/archive-track.md' with { type: 'text' };
-import f23 from './codument/std/operations/artifact-sync.md' with { type: 'text' };
-import f24 from './codument/std/operations/discuss-phase.md' with { type: 'text' };
-import f25 from './codument/std/operations/discuss.md' with { type: 'text' };
-import f26 from './codument/std/operations/docs-bootstrap.md' with { type: 'text' };
-import f27 from './codument/std/operations/gap-loop.md' with { type: 'text' };
-import f28 from './codument/std/operations/impl-mission.md' with { type: 'text' };
-import f29 from './codument/std/operations/impl-quick.md' with { type: 'text' };
-import f30 from './codument/std/operations/impl-track.md' with { type: 'text' };
-import f31 from './codument/std/operations/migrate.md' with { type: 'text' };
-import f32 from './codument/std/operations/plan-mission.md' with { type: 'text' };
-import f33 from './codument/std/operations/plan-track-wave.md' with { type: 'text' };
-import f34 from './codument/std/operations/plan-track.md' with { type: 'text' };
-import f35 from './codument/std/operations/revise-track.md' with { type: 'text' };
-import f36 from './codument/std/operations/validate.md' with { type: 'text' };
-import f37 from './codument/std/operations/verify.md' with { type: 'text' };
-import f38 from './codument/std/root-agents.md' with { type: 'text' };
+import f16 from './codument/std/kernel-pointer.md' with { type: 'text' };
+import f17 from './codument/std/operations/README.md' with { type: 'text' };
+import f18 from './codument/std/operations/_operation-spec.md' with { type: 'text' };
+import f19 from './codument/std/operations/archive-mission.md' with { type: 'text' };
+import f20 from './codument/std/operations/archive-track.md' with { type: 'text' };
+import f21 from './codument/std/operations/artifact-sync.md' with { type: 'text' };
+import f22 from './codument/std/operations/discuss-phase.md' with { type: 'text' };
+import f23 from './codument/std/operations/discuss.md' with { type: 'text' };
+import f24 from './codument/std/operations/docs-bootstrap.md' with { type: 'text' };
+import f25 from './codument/std/operations/gap-loop.md' with { type: 'text' };
+import f26 from './codument/std/operations/impl-mission.md' with { type: 'text' };
+import f27 from './codument/std/operations/impl-quick.md' with { type: 'text' };
+import f28 from './codument/std/operations/impl-track.md' with { type: 'text' };
+import f29 from './codument/std/operations/migrate.md' with { type: 'text' };
+import f30 from './codument/std/operations/plan-mission.md' with { type: 'text' };
+import f31 from './codument/std/operations/plan-track-wave.md' with { type: 'text' };
+import f32 from './codument/std/operations/plan-track.md' with { type: 'text' };
+import f33 from './codument/std/operations/revise-track.md' with { type: 'text' };
+import f34 from './codument/std/operations/validate.md' with { type: 'text' };
+import f35 from './codument/std/operations/verify.md' with { type: 'text' };
+import f36 from './codument/std/root-agents.md' with { type: 'text' };
+import f37 from './codument/std/skill/docs-engineering-fractal/index.md' with { type: 'text' };
+import f38 from './codument/std/skill/docs-modeling-fractal/index.md' with { type: 'text' };
 import f39 from './codument/std/sop/questioning.md' with { type: 'text' };
 import f40 from './codument/std/sop/tdd.md' with { type: 'text' };
 import f41 from './codument/std/sop/validation.md' with { type: 'text' };
@@ -108,29 +108,29 @@ export const TEMPLATE_FILES: TemplateFile[] = [
   { path: "codument/std/attractors/knowledge-tiers.md", content: f13 },
   { path: "codument/std/attractors/model-driven-docs.md", content: f14 },
   { path: "codument/std/attractors/project-memory.md", content: f15 },
-  { path: "codument/std/docs-impl-fractal/index.md", content: f16 },
-  { path: "codument/std/docs-modeling-fractal/index.md", content: f17 },
-  { path: "codument/std/kernel-pointer.md", content: f18 },
-  { path: "codument/std/operations/README.md", content: f19 },
-  { path: "codument/std/operations/_operation-spec.md", content: f20 },
-  { path: "codument/std/operations/archive-mission.md", content: f21 },
-  { path: "codument/std/operations/archive-track.md", content: f22 },
-  { path: "codument/std/operations/artifact-sync.md", content: f23 },
-  { path: "codument/std/operations/discuss-phase.md", content: f24 },
-  { path: "codument/std/operations/discuss.md", content: f25 },
-  { path: "codument/std/operations/docs-bootstrap.md", content: f26 },
-  { path: "codument/std/operations/gap-loop.md", content: f27 },
-  { path: "codument/std/operations/impl-mission.md", content: f28 },
-  { path: "codument/std/operations/impl-quick.md", content: f29 },
-  { path: "codument/std/operations/impl-track.md", content: f30 },
-  { path: "codument/std/operations/migrate.md", content: f31 },
-  { path: "codument/std/operations/plan-mission.md", content: f32 },
-  { path: "codument/std/operations/plan-track-wave.md", content: f33 },
-  { path: "codument/std/operations/plan-track.md", content: f34 },
-  { path: "codument/std/operations/revise-track.md", content: f35 },
-  { path: "codument/std/operations/validate.md", content: f36 },
-  { path: "codument/std/operations/verify.md", content: f37 },
-  { path: "codument/std/root-agents.md", content: f38 },
+  { path: "codument/std/kernel-pointer.md", content: f16 },
+  { path: "codument/std/operations/README.md", content: f17 },
+  { path: "codument/std/operations/_operation-spec.md", content: f18 },
+  { path: "codument/std/operations/archive-mission.md", content: f19 },
+  { path: "codument/std/operations/archive-track.md", content: f20 },
+  { path: "codument/std/operations/artifact-sync.md", content: f21 },
+  { path: "codument/std/operations/discuss-phase.md", content: f22 },
+  { path: "codument/std/operations/discuss.md", content: f23 },
+  { path: "codument/std/operations/docs-bootstrap.md", content: f24 },
+  { path: "codument/std/operations/gap-loop.md", content: f25 },
+  { path: "codument/std/operations/impl-mission.md", content: f26 },
+  { path: "codument/std/operations/impl-quick.md", content: f27 },
+  { path: "codument/std/operations/impl-track.md", content: f28 },
+  { path: "codument/std/operations/migrate.md", content: f29 },
+  { path: "codument/std/operations/plan-mission.md", content: f30 },
+  { path: "codument/std/operations/plan-track-wave.md", content: f31 },
+  { path: "codument/std/operations/plan-track.md", content: f32 },
+  { path: "codument/std/operations/revise-track.md", content: f33 },
+  { path: "codument/std/operations/validate.md", content: f34 },
+  { path: "codument/std/operations/verify.md", content: f35 },
+  { path: "codument/std/root-agents.md", content: f36 },
+  { path: "codument/std/skill/docs-engineering-fractal/index.md", content: f37 },
+  { path: "codument/std/skill/docs-modeling-fractal/index.md", content: f38 },
   { path: "codument/std/sop/questioning.md", content: f39 },
   { path: "codument/std/sop/tdd.md", content: f40 },
   { path: "codument/std/sop/validation.md", content: f41 },

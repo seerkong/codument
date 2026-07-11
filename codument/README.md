@@ -49,7 +49,7 @@
 - **spec→behavior 口径**：`codument/specs`→`codument/behaviors`、`spec_deltas`→`behavior_deltas`、`spec://`→`behavior://`、`<spec-patch>`→`<behavior-patch>`，文件内同步。
 
 ### 5. 吸收 attractor-guided-engineering 的文档沉淀纪律（本轮）
-codument 强在 **track 迭代记忆**，弱在 **owner 文档（docs/modeling·impl）维护**。本轮吸收参考项目（`/Users/kongweixian/ai/src/attractor-guided-engineering-template`）的三处长处：
+codument 强在 **track 迭代记忆**，弱在 **owner 知识（codument/modeling·codument/engineering）维护**。本轮吸收参考项目（`/Users/kongweixian/ai/src/attractor-guided-engineering-template`）的三处长处：
 - **信息晋升（promotion）**：新建 `std/attractors/knowledge-tiers.md`——知识分层表 + **AGE 扁平类目→codument 层级映射** + 晋升阶梯（track→behaviors/docs/decisions/memory，memory 复发→sop/skill/check）+ 真源优先级 + 时效性。
 - **目录自描述 + 补齐**：新建 `std/spec/folder-manifest.md`——每个标准文件夹在自己 `index.md` 里就地声明「目录职责」块（解除对单份中心规范的强依赖），自定义类目必填；缺块由 backfill 机制补齐。两份分形 index 与 docs-bootstrap/artifact-sync 接入。
 - **实时维护，不只归档**：discuss/澄清期一旦概念稳定就**当轮**收敛进 owner 文档；`questioning.md`/`discuss.md`/`workflow.md`/`artifact-sync.md`/`archive-track.md` 同步加入「澄清即沉淀 + 晋升判定权威=knowledge-tiers」。
@@ -78,8 +78,8 @@ draft-d/codument/
 │   │   ├── behavior-delta.md       如何写 behavior delta（旧 spec delta）
 │   │   ├── behavior-registry.md    behavior 登记表（codument/behaviors/）格式
 │   │   └── folder-manifest.md      ★ 目录职责自描述 + 补齐机制（每个标准文件夹就地声明装什么）
-│   ├── docs-modeling-fractal/index.md  建模侧分形规范（领域中立、生成式）
-│   ├── docs-impl-fractal/index.md      实现侧分形规范（docs/impl/，类目可替换）
+│   ├── skill/docs-modeling-fractal/index.md      建模侧分形规范（领域中立、生成式）
+│   ├── skill/docs-engineering-fractal/index.md   工程侧分形规范（codument/engineering）
 │   ├── attractors/                 可升级标准 attractor（knowledge/docs/memory/DEPA）
 │   ├── sop/                        内置执行规程（原 workflow.md + 拆分的 protocols + 方法论）
 │   │   ├── workflow.md · questioning.md · validation.md

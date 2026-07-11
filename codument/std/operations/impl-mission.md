@@ -22,6 +22,19 @@
 
 ## 2. 主循环
 
+### 2.1 用户明确要求实现 / 落地时的连续执行边界
+
+如果用户话语明确包含“实现 mission”、“落地 mission”、“执行整个 mission”、“continue until done”等含义，`pending` 启动只是第一个 bounded action gate，不是本次请求的终点。
+
+在这种场景下，完成 `start-mission` 后必须重新读取 `active/<id>/mission.xml`，继续进入本主循环，直到出现以下任一状态：
+
+- mission 满足 completed gate 并被更新为 `completed`。
+- mission `cancelled` / `superseded`。
+- 遇到真实 `BLOCKED`：缺少用户决策、外部输入、失败 track 或无法自动修复的结构偏差。
+- 用户显式限制本轮只做启动、只做一个节点、只做某个 track。
+
+仍然保持“每轮只执行一个 bounded action，动作后重新 observe / reconcile”的节奏；禁止把 `start-mission` 的完成当作“已实现 mission”的最终响应。
+
 ```text
 @delimiter: --
 @node: #
@@ -34,7 +47,7 @@
 ------ #call ?start target="start-mission(pending/<id>)"
 ------ /?start
 ------ #exit ?reload_active
-启动完成后停手或从 active/<id>/ 重新加载；不要沿用 pending 路径缓存继续执行 DAG。
+如果用户只要求 start，则启动完成后停手；如果用户要求 implement / 落地 / 执行，则从 active/<id>/ 重新加载继续主循环。不要沿用 pending 路径缓存继续执行 DAG。
 ------ /?reload_active
 ---- /?pending_start
 ---- #step ?observe
@@ -89,7 +102,7 @@ MissionApplier 写 reports/replan-XXX.md，更新 mission.xml，递增 Revision�
    - `Metadata.Status=active`
    - `Metadata.UpdatedAt=<now>`
 6. 写 `reports/mission-run-001.md` 记录启动路径、启动时间和用户确认。
-7. 启动动作完成后停手，或从 `active/<id>/` 重新加载再进入下一轮观察；禁止继续使用旧的 `pending/<id>/` 路径引用。
+7. 如果用户只要求 start，启动动作完成后停手；如果用户要求 implement / 落地 / 执行整个 mission，必须从 `active/<id>/` 重新加载再进入下一轮观察；禁止继续使用旧的 `pending/<id>/` 路径引用。
 
 ## 4. ready node 处理
 
@@ -111,13 +124,21 @@ ready node 来自 `mission.xml` 顶层 `TaskGroup` DAG：所有 `<After>` 前驱
 </Task>
 ```
 
+TrackLink 是对真实 track 生命周期的承诺，不是一个普通标签：
+
+- `state="candidate"` 只表示推荐 track id，不能代表 track 已存在。
+- `state="bound"` 只能在真实 track 可解析后写入：`codument/tracks/<id>/track.xml` 存在，或 `codument/archive/**/<timestamp>-<id>/track.xml` 存在。
+- 带 `cdt:TrackLink` 的 ready leaf 的合法动作是：创建 track、绑定 TrackLink、执行 / 验证 / 归档该真实 track。
+- 直接改代码而不创建真实 track 是非法动作；如果执行中确认该叶子不应再由 track 承担，必须先受控重规划，supersede / 移除该 `TrackLink`，并在 replan report 中记录原因。
+
 当 `MissionApplier` 创建真实 track 后，必须立即更新 `mission.xml`：
 
-1. 将同一个 `cdt:TrackLink` 的 `state` 从 `candidate` 改为 `bound`。
-2. 将 `id` 写成真实 track id；如果真实 id 与 candidate id 不同，用真实 id 覆盖。
-3. 不写 `path`、`archive-path` 或 track 状态；active/archive 位置后续通过 id 解析。
-4. 更新该 leaf `Task.status`，并更新 `Metadata.Revision` / `UpdatedAt`。
-5. 写 `reports/track-bind-XXX.md`，至少包含 mission task id、candidate id、real track id、创建证据和时间。
+1. 先验证真实 track 存在：`codument/tracks/<id>/track.xml`，或 `codument/archive/**/<timestamp>-<id>/track.xml`。
+2. 将同一个 `cdt:TrackLink` 的 `state` 从 `candidate` 改为 `bound`。
+3. 将 `id` 写成真实 track id；如果真实 id 与 candidate id 不同，用真实 id 覆盖。
+4. 不写 `path`、`archive-path` 或 track 状态；active/archive 位置后续通过 id 解析。
+5. 更新该 leaf `Task.status`，并更新 `Metadata.Revision` / `UpdatedAt`。
+6. 写 `reports/track-bind-XXX.md`，至少包含 mission task id、candidate id、real track id、创建证据和时间。
 
 如果 `cdt:TrackLink state="candidate"` 指向的 track 已经存在，也按同样规则绑定为 `bound` 并写 report；不得重复创建 track。
 
@@ -162,6 +183,21 @@ ready node 来自 `mission.xml` 顶层 `TaskGroup` DAG：所有 `<After>` 前驱
 
 当所有必要节点 DONE 或 SUPERSEDED，且 proposal 的成功判据满足：
 
+- 先执行 completed gate（见 §7.1）。gate 未通过时不得更新为 `completed`。
 - 更新 `mission.xml` status 为 `completed`。
 - 写 `reports/mission-complete.md`。
 - 提示用户使用 `codument-archive-mission` 归档。
+
+### 7.1 Completed gate
+
+更新 `Metadata.Status=completed` 前必须逐项确认：
+
+- 所有必要 `TaskGroup` / `Task` 都是 `DONE` 或 `SUPERSEDED`；`SUPERSEDED` 必须有 replan / human-intervention report 解释。
+- 所有 `cdt:TrackLink state="bound"` 都能解析到真实 track：`codument/tracks/<id>/track.xml` 或 `codument/archive/**/<timestamp>-<id>/track.xml`。
+- 已完成任务上不应残留 `cdt:TrackLink state="candidate"`；除非该任务被 `SUPERSEDED`，且 report 说明该 candidate 被取消或改由其他节点承担。
+- 所有关联的真实 track 已完成、归档，或有明确 superseded / abandoned 证据；不能只凭 mission report 声称已完成。
+- `proposal.md` 的成功判据都有证据：track 验证报告、测试结果、代码位置、设计决策或人工确认。
+- mission reports 不自相矛盾：例如不得同时写“未创建 track”与 `TrackLink state="bound"`，或写“已完成”但缺少对应 track。
+- `mission.xml` XML 格式有效；对每个 linked track，best-effort 运行 `codument validate <track-id> --strict` 或项目当前等价校验。
+
+任一项失败时，不得标记 `completed`。应进入 drift / replan / blocked 分支，先修复结构偏差或向用户报告阻塞。

@@ -54,7 +54,7 @@ const AGENTS_MANAGED_BODY = `# Codument Instructions
 - 项目工程约束 / 代码边界 / 技术取舍：\`@/codument/attractors/project.md\`
 - 产品目标 / 用户价值 / 范围取舍：\`@/codument/attractors/product.md\`
 - 信息该落哪层 / 何时晋升 / 冲突谁赢：\`@/codument/std/attractors/knowledge-tiers.md\`
-- docs/modeling 与 docs/impl 写法 / 路由 / frontmatter：\`@/codument/std/attractors/model-driven-docs.md\`
+- codument/modeling 与 codument/engineering 写法 / 路由 / 元数据：\`@/codument/std/attractors/model-driven-docs.md\`
 - 长期记忆 lessons / incidents / patterns / summaries：\`@/codument/std/attractors/project-memory.md\`
 
 保留本受管块，'codument upgrade-workspace' 会刷新它。`;
@@ -164,6 +164,17 @@ function writeFile(dest: string, content: string): void {
   fs.writeFileSync(dest, content.endsWith('\n') ? content : `${content}\n`, 'utf-8');
 }
 
+function resetManagedSkillDirs(skillsDir: string): void {
+  const names = new Set<string>();
+  for (const file of TEMPLATE_FILES) {
+    const match = /^skills\/([^/]+)\//.exec(file.path);
+    if (match) names.add(match[1]);
+  }
+  for (const name of names) {
+    fs.rmSync(path.join(skillsDir, name), { recursive: true, force: true });
+  }
+}
+
 export interface InstallResult {
   workspaceWritten: number;
   workspaceSkipped: number;
@@ -197,6 +208,7 @@ export function installTemplates(opts: InstallOptions): InstallResult {
     skillsWritten: 0,
     skillsRemoved: cleanupDeprecatedSkills(opts.skillsDir),
   };
+  resetManagedSkillDirs(opts.skillsDir);
 
   for (const file of TEMPLATE_FILES) {
     if (file.path.startsWith('skills/')) {
@@ -227,6 +239,7 @@ export function installTemplates(opts: InstallOptions): InstallResult {
 
 export function installSkillTemplates(skillsDir: string): SkillInstallResult {
   const result: SkillInstallResult = { skillsWritten: 0, skillsRemoved: cleanupDeprecatedSkills(skillsDir) };
+  resetManagedSkillDirs(skillsDir);
   for (const file of TEMPLATE_FILES) {
     if (!file.path.startsWith('skills/')) {
       continue;

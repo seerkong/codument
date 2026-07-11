@@ -37,6 +37,20 @@ codument/missions/pending/<mission-id>/
 
 新 mission 不创建 `roadmap.md`。
 
+## 1.1 TrackLink 规划纪律
+
+`cdt:TrackLink` 是 mission 对真实 codument track 的生命周期承诺，不是“相关工作”的标签。
+
+规划 `mission.xml` 时：
+
+- 只有当某个叶子 `Task` 的未来动作就是创建、绑定、执行、验证或归档一个真实 track 时，才允许写 `cdt:TrackLink`。
+- 如果任务只是证据盘点、设计收敛、切片讨论、写报告、验证总目标，使用普通 `Task`，不要挂 `TrackLink`。
+- 如果预计直接在 mission 中完成局部实现，而不是创建 track，使用普通 `Task` 并写清楚验收与证据；不要先挂 `TrackLink` 再绕过真实 track。
+- `TrackLink state="candidate"` 的 `id` 应能一一映射到未来的 `codument/tracks/<id>/track.xml`；如果只是临时命名或议题名，不要写成 candidate。
+- 同一个真实 track 的创建 / 执行任务只应有一个权威 `TrackLink`；其他任务可在描述中引用该 track id，但不要重复挂多个 candidate。
+
+`proposal.md` 和 `design.md` 必须说明：mission 负责控制面和跨 track 编排；代码、规范、测试等落地工作由真实 track 承担。若 mission 确实包含不经 track 的直接实现任务，必须把它显式写成例外，并说明为什么不需要 track。
+
 ## 1.5 Questioning severity 与无问答模式
 
 创建 mission 前先解析 `codument/std/sop/questioning.md` 的 questioning severity：**未指定时默认 `light`**。
@@ -97,7 +111,7 @@ codument/missions/pending/<mission-id>/
 写 design.md：MissionPlanner/Observer/Reconciler/Applier、plan vs track 区分、受控重规划、人工介入、风险。
 ---- /?design
 ---- #step ?xml
-写 mission.xml：<Mission> 根、Metadata、Ports、TaskSpace(cdt:child-mode="dag")、Schedule、Hooks。
+写 mission.xml：<Mission> 根、Metadata、Ports、TaskSpace(cdt:child-mode="dag")、Schedule、Hooks；只有真实 track 生命周期任务才挂 cdt:TrackLink，普通分析 / 设计 / 验证任务不得挂。
 ---- /?xml
 ---- #step ?validate
 best-effort 校验 XML 格式；若 validator 尚未支持 mission.xml，至少运行 xmllint。
@@ -192,9 +206,7 @@ active mission 可以增删改节点和 DAG，但必须有 evidence 或 human de
       <TaskGroup id="G2" name="设计收敛" status="NOT_STARTED" order="1">
         <SubNodes>
           <Task id="G2-T1" name="形成架构方案" status="NOT_STARTED" order="0"/>
-          <Task id="G2-T2" name="确认首批 track 切片" status="NOT_STARTED" order="1">
-            <cdt:TrackLink state="candidate" id="add-runtime-contracts"/>
-          </Task>
+          <Task id="G2-T2" name="确认首批 track 切片" status="NOT_STARTED" order="1"/>
         </SubNodes>
       </TaskGroup>
       <TaskGroup id="G3" name="首批落地" status="NOT_STARTED" order="2">

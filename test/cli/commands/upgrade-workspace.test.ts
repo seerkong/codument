@@ -21,9 +21,18 @@ describe('codument upgrade-workspace', () => {
     const skillsDir = path.join(ws, '.skills');
 
     writeFile(path.join(ws, 'codument', 'std', 'AGENTS.md'), '# old std\n');
+    writeFile(path.join(ws, 'codument', 'std', 'docs-modeling-fractal', 'index.md'), '# old modeling fractal\n');
+    writeFile(path.join(ws, 'codument', 'std', 'docs-impl-fractal', 'index.md'), '# old impl fractal\n');
     writeFile(path.join(ws, 'codument', 'std', 'operations', 'init.md'), '# old init operation\n');
     writeFile(path.join(ws, 'codument', 'std', 'operations', 'status.md'), '# old status operation\n');
     writeFile(path.join(ws, 'codument', 'config', 'cli-tools.json'), JSON.stringify({ tools: ['claude'] }, null, 2));
+    writeFile(path.join(ws, 'codument', 'config', 'attractor-profiles.xml'), `<AttractorProfiles version="1">
+  <Profile name="docs" enabled="true">
+    <Attractor ref="vfs://@/codument/std/docs-modeling-fractal/index.md"/>
+    <Attractor ref="vfs://@/codument/std/docs-impl-fractal/index.md"/>
+  </Profile>
+</AttractorProfiles>
+`);
     writeFile(path.join(ws, 'codument', 'attractors', 'project.md'), '# custom project\n');
     writeFile(path.join(ws, 'codument', 'attractors', 'product.md'), '# custom product\n');
     writeFile(path.join(ws, 'codument', 'attractors', 'knowledge-tiers.md'), '# old knowledge\n');
@@ -32,6 +41,7 @@ describe('codument upgrade-workspace', () => {
     writeFile(path.join(skillsDir, 'codument-init', 'SKILL.md'), '# old init skill\n');
     writeFile(path.join(skillsDir, 'codument-status', 'SKILL.md'), '# old status skill\n');
     writeFile(path.join(skillsDir, 'codument-plan-schedule', 'SKILL.md'), '# old plan schedule skill\n');
+    writeFile(path.join(skillsDir, 'codument-plan-track', 'shared', 'workflow-routing.md'), 'stale managed file\n');
     writeFile(path.join(ws, 'AGENTS.md'), '# Existing project notes\n');
     writeFile(path.join(ws, '.gitignore'), 'node_modules\ncodument/**/analysis\n');
 
@@ -64,11 +74,21 @@ describe('codument upgrade-workspace', () => {
     expect(fs.existsSync(path.join(ws, 'codument', 'attractors', 'project-memory.md'))).toBe(false);
     expect(fs.existsSync(path.join(ws, 'codument', 'std', 'operations', 'init.md'))).toBe(false);
     expect(fs.existsSync(path.join(ws, 'codument', 'std', 'operations', 'status.md'))).toBe(false);
+    expect(fs.existsSync(path.join(ws, 'codument', 'std', 'docs-modeling-fractal'))).toBe(false);
+    expect(fs.existsSync(path.join(ws, 'codument', 'std', 'docs-impl-fractal'))).toBe(false);
 
     expect(fs.existsSync(path.join(ws, 'codument', 'std', 'attractors', 'knowledge-tiers.md'))).toBe(true);
     expect(fs.existsSync(path.join(ws, 'codument', 'std', 'attractors', 'model-driven-docs.md'))).toBe(true);
     expect(fs.existsSync(path.join(ws, 'codument', 'std', 'attractors', 'project-memory.md'))).toBe(true);
     expect(fs.existsSync(path.join(ws, 'codument', 'std', 'attractors', 'depa-attractor.md'))).toBe(true);
+    expect(fs.existsSync(path.join(ws, 'codument', 'std', 'skill', 'docs-modeling-fractal', 'index.md'))).toBe(true);
+    expect(fs.existsSync(path.join(ws, 'codument', 'std', 'skill', 'docs-engineering-fractal', 'index.md'))).toBe(true);
+
+    const profiles = fs.readFileSync(path.join(ws, 'codument', 'config', 'attractor-profiles.xml'), 'utf-8');
+    expect(profiles).toContain('vfs://@/codument/std/skill/docs-modeling-fractal/index.md');
+    expect(profiles).toContain('vfs://@/codument/std/skill/docs-engineering-fractal/index.md');
+    expect(profiles).not.toContain('vfs://@/codument/std/docs-modeling-fractal/index.md');
+    expect(profiles).not.toContain('vfs://@/codument/std/docs-impl-fractal/index.md');
 
     const agents = fs.readFileSync(path.join(ws, 'AGENTS.md'), 'utf-8');
     expect(agents).toContain('@/codument/std/attractors/knowledge-tiers.md');
@@ -82,5 +102,6 @@ describe('codument upgrade-workspace', () => {
     expect(fs.existsSync(path.join(skillsDir, 'codument-status', 'SKILL.md'))).toBe(false);
     expect(fs.existsSync(path.join(skillsDir, 'codument-plan-schedule', 'SKILL.md'))).toBe(false);
     expect(fs.existsSync(path.join(skillsDir, 'codument-plan-track', 'SKILL.md'))).toBe(true);
+    expect(fs.existsSync(path.join(skillsDir, 'codument-plan-track', 'shared', 'workflow-routing.md'))).toBe(false);
   });
 });

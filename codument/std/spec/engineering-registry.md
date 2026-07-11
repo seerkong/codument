@@ -24,11 +24,10 @@ codument/engineering/
 - 不持久化平行 vcs 仓库：xnl-vfs/xnl-vcs 仅作临时合并引擎；其产物放 `.tmp/` 并 gitignore。
 - 节点稳定 id 优先用 XNL 多级命名空间内联：`#<plane>.<category>.<topic>.<name>`。
 
-## 与 docs/impl 的关系
+## 与工程分形标准的关系
 
-`engineering` 吸收 `docs/impl-fractal` 的长期工程知识语义，并把它纳入 codument 的 delta/merge/validate 管理：
+`engineering` 吸收 `docs-engineering-fractal` 的长期工程知识语义，并把它纳入 codument 的 delta/merge/validate 管理：
 
-- `docs/impl/` 可以作为迁移前 legacy 或派生展示层。
 - 新的长期工程知识应进入 `codument/engineering/`。
 - 不稳定的执行期发现仍先留在 track `analysis/` / `reports/`，稳定后再进入 engineering。
 
@@ -79,4 +78,3 @@ engineering://<plane>/<category>/<topic>/<name>
 ## 应用 delta
 
 见 `std/spec/engineering-delta.md`。简述：base = track create 时记录的宿主 git commit id；archive 取 base + ours + theirs，做节点级 3-way merge，写回 `codument/engineering/`；冲突 issues-first，不静默覆盖。
-

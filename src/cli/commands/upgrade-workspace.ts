@@ -45,6 +45,7 @@ export async function upgradeWorkspaceCommand(args: string[]): Promise<void> {
     writeCliToolsConfig(selectedTools);
   }
   const removedLegacyPaths = removeLegacyWorkspacePaths(backupRoot);
+  const migratedConfigRefs = migrateWorkspaceConfigRefs(backupRoot);
   const targets = resolveSkillsTargets(options, selectedTools);
   const [firstTarget, ...additionalTargets] = targets;
 
@@ -68,6 +69,9 @@ export async function upgradeWorkspaceCommand(args: string[]): Promise<void> {
   }
   if (removedLegacyPaths > 0) {
     console.log(`  cleanup   : ${removedLegacyPaths} legacy path(s) removed`);
+  }
+  if (migratedConfigRefs > 0) {
+    console.log(`  config    : ${migratedConfigRefs} legacy reference(s) updated`);
   }
   if (gitignoreRulesAdded > 0) {
     console.log(`  .gitignore: ${gitignoreRulesAdded} codument rule(s) added`);
@@ -120,6 +124,8 @@ function removeLegacyWorkspacePaths(backupRoot: string): number {
     'codument/std/operations/status.md',
     'codument/std/plan-xml-spec.md',
     'codument/std/track-impl-gap-report-1.md',
+    'codument/std/docs-modeling-fractal',
+    'codument/std/docs-impl-fractal',
     'codument/attractors/knowledge-tiers.md',
     'codument/attractors/model-driven-docs.md',
     'codument/attractors/project-memory.md',
@@ -135,4 +141,63 @@ function removeLegacyWorkspacePaths(backupRoot: string): number {
     removed++;
   }
   return removed;
+}
+
+function migrateWorkspaceConfigRefs(backupRoot: string): number {
+  const replacements: Array<[string, string]> = [
+    [
+      'vfs://@/codument/std/docs-modeling-fractal/index.md',
+      'vfs://@/codument/std/skill/docs-modeling-fractal/index.md',
+    ],
+    [
+      'vfs://@/codument/std/docs-impl-fractal/index.md',
+      'vfs://@/codument/std/skill/docs-engineering-fractal/index.md',
+    ],
+    [
+      '@codument/std/docs-modeling-fractal/index.md',
+      '@codument/std/skill/docs-modeling-fractal/index.md',
+    ],
+    [
+      '@codument/std/docs-impl-fractal/index.md',
+      '@codument/std/skill/docs-engineering-fractal/index.md',
+    ],
+    [
+      'codument/std/docs-modeling-fractal/index.md',
+      'codument/std/skill/docs-modeling-fractal/index.md',
+    ],
+    [
+      'codument/std/docs-impl-fractal/index.md',
+      'codument/std/skill/docs-engineering-fractal/index.md',
+    ],
+    [
+      'docs-impl-fractal',
+      'docs-engineering-fractal',
+    ],
+  ];
+  const candidateFiles = [
+    'codument/config/attractor-profiles.xml',
+    'codument/config/operation-hooks.xml',
+  ];
+
+  let updatedRefs = 0;
+  for (const file of candidateFiles) {
+    if (!fs.existsSync(file)) {
+      continue;
+    }
+    const original = fs.readFileSync(file, 'utf-8');
+    let updated = original;
+    for (const [from, to] of replacements) {
+      const count = updated.split(from).length - 1;
+      if (count > 0) {
+        updatedRefs += count;
+        updated = updated.split(from).join(to);
+      }
+    }
+    if (updated !== original) {
+      copyRecursive(file, path.join(backupRoot, file));
+      fs.writeFileSync(file, updated, 'utf-8');
+    }
+  }
+
+  return updatedRefs;
 }

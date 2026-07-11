@@ -364,7 +364,7 @@ diff 审查：确认无无关运行时改动；对声称行为不变的任务，
 @delimiter: --
 -- #loop ?rounds max="cdt:GapLoop 的 max-rounds"
 ---- #step ?gp1
-父层启动新一轮前，先把当前轮次写回 track.xml <Metadata> 的 gap-round
+父层启动新一轮前，先把当前轮次写回 track.xml `<Metadata>` 的 `<GapRound>`
 ---- /?gp1
 ---- #spawn ?gp2 as=fresh-subagent inject="按 agent 类型注入模型/档位，如 codex→gpt-5.5、effort=high"
 fresh-spawn 一个新 gap-loop 子代理（或等价 fresh child context），让其执行当前 scope 的 gap-loop 子流程；等结构化 XML

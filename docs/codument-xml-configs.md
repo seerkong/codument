@@ -143,7 +143,7 @@ TODO | IN_PROGRESS | DONE | BLOCKED | CANCELLED
 - 目录型 artifact 使用 `relative-dir`，例如 `base-dir="docs" relative-dir="."` 表示同步到 `docs/` 目录，由 attractor/workflow 决定该目录下写入哪些文件。
 - 文件型 artifact 使用 `relative-file`，例如 `base-dir="/Users/me/team-docs" relative-file="skills/atm-cli.md"` 表示最终写到 `/Users/me/team-docs/skills/atm-cli.md`。
 
-这样拆分是为了支持同一个 artifact 内容生成一次后分发到多个目标根目录，同时允许 docs 类知识体系在一个目标目录下按 `docs-knowledge.md`、`docs-modeling-fractal/`、`docs-impl-fractal/` 的规则写入多个文件。
+这样拆分是为了支持同一个 artifact 内容生成一次后分发到多个目标根目录，同时允许 docs 类知识体系在一个目标目录下按 `docs-knowledge.md`、`docs-modeling-fractal/`、`docs-engineering-fractal/` 的规则写入多个文件。
 
 多个 target 的核心语义是“同一套生成结果，多目标分发”。目录型 artifact 先生成一套相对文件树，然后把同一套相对文件树写入每个 target 的 `base-dir/relative-dir`；文件型 artifact 则把同一份文件内容写入每个 target 的 `base-dir/relative-file`。不要因为有多个 target 就改变文件名、目录层级或生成不同文件集合，除非 artifact 引用的 workflow 或 skill 明确要求 target-specific 差异。
 
@@ -156,13 +156,13 @@ TODO | IN_PROGRESS | DONE | BLOCKED | CANCELLED
 
 生成的 artifact 通过 `<attractor-profile name="docs|memory" />` resource 使用这些 profile；`docs-knowledge.md` 和 `project-memory.md` 不应写成 `attractor-profile` resource 的 direct file 属性。
 
-当 `knowledgeSync.enabled=true` 时，升级还会生成 docs 知识吸引子相关目录：
+当 `knowledgeSync.enabled=true` 时，升级使用内置 docs 分形标准：
 
 - `codument/attractors/docs-knowledge.md`
-- `codument/attractors/docs-modeling-fractal/index.md`
-- `codument/attractors/docs-impl-fractal/index.md`
+- `codument/std/skill/docs-modeling-fractal/index.md`
+- `codument/std/skill/docs-engineering-fractal/index.md`
 
-`codument/std/docs-*-fractal/` 仍作为内置标准副本存在，`codument/attractors/docs-*-fractal/` 是 docs 知识吸引子实际引用的项目级规则入口。
+`codument/std/skill/docs-*-fractal/` 是内置标准副本；docs profile 通过 attractor 引用这些标准与项目级 docs knowledge 规则。
 
 ```xml
 <artifact-config version="1">

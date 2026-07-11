@@ -272,12 +272,12 @@
         <then>The generated artifacts.xml SHALL include a project memory artifact that uses a `memory` attractor profile containing `codument/std/attractors/project-memory.md`.</then>
         <and>If `codument/config/operation-hooks.xml` does not exist, the system SHALL create a default `archive-track:after` hook that triggers the generated memory artifact.</and>
       </case>
-      <case id="docs-fractal-attractors">
+      <case id="knowledge-fractal-standards">
         <given>`knowledgeSync.enabled=true`.</given>
         <when>The user runs `codument upgrade-workspace`.</when>
-        <then>The system SHALL create `codument/attractors/docs-knowledge.md` when missing.</then>
-        <and>The system SHALL create `codument/attractors/docs-modeling-fractal/index.md` when missing.</and>
-        <and>The system SHALL create `codument/attractors/docs-impl-fractal/index.md` when missing.</and>
+        <then>The system SHALL create `codument/std/attractors/model-driven-docs.md` when missing.</then>
+        <and>The system SHALL create `codument/std/skill/docs-modeling-fractal/index.md` when missing.</and>
+        <and>The system SHALL create `codument/std/skill/docs-engineering-fractal/index.md` when missing.</and>
       </case>
       <case id="default-only-profile-cleanup">
         <given>`codument/config/attractor-profiles.json` contains only the built-in default project/product profile.</given>
@@ -324,7 +324,7 @@
         <and>The system SHALL remove the old `docs-sync-track` command wrapper.</and>
       </case>
       <case id="docs-rules-live-in-attractor">
-        <given>A docs class artifact needs content selection and docs/modeling versus docs/impl routing rules.</given>
+        <given>A docs class artifact needs content selection and codument/modeling versus codument/engineering routing rules.</given>
         <when>The artifact sync executor prepares the artifact.</when>
         <then>The system SHALL read those rules from `codument/attractors/docs-knowledge.md` through an attractor profile.</then>
         <and>The artifact-sync skill SHALL handle artifact selection, resource resolution, targets, policy, and execution.</and>
@@ -338,7 +338,7 @@
     </suite>
   </requirement>
   <requirement id="modeling-registry">
-    <statement>系统 SHALL provide a domain modeling registry at `codument/modeling/` as an xnl-vfs working tree backed by an xnl-vcs repository, replacing free-form `docs/modeling` as the modeling source of truth.</statement>
+    <statement>系统 SHALL provide a domain modeling registry at `codument/modeling/` as an xnl-vfs working tree backed by an xnl-vcs repository and use it as the modeling source of truth.</statement>
     <suite id="modeling-registry-shape" name="Modeling registry shape">
       <case id="working-tree">
         <given>A workspace enables the modeling profile.</given>
@@ -352,10 +352,10 @@
         <then>`codument/modeling/**.xnl` SHALL be versioned by the host project git, not a persisted parallel vcs repo.</then>
         <and>Any xnl-vfs/xnl-vcs artifacts (e.g. `.xnl-vcs/`) used as an ephemeral merge engine SHALL live under `.tmp/` and be gitignored.</and>
       </case>
-      <case id="docs-impl-retained">
+      <case id="engineering-registry-retained">
         <given>The modeling registry is introduced.</given>
         <when>Implementation knowledge must be recorded.</when>
-        <then>`docs/impl/` SHALL remain the derived implementation/maintenance knowledge plane, not moved into `codument/`.</then>
+        <then>`codument/engineering/` SHALL be the managed implementation/maintenance knowledge registry.</then>
       </case>
     </suite>
   </requirement>
@@ -459,13 +459,13 @@
       </case>
     </suite>
   </requirement>
-  <requirement id="modeling-docs-impl-writeback">
-    <statement>系统 SHALL, at archive when modeling is enabled, write the track's design rationale into `docs/impl/` by category after merging modeling deltas.</statement>
-    <suite id="docs-impl-writeback" name="docs/impl writeback">
+  <requirement id="modeling-docs-engineering-writeback">
+    <statement>系统 SHALL, at archive when modeling is enabled, write the track's design rationale into `codument/engineering/` by category after merging modeling deltas.</statement>
+    <suite id="docs-engineering-writeback" name="codument/engineering writeback">
       <case id="category-routing">
         <given>An archived track whose design adds implementation knowledge.</given>
-        <when>The system writes back to docs/impl.</when>
-        <then>Content SHALL be routed by category (overview/howto/rules/reference/troubleshooting) per the impl fractal standard.</then>
+        <when>The system writes back to codument/engineering.</when>
+        <then>Content SHALL be routed by category (overview/howto/rules/reference/troubleshooting) per the engineering fractal standard.</then>
       </case>
     </suite>
   </requirement>
@@ -1011,21 +1011,21 @@ track 产生了可复用工作模式</then>
     </suite>
   </requirement>
   <requirement id="codument-must-provide-manual-docs-lifecycle-skills">
-    <statement>系统应当（SHALL）提供手动触发的 docs lifecycle skills，将项目知识同步到 `docs/modeling` 与 `docs/impl`，且不依赖 archive 自动流程。</statement>
+    <statement>系统应当（SHALL）提供手动触发的 docs lifecycle skills，将项目知识同步到 `codument/modeling` 与 `codument/engineering`，且不依赖 archive 自动流程。</statement>
     <suite name="codument-must-provide-manual-docs-lifecycle-skills">
       <case id="bootstrap-existing-project-docs" name="Bootstrap existing project docs">
-        <given>一个现存项目缺少符合 Codument docs fractal 规范的 `docs/modeling` 或 `docs/impl`</given>
+        <given>一个现存项目缺少符合 Codument docs fractal 规范的 `codument/modeling` 或 `codument/engineering`</given>
         <when>用户触发 `codument-docs-bootstrap`</when>
         <then>skill 指导 AI 读取项目结构、attractors、specs、README、代码与测试
-skill 指导 AI 创建或更新 `docs/modeling` 的领域/能力/行为模型文档
-skill 指导 AI 创建或更新 `docs/impl` 的实现结构、入口、数据流、运行和测试文档
+skill 指导 AI 创建或更新 `codument/modeling` 的领域/能力/行为模型文档
+skill 指导 AI 创建或更新 `codument/engineering` 的实现结构、入口、数据流、运行和测试文档
 skill 要求保留不确定项为待确认事项，不把猜测写成事实</then>
       </case>
       <case id="sync-a-specific-track-to-docs" name="Sync a specific track to docs">
         <given>用户指定一个 active 或 archived track</given>
         <when>用户触发 `codument-docs-sync-track`</when>
         <then>skill 指导 AI 读取该 track 的 proposal、spec delta、design、plan、archive summary 与相关 diff
-skill 指导 AI 仅同步该 track 造成的建模与实现变化到 `docs/modeling` 与 `docs/impl`
+skill 指导 AI 仅同步该 track 造成的建模与实现变化到 `codument/modeling` 与 `codument/engineering`
 skill 要求记录未同步原因或待确认事项</then>
       </case>
     </suite>
@@ -1135,7 +1135,7 @@ skill 要求迁移后运行 validate/list/show 相关验证</then>
     </suite>
   </requirement>
   <requirement id="engineering-registry">
-    <statement>系统 SHALL provide an engineering knowledge registry at `codument/engineering/` as an XNL working tree for long-lived implementation, maintenance, operations, reference, and troubleshooting knowledge, replacing free-form `docs/impl` as the managed source of truth when enabled.</statement>
+    <statement>系统 SHALL provide an engineering knowledge registry at `codument/engineering/` as an XNL working tree for long-lived implementation, maintenance, operations, reference, and troubleshooting knowledge as the managed source of truth when enabled.</statement>
     <suite id="engineering-registry-shape" name="Engineering registry shape">
       <case id="registry-location">
         <given>The engineering profile is enabled</given>

@@ -44,7 +44,7 @@
 3. 按下方**冲突解决策略**处理冲突。
 4. 合并结果写回 `codument/modeling` 工作树，由宿主 git 提交。`.tmp/` 临时产物不入库。
 5. 跑 `codument modeling lint`（分形拆分）。
-6. 模型把设计方案按类目回写 `docs/impl/`。
+6. 模型把设计方案按类目回写 `codument/engineering/`。
 
 ## 冲突解决策略（保守默认 + 可配）
 

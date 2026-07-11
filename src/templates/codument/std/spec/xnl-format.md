@@ -1,9 +1,3 @@
-> **Provenance（vendored 注记）**
-> - 来源：xnl-core `doc/ai-guide/XnlDataFormatForAi.md`
-> - 版本：xnl-core 0.1.7
-> - vendored 日期：2026-06-21
-> - 原因：npm 包只发布 `dist/`，`doc/` 不在包内，故 vendor 一份作为 codument 的 XNL 语法权威。
-
 # XNL 数据格式（大模型版）
 XNL（Extensible Notation Language）
 用于提示大语言模型理解与生成新版短标签的 XNL（Extensible Notation Language）。语法沿用 XML 风格起始标签，但闭合极简，便于对话/提示场景快速书写。

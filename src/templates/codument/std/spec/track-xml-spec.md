@@ -162,7 +162,7 @@ tracks/<id>/
     <TaskGroup id="P3" name="docs 同步与收尾" status="TODO" order="2">
       <Description>同步 docs，终态人工确认</Description>
       <SubNodes>
-        <Task id="T3.1" name="同步 docs/modeling 与 docs/impl" status="TODO" order="0" priority="P1">
+        <Task id="T3.1" name="同步 codument/modeling 与 codument/engineering" status="TODO" order="0" priority="P1">
           <Hooks><Hook on="task:after"><cdt:AttractorCheck use="docs"/></Hook></Hooks>
         </Task>
       </SubNodes>

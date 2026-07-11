@@ -104,7 +104,7 @@
 §3.3b 自检：写完 / 编辑 modeling_deltas 后，运行 `codument modeling validate --deltas <track_id>`；若报 error，按报告（file/line/layer/reason）修正 modeling_deltas 再继续，直到 0 error。本自检与 §3.3b 同样 gated on config/modeling.xml——modeling 未启用（无 config/modeling.xml 或 enabled=false）则跳过。
 ---- /?s3m
 ---- #if ?s3e cond="config/engineering.xml 存在且 enabled=true"
-§3.3c 参考 docs-impl-fractal 与 engineering specs，起草 engineering_deltas/<plane>/<category>/<topic>.xnl（长期工程知识目标态节点，XNL）；记录当前 codument/engineering 的宿主 git commit 作 3-way base（写入 track 元信息）。规范见 std/spec/engineering-{registry,delta,node-schema}.md。engineering 未启用则跳过。
+§3.3c 参考 docs-engineering-fractal 与 engineering specs，起草 engineering_deltas/<plane>/<category>/<topic>.xnl（长期工程知识目标态节点，XNL）；记录当前 codument/engineering 的宿主 git commit 作 3-way base（写入 track 元信息）。规范见 std/spec/engineering-{registry,delta,node-schema}.md。engineering 未启用则跳过。
 §3.3c 自检：写完 / 编辑 engineering_deltas 后，运行 `codument engineering validate --deltas <track_id>`；若报 error，按报告（file/line/layer/reason）修正 engineering_deltas 再继续，直到 0 error。本自检与 §3.3c 同样 gated on config/engineering.xml。
 ---- /?s3e
 ---- #step ?s4
@@ -549,7 +549,7 @@ proposal 获批后："现在我将根据规范创建结构化实现计划（`tra
 
 > `verify-round` 一经在 §3.7 据用户答复（G/H，缺省取全局默认 false）确定，**本 track 所有 GapLoop 节点沿用同一设置**；后续追加 phase 时新挂的 `<cdt:GapLoop>` 也沿用同一 `verify-round`。它控制「首轮 `NO_GAP` 后是否再追一轮（轻量）验证轮」，运行期语义见 `gap-loop.md` §0.2.4。
 >
-> 旧 `gap_loop_round` 不再写计划：gap-loop 轮次由父层在运行期记到 `<Metadata>` 的 `gap-round`（见 `gap-loop.md`），创建阶段无需初始化。
+> 旧 `gap_loop_round` 不再写计划：gap-loop 轮次由父层在运行期记到 `<Metadata>` 的 `<GapRound>`（见 `gap-loop.md`），创建阶段无需初始化。
 
 ### 3.8 收尾
 

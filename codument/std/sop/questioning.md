@@ -8,7 +8,7 @@
 - 当前步骤无需立即提问就直接继续。
 - 优先一次问清互不依赖的问题，减少往返；但有依赖的问题必须按决策树从最阻塞的前沿节点开始问。
 - **能查证就不问用户**：凡能从代码、测试、schema、config、现有 behaviors/modeling/engineering/decisions 中确认的问题，先查本地文件并写入 Evidence；只有用户意图、取舍偏好、不可逆策略才提问。
-- **澄清即沉淀（file-in/file-out）**：澄清过程中一旦某概念/行为/policy/架构**被澄清并稳定**，**当轮就**把它写回对应 owner registry（领域结构进 `codument/modeling`，长期工程知识进 `codument/engineering`，通过对应 delta 管理；legacy docs 只按项目配置同步），按 `knowledge-tiers.md` 路由，不要让结论只留在对话或拖到归档。未稳定的猜测留 track，不污染 owner registry。
+- **澄清即沉淀（file-in/file-out）**：澄清过程中一旦某概念/行为/policy/架构**被澄清并稳定**，**当轮就**把它写回对应 owner registry（领域结构进 `codument/modeling`，长期工程知识进 `codument/engineering`，通过对应 delta 管理；`codument/modeling` 只按项目配置同步），按 `knowledge-tiers.md` 路由，不要让结论只留在对话或拖到归档。未稳定的猜测留 track，不污染 owner registry。
 
 ## Questioning Severity
 

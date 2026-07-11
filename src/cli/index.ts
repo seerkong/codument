@@ -52,6 +52,129 @@ Examples:
 `;
 }
 
+const COMMAND_HELP: Record<string, string> = {
+  init: `
+Usage:
+  codument init [path] [options]
+
+Initialize Codument in the current project.
+
+Options:
+  --agent <names>       Comma-separated target agent skills dirs
+  --skills-dir <path>   Explicit skills destination
+  --force               Overwrite existing codument/** files
+  -h, --help            Show this help message
+`,
+  list: `
+Usage:
+  codument list [--behaviors]
+
+List active tracks or behavior registries.
+
+Options:
+  --behaviors           List behavior registry capabilities
+  -h, --help            Show this help message
+`,
+  show: `
+Usage:
+  codument show [item] [--json]
+
+Show details of a track or behavior registry item.
+
+Options:
+  --json                Print machine-readable JSON
+  -h, --help            Show this help message
+`,
+  validate: `
+Usage:
+  codument validate [item] [--strict]
+
+Validate tracks, behavior deltas, or a selected item.
+
+Options:
+  --strict              Treat warnings as failures where supported
+  -h, --help            Show this help message
+`,
+  archive: `
+Usage:
+  codument archive <track-id>
+
+Archive a completed track.
+
+Options:
+  -h, --help            Show this help message
+`,
+  status: `
+Usage:
+  codument status
+
+Show project status overview.
+
+Options:
+  -h, --help            Show this help message
+`,
+  'upgrade-workspace': `
+Usage:
+  codument upgrade-workspace [options]
+
+Refresh managed Codument workspace files and installed skill shells.
+
+Options:
+  --agent <names>       Comma-separated target agent skills dirs
+  --skills-dir <path>   Explicit skills destination
+  -h, --help            Show this help message
+`,
+  'upgrade-track': `
+Usage:
+  codument upgrade-track <track-id|archive-id> [options]
+
+Upgrade a track plan.xml to the current track.xml format.
+
+Options:
+  --mode <mode>         wave|sequential
+  --backup-dir <path>   Explicit backup destination
+  --no-backup           Do not create a backup
+  -h, --help            Show this help message
+`,
+  modeling: `
+Usage:
+  codument modeling lint [dir] [--max-lines N] [--max-nodes N]
+  codument modeling validate [dir] [--deltas <track>]
+
+Inspect and validate the modeling registry.
+
+Options:
+  -h, --help            Show this help message
+`,
+  engineering: `
+Usage:
+  codument engineering lint [dir] [--max-lines N] [--max-nodes N]
+  codument engineering validate [dir] [--deltas <track>]
+
+Inspect and validate the engineering registry.
+
+Options:
+  -h, --help            Show this help message
+`,
+  decisions: `
+Usage:
+  codument decisions validate [file|track-id]
+
+Validate decision metadata.
+
+Options:
+  -h, --help            Show this help message
+`,
+};
+
+function hasHelpFlag(args: string[]): boolean {
+  return args.some((arg) => arg === '-h' || arg === '--help');
+}
+
+function commandHelpText(command: string): string {
+  return COMMAND_HELP[command] ?? helpText();
+}
+
 async function main() {
   const args = process.argv.slice(2);
 
@@ -85,6 +208,11 @@ async function main() {
 
   const command = filteredArgs[0];
   const commandArgs = filteredArgs.slice(1);
+
+  if (hasHelpFlag(commandArgs)) {
+    console.log(commandHelpText(command));
+    process.exit(0);
+  }
 
   try {
     switch (command) {

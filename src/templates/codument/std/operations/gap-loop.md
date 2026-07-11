@@ -4,7 +4,7 @@
 
 > 本文是完整协议（口径已对齐当前标准）。**程序化的执行流程**（串行/并行/条件/循环/spawn/返回/退出）用流程标记块（` ```text ` + `@delimiter: --`，构造词汇见 `_operation-spec.md`）表达；**说明、规则、背景、示例**用 Markdown。
 >
-> 口径映射：`codument:gap-loop`→`codument-gap-loop`；`plan.xml`→`track.xml`；`validation_mode=yield-gap-loop`/`validation_granularity`→该 scope 挂 `<cdt:GapLoop>`、挂在终态 phase（final）或每个 phase（every）；`<confirm>`→`<cdt:GapLoop>`/`<cdt:HumanConfirm>` 节点；`<gap_loop_round>`→track.xml `<Metadata>` 的 `gap-round`；`spec_deltas/`→`behavior_deltas/`；`reports/`→`codument/tracks/<id>/reports/`。
+> 口径映射：`codument:gap-loop`→`codument-gap-loop`；`plan.xml`→`track.xml`；`validation_mode=yield-gap-loop`/`validation_granularity`→该 scope 挂 `<cdt:GapLoop>`、挂在终态 phase（final）或每个 phase（every）；`<confirm>`→`<cdt:GapLoop>`/`<cdt:HumanConfirm>` 节点；`<gap_loop_round>`→track.xml / mission.xml `<Metadata>` 的 `<GapRound>`；`spec_deltas/`→`behavior_deltas/`；`reports/`→`codument/tracks/<id>/reports/`。
 
 ---
 
@@ -55,6 +55,30 @@
 
 此时：当前 agent 必须先判断自己是上层 orchestrator 还是其下游 worker；若上层已声明"由它主持 fresh-round orchestration"，下游 worker **不得**再在本层私造竞争性 nested gap-loop。Codument 的 gap-loop 约束仍有效，但"谁来承担 parent orchestrator"由上层环境定义。
 
+### 0.2.1a Mission scope 路由
+
+如果用户显式执行 `codument-gap-loop <mission-id>`，或参数解析到 `codument/missions/{pending,active,archived}/<id>/mission.xml`，父层必须进入 **mission-gap-loop mode**，而不是把它当作普通 track。
+
+mission-gap-loop mode 的目标对比对象是 mission 的控制面实际态：
+
+- `mission.xml` 的 `Metadata.Status`、目录位置、TaskGroup / Task 状态、DAG 和 `cdt:TrackLink`。
+- `proposal.md` 的目标、非目标、成功判据。
+- `design.md` 的 MissionPlanner / Observer / Reconciler / Applier 设计。
+- `reports/` 历史报告与其自洽性。
+- 所有 linked track 的真实存在性、状态、验证证据和 archive 状态。
+
+mission-gap-loop 必须检查：
+
+- `cdt:TrackLink state="bound"` 能解析到真实 track：`codument/tracks/<id>/track.xml` 或 `codument/archive/**/<timestamp>-<id>/track.xml`。
+- `DONE` 任务上残留 `cdt:TrackLink state="candidate"` 是 gap，除非该任务 `SUPERSEDED` 且 report 明确说明 candidate 被取消或迁移。
+- `Metadata.Status=completed` 必须通过 impl-mission 的 completed gate；若完成证据不足，必须修正为 drift / replan / blocked，不能保留虚假的 completed。
+- mission reports 不得与 mission.xml 或真实 track 状态矛盾。
+- `completed` mission 仍留在 `active/` 不必自动判为 gap；这可以是 archive 前的临时状态。若 completed gate 通过，只提示后续可 `codument-archive-mission`。
+
+mission-gap-loop 的修正对象优先是 mission / track 结构偏差：补真实 track、修正 TrackLink 状态、创建 retrospective track、更新 report、修正 mission status 或受控重规划。只有当目标本身要求代码差异，且已有真实 track 承载该实现时，才通过 track 修复代码。
+
+进入 mission-gap-loop mode 后，父层必须使用与 track 相同的轮次字段风格：在 mission.xml `<Metadata>` 中维护 `<GapRound>`。若缺失，按 `0` 处理，并在启动第 1 轮前补入 `<GapRound>0</GapRound>`。
+
 ### 0.2.2 手动触发时的模式补齐
 
 如果用户显式执行 `codument-gap-loop <track-id>`，而当前 track 的该 scope 原本不是 gap-loop 模式（挂的是 `<cdt:HumanConfirm>`，或没挂校验节点），则父层在启动第 1 轮**之前**，必须先把 track.xml 补齐并切到 gap-loop 模式：
@@ -69,7 +93,7 @@
 定 granularity：多个 phase 已配 phase 级校验 → every_phase；否则 final_phase
 ---- /?d2
 ---- #step ?d3
-轮次初始化为 0（写 track.xml <Metadata> 的 gap-round）
+轮次初始化为 0（写 track.xml `<Metadata>` 的 `<GapRound>`）
 ---- /?d3
 ---- #if ?p1 cond="命令带 --phase <id>"
 该 phase 至少必须具备可执行的 <cdt:GapLoop>
@@ -82,13 +106,18 @@
 
 ### 0.2.3 轮次元数据
 
-该 scope 处于 gap-loop 模式时，track.xml `<Metadata>` 记录当前轮次（字段 `gap-round`，或由 `reports/` 报告序号承载）：创建/切入时为 `0`；父层**每次启动新一轮前先更新为当前 round 编号**；旧 track 缺该字段按 `0`。
+该 scope 处于 gap-loop 模式时，父层必须在对应 XML 的 `<Metadata>` 中记录当前轮次，字段统一为 `<GapRound>`：
+
+- track / phase scope：写入 track.xml `<Metadata>`。
+- mission scope：写入 mission.xml `<Metadata>`。
+
+创建/切入时为 `<GapRound>0</GapRound>`；父层**每次启动新一轮前先更新为当前 round 编号**；旧 track / mission 缺该字段按 `0`。`reports/` 报告序号只作为审计证据，不作为当前轮次字段的替代来源。
 
 ### 0.2.4 历史报告与首轮怀疑规则（verify-round 配置）
 
 父层决定是否收口时必须区分：
 
-1. **已有历史 gap-loop**：`reports/` 已有报告，或 `gap-round > 1`。
+1. **已有历史 gap-loop**：`reports/` 已有报告，或 `<GapRound> > 1`。
 2. **从未跑过 gap-loop**：`reports/` 为空或不存在，且当前是第 1 轮。
 
 对第 2 类场景（首轮 + 无历史 + `NO_GAP`），是否再 fresh-spawn 一轮「验证轮」做首轮怀疑，由 **`verify-round` 配置**决定，**不再写死强制**：
@@ -116,7 +145,7 @@
 
 ### 1.1 你是父层编排代理时，只允许做什么
 
-只允许：解析参数、确认 scope、补齐 gap-loop 模式与轮次元数据、查 `reports/` 历史、fresh-spawn 子代理、传输入/输出契约、等 XML、据 XML 决策。
+只允许：解析参数、确认 scope（track / phase / mission）、补齐 gap-loop 模式与轮次元数据、查 `reports/` 历史、fresh-spawn 子代理、传输入/输出契约、等 XML、据 XML 决策。
 
 在 fresh-spawn 子代理之前，父层**禁止**：自己读审代码实现细节、分析未提交 diff、生成 gap 结论、写 gap 报告、修正实现。
 
@@ -130,7 +159,7 @@
 @delimiter: --
 -- #loop ?rounds max="cdt:GapLoop 的 max-rounds"
 ---- #step ?s1
-解析参数 <track-id> / --phase / --background，确认本轮 scope（track 或 phase）
+解析参数 <track-id> / <mission-id> / --phase / --background，确认本轮 scope（track / phase / mission）
 ---- /?s1
 ---- #if ?s2 cond="该 scope 已被更上层 orchestrator 接管且你未被授权"
 ------ #exit ?x0
@@ -138,13 +167,13 @@
 ------ /?x0
 ---- /?s2
 ---- #step ?s3
-读 track.xml；若该 scope 非 gap-loop 模式，先按 0.2.2 补齐
+track / phase scope 读 track.xml；若该 scope 非 gap-loop 模式，先按 0.2.2 补齐。mission scope 读 mission.xml，并按 0.2.1a 确认进入 mission-gap-loop mode
 ---- /?s3
 ---- #step ?s4
-读当前 gap-round（缺失按 0）；查 codument/tracks/<id>/reports/ 历史报告；读该 scope <cdt:GapLoop> 的 verify-round（缺省取全局默认 false，见 0.2.4）
+从对应 XML `<Metadata><GapRound>` 读取当前 round（缺失按 0，并先补入 `<GapRound>0</GapRound>`）；查对应 `reports/` 历史报告；track / phase scope 读该 scope `<cdt:GapLoop>` 的 verify-round（缺省取全局默认 false，见 0.2.4）
 ---- /?s4
 ---- #step ?s5
-gap-round = gap-round + 1，写回 track.xml <Metadata>
+GapRound = GapRound + 1，写回对应 XML `<Metadata><GapRound>`：track / phase scope 写 track.xml，mission scope 写 mission.xml
 ---- /?s5
 ---- #spawn ?run as=fresh-subagent inject="按 agent 类型注入模型/档位，如 codex→gpt-5.5、effort=high；若本轮为验证轮或 FIX 复检轮则切轻量模式（更低 effort，见 §2.5）并标注'增量复检'"
 只传最小上下文（track-id、phase、background、固定输入范围、输出 XML 契约）；验证轮 / FIX 复检轮额外注入「上轮 gap 报告路径 + 本轮关注的 diff/FIX 改动范围 + 轻量模式」；等它返回结构化 XML
@@ -200,8 +229,8 @@ gap-round = gap-round + 1，写回 track.xml <Metadata>
 你只有在满足以下前提时才允许继续：
 
 - 你已经是本轮 freshly created 的专用执行者。
-- 当前 track 的该 scope 已由父层确认/补齐为 gap-loop 模式。
-- 当前 round 已由父层决定并写入 track.xml `<Metadata>`。
+- 当前 scope 已由父层确认：track / phase scope 已补齐为 gap-loop 模式；mission scope 已确认进入 mission-gap-loop mode。
+- 当前 round 已由父层决定，并已写入对应 XML 的 `<Metadata><GapRound>`：track / phase scope 写入 track.xml，mission scope 写入 mission.xml。
 - 你不是某上层 workflow 下游节点内部私造出来的竞争性 nested loop。
 
 前提不成立则**立即返回 `BLOCKED`**，并说明环境无法满足 fresh-round 执行要求。
@@ -210,11 +239,21 @@ gap-round = gap-round + 1，写回 track.xml <Metadata>
 
 必须读取：
 
+Track / phase scope：
+
 - `codument/tracks/<track-id>/proposal.md`
 - `codument/tracks/<track-id>/behavior_deltas/**/*.xml`
 - `codument/tracks/<track-id>/design.md`（如存在）
 - `codument/tracks/<track-id>/track.xml`
 - `codument/tracks/<track-id>/reports/` 下已有的历史报告（如存在）
+
+Mission scope：
+
+- `codument/missions/{pending,active,archived}/<mission-id>/proposal.md`
+- `codument/missions/{pending,active,archived}/<mission-id>/design.md`
+- `codument/missions/{pending,active,archived}/<mission-id>/mission.xml`
+- `codument/missions/{pending,active,archived}/<mission-id>/reports/` 下已有的历史报告（如存在）
+- mission.xml 中所有 `cdt:TrackLink` 指向的 active / archived track 的 `track.xml`、proposal、behavior_deltas、reports（如存在）
 
 命令提供 `--background <path>` 时继续读取背景文件。还必须检查：当前代码实现、当前未提交改动；若指定 `--phase <phase-id>`，聚焦该 phase 的目标、任务、`<cdt:Acceptance>` 验收与对应实现。
 
@@ -228,16 +267,16 @@ gap-round = gap-round + 1，写回 track.xml <Metadata>
 ------ /?rb
 ---- /?chk
 ---- #step ?a2
-读取目标文档（proposal.md、behavior_deltas/**/*.xml、design.md、track.xml）
+读取目标文档：track / phase scope 读 proposal.md、behavior_deltas/**/*.xml、design.md、track.xml；mission scope 读 proposal.md、design.md、mission.xml 与 linked tracks。
 ---- /?a2
 ---- #step ?a3
-读取 codument/tracks/<id>/reports/ 历史 gap 报告；读 --background 背景文件
+读取当前 scope 的 reports/ 历史 gap 报告；读 --background 背景文件。
 ---- /?a3
 ---- #step ?a5
-review 当前实现与未提交改动（带 --phase 则聚焦该 phase）
+review 当前实现与未提交改动；带 --phase 则聚焦该 phase；mission scope 则优先 review mission 控制面、TrackLink、linked track 状态与 completed gate。
 ---- /?a5
 ---- #step ?a6
-生成新 gap 报告 → codument/tracks/<id>/reports/track-impl-gap-report-<round>.md
+生成新 gap 报告 → track / phase scope 写 `codument/tracks/<id>/reports/track-impl-gap-report-<round>.md`；mission scope 写 `codument/missions/<state>/<id>/reports/mission-gap-loop-report-<round>.md`
 ---- /?a6
 ---- #switch ?verdict on="本轮结论"
 ------ #case ?v1 when="没有 gap"
@@ -294,7 +333,7 @@ review 当前实现与未提交改动（带 --phase 则聚焦该 phase）
 </codument-gap-loop-result>
 ```
 
-`scope` 规则：未指定 `--phase` → `<scope kind="track">...</scope>`；指定 `--phase P2` → `<scope kind="phase">P2</scope>`。
+`scope` 规则：未指定 `--phase` → `<scope kind="track">...</scope>`；指定 `--phase P2` → `<scope kind="phase">P2</scope>`；mission-gap-loop mode → `<scope kind="mission">...</scope>`，此时 `<track_id>` 字段写 mission id 以兼容旧解析器。
 
 `status` 只允许：`NO_GAP`（本轮无新增 gap）/ `FIX_APPLIED`（本轮发现并已修复，**须复检**）/ `BLOCKED`（需用户决策 / 外部输入）。
 

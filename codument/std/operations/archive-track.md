@@ -188,7 +188,7 @@ track 完成后更新行为登记表 `codument/behaviors/`（旧称 spec registr
 2. 节点级 3-way 合并（临时引擎，不持久化平行 vcs）：复用 `xnl-vfs` `xnlFileHandler.merge` / `xnl-core` `diffNodes`+`applyMutations`（`metadataIdMode:"identity"`，按 `#id` 命中）。
 3. 冲突按 `config/modeling.xml` 的 `<MergePolicy>` 处置：默认保守（`human`=issues-first 报告并暂停，不静默覆盖），可配 `ours|theirs|base`。
 4. 合并结果写回 `codument/modeling/` 工作树（宿主 git 提交）；跑 `codument modeling lint` 给分形拆分建议。
-5. 把 track 设计方案按类目回写 `docs/impl/`（overview/howto/rules/reference/troubleshooting，见 docs-impl-fractal）。
+5. 把 track 设计方案按类目回写 `codument/engineering/`（overview/howto/rules/reference/troubleshooting，见 docs-engineering-fractal）。
 
 > 详细规程见 `std/spec/modeling-delta.md`。modeling 是**结构真源**层；与 behaviors（行为契约）互不重复，modeling 节点引用 `behavior://`。
 
