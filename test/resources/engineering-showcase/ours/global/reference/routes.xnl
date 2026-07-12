@@ -1,4 +1,4 @@
-<reference #global.reference.routes.backend_route_map kind="reference" [
+<reference #global.reference.routes.backend_route_map { kind = "reference" } [
   <scope ?>backend route 到 handler 和 middleware 的映射。</?>
   <source-of-truth ?>源码 route registry。</?>
   <update-procedure ?>新增 route 或 middleware 后同步更新本 reference。</?>

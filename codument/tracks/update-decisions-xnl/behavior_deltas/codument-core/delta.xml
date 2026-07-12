@@ -1,0 +1,58 @@
+<behavior-patch capability="codument-core" version="1">
+  <upsert selector="behavior://codument-core/requirements/decision-xnl-carrier">
+    <requirement id="decision-xnl-carrier">
+      <statement>Codument SHALL use `decisions.xnl` as the default carrier for track and mission process decisions.</statement>
+      <suite id="authoring" name="决策记录生成">
+        <case id="plan-track-creates-decisions-xnl">
+          <given>用户创建一个需要过程决策或 DSL review 的 track</given>
+          <when>codument-plan-track 生成决策记录入口</when>
+          <then>系统 SHALL create `decisions.xnl` rather than root `decisions.md`</then>
+          <and>系统 SHALL put normal node properties in XNL `{}` attributes rather than metadata</and>
+        </case>
+        <case id="decision-tree-uses-nesting">
+          <given>规划过程包含决策树</given>
+          <when>系统写入决策树载体</when>
+          <then>系统 SHALL represent parent-child decision relationships with nested XNL nodes</then>
+        </case>
+        <case id="decision-options-use-wrapper">
+          <given>一个新决策点需要用户在多个候选方案中选择</given>
+          <when>系统写入或展示 decisions.xnl</when>
+          <then>系统 SHALL write exactly one &lt;options&gt; singleton under the decision's extend block</then>
+          <and>系统 SHALL write repeated &lt;option&gt; nodes inside the &lt;options&gt; node's array block</and>
+          <and>系统 SHALL keep the decision's own array block reserved for nested child decisions</and>
+          <and>each option SHALL include a title and detailed description</and>
+          <and>exactly one option SHALL be marked recommended=true when a recommendation is available</and>
+        </case>
+        <case id="decision-answer-feedback-wrapper">
+          <given>一个 decision 需要记录参与者回答以及回答后的整理信息</given>
+          <when>系统写入 decisions.xnl</when>
+          <then>系统 SHALL use exactly one &lt;answer&gt; container for answer feedback</then>
+          <and>系统 SHALL write the original response as &lt;raw-answer&gt; under &lt;answer&gt;</and>
+          <and>系统 SHALL write &lt;decision-text&gt;, &lt;rationale&gt; and &lt;evidence&gt; under the same &lt;answer&gt;</and>
+          <and>系统 SHALL keep reading legacy direct &lt;answer&gt; text nodes</and>
+        </case>
+      </suite>
+      <suite id="validation" name="决策校验">
+        <case id="validate-track-prefers-xnl">
+          <given>track 目录同时存在 `decisions.xnl` 与 legacy `decisions.md`</given>
+          <when>用户运行 `codument decisions validate &lt;track-id&gt;`</when>
+          <then>系统 SHALL validate `decisions.xnl` as the canonical carrier</then>
+          <and>系统 SHALL only use `decisions.md` as legacy fallback when `decisions.xnl` is absent</and>
+        </case>
+        <case id="pending-blocks-validation">
+          <given>`decisions.xnl` 中存在 status="pending" 且 blocks 非空的 decision</given>
+          <when>用户运行 `codument decisions validate`</when>
+          <then>系统 SHALL report an error for the unresolved blocking decision</then>
+        </case>
+      </suite>
+      <suite id="archive" name="归档提升">
+        <case id="archive-promotes-durable-xnl">
+          <given>archived track 的 `decisions.xnl` 中存在 durable_candidate=true 且 status="accepted" 的 decision</given>
+          <when>用户归档 track</when>
+          <then>系统 SHALL be able to promote the durable decision to `codument/decisions/`</then>
+          <and>系统 SHALL keep legacy `decisions.md` promotion readable for historical archives</and>
+        </case>
+      </suite>
+    </requirement>
+  </upsert>
+</behavior-patch>

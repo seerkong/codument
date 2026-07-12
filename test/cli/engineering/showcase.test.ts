@@ -17,7 +17,7 @@ describe('engineering showcase (all kinds + delta + apply effect)', () => {
 
   it('covers all default engineering kinds', () => {
     const reg = loadEngineeringRegistry(path.join(SHOW, 'base'));
-    const kinds = new Set([...reg.index.values()].map((r) => r.node.metadata.kind));
+    const kinds = new Set([...reg.index.values()].map((r) => r.node.attributes?.kind));
     for (const kind of ['overview', 'howto', 'rule', 'example', 'reference', 'troubleshooting', 'runbook', 'code-map']) {
       expect(kinds.has(kind)).toBe(true);
     }

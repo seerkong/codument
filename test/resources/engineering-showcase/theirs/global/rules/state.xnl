@@ -1,10 +1,10 @@
-<rule #global.rules.state.no_derived_writeback kind="rule" [
+<rule #global.rules.state.no_derived_writeback { kind = "rule" } [
   <rule ?>派生 projection 与 surface view 不得反写 authoritative fact。</?>
   <rationale ?>避免多个事实源同时写同一业务状态。</?>
   <enforcement ?>review 写路径；测试覆盖 projection 和 surface view 只读。</?>
 ]>
 
-<rule #global.rules.state.single_writer kind="rule" [
+<rule #global.rules.state.single_writer { kind = "rule" } [
   <rule ?>每个 authoritative fact 必须有唯一写入口。</?>
   <rationale ?>减少并发 track 修改同一事实源时的歧义。</?>
   <enforcement ?>建模节点需要引用 single_writer；实现 review 检查写路径。</?>

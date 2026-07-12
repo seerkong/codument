@@ -1,0 +1,103 @@
+<decision #track.update_decisions_xnl.dsl {
+  priority = "P0"
+  status = "accepted"
+}
+(
+  <question ?>decisions.xnl 的 DSL 是否采用单一 `<decision>` 节点模型？</?>
+  <recommendation ?>采用单一 `<decision>` 节点；顶层多个 decision 是 forest，子 decision 用 decision 自身的 `[]` 表达。</?>
+  <options { } [
+    <option { key = "A" recommended = true }
+    (
+      <title ?>只使用 `<decision>`</?>
+      <description ?>顶层多个 decision 构成 forest；树中的父子关系由 decision 自身的 `[]` 嵌套表达。</?>
+      <tradeoff ?>节点语义单一，解析器无需处理额外的 decision-tree 包装类型。</?>
+    )
+    >
+    <option { key = "B" }
+    (
+      <title ?>保留 `<decision-tree>` 包装节点</?>
+      <description ?>用包装节点表示一棵树，再在其中放置 decision 节点。</?>
+      <tradeoff ?>分组直观，但引入第二套节点语义和额外读取分支。</?>
+    )
+    >
+  ]>
+  <answer { }
+  (
+    <raw-answer ?>采用 A：只使用 `<decision>`；顶层多个 decision 是 forest。</?>
+    <decision-text ?>实现 decisions.xnl 主入口，并以 XNL attributes + extend/body 分工表达决策记录和决策树。</?>
+    <rationale ?>`<decision-tree>` 包装节点会引入第二套节点语义；XNL 已能用嵌套 `<decision>` 表达树，不需要额外包装类型。</?>
+    <evidence ?>用户要求“去掉 `<decision-tree>` 这种包装类型节点。只用 `<decision>` 节点表示决策树”。</?>
+  )
+  >
+)
+[
+  <decision #track.update_decisions_xnl.compatibility {
+    priority = "P1"
+    status = "accepted"
+    blocks = ["migration" "tests"]
+  }
+  (
+    <question ?>是否需要兼容历史 decisions.md？</?>
+    <recommendation ?>需要，读路径兼容 decisions.md；新建路径默认 decisions.xnl。</?>
+    <options { } [
+      <option { key = "A" }
+      (
+        <title ?>不兼容历史 decisions.md</?>
+        <description ?>所有历史决策文件立即迁移为 XNL，旧 Markdown 不再读取。</?>
+        <tradeoff ?>实现路径更单一，但会破坏既有 track、archive 和用户资产。</?>
+      )
+      >
+      <option { key = "B" recommended = true }
+      (
+        <title ?>保留 decisions.md fallback</?>
+        <description ?>新建记录使用 decisions.xnl；只有缺少 XNL 时才读取历史 decisions.md。</?>
+        <tradeoff ?>需要保留一条兼容读取路径，但可以渐进迁移且不破坏历史资产。</?>
+      )
+      >
+    ]>
+    <answer { }
+    (
+      <raw-answer ?>采用 B：保留 legacy fallback。</?>
+      <decision-text ?>track-id 优先解析 decisions.xnl；不存在时 fallback 到 decisions.md。</?>
+      <rationale ?>archive 中已有 decisions.md，直接破坏读取会影响历史 track 和测试。</?>
+      <evidence ?>历史 archive 和 track 已经存在 decisions.md。</?>
+    )
+    >
+  )
+  >
+]
+>
+
+<decision #track.update_decisions_xnl.syntax_partition {
+  priority = "P0"
+  status = "accepted"
+}
+(
+  <question ?>单例语义、备选方案和决策树子节点分别应该放在哪个 XNL 承载位？</?>
+  <recommendation ?>单例字段放 decision 的 `()`；decision 的 `[]` 只放子 decision；备选方案放唯一 `<options>`，由 `<options>` 自己的 `[]` 放多个 `<option>`。</?>
+  <options { } [
+    <option { key = "A" }
+    (
+      <title ?>所有子节点统一放 decision 的 `[]`</?>
+      <description ?>question、option、rationale 和子 decision 都作为 decision body array 的直接成员。</?>
+      <tradeoff ?>表面结构简单，但会混淆单例字段、选项集合和树关系，并丢失重复字段语义。</?>
+    )
+    >
+    <option { key = "B" recommended = true }
+    (
+      <title ?>按语义分区承载</?>
+      <description ?>decision 的 `()` 承载单例字段和唯一 `<options>`；`<options>` 的 `[]` 承载 option；decision 的 `[]` 只承载子 decision。</?>
+      <tradeoff ?>层级多一层，但能保留 XNL 的 singleton、collection 和 tree 三种语义，便于校验与集成。</?>
+    )
+    >
+  ]>
+  <answer { }
+  (
+    <raw-answer ?>采用 B：按语义分区承载。</?>
+    <decision-text ?>`()` 用于单例语义槽位；唯一 `<options>` 位于 `()` 中，其自身 `[]` 承载选项；decision 的 `[]` 保留给下级 `<decision>`。</?>
+    <rationale ?>用户明确要求 `<options>` 包装备选方案，并保留 decision 的 `[]` 作为决策树子节点集合。</?>
+    <evidence ?>用户指出“不能放到 `<decision>` 的 `[]` 中，之前明确强调 `[]` 留给决策树下的子决策”。</?>
+  )
+  >
+)
+>

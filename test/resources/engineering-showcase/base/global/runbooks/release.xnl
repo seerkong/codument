@@ -1,4 +1,4 @@
-<runbook #global.runbooks.release.patch_release kind="runbook" [
+<runbook #global.runbooks.release.patch_release { kind = "runbook" } [
   <preconditions ?>主分支 check 通过，变更已归档。</?>
   <steps ?>打 tag、构建、发布、检查版本。</?>
   <verification ?>安装最新包并运行 smoke command。</?>

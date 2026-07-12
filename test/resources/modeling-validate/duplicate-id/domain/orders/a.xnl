@@ -1,4 +1,4 @@
-<object #orders.order kind="entity" fact_grade="authoritative_fact" single_writer="modeling://domain/orders/order" [
+<object #orders.order { kind = "entity" fact_grade = "authoritative_fact" single_writer = "modeling://domain/orders/order" } [
   <desc ?>
   重复 id 的第一处定义。
   </?>

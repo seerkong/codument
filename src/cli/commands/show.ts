@@ -68,7 +68,7 @@ function showTrack(trackId: string, jsonOutput: boolean) {
       files: {},
     };
 
-    const files = ['proposal.md', 'track.xml', 'design.md', 'decisions.md'];
+    const files = ['proposal.md', 'track.xml', 'design.md', 'decisions.xnl', 'decisions.md'];
     for (const file of files) {
       const filePath = path.join(trackDir, file);
       if (fs.existsSync(filePath)) {
@@ -109,7 +109,7 @@ function showTrack(trackId: string, jsonOutput: boolean) {
   }
 
   console.log('\nFiles:');
-  const files = ['proposal.md', 'track.xml', 'design.md', 'decisions.md'];
+  const files = ['proposal.md', 'track.xml', 'design.md', 'decisions.xnl', 'decisions.md'];
   for (const file of files) {
     const filePath = path.join(trackDir, file);
     const exists = fs.existsSync(filePath);

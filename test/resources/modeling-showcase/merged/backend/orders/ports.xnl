@@ -1,4 +1,4 @@
-<endpoint #orders.create_order_endpoint kind="backend:endpoint" [
+<endpoint #orders.create_order_endpoint { kind = "backend:endpoint" } [
   <desc ?>
   后端 endpoint（shell 命名空间 kind）：路由 POST /orders → place_order 组件。
   </?>
@@ -7,7 +7,7 @@
   </?ts_ep>
 ]>
 
-<port #orders.create_order_port kind="port" port_kind="message" [
+<port #orders.create_order_port { kind = "port" port_kind = "message" } [
   <desc ?>
   下单入口端口：HTTP POST /orders，跨边界 message（异步、可重试）。
   </?>

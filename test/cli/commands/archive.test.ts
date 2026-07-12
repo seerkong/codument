@@ -125,6 +125,62 @@ describe('codument archive', () => {
     expect(fs.existsSync(path.join(ws, 'codument', 'memory'))).toBe(false);
   });
 
+  it('promotes durable root decisions.xnl records', async () => {
+    const repoRoot = path.resolve(__dirname, '../../..');
+    const cliEntry = path.join(repoRoot, 'src/cli/index.ts');
+    const ws = makeTempDir('codument-archive-xnl-decision-ws-');
+    const trackId = 'archive-xnl-decision';
+    const trackDir = path.join(ws, 'codument', 'tracks', trackId);
+
+    writeAttractorProfiles(ws, false);
+    writeTrackXml(trackDir, trackId);
+    writeFile(path.join(trackDir, 'proposal.md'), '# Proposal\n\nXNL decision archive behavior.\n');
+    writeFile(path.join(trackDir, 'decisions.xnl'), `<decision #track.archive_xnl_decision.promote_durable {
+  status = "accepted"
+  blocks = []
+  durable_candidate = true
+}
+(
+  <question ?>Promote this decision?</?>
+  <evidence ?>The user approved decisions.xnl as the canonical carrier.</?>
+  <confidence ?>0.94</?>
+  <reversibility ?>moderate</?>
+)>
+`);
+
+    const proc = Bun.spawn([
+      'bun',
+      'run',
+      cliEntry,
+      '--workspace-dir',
+      ws,
+      'archive',
+      trackId,
+      '--yes',
+      '--skip-specs',
+    ], {
+      cwd: repoRoot,
+      stdout: 'pipe',
+      stderr: 'pipe',
+    });
+
+    const exitCode = await proc.exited;
+    const err = await new Response(proc.stderr).text();
+    expect(err).toBe('');
+    expect(exitCode).toBe(0);
+
+    const decisionRoot = path.join(ws, 'codument', 'decisions', '2026-05');
+    const decisionDir = fs.readdirSync(decisionRoot)[0];
+    const promoted = fs.readFileSync(path.join(decisionRoot, decisionDir, 'decision.md'), 'utf-8');
+    expect(promoted).toContain('Decision URI: decision://track.archive_xnl_decision.promote_durable');
+    expect(promoted).toContain('Evidence: The user approved decisions.xnl as the canonical carrier.');
+    const archiveRoot = path.join(ws, 'codument', 'archive', '2026-05');
+    const archived = fs.readdirSync(archiveRoot).find((name) => name.endsWith(trackId))!;
+    expect(fs.readFileSync(path.join(archiveRoot, archived, 'summary.md'), 'utf-8')).toContain(
+      'track.archive_xnl_decision.promote_durable',
+    );
+  });
+
   it('promotes decision directory entries with stable decision.md files and unique decision URIs', async () => {
     const repoRoot = path.resolve(__dirname, '../../..');
     const cliEntry = path.join(repoRoot, 'src/cli/index.ts');

@@ -1,1 +1,1 @@
-<object #resource.x kind="entity" a="1">
+<object #resource.x { kind = "entity" a = "1" }>

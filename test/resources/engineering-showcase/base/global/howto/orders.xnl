@@ -1,4 +1,4 @@
-<howto #global.howto.orders.add_endpoint kind="howto" related=["modeling://domain/orders/order" "behavior://codument-core/requirements/engineering-registry"] [
+<howto #global.howto.orders.add_endpoint { kind = "howto" related = ["modeling://domain/orders/order" "behavior://codument-core/requirements/engineering-registry"] } [
   <desc ?>新增订单接口的标准步骤。</?>
   <when-to-use ?>需要新增 backend endpoint 并接入行为契约时使用。</?>
   <steps ?>

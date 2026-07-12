@@ -33,7 +33,7 @@ Commands:
   modeling validate Validate modeling XNL (syntax + schema + hierarchy)
   engineering lint  Flag oversized engineering XNL files for fractal split
   engineering validate Validate engineering XNL (syntax + schema + hierarchy)
-  decisions validate Validate track decisions.md metadata
+  decisions validate Validate track decisions.xnl (legacy decisions.md supported)
 
 Options:
   -h, --help              Show this help message
@@ -160,7 +160,7 @@ Options:
 Usage:
   codument decisions validate [file|track-id]
 
-Validate decision metadata.
+Validate decision records in decisions.xnl, or legacy decisions.md.
 
 Options:
   -h, --help            Show this help message

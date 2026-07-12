@@ -1,4 +1,4 @@
-<object #inventory.stock kind="entity" fact_grade="authoritative_fact" single_writer="modeling://domain/inventory/inventory" [
+<object #inventory.stock { kind = "entity" fact_grade = "authoritative_fact" single_writer = "modeling://domain/inventory/inventory" } [
   <desc ?>
   id 命名空间 context = inventory，但文件路径 context = orders，错位。
   </?>

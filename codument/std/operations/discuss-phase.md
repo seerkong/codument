@@ -4,7 +4,7 @@
 
 > 本文是完整提示词（口径已对齐当前标准）。**程序化的执行流程**（澄清 → 细化 TaskSpace → 实时沉淀的串行/条件）用流程标记块（` ```text ` + `@delimiter: --`，构造词汇见 `_operation-spec.md`）表达；**说明、规则、背景、示例**用 Markdown，内嵌 XML 用 ```` ```xml ```` 围栏。
 >
-> 口径映射：旧 `codument-discuss` 的 phase 细化能力→`codument-discuss-phase`；`plan.xml`→`track.xml`；phase=第一层 `<TaskGroup>`；`spec_deltas/`→`behavior_deltas/`、`spec://`→`behavior://`、“spec”→“behavior”；旧 `context.md` 的"讨论记录"不再是独立产物，而是**落进 `track.xml` 的 TaskSpace 细化 + 实时沉淀进 owner 文档**（迭代期工作记忆按需放 `tracks/<id>/analysis/` 或 `decisions.md`）；`<gate_criteria>`→`<cdt:Gate>`、`<acceptance_criteria>`→`<cdt:Acceptance>`；并行调度标 `cdt:child-mode="dag"` 交给 `plan-track-wave`。
+> 口径映射：旧 `codument-discuss` 的 phase 细化能力→`codument-discuss-phase`；`plan.xml`→`track.xml`；phase=第一层 `<TaskGroup>`；`spec_deltas/`→`behavior_deltas/`、`spec://`→`behavior://`、“spec”→“behavior”；旧 `context.md` 的"讨论记录"不再是独立产物，而是**落进 `track.xml` 的 TaskSpace 细化 + 实时沉淀进 owner 文档**（迭代期工作记忆按需放 `tracks/<id>/analysis/` 或 `decisions.xnl`，旧 track 兼容 `decisions.md`）；`<gate_criteria>`→`<cdt:Gate>`、`<acceptance_criteria>`→`<cdt:Acceptance>`；并行调度标 `cdt:child-mode="dag"` 交给 `plan-track-wave`。
 
 ---
 
@@ -79,7 +79,7 @@ discuss 同时承担两件事，缺一不可：
    - 输入物料（该 phase `<Ports><MaterialBundle role="input">`，如有声明）。
    - 现有调度（`cdt:child-mode`、`<Schedule><Dag>`，如有声明）。
 
-3. **读取迭代期工作记忆：** 若 `tracks/<id>/analysis/`、`decisions.md` 已存在，加载之前的分析/决策记录作为背景。
+3. **读取迭代期工作记忆：** 若 `tracks/<id>/analysis/`、`decisions.xnl` 已存在，加载之前的分析/决策记录作为背景；旧 track 兼容读取 `decisions.md`。
 
 ### 3.2 引导讨论（澄清 → 细化 → 实时沉淀）
 
@@ -160,7 +160,7 @@ discuss 同时承担两件事，缺一不可：
 </TaskGroup>
 ```
 
-> 旧产物对照：旧的 `context.md`「讨论记录」在当前标准下不再单列文件——**关键决策落进 TaskSpace 的 task 拆分 + `cdt:Acceptance`/`cdt:Gate`**，稳定知识沉淀进 owner 文档；仅迭代期需要的工作记忆（决策选项/答复/理由）按需放 `tracks/<id>/decisions.md` 或 `analysis/`。
+> 旧产物对照：旧的 `context.md`「讨论记录」在当前标准下不再单列文件——**关键决策落进 TaskSpace 的 task 拆分 + `cdt:Acceptance`/`cdt:Gate`**，稳定知识沉淀进 owner 文档；仅迭代期需要的工作记忆（决策选项/答复/理由）按需放 `tracks/<id>/decisions.xnl` 或 `analysis/`，旧 `decisions.md` 只作兼容 fallback。
 
 ### 3.4 实时沉淀稳定结论（澄清即沉淀）
 
@@ -184,10 +184,10 @@ discuss 中一旦把某领域概念/行为/policy/架构澄清到**稳定**（�
 记进 behavior_deltas/<cap>/delta.xml（<behavior-patch>），归档时提升进 behaviors/
 ---- /?behavior
 ---- #case ?decision when="一次性取舍变为以后都按此来的承重决策"
-落 tracks/<id>/decisions.md（archive-ready 的进 decisions/，可提升 decision://）
+落 tracks/<id>/decisions.xnl（archive-ready 的标 `durable_candidate = true`，旧 track 可兼容 decisions/，可提升 decision://）
 ---- /?decision
 ---- #default ?unstable
-未稳定的猜测/被否决方案 → 留 track（analysis/decisions.md），不污染 owner 文档
+未稳定的猜测/被否决方案 → 留 track（analysis/ 或 decisions.xnl），不污染 owner 文档
 ---- /?unstable
 -- /?promote
 ```

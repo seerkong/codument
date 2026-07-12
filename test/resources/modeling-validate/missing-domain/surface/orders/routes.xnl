@@ -1,4 +1,4 @@
-<route #orders.checkout_route kind="surface:route" [
+<route #orders.checkout_route { kind = "surface:route" } [
   <desc ?>
   registry 里只有 surface plane、没有 domain plane，应当 error（domain 必存在）。
   </?>

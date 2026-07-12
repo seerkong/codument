@@ -78,7 +78,7 @@ function pathLoc(relFile: string): PathLoc {
   return { plane, category, topic };
 }
 
-function collectRefs(meta: AttributeMap | undefined): string[] {
+function collectRefs(attrs: AttributeMap | undefined): string[] {
   const out: string[] = [];
   const visit = (v: unknown): void => {
     if (typeof v === 'string') {
@@ -100,8 +100,15 @@ function collectRefs(meta: AttributeMap | undefined): string[] {
       for (const item of Object.values(v as Record<string, unknown>)) visit(item);
     }
   };
-  if (meta) for (const v of Object.values(meta)) visit(v);
+  if (attrs) for (const v of Object.values(attrs)) visit(v);
   return out;
+}
+
+function collectNodeRefs(node: DataElementNode): string[] {
+  return [
+    ...collectRefs(node.attributes),
+    ...collectRefs(node.metadata),
+  ];
 }
 
 function checkIdPathAlignment(node: DataElementNode, relFile: string, loc: PathLoc): ValidateFinding[] {
@@ -154,7 +161,7 @@ function checkReferences(node: DataElementNode, relFile: string, knownEngineerin
   const id = readNodeId(node);
   const where = id ? `#${id}` : `<${node.tag}>`;
 
-  for (const ref of collectRefs(node.metadata)) {
+  for (const ref of collectNodeRefs(node)) {
     if (ref.startsWith(ENGINEERING_SCHEME)) {
       if (!knownEngineeringUris.has(ref)) {
         findings.push({

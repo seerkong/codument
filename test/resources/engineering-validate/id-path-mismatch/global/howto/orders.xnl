@@ -1,4 +1,4 @@
-<howto #backend.howto.orders.add_endpoint kind="howto" [
+<howto #backend.howto.orders.add_endpoint { kind = "howto" } [
   <when-to-use ?>新增 endpoint。</?>
   <steps ?>写代码。</?>
   <verification ?>跑测试。</?>

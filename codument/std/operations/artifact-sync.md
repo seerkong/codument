@@ -57,7 +57,7 @@
 - `design.md` 与 `design/`
 - `behavior_deltas/**/*.xml`（旧 track 兼容 `spec.md`）
 - `track.xml`
-- `decisions/*.md`（旧 track 兼容 `decisions.md`）
+- `decisions.xnl`（旧 track 兼容 `decisions.md` 与 `decisions/*.md`）
 - `reports/*.md`
 - archive 中的 `summary.md`
 

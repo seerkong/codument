@@ -1,0 +1,60 @@
+<decision-tree #track.fix_xnl_authoring_misuse.review {
+  kind = "decision-tree"
+  status = "accepted"
+  severity = "light"
+  root = "track.fix_xnl_authoring_misuse.root"
+}
+[
+  <decision #track.fix_xnl_authoring_misuse.root {
+    kind = "planning-decision"
+    priority = "P0"
+    status = "accepted"
+    blocks = ["proposal.md" "design.md" "track.xml"]
+    frontier = false
+    durable_candidate = false
+    confidence = 0.94
+    reversibility = "easy"
+  }
+  (
+    <question ?>是否需要独立 track 追踪历史 XNL 误用修正？</?>
+    <recommendation ?>需要。把 metadata/attribute 误用与 `()`/`[]` 误用放进同一条 XNL authoring cleanup track。</?>
+    <answer ?>是。用户明确要求另新创建一个 track。</?>
+    <rationale ?>这类问题跨规范、模板、测试资源和 DSL，不适合混在 `update-decisions-xnl` 的实现 track 里。</?>
+    <evidence ?>用户指出 decision tree 设计不符合 XNL 形式，并要求排查过去是否有类似问题。</?>
+  )
+  [
+    <decision #track.fix_xnl_authoring_misuse.metadata_attributes {
+      kind = "planning-decision"
+      priority = "P0"
+      status = "accepted"
+      blocks = ["docs" "fixtures" "tests"]
+      frontier = false
+      durable_candidate = false
+      confidence = 0.9
+      reversibility = "moderate"
+    }
+    (
+      <question ?>是否把历史 metadata/attribute 放错位置的问题纳入本 track？</?>
+      <answer ?>是。</?>
+      <rationale ?>用户明确要求“顺手把刚刚你修的历史xnl使用 metadata, attribute放错位置的问题也放到这个track中”。</?>
+    )
+    >
+    <decision #track.fix_xnl_authoring_misuse.extend_array {
+      kind = "planning-decision"
+      priority = "P0"
+      status = "accepted"
+      blocks = ["xnl-format" "decision-dsl" "lint"]
+      frontier = false
+      durable_candidate = false
+      confidence = 0.92
+      reversibility = "easy"
+    }
+    (
+      <question ?>是否把单例子节点误用 `[]` 的问题纳入本 track？</?>
+      <answer ?>是。</?>
+      <rationale ?>这是同一类“没有按 XNL 数据结构语义建模”的 authoring 问题。</?>
+    )
+    >
+  ]
+  >
+]>

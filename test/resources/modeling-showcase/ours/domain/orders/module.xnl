@@ -1,4 +1,4 @@
-<module #orders.orders_module kind="module" depends_on=["modeling://domain/inventory/inventory" "modeling://domain/orders/order"] [
+<module #orders.orders_module { kind = "module" depends_on = ["modeling://domain/inventory/inventory" "modeling://domain/orders/order"] } [
   <desc ?>
   订单模块：拥有 order 聚合的写入边界，编排下单流程。
   </?>
@@ -23,7 +23,7 @@
   </?>
 ]>
 
-<component #orders.place_order kind="component" [
+<component #orders.place_order { kind = "component" } [
   <desc ?>
   下单标准组件：output = fn(runtime, input, config)。
   </?>
@@ -44,7 +44,7 @@
   <output ?out>
   interface PlaceOrderOutput { order: Order }
   </?out>
-  <pseudo kind="ctrl" ?ctrl>
+  <pseudo { kind = "ctrl" } ?ctrl>
   function placeOrder(runtime, input, config) {
     const reserved = send(runtime.inventory, ReserveStock(input.cart))  // message, 异步
     if (!reserved.ok && !config.allowBackorder) return fail("out_of_stock")

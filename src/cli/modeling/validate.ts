@@ -50,7 +50,7 @@ export interface ValidateOptions {
 /** Planes with a fixed meaning; anything else is treated as an open derived plane. */
 const KNOWN_PLANES = new Set(['domain', 'backend', 'surface', 'cli', 'agent']);
 
-/** Reference scheme prefixes we recognise in metadata values. */
+/** Reference scheme prefixes we recognise in node attribute values. */
 const MODELING_SCHEME = 'modeling://';
 const BEHAVIOR_SCHEME = 'behavior://';
 
@@ -74,8 +74,8 @@ function pathLoc(relFile: string, mode: ValidateMode): PathLoc {
   return { plane, context };
 }
 
-/** Collect every `modeling://` / `behavior://` string anywhere in a metadata map. */
-function collectRefs(meta: AttributeMap | undefined): string[] {
+/** Collect every `modeling://` / `behavior://` string anywhere in an attribute map. */
+function collectRefs(attrs: AttributeMap | undefined): string[] {
   const out: string[] = [];
   const visit = (v: unknown): void => {
     if (typeof v === 'string') {
@@ -91,8 +91,15 @@ function collectRefs(meta: AttributeMap | undefined): string[] {
       for (const item of Object.values(v as Record<string, unknown>)) visit(item);
     }
   };
-  if (meta) for (const v of Object.values(meta)) visit(v);
+  if (attrs) for (const v of Object.values(attrs)) visit(v);
   return out;
+}
+
+function collectNodeRefs(node: DataElementNode): string[] {
+  return [
+    ...collectRefs(node.attributes),
+    ...collectRefs(node.metadata),
+  ];
 }
 
 /** Validate id↔path alignment for one node; returns hierarchy findings. */
@@ -152,7 +159,7 @@ function checkReferences(
   const findings: ValidateFinding[] = [];
   const id = readNodeId(node);
   const where = id ? `#${id}` : `<${node.tag}>`;
-  for (const ref of collectRefs(node.metadata)) {
+  for (const ref of collectNodeRefs(node)) {
     if (ref.startsWith(MODELING_SCHEME)) {
       if (!knownUris.has(ref)) {
         findings.push({

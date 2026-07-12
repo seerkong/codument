@@ -19,6 +19,10 @@ import { loadEngineeringRegistry, saveEngineeringFile } from '../engineering/reg
 import { mergeEngineering, type MergeConflict } from '../engineering/merge';
 import { applySpecXmlPatchToRegistry } from '../utils/spec-xml';
 import { buildArchiveDestination, formatLocalMinutePrefix, resolveTrackUpdatedDate } from '../utils/track-time';
+import {
+  readXnlDecisionRecords,
+  type XnlDecisionRecord,
+} from './decisions';
 
 export async function archiveCommand(args: string[]) {
   if (!codumentExists()) {
@@ -339,9 +343,49 @@ function decisionUriForSlug(slug: string): string {
   return `decision://${slug}`;
 }
 
+function durableXnlDecisionRecords(file: string): XnlDecisionRecord[] {
+  return readXnlDecisionRecords(file).filter(record =>
+    record.durableCandidate &&
+    record.status !== undefined &&
+    ['accepted', 'resolved'].includes(record.status)
+  );
+}
+
+function formatXnlDecisionArtifact(record: XnlDecisionRecord, archiveId: string): string {
+  const lines = [
+    `# Decision: ${record.id}`,
+    '',
+    `Decision URI: ${decisionUriForSlug(record.id)}`,
+    `Source: archive://${archiveId}`,
+    '',
+    `Status: ${record.status ?? ''}`,
+    `Durable candidate: ${record.durableCandidate ? 'yes' : 'no'}`,
+  ];
+  if (record.evidence) lines.push(`Evidence: ${record.evidence}`);
+  if (record.confidence) lines.push(`Confidence: ${record.confidence}`);
+  if (record.reversibility) lines.push(`Reversibility: ${record.reversibility}`);
+  lines.push('');
+  return lines.join('\n');
+}
+
 function promoteDecisionRecord(archiveDir: string, archiveId: string, trackId: string, updatedDate: Date): string | null {
   const decisionsDir = path.join(archiveDir, 'decisions');
   if (!fs.existsSync(decisionsDir) || !fs.statSync(decisionsDir).isDirectory()) {
+    const xnlPath = path.join(archiveDir, 'decisions.xnl');
+    if (fs.existsSync(xnlPath)) {
+      let promoted: string | null = null;
+      for (const record of durableXnlDecisionRecords(xnlPath)) {
+        promoted = writePromotedArtifact(
+          DECISIONS_DIR,
+          'decision.md',
+          record.id,
+          updatedDate,
+          formatXnlDecisionArtifact(record, archiveId),
+        );
+      }
+      return promoted;
+    }
+
     // legacy fallback: single decisions.md file
     const legacyPath = path.join(archiveDir, 'decisions.md');
     if (!fs.existsSync(legacyPath)) {
@@ -401,6 +445,18 @@ function promoteDecisionRecord(archiveDir: string, archiveId: string, trackId: s
 function generateArchiveSummary(archiveDir: string, trackId: string): string | null {
   const decisionsDir = path.join(archiveDir, 'decisions');
   if (!fs.existsSync(decisionsDir) || !fs.statSync(decisionsDir).isDirectory()) {
+    const xnlPath = path.join(archiveDir, 'decisions.xnl');
+    if (fs.existsSync(xnlPath)) {
+      const records = readXnlDecisionRecords(xnlPath);
+      if (records.length === 0) {
+        return null;
+      }
+      const lines = [`# Archive Summary: ${trackId}`, '', ...records.map(record => `- ${record.id}`), ''];
+      const summaryPath = path.join(archiveDir, 'summary.md');
+      fs.writeFileSync(summaryPath, lines.join('\n'), 'utf-8');
+      return summaryPath;
+    }
+
     const legacyPath = path.join(archiveDir, 'decisions.md');
     if (!fs.existsSync(legacyPath)) {
       return null;

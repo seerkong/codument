@@ -94,7 +94,7 @@
    - `proposal.md`、`design.md`（如存在）。
    - `behavior_deltas/**/*.xml`（行为增量；旧 track 兼容读 `spec.md`）。
    - `analysis/findings.md`、`analysis/knowledge.md`（如存在；长程事实锚，续跑时优先读）。
-   - `decisions.md`（如存在；包含用户拍板与执行期决策）。
+   - `decisions.xnl`（如存在；包含用户拍板与执行期决策；旧 track 兼容读取 `decisions.md`）。
    - 方法论：`codument/std/sop/tdd.md`。
    - 调度套路：`codument/std/sop/wave-exec.md`。
 4. **识别提交模式**：从 `<Metadata><CommitMode>` 取 `auto|manual`。
@@ -257,7 +257,7 @@ spot-check 通过后，auto 模式创建任务/wave 检查点；manual 模式输
 @delimiter: --
 -- #sequence ?subagent
 ---- #step ?g1
-读取 input MaterialBundle、前置产物、behavior_deltas、cdt:Acceptance、tdd.md、analysis/findings.md、decisions.md（如存在）
+读取 input MaterialBundle、前置产物、behavior_deltas、cdt:Acceptance、tdd.md、analysis/findings.md、decisions.xnl（如存在；旧 track 兼容 decisions.md）
 ---- /?g1
 ---- #step ?g2
 按 tdd.md 方法论执行：据 behavior delta 的 suite/case（given/when/then）与 cdt:Acceptance 写失败测试 → 最小实现通过 → 重构；重构/类型/迁移类任务先补 characterization 或等价行为基线，再改实现（非 TDD 适用场景可降级，但行为用例仍是验收依据）

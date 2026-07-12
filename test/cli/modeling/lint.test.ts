@@ -9,7 +9,7 @@ function tmpDir(): string {
 }
 
 function entity(id: string): string {
-  return `<object #resource.${id} kind="entity" fact_grade="surface_view" single_writer="r.s" [ <types ?t>x</?t> ]>`;
+  return `<object #resource.${id} { kind = "entity" fact_grade = "surface_view" single_writer = "r.s" } [ <types ?t>x</?t> ]>`;
 }
 
 describe('modeling lint (fractal-split)', () => {
@@ -36,7 +36,7 @@ describe('modeling lint (fractal-split)', () => {
     const dir = tmpDir();
     fs.mkdirSync(path.join(dir, 'domain', 'resource'), { recursive: true });
     // one entity with a long prose block (many lines), few nodes
-    const longProse = '<object #r.big kind="entity" fact_grade="surface_view" single_writer="r.s" [ <desc ?p>\n' +
+    const longProse = '<object #r.big { kind = "entity" fact_grade = "surface_view" single_writer = "r.s" } [ <desc ?p>\n' +
       Array.from({ length: 30 }, (_, i) => `line ${i}`).join('\n') +
       '\n</?p> <types ?t>x</?t> ]>';
     fs.writeFileSync(path.join(dir, 'domain', 'resource', 'index.xnl'), longProse);

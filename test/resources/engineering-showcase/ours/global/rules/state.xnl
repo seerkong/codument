@@ -1,4 +1,4 @@
-<rule #global.rules.state.no_derived_writeback kind="rule" [
+<rule #global.rules.state.no_derived_writeback { kind = "rule" } [
   <rule ?>派生 projection 不得反写 authoritative fact。</?>
   <rationale ?>避免多个事实源同时写同一业务状态。</?>
   <enforcement ?>review 写路径；测试覆盖 projection 只读。</?>

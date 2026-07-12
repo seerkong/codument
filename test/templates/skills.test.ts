@@ -122,4 +122,19 @@ describe('codument skill templates', () => {
     expect(skill).toContain('与用户对话澄清');
     expect(skill).not.toContain('使用 `codument/analysis/` 作为临时 scratch');
   });
+
+  it('uses XNL decision files in decision-tree skill templates', () => {
+    const skill = fs.readFileSync(
+      path.join(ROOT, 'src', 'templates', 'skills', 'codument-decision-tree', 'SKILL.md'),
+      'utf-8'
+    );
+
+    expect(skill).toContain('analysis/decision-tree.xnl');
+    expect(skill).toContain('decisions.xnl');
+    expect(skill).toContain('父子关系只用 decision 自身的 `[]` 嵌套 `<decision>` 表达');
+    expect(skill).toContain('recommended = true');
+    expect(skill).toContain('<raw-answer>');
+    expect(skill).not.toContain('analysis/decision-tree.md');
+    expect(skill).not.toContain('回写 decisions.md');
+  });
 });

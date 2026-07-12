@@ -35,13 +35,13 @@ function childTags(node: DataElementNode): Set<string> {
   return new Set(bodyChildren(node).map((c) => c.tag));
 }
 
-function metaString(node: DataElementNode, key: string): string | undefined {
-  const v = node.metadata?.[key];
+function propString(node: DataElementNode, key: string): string | undefined {
+  const v = node.attributes?.[key] ?? node.metadata?.[key];
   return typeof v === 'string' ? v : undefined;
 }
 
 export function nodeKind(node: DataElementNode): string | undefined {
-  return metaString(node, 'kind');
+  return propString(node, 'kind');
 }
 
 export function validateEngineeringNode(node: XnlNode): string[] {

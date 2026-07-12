@@ -34,6 +34,7 @@ codument/modeling/
 节点 schema 详规见 `std/spec/modeling-node-schema.md`。要点：
 
 - **kind 谱系**：越靠内核越用 DEPA 跨领域概念（裸名 kind：`entity`/`enum`/`state-machine`/`module`/`component`/`port`/`actor`/`policy`）；越靠 shell 越用命名空间领域 kind（`surface:route`/`backend:endpoint`/`cli:command`…）。
+- **节点属性承载**：`kind`、`fact_grade`、`single_writer`、`depends_on` 等常规语义属性写进 XNL `{}` 属性块；metadata 只留给系统级解析/合并字段。
 - **最小必备表征**（CLI 校验）：`entity` 必带 `types`+`fact_grade`+`single_writer`；`state-machine` 必带 `mermaid`；`module` 必带 `depends_on`+capsule-tree（**到文件/符号级**，非仅 contract/logic/support）；`component` 必带 `runtime`/`input`/`config`/`output` 四个 `types` 块。
 - **不重复 behaviors**：可测行为契约归 `behaviors`；modeling 的 behavior/policy 节点**引用 `behavior://…`**，不复述 case。
 

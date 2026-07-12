@@ -13,7 +13,11 @@
 
 ```xnl
 <!-- tracks/<id>/modeling_deltas/domain/resource.xnl -->
-<object #resource.skill_tool kind="entity" fact_grade="authoritative_fact" single_writer="resource.store" [
+<object #resource.skill_tool {
+  kind = "entity"
+  fact_grade = "authoritative_fact"
+  single_writer = "resource.store"
+} [
   <desc ?>聚合型资源：可编辑/打包/恢复的文本文件集合。</?>
   <types ?ts1>
   interface SkillTool { key: string; appId: string; status: SkillToolStatus; isArchived: boolean }

@@ -1,4 +1,4 @@
-<actor #inventory.inventory kind="actor" single_writer="modeling://domain/inventory/inventory" [
+<actor #inventory.inventory { kind = "actor" single_writer = "modeling://domain/inventory/inventory" } [
   <desc ?>
   库存 actor：拥有 stock 子图的唯一写入边界；外部经 message 进入，不直写。偏重 = data-owner。
   </?>
@@ -12,7 +12,7 @@
   </?cmd>
 ]>
 
-<object #inventory.stock kind="entity" fact_grade="authoritative_fact" single_writer="modeling://domain/inventory/inventory" [
+<object #inventory.stock { kind = "entity" fact_grade = "authoritative_fact" single_writer = "modeling://domain/inventory/inventory" } [
   <desc ?>
   SKU 库存量，由 inventory actor 单写。【并发 track 新增多仓位】
   </?>

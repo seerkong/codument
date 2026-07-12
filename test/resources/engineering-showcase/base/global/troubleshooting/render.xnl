@@ -1,4 +1,4 @@
-<troubleshooting #global.troubleshooting.render.blank_screen kind="troubleshooting" [
+<troubleshooting #global.troubleshooting.render.blank_screen { kind = "troubleshooting" } [
   <symptoms ?>页面空白且控制台无明显业务错误。</?>
   <diagnosis ?>检查路由 lazy chunk、runtime config、hydration 日志。</?>
   <fix ?>先恢复配置，再补 smoke test。</?>

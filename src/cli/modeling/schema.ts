@@ -3,7 +3,7 @@ import { isDataElement, readNodeId, type ModelingRegistry } from './registry';
 
 /**
  * Node schema validation for the modeling registry: kind vocabulary, minimal
- * required representations per kind, fact-source metadata, and namespaced ids.
+ * required representations per kind, fact-source attributes, and namespaced ids.
  * See std/spec/modeling-node-schema.md.
  */
 
@@ -60,32 +60,32 @@ function hasChildDeep(node: DataElementNode, tag: string): boolean {
 
 /**
  * Whether a component declares the given IO slot, accepting either the canonical
- * bare tag (`<runtime>` …) or the role-tagged compat form (`<types role="runtime">`).
+ * bare tag (`<runtime>` …) or the role-tagged compat form (`<types { role = "runtime" }>`).
  * Bare tags are spec-recommended; role-tagged is accepted-but-discouraged.
  */
 function hasIoSlot(node: DataElementNode, slot: string): boolean {
   for (const child of bodyChildren(node)) {
     if (child.tag === slot) return true;
     if (child.tag === 'types') {
-      const role = child.metadata?.['role'];
+      const role = child.attributes?.['role'] ?? child.metadata?.['role'];
       if (typeof role === 'string' && role === slot) return true;
     }
   }
   return false;
 }
 
-function hasMeta(node: DataElementNode, key: string): boolean {
-  const v = node.metadata?.[key];
+function hasProp(node: DataElementNode, key: string): boolean {
+  const v = node.attributes?.[key] ?? node.metadata?.[key];
   return v !== undefined && v !== null && v !== '';
 }
 
-function metaString(node: DataElementNode, key: string): string | undefined {
-  const v = node.metadata?.[key];
+function propString(node: DataElementNode, key: string): string | undefined {
+  const v = node.attributes?.[key] ?? node.metadata?.[key];
   return typeof v === 'string' ? v : undefined;
 }
 
 export function nodeKind(node: DataElementNode): string | undefined {
-  return metaString(node, 'kind');
+  return propString(node, 'kind');
 }
 
 /** Validate one modeling node; returns a list of error messages (empty = ok). */
@@ -118,8 +118,8 @@ export function validateModelingNode(node: XnlNode): string[] {
     case 'entity':
     case 'object':
       req(tags.has('types'), 'entity requires a <types> representation');
-      req(hasMeta(node, 'fact_grade'), 'entity requires fact_grade');
-      req(hasMeta(node, 'single_writer'), 'entity requires single_writer');
+      req(hasProp(node, 'fact_grade'), 'entity requires fact_grade');
+      req(hasProp(node, 'single_writer'), 'entity requires single_writer');
       break;
     case 'enum':
       req(tags.has('types'), 'enum requires a <types> representation');
@@ -129,7 +129,7 @@ export function validateModelingNode(node: XnlNode): string[] {
       break;
     case 'module':
     case 'capsule':
-      req(hasMeta(node, 'depends_on'), 'module requires depends_on');
+      req(hasProp(node, 'depends_on'), 'module requires depends_on');
       req(tags.has('capsule-tree'), 'module requires a <capsule-tree>');
       break;
     case 'component':
@@ -142,7 +142,7 @@ export function validateModelingNode(node: XnlNode): string[] {
       break;
   }
 
-  const fg = metaString(node, 'fact_grade');
+  const fg = propString(node, 'fact_grade');
   if (fg !== undefined && !(FACT_GRADES as readonly string[]).includes(fg)) {
     errors.push(`${where}: invalid fact_grade '${fg}'`);
   }

@@ -1,4 +1,4 @@
-<object #orders.order kind="entity" fact_grade="authoritative_fact" single_writer="modeling://domain/orders/orders_module" [
+<object #orders.order { kind = "entity" fact_grade = "authoritative_fact" single_writer = "modeling://domain/orders/orders_module" } [
   <desc ?>
   一张订单：从下单到履约的聚合根。状态由事件投影，金额是只读派生。
   </?>
@@ -24,13 +24,13 @@
   </?>
 ]>
 
-<enum #orders.order_status kind="enum" [
+<enum #orders.order_status { kind = "enum" } [
   <types ?ts_status>
   enum OrderStatus { Draft="draft", Placed="placed", Paid="paid", Shipped="shipped", Cancelled="cancelled", Refunded="refunded" }
   </?ts_status>
 ]>
 
-<state-machine #orders.order_lifecycle kind="state-machine" [
+<state-machine #orders.order_lifecycle { kind = "state-machine" } [
   <desc ?>
   订单状态机：合法迁移与触发事件。【本 track 新增 refund】
   </?>
@@ -46,11 +46,11 @@
   </?mm_life>
 ]>
 
-<policy #orders.refund_policy kind="policy" behaviors=["behavior://orders/requirements/refund-window"] [
+<policy #orders.refund_policy { kind = "policy" behaviors = ["behavior://orders/requirements/refund-window"] } [
   <desc ?>
   【本 track 新增】退款规则：付款后 N 天内可退，已发货按比例。
   </?>
-  <pseudo kind="rule" ?ps_refund>
+  <pseudo { kind = "rule" } ?ps_refund>
   refundable(order) :- status(order, paid), within(order.paidAt, 7d).
   </?ps_refund>
 ]>

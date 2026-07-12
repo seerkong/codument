@@ -62,10 +62,10 @@ describe('modeling 3-way merge (resource-driven promotion)', () => {
 
       // per-node field assertions
       for (const [id, fields] of Object.entries(expected.assert ?? {})) {
-        const node = merged.get(id) as { metadata: Record<string, unknown> } | undefined;
+        const node = merged.get(id) as { attributes: Record<string, unknown> } | undefined;
         expect(node).toBeDefined();
         for (const [k, v] of Object.entries(fields)) {
-          expect(node!.metadata[k]).toBe(v);
+          expect(node!.attributes[k]).toBe(v);
         }
       }
 

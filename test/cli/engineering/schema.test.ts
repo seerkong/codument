@@ -8,7 +8,7 @@ function first(src: string) {
 
 describe('engineering node schema validation', () => {
   it('passes a complete howto', () => {
-    const errors = validateEngineeringNode(first(`<howto #global.howto.orders.add_endpoint kind="howto" [
+    const errors = validateEngineeringNode(first(`<howto #global.howto.orders.add_endpoint { kind = "howto" } [
       <when-to-use ?>新增 endpoint。</?>
       <steps ?>写代码。</?>
       <verification ?>跑测试。</?>
@@ -17,7 +17,7 @@ describe('engineering node schema validation', () => {
   });
 
   it('rejects howto missing steps / verification', () => {
-    const errors = validateEngineeringNode(first(`<howto #global.howto.orders.add_endpoint kind="howto" [
+    const errors = validateEngineeringNode(first(`<howto #global.howto.orders.add_endpoint { kind = "howto" } [
       <when-to-use ?>新增 endpoint。</?>
     ]>`));
     expect(errors.some((e) => e.includes('<steps>'))).toBe(true);
@@ -25,7 +25,16 @@ describe('engineering node schema validation', () => {
   });
 
   it('rejects unknown bare kind but allows namespaced shell kind', () => {
-    expect(validateEngineeringNode(first(`<thing #global.howto.x.y kind="thing">`)).length).toBeGreaterThan(0);
-    expect(validateEngineeringNode(first(`<check #global.howto.x.y kind="security:checklist">`))).toEqual([]);
+    expect(validateEngineeringNode(first(`<thing #global.howto.x.y { kind = "thing" }>`)).length).toBeGreaterThan(0);
+    expect(validateEngineeringNode(first(`<check #global.howto.x.y { kind = "security:checklist" }>`))).toEqual([]);
+  });
+
+  it('keeps accepting explicit legacy metadata kind during migration', () => {
+    const errors = validateEngineeringNode(first(`<howto #global.howto.orders.legacy kind="howto" [
+      <when-to-use ?>新增 endpoint。</?>
+      <steps ?>写代码。</?>
+      <verification ?>跑测试。</?>
+    ]>`));
+    expect(errors).toEqual([]);
   });
 });

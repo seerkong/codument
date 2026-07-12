@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'bun:test';
+import * as fs from 'fs';
+import * as os from 'os';
 import * as path from 'path';
 import {
   validateModelingTree,
@@ -71,6 +73,20 @@ describe('validateModelingTree — Layer 3 (hierarchy / reference)', () => {
     expect(hits.length).toBeGreaterThan(0);
     expect(hits[0].severity).toBe('error');
     expect(hits[0].message).toMatch(/nonexistent_module/);
+  });
+
+  it('scans VFS references from attribute blocks', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'codument-modeling-attrs-'));
+    const target = path.join(dir, 'domain', 'orders');
+    fs.mkdirSync(target, { recursive: true });
+    fs.writeFileSync(path.join(target, 'index.xnl'), `<object #orders.order { kind = "entity" fact_grade = "authoritative_fact" single_writer = "modeling://domain/orders/missing_writer" } [
+      <types ?t>interface Order { id: string }</?t>
+    ]>`);
+
+    const findings = validateModelingTree(dir);
+    const hits = layers(findings, 'hierarchy').filter((f) => /missing_writer/.test(f.message));
+    expect(hits.length).toBeGreaterThan(0);
+    expect(hits[0].severity).toBe('error');
   });
 
   it('does NOT verify behavior:// existence (syntax-only), no error for unknown behavior ref', () => {

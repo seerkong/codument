@@ -71,6 +71,7 @@ engineering://<plane>/<category>/<topic>/<name>
 节点 schema 详见 `std/spec/engineering-node-schema.md`。要点：
 
 - 文件 = XNL。
+- `kind`、`related`、`applies_to` 等常规语义属性写进 XNL `{}` 属性块；metadata 只留给系统级解析/合并字段。
 - 描述性内容用中文；代码路径、接口名、文件名、URI、`#id` 保持英文。
 - 长文用 TextElement block style，避免 XML/Markdown 转义污染。
 - 与 modeling 不重复：结构/事实源/状态机归 modeling；engineering 只写实现和维护视角，必要时引用 `modeling://...`。

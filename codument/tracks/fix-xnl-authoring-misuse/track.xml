@@ -1,0 +1,110 @@
+<Track id="fix-xnl-authoring-misuse" version="1" xmlns:cdt="urn:codument:v1">
+  <Metadata>
+    <Status>completed</Status>
+    <Goal>修正历史 XNL authoring 误用并添加防回归</Goal>
+    <Description>统一 metadata/attributes 与 extend/array 的 XNL 语义，清理模板、std、fixtures 和测试中的历史误用。</Description>
+    <QuestionMode>decision-tree</QuestionMode>
+    <QuestionSeverity>light</QuestionSeverity>
+    <CommitMode>manual</CommitMode>
+    <CreatedAt>2026-07-11T18:22:28Z</CreatedAt>
+    <UpdatedAt>2026-07-11T18:36:01Z</UpdatedAt>
+  </Metadata>
+
+  <Ports scope="track">
+    <MaterialBundle role="input" name="behavior-deltas" domain="behavior" path="vfs://./behavior_deltas/"/>
+    <MaterialBundle role="state" name="decisions" domain="decision" path="vfs://./decisions.xnl"/>
+    <MaterialBundle role="state" name="analysis" domain="track" path="vfs://./analysis/"/>
+    <MaterialBundle role="output" name="behavior" domain="codument" path="vfs://@/codument/behaviors/"/>
+    <MaterialBundle role="output" name="templates" domain="codument" path="vfs://@/src/templates/"/>
+    <MaterialBundle role="output" name="std" domain="codument" path="vfs://@/codument/std/"/>
+  </Ports>
+
+  <TaskSpace id="space_fix-xnl-authoring-misuse" name="fix-xnl-authoring-misuse" version="1">
+    <Description>修正 XNL 普通属性、metadata、extend 和 array 的历史误用。</Description>
+    <SubNodes>
+      <TaskGroup id="P1" name="Inventory and rule lock" status="DONE" order="0">
+        <Description>完成 XNL 误用盘点并锁定 canonical 规则。</Description>
+        <cdt:Gate>
+          <cdt:Criterion>误用清单覆盖 metadata/attribute 与 extend/array 两类</cdt:Criterion>
+          <cdt:Criterion>明确系统级 metadata 例外</cdt:Criterion>
+        </cdt:Gate>
+        <SubNodes>
+          <Task id="T1.1" name="Audit XNL metadata misuse" status="DONE" order="0" priority="P0">
+            <Description>扫描 std/templates/test resources 中普通属性写进 metadata 的位置。</Description>
+          </Task>
+          <Task id="T1.2" name="Audit extend vs array misuse" status="DONE" order="1" priority="P0">
+            <Description>扫描 decision DSL 与其他 XNL DSL 中单例槽位放入 [] 的位置。</Description>
+          </Task>
+        </SubNodes>
+        <Hooks>
+          <Hook on="phase:after"><cdt:AttractorCheck use="coding"/></Hook>
+        </Hooks>
+      </TaskGroup>
+
+      <TaskGroup id="P2" name="Canonical docs and templates" status="DONE" order="1">
+        <Description>更新 XNL 格式规范、node schema、operation/skill 示例和模板 manifest。</Description>
+        <cdt:Gate>
+          <cdt:Criterion>模板与当前 codument/std 的 XNL 示例口径一致</cdt:Criterion>
+          <cdt:Criterion>manifest 已刷新</cdt:Criterion>
+        </cdt:Gate>
+        <SubNodes>
+          <Task id="T2.1" name="Update xnl-format guidance" status="DONE" order="0" priority="P0">
+            <Description>补充 metadata/attributes 与 extend/array 语义分工。</Description>
+          </Task>
+          <Task id="T2.2" name="Update schema and operation examples" status="DONE" order="1" priority="P0">
+            <Description>修正 modeling/engineering/decision 示例中的旧 XNL 写法。</Description>
+          </Task>
+        </SubNodes>
+        <Hooks>
+          <Hook on="phase:after"><cdt:AttractorCheck use="coding"/></Hook>
+        </Hooks>
+      </TaskGroup>
+
+      <TaskGroup id="P3" name="Fixtures and tests" status="DONE" order="2">
+        <Description>迁移 canonical fixtures，保留 legacy compatibility fixtures，并补防回归测试。</Description>
+        <cdt:Gate>
+          <cdt:Criterion>canonical XNL fixtures 不再误用 metadata</cdt:Criterion>
+          <cdt:Criterion>legacy metadata fixture 明确用于兼容测试</cdt:Criterion>
+          <cdt:Criterion>新增测试覆盖 `()` 单例槽位与 `[]` child decision 集合</cdt:Criterion>
+        </cdt:Gate>
+        <SubNodes>
+          <Task id="T3.1" name="Migrate canonical fixtures" status="DONE" order="0" priority="P0">
+            <Description>迁移 modeling/engineering showcase 和 validate resources。</Description>
+          </Task>
+          <Task id="T3.2" name="Adjust merge tests" status="DONE" order="1" priority="P1">
+            <Description>把普通字段 diff 从 metadata 假设迁移到 attributes，保留系统级 metadata 测试。</Description>
+          </Task>
+          <Task id="T3.3" name="Add regression checks" status="DONE" order="2" priority="P0">
+            <Description>新增 focused tests 或 lint，防止普通属性写进 metadata、单例槽位写进 []。</Description>
+          </Task>
+        </SubNodes>
+        <Hooks>
+          <Hook on="phase:after"><cdt:AttractorCheck use="coding"/></Hook>
+        </Hooks>
+      </TaskGroup>
+
+      <TaskGroup id="P4" name="Dogfood and verification" status="DONE" order="3">
+        <Description>build、upgrade-workspace 吃自己狗粮，并运行测试。</Description>
+        <cdt:Gate>
+          <cdt:Criterion>build 成功</cdt:Criterion>
+          <cdt:Criterion>upgrade-workspace 后当前 codument/std 已同步</cdt:Criterion>
+          <cdt:Criterion>聚焦测试、typecheck、validate 通过</cdt:Criterion>
+        </cdt:Gate>
+        <SubNodes>
+          <Task id="T4.1" name="Regenerate and build" status="DONE" order="0" priority="P0">
+            <Description>刷新模板 manifest 并 build codument 命令。</Description>
+          </Task>
+          <Task id="T4.2" name="Dogfood upgrade-workspace" status="DONE" order="1" priority="P0">
+            <Description>用新 build 的 codument 升级当前项目 workspace。</Description>
+          </Task>
+          <Task id="T4.3" name="Run validation suite" status="DONE" order="2" priority="P0">
+            <Description>运行相关 bun tests、typecheck、codument validate。</Description>
+          </Task>
+        </SubNodes>
+        <Hooks>
+          <Hook on="phase:after"><cdt:AttractorCheck use="coding"/></Hook>
+        </Hooks>
+      </TaskGroup>
+    </SubNodes>
+  </TaskSpace>
+</Track>

@@ -30,7 +30,7 @@
 ## 表征形式（XNL TextElement，零转义）
 
 `prose`（语义）· `ts`（TypeScript 类型/枚举/组件 IO）· `mermaid`（状态机 / actor 消息流）· `pseudo kind="ctrl|rule"`（控制流 / datalog 规则）· `fact-source`（事实源）。
-结构 metadata：`fact_grade` / `single_writer`（事实源）· `depends_on` / `capsule-tree`（模块依赖+capsule 目录树）· `runtime`/`input`/`config`/`output`（组件 IO）。
+结构属性：`fact_grade` / `single_writer`（事实源）· `depends_on` / `capsule-tree`（模块依赖+capsule 目录树）· `runtime`/`input`/`config`/`output`（组件 IO）。
 跨文档引用用 **VFS URI**（`modeling://…` / `behavior://…`），见 `single_writer`、`depends_on`、policy 的 `behaviors`。
 
 ## 怎么看 delta 的效果

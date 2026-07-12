@@ -14,7 +14,7 @@ function tmpDir(): string {
   return fs.mkdtempSync(path.join(os.tmpdir(), 'codument-modeling-'));
 }
 
-const ENTITY = `<object #resource.skill_tool kind="entity" fact_grade="authoritative_fact" single_writer="resource.store" [
+const ENTITY = `<object #resource.skill_tool { kind = "entity" fact_grade = "authoritative_fact" single_writer = "resource.store" } [
   <desc ?>聚合型资源。</?>
   <types ?t>interface SkillTool { key: string }</?t>
 ]>`;
@@ -67,7 +67,7 @@ describe('modeling registry', () => {
   it('skips hidden dirs (.node-meta/.tmp/.xnl-vcs)', () => {
     const dir = tmpDir();
     fs.mkdirSync(path.join(dir, '.tmp'), { recursive: true });
-    fs.writeFileSync(path.join(dir, '.tmp', 'junk.xnl'), `<junk #x.y kind="entity">`);
+    fs.writeFileSync(path.join(dir, '.tmp', 'junk.xnl'), `<junk #x.y { kind = "entity" }>`);
     fs.mkdirSync(path.join(dir, 'domain', 'resource'), { recursive: true });
     fs.writeFileSync(path.join(dir, 'domain', 'resource', 'index.xnl'), ENTITY);
 

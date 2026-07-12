@@ -1,4 +1,4 @@
-<example #global.examples.orders.add_endpoint_example kind="example" [
+<example #global.examples.orders.add_endpoint_example { kind = "example" } [
   <scenario ?>为订单域新增 create endpoint。</?>
   <walkthrough ?>从 behavior case 开始，落到 backend handler，再补 verify。</?>
 ]>

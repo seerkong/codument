@@ -1,4 +1,4 @@
-<object #inventory.stock kind="entity" fact_grade="authoritative_fact" single_writer="modeling://domain/inventory/inventory" [
+<object #inventory.stock { kind = "entity" fact_grade = "authoritative_fact" single_writer = "modeling://domain/inventory/inventory" } [
   <desc ?>
   delta 文件错位：文件是 domain/orders.xnl（context=orders），但节点 id context=inventory，应当 hierarchy error。
   </?>

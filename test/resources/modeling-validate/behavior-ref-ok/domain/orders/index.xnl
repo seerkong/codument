@@ -1,10 +1,10 @@
-<policy #orders.pricing kind="policy" behaviors=["behavior://orders/requirements/nonexistent-rule"] [
+<policy #orders.pricing { kind = "policy" behaviors = ["behavior://orders/requirements/nonexistent-rule"] } [
   <desc ?>
   behaviors 指向一个不存在的 behavior://，但 behavior:// 仅做语法检查、不验证存在性，应当 0 error。
   </?>
 ]>
 
-<object #orders.order kind="entity" fact_grade="authoritative_fact" single_writer="modeling://domain/orders/order" [
+<object #orders.order { kind = "entity" fact_grade = "authoritative_fact" single_writer = "modeling://domain/orders/order" } [
   <desc ?>
   自指 single_writer，可解析。
   </?>
