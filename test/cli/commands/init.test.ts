@@ -50,4 +50,32 @@ describe('codument init', () => {
     expect(fs.existsSync(path.join(ws, 'codument', 'std', 'operations', 'impl-quick.md'))).toBe(true);
     expect(fs.existsSync(path.join(skillsDir, 'codument-impl-quick', 'SKILL.md'))).toBe(true);
   });
+
+  it('installs Codex skills under the workspace-local .agents directory by default', async () => {
+    const ws = tmpWorkspace();
+
+    const proc = Bun.spawn([
+      'bun',
+      'run',
+      cli,
+      '--workspace-dir',
+      ws,
+      'init',
+      '--agent',
+      'codex',
+    ], {
+      cwd: repoRoot,
+      stdout: 'pipe',
+      stderr: 'pipe',
+    });
+
+    const code = await proc.exited;
+    const out = await new Response(proc.stdout).text();
+    const err = await new Response(proc.stderr).text();
+
+    expect(err).toBe('');
+    expect(code).toBe(0);
+    expect(out).toContain('.agents/skills');
+    expect(fs.existsSync(path.join(ws, '.agents', 'skills', 'codument-impl-quick', 'SKILL.md'))).toBe(true);
+  });
 });

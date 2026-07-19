@@ -36,4 +36,3 @@ These instructions are for AI assistants working in this project.
 
 - 受管块用 `<!-- codument:begin -->` / `<!-- codument:end -->` 包裹，便于幂等刷新；块外的项目自有内容不动。
 - 块内**只放指针**（何时打开 std/AGENTS.md + 它能解答什么），不放具体操作规则——避免与 `std/AGENTS.md` 双源漂移。
-- 与 AGE 的根 `AGENTS.md` 同位：项目根的助手契约入口；codument 把"详情"收进 `codument/std/`，根只留一个受管指针块。

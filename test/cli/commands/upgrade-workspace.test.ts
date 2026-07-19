@@ -104,4 +104,34 @@ describe('codument upgrade-workspace', () => {
     expect(fs.existsSync(path.join(skillsDir, 'codument-plan-track', 'SKILL.md'))).toBe(true);
     expect(fs.existsSync(path.join(skillsDir, 'codument-plan-track', 'shared', 'workflow-routing.md'))).toBe(false);
   });
+
+  it('refreshes Codex skills under the workspace-local .agents directory by default', async () => {
+    const ws = tmpWorkspace();
+    const workspaceSkillsDir = path.join(ws, '.agents', 'skills');
+
+    writeFile(path.join(ws, 'codument', 'std', 'AGENTS.md'), '# old std\n');
+    writeFile(path.join(ws, 'codument', 'config', 'cli-tools.json'), JSON.stringify({ tools: ['codex'] }, null, 2));
+
+    const proc = Bun.spawn([
+      'bun',
+      'run',
+      cli,
+      '--workspace-dir',
+      ws,
+      'upgrade-workspace',
+    ], {
+      cwd: repoRoot,
+      stdout: 'pipe',
+      stderr: 'pipe',
+    });
+
+    const code = await proc.exited;
+    const out = await new Response(proc.stdout).text();
+    const err = await new Response(proc.stderr).text();
+
+    expect(err).toBe('');
+    expect(code).toBe(0);
+    expect(out).toContain('.agents/skills');
+    expect(fs.existsSync(path.join(workspaceSkillsDir, 'codument-impl-quick', 'SKILL.md'))).toBe(true);
+  });
 });

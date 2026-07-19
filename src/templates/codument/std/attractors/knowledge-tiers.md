@@ -32,39 +32,7 @@
 
 > 工具性目录（`std/`、`config/`、`workflows/`、`sop/`）不是知识层，不在晋升阶梯内。
 
-## 3. AGE 扁平类目 → codument 层级映射
-
-attractor-guided-engineering 把这些都摊在 `docs/` 根下；codument 把**迭代类**收进 `tracks/`、把**持久类**收进 fractal 子目录或 tier。**关键判断：凡是 fractal（modeling/engineering 的类目）或某 tier 已覆盖的，codument 就不在 `docs/` 根另设 AGE 式顶层目录。**
-
-**持久 / owner 类（A 档）——已被 fractal 子目录 / tier 覆盖，不需另设 docs 顶层目录：**
-
-| AGE 持久目录 | codument 已有对应（就地） | 载体类型 |
-|---|---|---|
-| `docs/context/` 强制上下文 + 源真优先级 + 约定 | `attractors/project.md`·`product.md` + 本文件（优先级）；工程约定→`codument/engineering/global/rules/` | tier(attractors) |
-| `docs/design/` 应用层 owner | `codument/modeling/`（domain 的 `objects/`·`policies/`·`workflows/`）+ `behaviors/` | **fractal** + tier |
-| `docs/architecture/` 技术基线 + 边界 | `codument/engineering/global/overview/` + `codument/engineering/<plane>/overview/` + `.../rules/` + `code-map.md` | **fractal** |
-| `docs/references/` 查阅 + code map + API/schema/兼容表 | `codument/engineering/<plane>/reference/` 类目 + modeling `code-map.md` | **fractal** |
-| `docs/lessons/` durable 教训 | `codument/memory/`（lessons/incidents/patterns） | tier(memory) |
-| `docs/examples/` 示例 + 骨架 | 文档内示例→`codument/engineering/<plane>/examples/`；工作文档骨架→`std/operations/plan-track.md` + `std/spec/track-xml-spec.md` 的内嵌示例 | **fractal** + std |
-| `docs/process/` 流程/规程 | `codument/sop/`（`std/sop/` 内置 + 顶层 `sop/` 自定义） | sop |
-| `docs/skills/` 可复用 prompt/playbook | `std/operations/`（操作）+ `std/sop/`（规程）+ attractor-check profile | std |
-
-**迭代 / 轨迹类（B/C 档）——收进 `tracks/`，归档后沉淀：**
-
-| AGE 类目 | codument 落点 |
-|---|---|
-| `docs/input/` 原始输入 | `tracks/<id>/`（proposal 前的原始材料）/ track 描述 |
-| `docs/discussions/` 澄清 | `tracks/<id>/`（discuss 记录）；协议见 `std/sop/questioning.md` |
-| `docs/requirements/` 可实现需求 | `tracks/<id>/proposal.md` + `behavior_deltas/` |
-| `docs/plans/` 执行与收口 | `track.xml`（TaskSpace/Schedule/Hooks） |
-| `docs/logs/` `docs/audits/` `docs/testing/` 证据 | `tracks/<id>/reports/` + `archive/` |
-| `docs/bugs/` `docs/retrospectives/` | 复发的进 `memory/`（incidents/patterns） |
-| `docs/backlog/` 候选工作 | `codument/backlog/README.md`（候选 + 自主度，活的清单，非 owner 真源） |
-| 跨 track roadmap / mission | `codument/missions/<id>/roadmap.md`（阶段路线 + 依赖 + 证据，非 owner 真源） |
-
-> 只有 `context`→`attractors/`、`lessons`→`memory/` 不靠 fractal 而靠 tier——因为它们跨领域、不属于某个 modeling/engineering 平面。其余持久类都落在 fractal 类目里。
-
-## 4. 信息晋升阶梯（核心）
+## 3. 信息晋升阶梯（核心）
 
 信息从"临时"走向"长期"的固定路径。每一跳都有**触发条件**——满足才晋升，避免把临时噪音沉淀成真源，也避免让真理烂在 chat / track 里。
 
@@ -88,7 +56,7 @@ tracks/<id>/ ── proposal.md · design.md · discussion · behavior_deltas/ �
                （codument 版 "prose 教训 → 可复用方法 → 固化检查"；先 sop/prompt，再考虑固化为 check/hook）
 ```
 
-## 5. 何时晋升（触发条件表）
+## 4. 何时晋升（触发条件表）
 
 | 从 → 到 | 触发 |
 |---|---|
@@ -101,7 +69,7 @@ tracks/<id>/ ── proposal.md · design.md · discussion · behavior_deltas/ �
 
 > 反向**不**晋升：被否决的方案、未稳定的猜测、纯过程噪音留在 track / `memory` 即可，不污染 owner 文档。
 
-## 6. 真源优先级（冲突时谁赢）
+## 5. 真源优先级（冲突时谁赢）
 
 | 问题 | 主真源 |
 |---|---|
@@ -115,13 +83,13 @@ tracks/<id>/ ── proposal.md · design.md · discussion · behavior_deltas/ �
 
 **冲突裁决**：可执行真源（源码/测试/schema）> owner 文档（需重新校验后才是吸引子）> track 局部 > chat。若解冲突会改变用户可见行为 / 数据形状 / 接口 / 权限 / 外部集成 → **停下确认**，并把冲突归类为 `实现漂移 | 文档漂移 | 有意的遗留行为` 写进 track 再动。
 
-## 7. 时效性
+## 6. 时效性
 
 - **稳定 owner 层**（attractors / codument/modeling / codument/engineering / behaviors / decisions）：通过对应 delta 与归档合并维护，不因内容变化就新建带日期副本；registry 元数据与节点 schema 见 model-driven-docs.md 路由。
 - **迭代/轨迹层**（tracks / archive / reports）：带日期；归档后不可变。
 - **新鲜度模式**：owner 文档标 `stale|unknown` 时，进入研究/对齐优先——不直接拿可执行真相去"修"文档、也不拿陈旧文档去"改"代码，先把漂移归类记录。
 
-## 8. 路由
+## 7. 路由
 
 - registry 规范（modeling/engineering 怎么写、拆分与校验）：[model-driven-docs.md](./model-driven-docs.md) → [docs-modeling-fractal](@codument/std/skill/docs-modeling-fractal/index.md) / [docs-engineering-fractal](@codument/std/skill/docs-engineering-fractal/index.md)。
 - 每个标准文件夹"装什么"的自描述与补齐：[std/spec/folder-manifest.md](@codument/std/spec/folder-manifest.md)。

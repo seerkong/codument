@@ -202,7 +202,7 @@ Supported `--agent` values:
 
 | Agent | Skill destination |
 |---|---|
-| `codex` | `~/.codex/skills` |
+| `codex` | `.agents/skills` |
 | `claude` | `.claude/skills` |
 | `opencode` | `.opencode/skills` |
 

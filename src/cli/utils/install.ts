@@ -1,5 +1,4 @@
 import * as fs from 'fs';
-import * as os from 'os';
 import * as path from 'path';
 import { TEMPLATE_FILES } from '../../templates/manifest';
 
@@ -23,7 +22,7 @@ export const SKILLS_DIR_BY_AGENT: Record<CLITool, string> = {
   eidolon: path.join('.eidolon', 'skills'),
   opencode: path.join('.opencode', 'skills'),
   sparrow: path.join('.sparrow', 'skills'),
-  codex: path.join(os.homedir(), '.codex', 'skills'),
+  codex: path.join('.agents', 'skills'),
 };
 
 const AGENTS_BEGIN = '<!-- codument:begin -->';
