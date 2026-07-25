@@ -1,0 +1,19 @@
+<decision #track.clean_distribution_and_upgrade.scope {
+  priority = "P0"
+  status = "accepted"
+  durable_candidate = false
+  confidence = 0.99
+  reversibility = "easy"
+}
+(
+  <question ?>What is the release acceptance boundary?</?>
+  <answer { }
+  (
+    <raw-answer ?>Validate fresh init and legacy workspace upgrade in isolated workspaces.</?>
+    <decision-text ?>Distribution correctness is proven by installed files and removed deprecated shells, not the repository's local .agents state.</?>
+    <rationale ?>Release truth is src/templates and upgrade behavior.</?>
+    <evidence ?>Accepted Mission distribution decision.</?>
+  )
+  >
+)
+>

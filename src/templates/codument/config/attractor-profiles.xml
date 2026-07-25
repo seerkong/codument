@@ -1,6 +1,6 @@
 <!--
   config/attractor-profiles.xml —— 命名 attractor 组合（XML，vfs 标准）。
-  取代旧 attractor-profiles.json。被 track.xml / operation-hooks.xml 的 <cdt:AttractorCheck use="<name>"/> 按 profile 名引用。
+  取代旧 attractor-profiles.json。被 track.xml / action-hooks.xml 的 <cdt:AttractorCheck use="<name>"/> 按 profile 名引用。
   每个 <Profile enabled="true|false">（默认 true）。profile 的开关【取代 feature.json 的能力开关】——
   例如 docs profile 启用 = 开启 docs 知识同步能力；未来不再需要 codument/config/feature.json。
 -->

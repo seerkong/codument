@@ -60,6 +60,22 @@ describe('validateModelingTree — Layer 2 (schema)', () => {
 });
 
 describe('validateModelingTree — Layer 3 (hierarchy / reference)', () => {
+  it('warns, without errors, when the registry is empty', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'codument-empty-modeling-'));
+    const findings = validateModelingTree(dir);
+
+    expect(errors(findings)).toEqual([]);
+    expect(warnings(findings).length).toBeGreaterThan(0);
+  });
+
+  it('warns, without errors, when the registry directory is missing', () => {
+    const parent = fs.mkdtempSync(path.join(os.tmpdir(), 'codument-missing-modeling-'));
+    const findings = validateModelingTree(path.join(parent, 'modeling'));
+
+    expect(errors(findings)).toEqual([]);
+    expect(warnings(findings).length).toBeGreaterThan(0);
+  });
+
   it('flags id↔path misalignment (context mismatch)', () => {
     const findings = validateModelingTree(path.join(RES, 'id-path-mismatch'));
     const hits = layers(findings, 'hierarchy').filter((f) => /context/.test(f.message));
@@ -104,7 +120,7 @@ describe('validateModelingTree — Layer 3 (hierarchy / reference)', () => {
     expect(dup[0].message).toMatch(/b\.xnl/);
   });
 
-  it('requires a domain plane (missing domain = error)', () => {
+  it('requires a domain plane when a non-empty registry has only a surface plane', () => {
     const findings = validateModelingTree(path.join(RES, 'missing-domain'));
     const hits = layers(findings, 'hierarchy').filter((f) => /domain/i.test(f.message) && f.severity === 'error');
     expect(hits.length).toBeGreaterThan(0);

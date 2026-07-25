@@ -13,7 +13,13 @@ function tmpWorkspace(): string {
 }
 
 function writeTrack(ws: string, id: string, xml: string): void {
-  const dir = path.join(ws, 'codument', 'tracks', id);
+  const dir = path.join(ws, 'codument', 'tracks', 'active', id);
+  fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(path.join(dir, 'track.xml'), xml);
+}
+
+function writePendingTrack(ws: string, id: string, xml: string): void {
+  const dir = path.join(ws, 'codument', 'tracks', 'pending', id);
   fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(path.join(dir, 'track.xml'), xml);
 }
@@ -46,7 +52,7 @@ const GOOD_TRACK = `<Track id="t1" version="1" xmlns:cdt="urn:codument:v1">
 test('validate passes a well-formed track.xml + behavior delta', async () => {
   const ws = tmpWorkspace();
   writeTrack(ws, 't1', GOOD_TRACK);
-  const deltaDir = path.join(ws, 'codument', 'tracks', 't1', 'behavior_deltas', 'cap');
+  const deltaDir = path.join(ws, 'codument', 'tracks', 'active', 't1', 'behavior_deltas', 'cap');
   fs.mkdirSync(deltaDir, { recursive: true });
   fs.writeFileSync(path.join(deltaDir, 'delta.xml'),
     `<behavior-patch capability="cap" version="1"><upsert selector="behavior://cap/requirements/x"><requirement id="x"/></upsert></behavior-patch>`);
@@ -54,6 +60,15 @@ test('validate passes a well-formed track.xml + behavior delta', async () => {
   const { code, out } = await runValidate(ws);
   expect(out).toContain('✓ t1');
   expect(code).toBe(0);
+});
+
+test('validate discovers a pending track without making it active', async () => {
+  const ws = tmpWorkspace();
+  writePendingTrack(ws, 'pending-track', GOOD_TRACK.replace('id="t1"', 'id="pending-track"'));
+
+  const { code, out } = await runValidate(ws, ['pending-track']);
+  expect(code).toBe(0);
+  expect(out).toContain('✓ pending-track');
 });
 
 test('validate passes a cdt:GapLoop carrying verify-round', async () => {
@@ -109,7 +124,7 @@ test('validate rejects a bad Schedule DAG reference', async () => {
 test('validate rejects a behavior-patch without behavior:// selector', async () => {
   const ws = tmpWorkspace();
   writeTrack(ws, 't4', GOOD_TRACK.replace('id="t1"', 'id="t4"'));
-  const deltaDir = path.join(ws, 'codument', 'tracks', 't4', 'behavior_deltas', 'cap');
+  const deltaDir = path.join(ws, 'codument', 'tracks', 'active', 't4', 'behavior_deltas', 'cap');
   fs.mkdirSync(deltaDir, { recursive: true });
   fs.writeFileSync(path.join(deltaDir, 'delta.xml'),
     `<behavior-patch capability="cap" version="1"><upsert selector="spec://cap/x"/></behavior-patch>`);

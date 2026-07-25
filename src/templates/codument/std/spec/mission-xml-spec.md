@@ -2,7 +2,7 @@
 
 `codument/missions/{pending,active,archived}/.../mission.xml` 是 codument mission 的**结构 / 状态 / 调度真源**。mission 是比 track 更长周期的控制面对象，用于编排多个 plan 节点和落地 track，并允许在执行中根据 evidence 或 human decision 受控重规划。
 
-mission 不替代 track。真实代码、规范、测试和迁移仍由 `codument/tracks/<id>/track.xml` 管理。
+mission 不替代 track。真实代码、规范、测试和迁移仍由 `codument/tracks/{pending,active}/<id>/track.xml` 管理，归档历史位于 `codument/tracks/archived/`。
 
 ## 1. 目录位置
 
@@ -53,6 +53,18 @@ codument/missions/
     <MaterialBundle role="output" name="tracks" domain="codument" path="vfs://@/codument/tracks/"/>
   </Ports>
 
+  <cdt:ProjectRefs>
+    <cdt:ProjectRef id="host" kind="host"/>
+  </cdt:ProjectRefs>
+  <cdt:ActorSets default="runtime-control-loop">
+    <cdt:ActorSet id="runtime-control-loop">
+      <cdt:Actor role="MissionPlanner" project-ref="host"><Description>根据 runtime evidence 切分并重规划 tracks。</Description></cdt:Actor>
+      <cdt:Actor role="MissionObserver" project-ref="host"><Description>读取 runtime tests、tracks、archive 与 reports 的实际态。</Description></cdt:Actor>
+      <cdt:Actor role="MissionReconciler" project-ref="host"><Description>比较 runtime desired graph 与实际态，选择一个可收敛动作。</Description></cdt:Actor>
+      <cdt:Actor role="MissionApplier" project-ref="host"><Description>创建、执行或验证一个 runtime track，或受控修订 mission。</Description></cdt:Actor>
+    </cdt:ActorSet>
+  </cdt:ActorSets>
+
   <TaskSpace id="space_runtime-evolution" name="runtime-evolution" version="1" cdt:child-mode="dag">
     <Description>Runtime evolution mission.</Description>
     <SubNodes>
@@ -68,7 +80,7 @@ codument/missions/
         <SubNodes>
           <Task id="G2-T1" name="形成架构方案" status="NOT_STARTED" order="0"/>
           <Task id="G2-T2" name="确认首批 track 切片" status="NOT_STARTED" order="1">
-            <cdt:TrackLink state="candidate" id="add-runtime-data-subgraph-contracts"/>
+            <cdt:TrackLink state="candidate" id="add-runtime-data-subgraph-contracts" project-ref="host"/>
           </Task>
         </SubNodes>
       </TaskGroup>
@@ -76,7 +88,7 @@ codument/missions/
         <Description>创建并执行首批 track。</Description>
         <SubNodes>
           <Task id="G3-T1" name="创建并执行 runtime data subgraph track" status="NOT_STARTED" order="0">
-            <cdt:TrackLink state="candidate" id="add-runtime-data-subgraph-contracts"/>
+            <cdt:TrackLink state="candidate" id="add-runtime-data-subgraph-contracts" project-ref="host"/>
           </Task>
           <Task id="G3-T2" name="验证首批 track 结果" status="NOT_STARTED" order="1"/>
         </SubNodes>
@@ -99,7 +111,79 @@ codument/missions/
 </Mission>
 ```
 
-## 4. Metadata
+## 4. ProjectRef、ActorSet 与 session binding
+
+`<cdt:ProjectRefs>` 和 `<cdt:ActorSets>` 都是 `<Mission>` 的直接子节点。新建或修订 mission 时必须 materialize 它们；旧 mission 可读，但在首次受控写入时补齐。
+
+```xml
+<cdt:ProjectRefs>
+  <cdt:ProjectRef id="host" kind="host"/>
+  <cdt:ProjectRef id="shared-library" kind="external"/>
+</cdt:ProjectRefs>
+<cdt:ActorSets default="application-loop">
+  <cdt:ActorSet id="application-loop">
+    <cdt:Actor role="MissionPlanner" project-ref="host"><Description>为上层应用安排反馈驱动的 tracks。</Description></cdt:Actor>
+    <cdt:Actor role="MissionObserver" project-ref="host"><Description>观测应用集成、测试与用户反馈。</Description></cdt:Actor>
+    <cdt:Actor role="MissionReconciler" project-ref="host"><Description>判断应用是否应等待底层库或继续独立工作。</Description></cdt:Actor>
+    <cdt:Actor role="MissionApplier" project-ref="host"><Description>执行一个应用侧有界收敛动作。</Description></cdt:Actor>
+  </cdt:ActorSet>
+</cdt:ActorSets>
+```
+
+- `ProjectRef.id` 是唯一、路径无关的逻辑项目身份；必须恰有一个 `kind="host"`，其余可为 `kind="external"`。
+- 每个 `ActorSet` 必须恰有一次四个标准角色。角色协议只在本规范的 [§8](#8-cybernetic-depa-actors) 定义；`Actor/Description` 必须填写该 mission 和 project context 中的具体工作方式，不能复制该通用协议。
+- `default` 指向完整默认 ActorSet。`TaskGroup cdt:actor-set="..."` 可替换整个 ActorSet；未设置时继承最近祖先，再回退到默认集。禁止逐角色 merge。
+- `WorkspaceBinding` 是 `impl-mission` 当前 session 输入中 `ProjectRef -> workspace root` 的临时映射，不是 XML 节点或文件格式。不得写入 mission、track、report、decision 或项目配置，也不得持久化任何 `path` / `workspace` 属性。
+- 外部 ProjectRef 缺少本 session binding 时，Observer 投影 `UNBOUND`。binding 存在但目标项目中找不到 TrackLink 对应 `track.xml` 时，投影 `MISSING`；实际 track 状态始终由目标项目自己的 `track.xml` 所有。Reconciler 只阻断直接依赖该 ProjectRef 的动作，其他 DAG 分支继续。
+
+### 4.1 单项目反馈飞轮
+
+上面的 `runtime-evolution` 是单项目示例：所有 Actor 绑定 `host`，Observer 读取同一项目的 tests/tracks，Reconciler 的 evidence 可触发 Planner 修订后续 runtime tracks。它形成 `observe -> reconcile -> apply -> observe` 的迭代闭环，而不是把四 Actor 当作固定的人名或重复的 design.md 模板。
+
+### 4.2 底层库与上层应用反馈飞轮
+
+以下片段展示上层应用 host 与外部底层库协同：应用阶段继承默认集，库修复阶段以完整局部 ActorSet 覆盖。两边都只保存逻辑 id，新的 session 可重新提供 binding 后恢复观察。
+
+```xml
+<Mission id="library-application-feedback" version="1" xmlns:cdt="urn:codument:v1">
+  <Metadata>
+    <Status>pending</Status>
+    <Goal>通过应用反馈迭代底层库，并将可验证结果回流应用。</Goal>
+    <Description>上层应用与底层库以完整 ActorSet 交替收敛。</Description>
+    <Revision>1</Revision>
+  </Metadata>
+  <cdt:ProjectRefs>
+    <cdt:ProjectRef id="application" kind="host"/>
+    <cdt:ProjectRef id="foundation-library" kind="external"/>
+  </cdt:ProjectRefs>
+  <cdt:ActorSets default="application-loop">
+    <cdt:ActorSet id="application-loop">
+      <cdt:Actor role="MissionPlanner" project-ref="application"><Description>从应用集成反馈切分应用或库 tracks。</Description></cdt:Actor>
+      <cdt:Actor role="MissionObserver" project-ref="application"><Description>观察应用集成、契约测试和交付反馈。</Description></cdt:Actor>
+      <cdt:Actor role="MissionReconciler" project-ref="application"><Description>判断应用可独立推进的工作与库依赖。</Description></cdt:Actor>
+      <cdt:Actor role="MissionApplier" project-ref="application"><Description>执行一个应用侧实现、验证或重规划动作。</Description></cdt:Actor>
+    </cdt:ActorSet>
+    <cdt:ActorSet id="library-loop">
+      <cdt:Actor role="MissionPlanner" project-ref="foundation-library"><Description>将应用暴露的抽象缺口切为库侧 tracks。</Description></cdt:Actor>
+      <cdt:Actor role="MissionObserver" project-ref="foundation-library"><Description>观察库的 contract tests、track 状态与 archive。</Description></cdt:Actor>
+      <cdt:Actor role="MissionReconciler" project-ref="foundation-library"><Description>比较库 API 期望与应用反馈，判断下一个库侧动作。</Description></cdt:Actor>
+      <cdt:Actor role="MissionApplier" project-ref="foundation-library"><Description>执行一个库侧修复或向应用回传可验证证据。</Description></cdt:Actor>
+    </cdt:ActorSet>
+  </cdt:ActorSets>
+  <TaskSpace id="space_library-application-feedback" name="library-application-feedback" version="1" cdt:child-mode="dag">
+    <SubNodes>
+      <TaskGroup id="G1" name="应用集成" status="NOT_STARTED" order="0"><SubNodes><Task id="G1-T1" name="执行应用集成 track" status="NOT_STARTED" order="0"><cdt:TrackLink state="candidate" id="integrate-library-contract" project-ref="application"/></Task></SubNodes></TaskGroup>
+      <TaskGroup id="G2" name="库反馈" status="NOT_STARTED" order="1" cdt:actor-set="library-loop"><SubNodes><Task id="G2-T1" name="执行库侧反馈 track" status="NOT_STARTED" order="0"><cdt:TrackLink state="candidate" id="repair-foundation-contract" project-ref="foundation-library"/></Task></SubNodes></TaskGroup>
+      <TaskGroup id="G3" name="应用复验" status="NOT_STARTED" order="2"><SubNodes><Task id="G3-T1" name="复验应用契约" status="NOT_STARTED" order="0"/></SubNodes></TaskGroup>
+    </SubNodes>
+  </TaskSpace>
+  <Schedule><Dag for="space_library-application-feedback"><Node id="G2"><After ref="G1"/></Node><Node id="G3"><After ref="G2"/></Node></Dag></Schedule>
+</Mission>
+```
+
+如果 `foundation-library` 未绑定，只有 `G2` 及依赖它的 `G3` 等待；与之无依赖的 application DAG 分支仍可执行。绑定后而找不到 `repair-foundation-contract` 才是 `MISSING`，应以目标项目的实际证据进入 drift、replan 或 blocked。
+
+## 5. Metadata
 
 ```xml
 <Metadata>
@@ -131,7 +215,7 @@ mission status:
 - `QuestionSeverity` 取 `auto|light|normal|deep`；未指定按 `light` 处理。
 - 这两个字段只控制规划/澄清阶段，不等同于 track 的 `CommitMode`。
 
-## 5. TaskSpace
+## 6. TaskSpace
 
 mission TaskSpace 必须保持接近 track.xml 的结构：
 
@@ -152,13 +236,13 @@ mission TaskSpace 必须保持接近 track.xml 的结构：
 
 如果现有 validator 只支持 track 状态枚举，第一版实现可以在 mission spec 中定义语义，后续再扩 validator。
 
-### 5.1 TrackLink
+### 6.1 TrackLink
 
 `cdt:TrackLink` 是 mission 叶子任务与 codument track 的绑定指针，不是任务状态，也不是路径缓存。
 
 ```xml
 <Task id="G2-T2" name="确认首批 track 切片" status="NOT_STARTED" order="1">
-  <cdt:TrackLink state="candidate" id="add-runtime-data-subgraph-contracts"/>
+  <cdt:TrackLink state="candidate" id="add-runtime-data-subgraph-contracts" project-ref="host"/>
 </Task>
 ```
 
@@ -166,7 +250,7 @@ mission TaskSpace 必须保持接近 track.xml 的结构：
 
 ```xml
 <Task id="G2-T2" name="确认首批 track 切片" status="DONE" order="1">
-  <cdt:TrackLink state="bound" id="add-runtime-data-subgraph-contracts"/>
+  <cdt:TrackLink state="bound" id="add-runtime-data-subgraph-contracts" project-ref="host"/>
 </Task>
 ```
 
@@ -176,15 +260,17 @@ mission TaskSpace 必须保持接近 track.xml 的结构：
 |---|---:|---|
 | `state` | 是 | `candidate` 或 `bound` |
 | `id` | 是 | `candidate` 时是推荐 track id；`bound` 时是真实 track id |
+| `project-ref` | 是 | Track 所属 ProjectRef；host 和 external 都显式写出 |
 
-禁止在 `cdt:TrackLink` 上写 `path`、`archive-path` 或 track 状态。消费者通过 `id` 解析真实位置：
+禁止在 `cdt:TrackLink` 上写 `path`、`archive-path`、workspace 或 track 状态。消费者先通过 session WorkspaceBinding 解析 `project-ref`，再通过 `id` 解析目标项目中的真实位置：
 
-- active track：`codument/tracks/<id>/track.xml`
-- archived track：`codument/archive/**/<timestamp>-<id>/track.xml`
+- pending track：`codument/tracks/pending/<id>/track.xml`
+- active track：`codument/tracks/active/<id>/track.xml`
+- archived track：`codument/tracks/archived/**/<timestamp>-<id>/track.xml`
 
 如果真实创建的 track id 与 candidate id 不同，直接把 `id` 更新为真实 id，并在 `reports/track-bind-XXX.md` 记录原 candidate id。
 
-## 6. Schedule
+## 7. Schedule
 
 mission 顶层默认 DAG：
 
@@ -199,7 +285,7 @@ mission 顶层默认 DAG：
 - 不跨层、不跨父。
 - 一个 `TaskGroup` 内的叶子 `Task` 默认按 `order` 顺序执行，不在 mission 顶层 `Schedule/Dag` 中描述。
 
-## 7. Cybernetic DEPA Actors
+## 8. Cybernetic DEPA Actors
 
 mission execution is a cybernetic actor loop over a DAG-shaped desired state.
 
@@ -221,7 +307,7 @@ MissionObserver 观测实际态
 -> 下一轮
 ```
 
-## 8. 受控重规划
+## 9. 受控重规划
 
 active mission 允许修改 `mission.xml`，但必须满足：
 
@@ -238,12 +324,12 @@ active mission 允许修改 `mission.xml`，但必须满足：
 - 修改 DAG 依赖。
 - 暂停等待人工介入。
 
-## 9. 标准文件拆分
+## 10. 标准文件拆分
 
 新 mission 不使用 `roadmap.md`。内容拆分：
 
 - `proposal.md`：目标、非目标、成功判据、背景。
-- `design.md`：actor 模型、重规划协议、风险、plan vs track 区分。
-- `mission.xml`：TaskGroup/Task 节点、依赖、状态、`cdt:TrackLink` 绑定。
+- `design.md`：此 mission 的控制目标、重规划协议、风险、plan vs track 区分；不重复四个标准 actor 定义。
+- `mission.xml`：ProjectRefs、ActorSets 中的具体 actor 工作方式、TaskGroup/Task 节点、依赖、状态、`cdt:TrackLink` 绑定。
 - `analysis/`：执行期 evidence / findings，默认不进 git。
 - `reports/`：mission run / drift / replan / verify reports，默认不进 git。

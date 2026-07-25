@@ -31,6 +31,15 @@ function walk(dir: string, base: string): string[] {
 }
 
 describe('src/templates/manifest.ts in sync with disk', () => {
+  it('ships modeling enabled by default', () => {
+    const modelingTemplate = fs.readFileSync(
+      path.join(TEMPLATES_DIR, 'codument', 'config', 'modeling.xml'),
+      'utf-8',
+    );
+
+    expect(modelingTemplate).toContain('<Modeling version="1" enabled="true">');
+  });
+
   it('embeds exactly the files under src/templates/ (run `bun run scripts/gen-template-manifest.ts` if this fails)', () => {
     const onDisk = new Set(walk(TEMPLATES_DIR, TEMPLATES_DIR));
     const inManifest = new Set(TEMPLATE_FILES.map((f) => f.path));

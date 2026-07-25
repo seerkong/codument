@@ -34,7 +34,7 @@ describe('codument show', () => {
     const cliEntry = path.join(repoRoot, 'src/cli/index.ts');
     const ws = makeTempDir('codument-show-track-ws-');
     const trackId = 'add-xml-delta';
-    const trackDir = path.join(ws, 'codument', 'tracks', trackId);
+    const trackDir = path.join(ws, 'codument', 'tracks', 'active', trackId);
 
     writeFile(path.join(ws, 'codument', 'state.json'), '{}');
     writeFile(path.join(trackDir, 'proposal.md'), '# Proposal\n');
@@ -74,7 +74,7 @@ describe('codument show', () => {
     const cliEntry = path.join(repoRoot, 'src/cli/index.ts');
     const ws = makeTempDir('codument-show-track-json-ws-');
     const trackId = 'add-xml-delta-json';
-    const trackDir = path.join(ws, 'codument', 'tracks', trackId);
+    const trackDir = path.join(ws, 'codument', 'tracks', 'active', trackId);
 
     writeFile(path.join(ws, 'codument', 'state.json'), '{}');
     writeFile(path.join(trackDir, 'proposal.md'), '# Proposal\n');

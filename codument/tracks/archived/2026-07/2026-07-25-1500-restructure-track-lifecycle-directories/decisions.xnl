@@ -1,0 +1,25 @@
+<decision #track.lifecycle_directories.single_root {
+  status = "accepted"
+  blocks = []
+  durable_candidate = true
+}
+(
+  <question ?>Where should track lifecycle state live?</?>
+  <answer ?>Under codument/tracks as pending, active, and archived directories.</?>
+  <evidence ?>Missions already use this model, and the user explicitly requested the same layout for tracks.</?>
+  <confidence ?>0.99</?>
+  <reversibility ?>moderate</?>
+)>
+
+<decision #track.lifecycle_directories.upgrade_safety {
+  status = "accepted"
+  blocks = []
+  durable_candidate = true
+}
+(
+  <question ?>How should upgrade-workspace handle a destination conflict?</?>
+  <answer ?>Keep the legacy source in place, report the conflict, and rely on the pre-migration backup rather than overwriting data.</?>
+  <evidence ?>A track directory is user-owned project history and cannot be silently replaced.</?>
+  <confidence ?>0.98</?>
+  <reversibility ?>low</?>
+)>

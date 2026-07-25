@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { getTrack, getSpecs, parseOptions, formatStatus, codumentExists, TRACKS_DIR, SPECS_DIR } from '../utils';
+import { getActiveTrackDir, getTrack, getSpecs, parseOptions, formatStatus, codumentExists, SPECS_DIR } from '../utils';
 import { getSpecXmlStats, loadSpecXml } from '../utils/spec-xml';
 
 export async function showCommand(args: string[]) {
@@ -27,7 +27,7 @@ export async function showCommand(args: string[]) {
     foundType = itemType;
   } else {
     // Auto-detect
-    const trackDir = path.join(TRACKS_DIR, itemId);
+    const trackDir = getActiveTrackDir(itemId);
     const specDir = path.join(SPECS_DIR, itemId);
     const specXmlFile = path.join(SPECS_DIR, `${itemId}.xml`);
 
@@ -61,7 +61,7 @@ function showTrack(trackId: string, jsonOutput: boolean) {
 
   if (jsonOutput) {
     // Include file contents in JSON output
-    const trackDir = path.join(TRACKS_DIR, trackId);
+    const trackDir = getActiveTrackDir(trackId);
     const specDeltaFiles = collectTrackXmlSpecDeltas(trackDir);
     const result: Record<string, unknown> = {
       ...track,
@@ -84,7 +84,7 @@ function showTrack(trackId: string, jsonOutput: boolean) {
     return;
   }
 
-  const trackDir = path.join(TRACKS_DIR, trackId);
+  const trackDir = getActiveTrackDir(trackId);
   const specDeltaFiles = collectTrackXmlSpecDeltas(trackDir);
 
   console.log('\n' + '='.repeat(60));

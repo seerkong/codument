@@ -4,6 +4,7 @@ import * as os from 'os';
 import * as path from 'path';
 import {
   loadModelingRegistry,
+  modelingDeltaPathToRegistryOwnerPath,
   saveModelingRegistry,
   readNodeId,
   modelingUri,
@@ -89,5 +90,10 @@ describe('modeling registry', () => {
     expect(modelingUri(path.join('domain', 'resource', 'index.xnl'), 'resource.skill_tool')).toBe(
       'modeling://domain/resource/skill_tool',
     );
+    expect(modelingDeltaPathToRegistryOwnerPath(path.join('domain', 'resource.xnl'))).toBe(
+      path.join('domain', 'resource', 'index.xnl'),
+    );
+    expect(() => modelingDeltaPathToRegistryOwnerPath(path.join('domain', 'resource', 'index.xnl')))
+      .toThrow("expected '<plane>/<context>.xnl'");
   });
 });

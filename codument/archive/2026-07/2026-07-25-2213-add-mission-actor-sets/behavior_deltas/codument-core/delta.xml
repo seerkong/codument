@@ -1,0 +1,40 @@
+<behavior-patch capability="codument-core" version="1">
+  <upsert selector="behavior://codument-core/requirements/mission-standard-artifacts/suites/mission-artifacts/cases/default-design-and-decisions">
+    <case id="default-design-and-decisions">
+      <given>系统创建一个新的 track 或 mission 规划目录。</given>
+      <when>standard planning artifacts are generated。</when>
+      <then>系统 SHALL create `design.md` and `decisions.xnl` unconditionally。</then>
+      <and>系统 SHALL create `decisions/` and `memory/` only when they have eligible content。</and>
+    </case>
+  </upsert>
+
+  <upsert selector="behavior://codument-core/requirements/mission-xml-spec/suites/mission-xml/cases/actor-sets-and-project-refs">
+    <case id="actor-sets-and-project-refs">
+      <given>一个 mission requires concrete control work for one or more project contexts。</given>
+      <when>its mission.xml is authored or validated。</when>
+      <then>系统 SHALL persist one complete default ActorSet with exactly MissionPlanner, MissionObserver, MissionReconciler, and MissionApplier。</then>
+      <and>每个 TaskGroup SHALL inherit that set or reference a complete local override。</and>
+      <and>系统 SHALL persist only path-free unique ProjectRef identities and reject unknown or duplicate references。</and>
+    </case>
+  </upsert>
+
+  <upsert selector="behavior://codument-core/requirements/mission-cybernetic-actors/suites/mission-actors/cases/actor-set-runtime-boundary">
+    <case id="actor-set-runtime-boundary">
+      <given>一个 mission references an external ProjectRef or TrackLink。</given>
+      <when>impl-mission observes and reconciles actual state。</when>
+      <then>系统 SHALL resolve workspace paths only through session-local WorkspaceBinding and SHALL NOT persist those paths。</then>
+      <and>缺少 binding SHALL project UNBOUND rather than candidate, missing, or persistent Mission state。</and>
+      <and>binding exists but an external track is absent SHALL project MISSING from the target project actual state。</and>
+      <and>无关 DAG branches SHALL remain eligible when they do not depend on an UNBOUND ProjectRef。</and>
+    </case>
+  </upsert>
+
+  <upsert selector="behavior://codument-core/requirements/mission-operations/suites/mission-ops/cases/actor-set-and-feedback-examples">
+    <case id="actor-set-and-feedback-examples">
+      <given>用户创建或执行一个 mission with ActorSets and external ProjectRefs。</given>
+      <when>plan-mission, impl-mission, and the Mission XML spec describe the workflow。</when>
+      <then>系统 SHALL describe session WorkspaceBinding, external TrackLink observation, UNBOUND recovery, and complete ActorSet override semantics。</then>
+      <and>系统 SHALL provide one single-project feedback loop and one bottom-library/top-application two-project feedback loop example without absolute paths。</and>
+    </case>
+  </upsert>
+</behavior-patch>

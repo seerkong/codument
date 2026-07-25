@@ -54,21 +54,21 @@ describe('modeling + engineering E2E scripts', () => {
     }, null, 2));
     write(path.join(ws, 'src', 'index.ts'), 'export function add(a: number, b: number) { return a + b; }\n');
     write(path.join(ws, 'test', 'index.test.ts'), "import { expect, it } from 'bun:test';\nimport { add } from '../src';\nit('adds', () => expect(add(1, 2)).toBe(3));\n");
-    write(path.join(ws, 'codument', 'tracks', track, 'track.xml'), `<?xml version="1.0" encoding="UTF-8"?>
+    write(path.join(ws, 'codument', 'tracks', 'active', track, 'track.xml'), `<?xml version="1.0" encoding="UTF-8"?>
 <Track id="${track}" version="1" xmlns:cdt="urn:codument:v1">
   <Metadata><Status>completed</Status><Goal>sample</Goal><Description>sample</Description><CommitMode>manual</CommitMode><CreatedAt>2026-06-28T00:00:00+08:00</CreatedAt><UpdatedAt>2026-06-28T00:00:00+08:00</UpdatedAt></Metadata>
   <TaskSpace id="space_${track}" name="${track}" version="1"><SubNodes><TaskGroup id="P1" name="p" status="DONE" order="0"><SubNodes><Task id="T1.1" name="t" status="DONE" order="0"/></SubNodes></TaskGroup></SubNodes></TaskSpace>
 </Track>
 `);
-    write(path.join(ws, 'codument', 'tracks', track, 'behavior_deltas', 'cap', 'delta.xml'), `<behavior-patch capability="cap" version="1">
+    write(path.join(ws, 'codument', 'tracks', 'active', track, 'behavior_deltas', 'cap', 'delta.xml'), `<behavior-patch capability="cap" version="1">
   <upsert selector="behavior://cap/requirements/sample"><requirement id="sample"><statement>系统 SHALL work.</statement><suite id="s"><case id="c"><given>x</given><when>y</when><then>z</then></case></suite></requirement></upsert>
 </behavior-patch>`);
-    write(path.join(ws, 'codument', 'tracks', track, 'modeling_deltas', 'domain', 'sample.xnl'), `<object #domain.sample.item kind="entity" fact_grade="authoritative_fact" single_writer="backend.item" [
+    write(path.join(ws, 'codument', 'tracks', 'active', track, 'modeling_deltas', 'domain', 'sample.xnl'), `<object #domain.sample.item kind="entity" fact_grade="authoritative_fact" single_writer="backend.item" [
   <types ?m>
   interface Item { id: string }
   </?m>
 ]>`);
-    write(path.join(ws, 'codument', 'tracks', track, 'engineering_deltas', 'global', 'howto', 'sample.xnl'), `<howto #global.howto.sample.add_item kind="howto" [
+    write(path.join(ws, 'codument', 'tracks', 'active', track, 'engineering_deltas', 'global', 'howto', 'sample.xnl'), `<howto #global.howto.sample.add_item kind="howto" [
   <when-to-use ?m>
   添加 item 时使用。
   </?m>

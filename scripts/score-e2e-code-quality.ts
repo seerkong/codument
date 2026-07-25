@@ -93,7 +93,7 @@ function listFiles(root: string, pred: (rel: string) => boolean): string[] {
 
 function detectTrack(workspace: string, explicit?: string): string | undefined {
   if (explicit) return explicit;
-  const dir = path.join(workspace, 'codument', 'tracks');
+  const dir = path.join(workspace, 'codument', 'tracks', 'active');
   if (!fs.existsSync(dir)) return undefined;
   return fs.readdirSync(dir).find((name) => fs.existsSync(path.join(dir, name, 'track.xml')));
 }
@@ -168,8 +168,8 @@ if (track) {
 
 const srcFiles = listFiles(workspace, (rel) => /\.(ts|tsx|js|jsx|vue|svelte|py|go|rs)$/.test(rel) && !rel.startsWith('codument/'));
 const testFiles = listFiles(workspace, (rel) => /(^|\/)(test|tests|__tests__)\/|\.test\.|\.spec\./.test(rel));
-const modelingFiles = track ? listFiles(path.join(workspace, 'codument', 'tracks', track, 'modeling_deltas'), (rel) => rel.endsWith('.xnl')) : [];
-const engineeringFiles = track ? listFiles(path.join(workspace, 'codument', 'tracks', track, 'engineering_deltas'), (rel) => rel.endsWith('.xnl')) : [];
+const modelingFiles = track ? listFiles(path.join(workspace, 'codument', 'tracks', 'active', track, 'modeling_deltas'), (rel) => rel.endsWith('.xnl')) : [];
+const engineeringFiles = track ? listFiles(path.join(workspace, 'codument', 'tracks', 'active', track, 'engineering_deltas'), (rel) => rel.endsWith('.xnl')) : [];
 
 const runnableScore = 10
   + (checks.find((c) => c.name === 'build')?.passed ? 5 : 0)

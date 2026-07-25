@@ -8,7 +8,7 @@
 
 | 优先级 | 工作项 | 关联 behavior/需求 | owner 文档 | track | 状态 | AI 自主度 | 阻塞 | 最后检查 |
 |---|---|---|---|---|---|---|---|---|
-| P0 | `<一句话>` | `behaviors/<cap>` 或 `<待澄清>` | `docs/...` 或 `<无>` | `tracks/<id>` 或 `<未开>` | `needs-track` | `blocked` | `<占位未替换>` | `<YYYY-MM-DD>` |
+| P0 | `<一句话>` | `behaviors/<cap>` 或 `<待澄清>` | `docs/...` 或 `<无>` | `tracks/pending/<id>` 或 `<未开>` | `needs-track` | `blocked` | `<占位未替换>` | `<YYYY-MM-DD>` |
 
 ## AI 自主度（沿用 codument 校验/审查语义）
 

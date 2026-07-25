@@ -22,9 +22,11 @@ export function getWorkspaceDir(): string {
 
 export const CODUMENT_DIR = 'codument';
 export const TRACKS_DIR = path.join(CODUMENT_DIR, 'tracks');
+export const PENDING_TRACKS_DIR = path.join(TRACKS_DIR, 'pending');
+export const ACTIVE_TRACKS_DIR = path.join(TRACKS_DIR, 'active');
+export const ARCHIVED_TRACKS_DIR = path.join(TRACKS_DIR, 'archived');
 export const SPECS_DIR = path.join(CODUMENT_DIR, 'specs');
 export const BEHAVIORS_DIR = path.join(CODUMENT_DIR, 'behaviors');
-export const ARCHIVE_DIR = path.join(CODUMENT_DIR, 'archive');
 export const ATTRACTORS_DIR = path.join(CODUMENT_DIR, 'attractors');
 export const CONFIG_DIR = path.join(CODUMENT_DIR, 'config');
 export const DECISIONS_DIR = path.join(CODUMENT_DIR, 'decisions');
@@ -177,14 +179,14 @@ export function codumentExists(): boolean {
  * Get track directory IDs that contain a track.xml.
  */
 export function getTrackIds(): string[] {
-  if (!fs.existsSync(TRACKS_DIR)) {
+  if (!fs.existsSync(ACTIVE_TRACKS_DIR)) {
     return [];
   }
 
-  return fs.readdirSync(TRACKS_DIR, { withFileTypes: true })
+  return fs.readdirSync(ACTIVE_TRACKS_DIR, { withFileTypes: true })
     .filter(dirent => dirent.isDirectory())
     .map(dirent => dirent.name)
-    .filter(trackId => fs.existsSync(path.join(TRACKS_DIR, trackId, 'track.xml')));
+    .filter(trackId => fs.existsSync(path.join(ACTIVE_TRACKS_DIR, trackId, 'track.xml')));
 }
 
 // ---- track.xml readers (new XML standard) ----------------------------------
@@ -193,8 +195,16 @@ const SPARROW_DONE = new Set(['DONE']);
 const SPARROW_ACTIVE = new Set(['ACTIVE', 'DELEGATED', 'FORWARDED']);
 const SPARROW_BLOCKED = new Set(['REFUSED', 'ABANDONED']);
 
+export function getActiveTrackDir(trackId: string): string {
+  return path.join(ACTIVE_TRACKS_DIR, trackId);
+}
+
+export function getPendingTrackDir(trackId: string): string {
+  return path.join(PENDING_TRACKS_DIR, trackId);
+}
+
 function trackXmlPath(trackId: string): string {
-  return path.join(TRACKS_DIR, trackId, 'track.xml');
+  return path.join(getActiveTrackDir(trackId), 'track.xml');
 }
 
 function parseTrackRoot(file: string): SpecXmlNode | null {

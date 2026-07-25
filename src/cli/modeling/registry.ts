@@ -30,6 +30,35 @@ export interface ModelingRegistry {
   index: Map<string, ModelingNodeRef>;
 }
 
+/**
+ * Map a track delta owner (`<plane>/<context>.xnl`) to its canonical live
+ * registry owner (`<plane>/<context>/index.xnl`).
+ */
+export function modelingDeltaPathToRegistryOwnerPath(relFile: string): string {
+  const segments = relFile.split(/[\\/]/).filter(Boolean);
+  const plane = segments[0] ?? '';
+  const contextFile = segments[1] ?? '';
+  const extension = path.extname(contextFile);
+  if (
+    path.isAbsolute(relFile)
+    || segments.length !== 2
+    || segments.some((segment) => segment === '.' || segment === '..')
+    || extension.toLowerCase() !== '.xnl'
+  ) {
+    throw new Error(
+      `Invalid modeling delta path '${relFile}'; expected '<plane>/<context>.xnl'`,
+    );
+  }
+
+  const context = path.basename(contextFile, extension);
+  if (!plane || !context) {
+    throw new Error(
+      `Invalid modeling delta path '${relFile}'; expected '<plane>/<context>.xnl'`,
+    );
+  }
+  return path.join(plane, context, 'index.xnl');
+}
+
 export function isDataElement(node: XnlNode | undefined): node is DataElementNode {
   return Boolean(node && typeof node === 'object' && (node as DataElementNode).kind === 'DataElement');
 }

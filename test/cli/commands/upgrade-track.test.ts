@@ -19,7 +19,7 @@ describe('codument upgrade-track', () => {
 
     const ws = makeTempDir('codument-upgrade-track-ws-');
     const trackId = 'my-track';
-    const trackDir = path.join(ws, 'codument', 'tracks', trackId);
+    const trackDir = path.join(ws, 'codument', 'tracks', 'active', trackId);
     fs.mkdirSync(trackDir, { recursive: true });
 
     // Minimal initialized workspace
@@ -96,7 +96,7 @@ describe('codument upgrade-track', () => {
     expect(out).toContain('Ensured wave support files');
 
     // Backup includes original plan.xml
-    const backedUpPlan = path.join(backupDir, 'codument', 'tracks', trackId, 'plan.xml');
+    const backedUpPlan = path.join(backupDir, 'codument', 'tracks', 'active', trackId, 'plan.xml');
     expect(fs.existsSync(backedUpPlan)).toBe(true);
     const backupText = fs.readFileSync(backedUpPlan, 'utf-8');
     expect(backupText).toContain('<dependencies>');
@@ -124,7 +124,7 @@ describe('codument upgrade-track', () => {
     const ws = makeTempDir('codument-upgrade-track-archive-ws-');
     const trackId = 'archived-track';
     const archiveId = `2026-05-30-1432-${trackId}`;
-    const archiveDir = path.join(ws, 'codument', 'archive', '2026-05', archiveId);
+    const archiveDir = path.join(ws, 'codument', 'tracks', 'archived', '2026-05', archiveId);
 
     writeFile(path.join(ws, 'codument', 'state.json'), JSON.stringify({
       cli_tools: [],
@@ -168,7 +168,7 @@ describe('codument upgrade-track', () => {
     const err = await new Response(proc.stderr).text();
     expect(err).toBe('');
     expect(exitCode).toBe(0);
-    expect(out).toContain(path.join('codument', 'archive', '2026-05', archiveId));
+    expect(out).toContain(path.join('codument', 'tracks', 'archived', '2026-05', archiveId));
 
     const upgradedText = fs.readFileSync(path.join(archiveDir, 'plan.xml'), 'utf-8');
     expect(upgradedText).toContain('<execution_mode>wave</execution_mode>');

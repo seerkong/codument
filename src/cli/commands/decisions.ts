@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { parseXnl, wordToString, XnlParseError } from 'xnl-core';
 import type { DataElementNode, TextElementNode, XnlNode, XnlWord } from 'xnl-core';
-import { parseOptions, TRACKS_DIR } from '../utils';
+import { ACTIVE_TRACKS_DIR, PENDING_TRACKS_DIR, parseOptions } from '../utils';
 
 export interface DecisionFinding {
   severity: 'error' | 'warning';
@@ -456,10 +456,14 @@ function resolveTarget(target: string | undefined): string {
     return path.join(process.cwd(), 'decisions.md');
   }
   if (target.endsWith('.md') || target.endsWith('.xnl') || target.includes(path.sep)) return target;
-  const trackDir = path.join(TRACKS_DIR, target);
-  const xnl = path.join(trackDir, 'decisions.xnl');
-  if (fs.existsSync(xnl)) return xnl;
-  return path.join(trackDir, 'decisions.md');
+  for (const parent of [ACTIVE_TRACKS_DIR, PENDING_TRACKS_DIR]) {
+    const trackDir = path.join(parent, target);
+    const xnl = path.join(trackDir, 'decisions.xnl');
+    if (fs.existsSync(xnl)) return xnl;
+    const markdown = path.join(trackDir, 'decisions.md');
+    if (fs.existsSync(markdown)) return markdown;
+  }
+  return path.join(ACTIVE_TRACKS_DIR, target, 'decisions.md');
 }
 
 function report(findings: DecisionFinding[], file: string): void {

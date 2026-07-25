@@ -1,13 +1,19 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { parseOptions, codumentExists, TRACKS_DIR, CONFIG_DIR } from '../utils';
+import {
+  ACTIVE_TRACKS_DIR,
+  CONFIG_DIR,
+  PENDING_TRACKS_DIR,
+  codumentExists,
+  parseOptions,
+} from '../utils';
 import { parseSpecXmlContent, type SpecXmlNode } from '../utils/spec-xml';
 
 /**
  * `codument validate [track-id]` — validates the new XML standard:
- *   - tracks/<id>/track.xml                (root <Track>, per std/spec/track-xml-spec.md §9)
- *   - tracks/<id>/behavior_deltas/**.xml   (root <behavior-patch>)
- * No args (or `all`) validates every track under codument/tracks/.
+ *   - tracks/{pending,active}/<id>/track.xml              (root <Track>)
+ *   - tracks/{pending,active}/<id>/behavior_deltas/**.xml (root <behavior-patch>)
+ * No args (or `all`) validates every pending and active track.
  */
 
 interface ValidationError {
@@ -276,11 +282,13 @@ function validateBehaviorDeltas(trackDir: string, errors: ValidationError[]): nu
 
 // --- command ----------------------------------------------------------------
 
-function trackIds(): string[] {
-  if (!fs.existsSync(TRACKS_DIR)) return [];
-  return fs.readdirSync(TRACKS_DIR, { withFileTypes: true })
-    .filter((e) => e.isDirectory() && fs.existsSync(path.join(TRACKS_DIR, e.name, 'track.xml')))
-    .map((e) => e.name);
+function trackDirectories(): Array<{ id: string; dir: string }> {
+  return [PENDING_TRACKS_DIR, ACTIVE_TRACKS_DIR].flatMap((parent) => {
+    if (!fs.existsSync(parent)) return [];
+    return fs.readdirSync(parent, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory() && fs.existsSync(path.join(parent, entry.name, 'track.xml')))
+      .map((entry) => ({ id: entry.name, dir: path.join(parent, entry.name) }));
+  });
 }
 
 export async function validateCommand(args: string[]): Promise<void> {
@@ -290,9 +298,12 @@ export async function validateCommand(args: string[]): Promise<void> {
   }
   const { positional } = parseOptions(args);
   const target = positional[0];
-  const ids = !target || target === 'all' ? trackIds() : [target];
+  const tracks = trackDirectories();
+  const targets = !target || target === 'all'
+    ? tracks
+    : tracks.filter((track) => track.id === target);
 
-  if (ids.length === 0) {
+  if (targets.length === 0) {
     console.log('No tracks to validate.');
     return;
   }
@@ -300,8 +311,7 @@ export async function validateCommand(args: string[]): Promise<void> {
   const profiles = loadProfileNames();
   let hadError = false;
 
-  for (const id of ids) {
-    const trackDir = path.join(TRACKS_DIR, id);
+  for (const { id, dir: trackDir } of targets) {
     const trackXml = path.join(trackDir, 'track.xml');
     const errors: ValidationError[] = [];
 

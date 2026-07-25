@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { ARCHIVE_DIR } from './index';
+import { ARCHIVED_TRACKS_DIR } from './index';
 
 function parseDate(value: string | undefined): Date | null {
   if (!value) {
@@ -68,7 +68,7 @@ export function formatLocalMinutePrefix(date: Date): { monthBucket: string; minu
   };
 }
 
-export function buildArchiveDestination(trackDir: string, trackId: string, archiveDir = ARCHIVE_DIR): string {
+export function buildArchiveDestination(trackDir: string, trackId: string, archiveDir = ARCHIVED_TRACKS_DIR): string {
   const updatedDate = resolveTrackUpdatedDate(trackDir);
   const prefix = formatLocalMinutePrefix(updatedDate);
   return path.join(archiveDir, prefix.monthBucket, `${prefix.minutePrefix}-${trackId}`);

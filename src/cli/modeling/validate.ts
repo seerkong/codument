@@ -186,15 +186,31 @@ function checkReferences(
 }
 
 /**
- * Check plane legality: domain must exist; unknown = warning. Operates over every
- * discovered file path (including ones that failed to parse), so a syntax error in
- * a `domain/...` file does not also produce a spurious "missing domain plane".
+ * Check plane legality: an empty registry is a valid initial state and emits a
+ * warning; once content exists, domain must exist and unknown planes are warnings.
+ * Operates over every discovered file path (including ones that failed to parse),
+ * so a syntax error in a `domain/...` file does not also produce a spurious
+ * "missing domain plane".
  */
-function checkPlanes(relFiles: Iterable<string>, mode: ValidateMode): ValidateFinding[] {
+function checkPlanes(
+  relFiles: Iterable<string>,
+  mode: ValidateMode,
+  hasContent: boolean,
+): ValidateFinding[] {
   const findings: ValidateFinding[] = [];
   const planes = new Set<string>();
   for (const relFile of relFiles) {
     planes.add(pathLoc(relFile, mode).plane);
+  }
+
+  if (!hasContent) {
+    findings.push({
+      file: '.',
+      layer: 'hierarchy',
+      severity: 'warning',
+      message: 'modeling registry is empty; a domain plane is required once modeling nodes are added',
+    });
+    return findings;
   }
 
   if (!planes.has('domain')) {
@@ -281,7 +297,9 @@ export function validateModelingTree(dir: string, opts: ValidateOptions = {}): V
   // plus syntax-failed ones, so a broken domain file still counts as a domain plane).
   const planeFiles = new Set<string>(registry.files.keys());
   for (const issue of issues) if (issue.kind === 'syntax') planeFiles.add(issue.file);
-  findings.push(...checkPlanes(planeFiles, mode));
+  const hasContent = [...registry.files.values()].some((nodes) => nodes.length > 0)
+    || issues.some((issue) => issue.kind === 'syntax');
+  findings.push(...checkPlanes(planeFiles, mode, hasContent));
 
   return findings;
 }

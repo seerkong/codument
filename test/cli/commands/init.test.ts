@@ -47,8 +47,29 @@ describe('codument init', () => {
     const gitignore = fs.readFileSync(path.join(ws, '.gitignore'), 'utf-8');
     expect(gitignore).toContain('codument/**/analysis');
     expect(gitignore).toContain('codument/**/reports');
-    expect(fs.existsSync(path.join(ws, 'codument', 'std', 'operations', 'impl-quick.md'))).toBe(true);
+    expect(fs.existsSync(path.join(ws, 'codument', 'std', 'actions', 'impl-quick.md'))).toBe(true);
+    expect(fs.existsSync(path.join(ws, 'codument', 'std', 'commands', 'upgrade-workspace.md'))).toBe(true);
+    expect(fs.existsSync(path.join(ws, 'codument', 'std', 'protocols', 'decision-tree.md'))).toBe(true);
+    expect(fs.existsSync(path.join(ws, 'codument', 'std', 'methods', 'workflow.md'))).toBe(true);
+    expect(fs.existsSync(path.join(ws, 'codument', 'config', 'action-hooks.xml'))).toBe(true);
+    expect(fs.existsSync(path.join(ws, 'codument', 'tracks', 'pending', 'README.md'))).toBe(true);
+    expect(fs.existsSync(path.join(ws, 'codument', 'tracks', 'active', 'README.md'))).toBe(true);
+    expect(fs.existsSync(path.join(ws, 'codument', 'tracks', 'archived', 'README.md'))).toBe(true);
     expect(fs.existsSync(path.join(skillsDir, 'codument-impl-quick', 'SKILL.md'))).toBe(true);
+    expect(fs.existsSync(path.join(skillsDir, 'codument-maintain-track', 'SKILL.md'))).toBe(true);
+    for (const deprecated of [
+      'codument-archive',
+      'codument-code-quality-score',
+      'codument-decision-tree',
+      'codument-discuss-phase',
+      'codument-implement',
+      'codument-modeling-engineering-e2e',
+      'codument-plan-track-wave',
+      'codument-revise-track',
+      'codument-track',
+    ]) {
+      expect(fs.existsSync(path.join(skillsDir, deprecated))).toBe(false);
+    }
   });
 
   it('installs Codex skills under the workspace-local .agents directory by default', async () => {

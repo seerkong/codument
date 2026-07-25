@@ -12,9 +12,9 @@ function writeConfig(xml: string): string {
 }
 
 describe('modeling config', () => {
-  it('defaults to disabled when the file is absent', () => {
+  it('defaults to enabled when the file is absent', () => {
     const cfg = loadModelingConfig(path.join(os.tmpdir(), 'nope-modeling.xml'));
-    expect(cfg.enabled).toBe(false);
+    expect(cfg.enabled).toBe(true);
     expect(cfg.thresholds).toEqual({ maxLines: 400, maxNodes: 8 });
     expect(cfg.mergePolicy['same-field']).toBe('human');
   });

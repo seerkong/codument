@@ -132,9 +132,9 @@ describe('XML spec CLI compatibility', () => {
       cli_tools: [],
       last_successful_step: '2.1_project',
     }, null, 2));
-    writeFile(path.join(ws, 'codument', 'tracks', trackId, 'proposal.md'), '# proposal\n');
-    writeTrackXml(path.join(ws, 'codument', 'tracks', trackId), trackId);
-    writeFile(path.join(ws, 'codument', 'tracks', trackId, 'behavior_deltas', 'xml-capability', 'delta.xml'), `<behavior-patch capability="xml-capability" version="1">
+    writeFile(path.join(ws, 'codument', 'tracks', 'active', trackId, 'proposal.md'), '# proposal\n');
+    writeTrackXml(path.join(ws, 'codument', 'tracks', 'active', trackId), trackId);
+    writeFile(path.join(ws, 'codument', 'tracks', 'active', trackId, 'behavior_deltas', 'xml-capability', 'delta.xml'), `<behavior-patch capability="xml-capability" version="1">
   <upsert selector="behavior://xml-capability/requirements/run">
     <requirement id="run">
       <statement>XML deltas SHALL validate.</statement>

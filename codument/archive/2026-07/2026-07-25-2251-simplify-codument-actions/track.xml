@@ -1,0 +1,37 @@
+<Track id="simplify-codument-actions" version="1" xmlns:cdt="urn:codument:v1">
+  <Metadata>
+    <Status>completed</Status>
+    <Goal>精简 Codument action 默认行为、规划产物和共享协议。</Goal>
+    <Description>移除默认 fresh attractor 检查，固定 planning 产物，协议化 decision-tree，并在 archive 前校验 decisions.xnl。</Description>
+    <QuestionMode>decision-tree</QuestionMode>
+    <QuestionSeverity>auto</QuestionSeverity>
+    <CommitMode>manual</CommitMode>
+    <CreatedAt>2026-07-25T22:48:12+03:00</CreatedAt>
+    <UpdatedAt>2026-07-25T22:51:16+03:00</UpdatedAt>
+  </Metadata>
+  <Ports scope="track">
+    <MaterialBundle role="input" name="release-templates" domain="code" path="vfs://@/src/templates/"/>
+    <MaterialBundle role="input" name="archive-runtime" domain="code" path="vfs://@/src/cli/commands/archive.ts"/>
+    <MaterialBundle role="output" name="release-templates" domain="code" path="vfs://@/src/templates/"/>
+  </Ports>
+  <TaskSpace id="space_simplify-codument-actions" name="simplify-codument-actions" version="1">
+    <SubNodes>
+      <TaskGroup id="P1" name="defaults and protocols" status="DONE" order="0">
+        <SubNodes>
+          <Task id="T1" name="fix planning artifact defaults and decision-tree protocol" status="DONE" order="0"/>
+          <Task id="T2" name="remove routine action and phase attractor checks" status="DONE" order="1"/>
+        </SubNodes>
+      </TaskGroup>
+      <TaskGroup id="P2" name="archive decision guard" status="DONE" order="1">
+        <SubNodes>
+          <Task id="T3" name="validate decisions before archive mutation" status="DONE" order="0"/>
+        </SubNodes>
+      </TaskGroup>
+      <TaskGroup id="P3" name="verification" status="DONE" order="2">
+        <SubNodes>
+          <Task id="T4" name="verify simplified defaults and archive failure behavior" status="DONE" order="0"/>
+        </SubNodes>
+      </TaskGroup>
+    </SubNodes>
+  </TaskSpace>
+</Track>

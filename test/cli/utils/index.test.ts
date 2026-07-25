@@ -41,7 +41,7 @@ function createTempWorkspaceTrack(
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'codument-ws-test-'));
   tmpDirs.push(tmpDir);
 
-  const trackDir = path.join(tmpDir, 'codument', 'tracks', trackId);
+  const trackDir = path.join(tmpDir, 'codument', 'tracks', 'active', trackId);
   fs.mkdirSync(trackDir, { recursive: true });
 
   fs.writeFileSync(path.join(trackDir, 'track.xml'), `<?xml version="1.0" encoding="UTF-8"?>
@@ -620,7 +620,7 @@ describe('track 状态读取', () => {
 
   it('getTrack description falls back to Metadata.Goal and ignores task descriptions', () => {
     const ws = createTempWorkspaceTrack('track-description-fallback', 'new', 'new');
-    const trackPath = path.join(ws, 'codument', 'tracks', 'track-description-fallback', 'track.xml');
+    const trackPath = path.join(ws, 'codument', 'tracks', 'active', 'track-description-fallback', 'track.xml');
     let content = fs.readFileSync(trackPath, 'utf-8');
     content = content.replace(/\n    <Description>test track<\/Description>/, '');
     content = content.replace(
@@ -637,7 +637,7 @@ describe('track 状态读取', () => {
 
   it('getTrackIds returns track.xml tracks even when XML is not a readable Track', () => {
     const ws = createTempWorkspaceTrack('invalid-metadata', 'new', 'new');
-    const trackPath = path.join(ws, 'codument', 'tracks', 'invalid-metadata', 'track.xml');
+    const trackPath = path.join(ws, 'codument', 'tracks', 'active', 'invalid-metadata', 'track.xml');
     fs.writeFileSync(trackPath, '<not-a-track />');
     setWorkspaceDir(ws);
 

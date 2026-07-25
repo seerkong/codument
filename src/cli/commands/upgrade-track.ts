@@ -2,9 +2,9 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 import {
-  ARCHIVE_DIR,
+  ACTIVE_TRACKS_DIR,
+  ARCHIVED_TRACKS_DIR,
   CODUMENT_DIR,
-  TRACKS_DIR,
   codumentExists,
   parseOptions,
 } from '../utils';
@@ -59,13 +59,13 @@ function backupIfExists(src: string, backupRoot: string): void {
 }
 
 function findTrackDir(identifier: string): { kind: 'track' | 'archive'; dir: string; id: string } | null {
-  const trackDir = path.join(TRACKS_DIR, identifier);
+  const trackDir = path.join(ACTIVE_TRACKS_DIR, identifier);
   if (fs.existsSync(trackDir) && fs.statSync(trackDir).isDirectory()) {
     return { kind: 'track', dir: trackDir, id: identifier };
   }
 
   // Identifier may be an archive id (YYYY-MM-DD-<track-id>) or a track id inside archive.
-  if (!fs.existsSync(ARCHIVE_DIR)) {
+  if (!fs.existsSync(ARCHIVED_TRACKS_DIR)) {
     return null;
   }
 
@@ -91,7 +91,7 @@ function findTrackDir(identifier: string): { kind: 'track' | 'archive'; dir: str
     }
   };
 
-  visitArchiveDir(ARCHIVE_DIR, 0);
+  visitArchiveDir(ARCHIVED_TRACKS_DIR, 0);
 
   if (archiveCandidates.length === 1) {
     const archive = archiveCandidates[0];
@@ -340,8 +340,8 @@ export async function upgradeTrackCommand(args: string[]): Promise<void> {
   if (!found) {
     console.error(`Track not found: ${identifier}`);
     console.log('Searched:');
-    console.log(`- ${path.join(TRACKS_DIR, identifier)}`);
-    console.log(`- ${path.join(ARCHIVE_DIR, `*-${identifier}`)}`);
+    console.log(`- ${path.join(ACTIVE_TRACKS_DIR, identifier)}`);
+    console.log(`- ${path.join(ARCHIVED_TRACKS_DIR, `*-${identifier}`)}`);
     process.exit(1);
   }
 

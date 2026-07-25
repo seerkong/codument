@@ -37,6 +37,15 @@ const DEPRECATED_SKILLS = [
   'codument-plan-schedule',
   'codument-plan-wave',
   'codument-status',
+  'codument-archive',
+  'codument-code-quality-score',
+  'codument-decision-tree',
+  'codument-discuss-phase',
+  'codument-implement',
+  'codument-modeling-engineering-e2e',
+  'codument-plan-track-wave',
+  'codument-revise-track',
+  'codument-track',
 ];
 
 const AGENTS_MANAGED_BODY = `# Codument Instructions

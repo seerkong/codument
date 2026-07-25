@@ -4,19 +4,39 @@ import * as path from 'path';
 import { execFileSync } from 'child_process';
 import type { XnlNode } from 'xnl-core';
 import {
-  ARCHIVE_DIR,
+  ARCHIVED_TRACKS_DIR,
   BEHAVIORS_DIR,
   DECISIONS_DIR,
   MEMORY_DIR,
   SPECS_DIR,
-  TRACKS_DIR,
+  getActiveTrackDir,
   codumentExists,
   getTrack,
   parseOptions,
 } from '../utils';
+import {
+  cleanupRegistryStagingTransaction,
+  commitRegistryStages,
+  createRegistryStagingTransaction,
+  finalizeRegistryCommit,
+  rollbackRegistryCommit,
+  stageRegistry,
+  shouldPreserveRegistryStagingTransaction,
+  type RegistryStagingTransaction,
+  type StagedRegistry,
+} from '../archive/staging';
 import { loadEngineeringConfig } from '../engineering/config';
 import { loadEngineeringRegistry, saveEngineeringFile } from '../engineering/registry';
 import { mergeEngineering, type MergeConflict } from '../engineering/merge';
+import { validateEngineeringTree } from '../engineering/validate';
+import { loadModelingConfig } from '../modeling/config';
+import {
+  loadModelingRegistry,
+  modelingDeltaPathToRegistryOwnerPath,
+  saveModelingFile,
+} from '../modeling/registry';
+import { mergeModeling, type MergeConflict as ModelingMergeConflict } from '../modeling/merge';
+import { validateModelingTree } from '../modeling/validate';
 import { applySpecXmlPatchToRegistry } from '../utils/spec-xml';
 import { buildArchiveDestination, formatLocalMinutePrefix, resolveTrackUpdatedDate } from '../utils/track-time';
 import {
@@ -24,7 +44,18 @@ import {
   type XnlDecisionRecord,
 } from './decisions';
 
-export async function archiveCommand(args: string[]) {
+export interface ArchiveEffects {
+  moveTrack(source: string, destination: string): void;
+}
+
+const DEFAULT_ARCHIVE_EFFECTS: ArchiveEffects = {
+  moveTrack: fs.renameSync,
+};
+
+export async function archiveCommand(
+  args: string[],
+  effects: ArchiveEffects = DEFAULT_ARCHIVE_EFFECTS,
+) {
   if (!codumentExists()) {
     console.error('Codument is not initialized. Run codument init first.');
     process.exit(1);
@@ -58,15 +89,15 @@ export async function archiveCommand(args: string[]) {
     }
   }
 
-  const trackDir = path.join(TRACKS_DIR, trackId);
+  const trackDir = getActiveTrackDir(trackId);
   const updatedDate = resolveTrackUpdatedDate(trackDir);
-  const archiveDir = buildArchiveDestination(trackDir, trackId, ARCHIVE_DIR);
+  const archiveDir = buildArchiveDestination(trackDir, trackId, ARCHIVED_TRACKS_DIR);
   const archiveId = path.basename(archiveDir);
 
   console.log(`\nArchiving track: ${trackId}`);
   console.log(`Destination: ${archiveDir}`);
 
-  // Create archive directory
+  // Ensure the archive parent exists, but do not create the destination before commit.
   const archiveParentDir = path.dirname(archiveDir);
   if (!fs.existsSync(archiveParentDir)) {
     fs.mkdirSync(archiveParentDir, { recursive: true });
@@ -76,36 +107,82 @@ export async function archiveCommand(args: string[]) {
     process.exit(1);
   }
 
-  const engineeringUpdate = prepareEngineeringDeltaMerge(trackDir);
+  assertValidArchiveDecisions(trackDir);
+  const engineeringPlan = prepareEngineeringDeltaMerge(trackDir);
+  const modelingPlan = prepareModelingDeltaMerge(trackDir);
+  const transaction = createRegistryStagingTransaction();
+  let updatedBehaviorCapabilities: string[] | null = null;
+  let updatedEngineeringFiles: string[] = [];
+  let updatedModelingFiles: string[] = [];
+  let preserveStaging = false;
 
-  // Apply behavior/spec registry updates BEFORE moving the track. The registry
-  // write is all-or-nothing (applySpecXmlPatchToRegistry stages every mutation in
-  // memory and only flushes on success), so a delta failure now leaves the track
-  // in place and re-runnable instead of stranding a half-archived, inconsistent state.
-  let updatedRegistries: string[] | null = null;
-  if (!skipSpecs) {
-    updatedRegistries = applyArchivedSpecDeltas(trackDir);
+  try {
+    const behaviorUpdate = skipSpecs
+      ? null
+      : stageArchivedSpecDeltas(transaction, trackDir);
+    const engineeringStage = engineeringPlan
+      ? stagePreparedRegistryMerge(transaction, engineeringPlan)
+      : null;
+    const modelingStage = modelingPlan
+      ? stagePreparedRegistryMerge(transaction, modelingPlan)
+      : null;
+
+    if (engineeringStage) {
+      validateStagedRegistry(engineeringStage);
+    }
+    if (modelingStage) {
+      validateStagedRegistry(modelingStage);
+    }
+
+    updatedBehaviorCapabilities = skipSpecs ? null : behaviorUpdate?.updated ?? [];
+    const commitReceipt = commitRegistryStages(
+      transaction,
+      [behaviorUpdate?.stage, engineeringStage, modelingStage],
+    );
+    if (engineeringStage) {
+      updatedEngineeringFiles = engineeringStage.changedFiles;
+    }
+    if (modelingStage) {
+      updatedModelingFiles = modelingStage.changedFiles;
+    }
+
+    try {
+      effects.moveTrack(trackDir, archiveDir);
+    } catch (moveError) {
+      rollbackRegistryCommit(commitReceipt, moveError);
+      throw moveError;
+    }
+    finalizeRegistryCommit(commitReceipt);
+  } catch (error) {
+    preserveStaging = shouldPreserveRegistryStagingTransaction(error);
+    throw error;
+  } finally {
+    if (!preserveStaging) {
+      cleanupRegistryStagingTransaction(transaction);
+    }
   }
 
-  const updatedEngineeringFiles = engineeringUpdate?.apply() ?? [];
-
-  // Move track to archive
-  fs.renameSync(trackDir, archiveDir);
-  console.log('✓ Track moved to archive');
+  console.log('✓ Track moved to tracks/archived');
   console.log(`✓ Archive ID: ${archiveId}`);
 
-  if (updatedRegistries === null) {
+  if (updatedBehaviorCapabilities === null) {
     console.log('  Skipped behavior/spec updates (--skip-specs)');
-  } else if (updatedRegistries.length > 0) {
-    console.log(`✓ Updated behavior/spec registry: ${updatedRegistries.join(', ')}`);
+  } else if (updatedBehaviorCapabilities.length > 0) {
+    console.log(`✓ Updated behavior/spec registry: ${updatedBehaviorCapabilities.join(', ')}`);
   } else {
     console.log('  No behavior/spec updates needed');
   }
 
   if (updatedEngineeringFiles.length > 0) {
     console.log(`✓ Updated engineering registry: ${updatedEngineeringFiles.join(', ')}`);
-  } else if (engineeringUpdate) {
+  } else if (engineeringPlan) {
     console.log('  No engineering updates needed');
+  }
+
+  if (updatedModelingFiles.length > 0) {
+    console.log(`✓ Updated modeling registry: ${updatedModelingFiles.join(', ')}`);
+  } else if (modelingPlan) {
+    console.log('  No modeling updates needed');
   }
 
   const promotedDecision = promoteDecisionRecord(archiveDir, archiveId, trackId, updatedDate);
@@ -127,58 +204,237 @@ export async function archiveCommand(args: string[]) {
   console.log(`\n✓ Track "${trackId}" archived successfully!\n`);
 }
 
-function applyArchivedSpecDeltas(archiveDir: string): string[] {
-  const behaviorPatches = collectXmlPatches(archiveDir, ['behavior_deltas', 'behavior-deltas']);
+function assertValidArchiveDecisions(trackDir: string): void {
+  const file = path.join(trackDir, 'decisions.xnl');
+  if (!fs.existsSync(file)) {
+    return;
+  }
+  try {
+    readXnlDecisionRecords(file);
+  } catch (error) {
+    throw new Error(`Invalid decisions.xnl before archive: ${error instanceof Error ? error.message : String(error)}`);
+  }
+}
+
+interface StagedSpecUpdate {
+  stage: StagedRegistry | null;
+  updated: string[];
+}
+
+function stageArchivedSpecDeltas(
+  transaction: RegistryStagingTransaction,
+  trackDir: string,
+): StagedSpecUpdate {
+  const behaviorPatches = collectXmlPatches(trackDir, ['behavior_deltas', 'behavior-deltas']);
   if (behaviorPatches.length > 0) {
-    const updated = new Set<string>();
-    for (const patchPath of behaviorPatches) {
-      for (const capability of applySpecXmlPatchToRegistry(fs.readFileSync(patchPath, 'utf-8'), BEHAVIORS_DIR)) {
-        updated.add(capability);
+    const staged = stageRegistry(transaction, 'behavior', BEHAVIORS_DIR, (stagedDir) => {
+      const updated = new Set<string>();
+      for (const patchPath of behaviorPatches) {
+        for (const capability of applySpecXmlPatchToRegistry(fs.readFileSync(patchPath, 'utf-8'), stagedDir)) {
+          updated.add(capability);
+        }
       }
-    }
-    return [...updated];
+      return [...updated];
+    });
+    return { stage: staged.stage, updated: staged.result };
   }
 
-  const legacyXmlPatches = collectXmlPatches(archiveDir, ['spec_deltas', 'spec-deltas']);
+  const legacyXmlPatches = collectXmlPatches(trackDir, ['spec_deltas', 'spec-deltas']);
   if (legacyXmlPatches.length > 0) {
-    const updated = new Set<string>();
-    for (const patchPath of legacyXmlPatches) {
-      for (const capability of applySpecXmlPatchToRegistry(fs.readFileSync(patchPath, 'utf-8'), SPECS_DIR)) {
-        updated.add(capability);
+    const staged = stageRegistry(transaction, 'spec', SPECS_DIR, (stagedDir) => {
+      const updated = new Set<string>();
+      for (const patchPath of legacyXmlPatches) {
+        for (const capability of applySpecXmlPatchToRegistry(fs.readFileSync(patchPath, 'utf-8'), stagedDir)) {
+          updated.add(capability);
+        }
       }
-    }
-    return [...updated];
+      return [...updated];
+    });
+    return { stage: staged.stage, updated: staged.result };
   }
 
   const xmlPatchCandidates = ['spec.xml', 'spec.patch.xml', 'patch.xml'];
   for (const candidate of xmlPatchCandidates) {
-    const patchPath = path.join(archiveDir, candidate);
+    const patchPath = path.join(trackDir, candidate);
     if (fs.existsSync(patchPath)) {
-      const updated = applySpecXmlPatchToRegistry(fs.readFileSync(patchPath, 'utf-8'), SPECS_DIR);
-      if (updated.length > 0) {
-        return updated;
-      }
+      const staged = stageRegistry(transaction, 'spec', SPECS_DIR, (stagedDir) =>
+        applySpecXmlPatchToRegistry(fs.readFileSync(patchPath, 'utf-8'), stagedDir));
+      return { stage: staged.stage, updated: staged.result };
     }
   }
 
-  const specPath = path.join(archiveDir, 'spec.md');
+  const specPath = path.join(trackDir, 'spec.md');
   if (fs.existsSync(specPath)) {
-    return applySpecDeltas(specPath);
+    return { stage: null, updated: applySpecDeltas(specPath) };
   }
 
-  return [];
+  return { stage: null, updated: [] };
 }
 
-interface PreparedEngineeringMerge {
-  apply(): string[];
-}
+type RegistryKind = 'modeling' | 'engineering';
 
-interface MergedEngineeringFile {
+interface MergedRegistryFile {
   relFile: string;
   nodes: XnlNode[];
 }
 
-function prepareEngineeringDeltaMerge(trackDir: string): PreparedEngineeringMerge | null {
+interface PreparedRegistryMerge {
+  kind: RegistryKind;
+  registryDir: string;
+  files: MergedRegistryFile[];
+}
+
+function formatValidationFinding(
+  finding: { file: string; line?: number; layer: string; message: string },
+): string {
+  const line = finding.line === undefined ? '' : `:${finding.line}`;
+  return `${finding.file}${line} [${finding.layer}] ${finding.message}`;
+}
+
+function validateStagedRegistry(stage: StagedRegistry): void {
+  const label = stage.kind === 'modeling' ? 'Modeling' : 'Engineering';
+  const findings = stage.kind === 'modeling'
+    ? validateModelingTree(stage.stagedDir, { mode: 'registry' })
+    : validateEngineeringTree(stage.stagedDir);
+  const warnings = findings.filter((finding) => finding.severity === 'warning');
+  const errors = findings.filter((finding) => finding.severity === 'error');
+
+  for (const warning of warnings) {
+    console.warn(`${label} registry validation warning: ${formatValidationFinding(warning)}`);
+  }
+  if (errors.length > 0) {
+    throw new Error(
+      `${label} registry validation failed:\n`
+      + errors.map((finding) => `  - ${formatValidationFinding(finding)}`).join('\n'),
+    );
+  }
+}
+
+function stagePreparedRegistryMerge(
+  transaction: RegistryStagingTransaction,
+  prepared: PreparedRegistryMerge,
+): StagedRegistry | null {
+  const { kind, registryDir, files } = prepared;
+  if (files.length === 0) {
+    return null;
+  }
+
+  return stageRegistry(transaction, kind, registryDir, (stagedDir) => {
+    for (const file of files) {
+      const abs = path.join(stagedDir, file.relFile);
+      if (file.nodes.length === 0) {
+        fs.rmSync(abs, { recursive: true, force: true });
+        continue;
+      }
+
+      if (fs.existsSync(abs) && !fs.statSync(abs).isFile()) {
+        fs.rmSync(abs, { recursive: true, force: true });
+      }
+      if (kind === 'modeling') {
+        saveModelingFile(stagedDir, file.relFile, file.nodes);
+      } else {
+        saveEngineeringFile(stagedDir, file.relFile, file.nodes);
+      }
+    }
+  }).stage;
+}
+
+function prepareModelingDeltaMerge(trackDir: string): PreparedRegistryMerge | null {
+  const config = loadModelingConfig();
+  if (!config.enabled) {
+    return null;
+  }
+
+  const deltaDir = path.join(trackDir, 'modeling_deltas');
+  if (!fs.existsSync(deltaDir)) {
+    return null;
+  }
+
+  const theirs = loadModelingRegistry(deltaDir);
+  if (theirs.files.size === 0) {
+    return { kind: 'modeling', registryDir: config.registryDir, files: [] };
+  }
+
+  const registryDir = config.registryDir;
+  const baseDir = materializeModelingBase(trackDir, registryDir);
+  const base = loadModelingRegistry(baseDir);
+  const ours = loadModelingRegistry(registryDir);
+  const mergedFiles: MergedRegistryFile[] = [];
+  const conflicts: ModelingMergeConflict[] = [];
+
+  for (const deltaRelFile of theirs.files.keys()) {
+    const ownerRelFile = modelingDeltaPathToRegistryOwnerPath(deltaRelFile);
+    const result = mergeModeling(
+      base.files.get(ownerRelFile) ?? [],
+      ours.files.get(ownerRelFile) ?? [],
+      theirs.files.get(deltaRelFile) ?? [],
+      config.mergePolicy,
+    );
+    conflicts.push(...result.conflicts);
+    mergedFiles.push({ relFile: ownerRelFile, nodes: [...result.merged.values()] });
+  }
+
+  if (conflicts.length > 0) {
+    console.error('Modeling delta merge conflicts:');
+    for (const conflict of conflicts) {
+      console.error(`  - ${conflict.id}: ${conflict.type}`);
+    }
+    console.error('Resolve conflicts manually or adjust codument/config/modeling.xml MergePolicy.');
+    process.exit(1);
+  }
+
+  return { kind: 'modeling', registryDir, files: mergedFiles };
+}
+
+function materializeModelingBase(trackDir: string, registryDir: string): string {
+  const commit = readModelingBaseCommit(trackDir);
+  if (!commit) {
+    return registryDir;
+  }
+
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'codument-modeling-base-'));
+  const gitPath = registryDir.split(path.sep).join('/');
+  let files: string;
+  try {
+    files = execFileSync('git', ['ls-tree', '-r', '--name-only', commit, '--', gitPath], {
+      encoding: 'utf-8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+  } catch (err) {
+    throw new Error(`Unable to read modeling base commit '${commit}': ${String(err)}`);
+  }
+
+  for (const fullPath of files.split('\n').filter(Boolean)) {
+    if (!fullPath.endsWith('.xnl')) {
+      continue;
+    }
+    const prefix = `${gitPath}/`;
+    if (!fullPath.startsWith(prefix)) {
+      continue;
+    }
+    const relFile = fullPath.slice(prefix.length).split('/').join(path.sep);
+    const content = execFileSync('git', ['show', `${commit}:${fullPath}`], {
+      encoding: 'utf-8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+    const out = path.join(tempDir, relFile);
+    fs.mkdirSync(path.dirname(out), { recursive: true });
+    fs.writeFileSync(out, content, 'utf-8');
+  }
+
+  return tempDir;
+}
+
+function readModelingBaseCommit(trackDir: string): string | null {
+  const trackXml = path.join(trackDir, 'track.xml');
+  if (!fs.existsSync(trackXml)) {
+    return null;
+  }
+  const content = fs.readFileSync(trackXml, 'utf-8');
+  return content.match(/<ModelingBaseCommit>([^<]+)<\/ModelingBaseCommit>/)?.[1]?.trim() || null;
+}
+
+function prepareEngineeringDeltaMerge(trackDir: string): PreparedRegistryMerge | null {
   const config = loadEngineeringConfig();
   if (!config.enabled) {
     return null;
@@ -191,14 +447,14 @@ function prepareEngineeringDeltaMerge(trackDir: string): PreparedEngineeringMerg
 
   const theirs = loadEngineeringRegistry(deltaDir);
   if (theirs.files.size === 0) {
-    return { apply: () => [] };
+    return { kind: 'engineering', registryDir: config.registryDir, files: [] };
   }
 
   const registryDir = config.registryDir;
   const baseDir = materializeEngineeringBase(trackDir, registryDir);
   const base = loadEngineeringRegistry(baseDir);
   const ours = loadEngineeringRegistry(registryDir);
-  const mergedFiles: MergedEngineeringFile[] = [];
+  const mergedFiles: MergedRegistryFile[] = [];
   const conflicts: MergeConflict[] = [];
 
   for (const relFile of theirs.files.keys()) {
@@ -221,27 +477,7 @@ function prepareEngineeringDeltaMerge(trackDir: string): PreparedEngineeringMerg
     process.exit(1);
   }
 
-  return {
-    apply(): string[] {
-      if (!fs.existsSync(registryDir)) {
-        fs.mkdirSync(registryDir, { recursive: true });
-      }
-      const updated: string[] = [];
-      for (const file of mergedFiles) {
-        const abs = path.join(registryDir, file.relFile);
-        if (file.nodes.length === 0) {
-          if (fs.existsSync(abs)) {
-            fs.rmSync(abs);
-            updated.push(file.relFile);
-          }
-          continue;
-        }
-        saveEngineeringFile(registryDir, file.relFile, file.nodes);
-        updated.push(file.relFile);
-      }
-      return updated.sort();
-    },
-  };
+  return { kind: 'engineering', registryDir, files: mergedFiles };
 }
 
 function materializeEngineeringBase(trackDir: string, registryDir: string): string {

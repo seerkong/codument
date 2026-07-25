@@ -64,7 +64,7 @@ case "$TOPIC" in
 esac
 PRODUCT="${PRODUCT:-$DEFAULT_PRODUCT}"
 
-PLAN_PROMPT="${PLAN_PROMPT:-你在一个已初始化 codument 的干净工作区。请严格按 ./AGENTS.md 和 codument/std/operations/plan-track.md 创建一个新 track，为 codument/attractors/product.md 描述的业务应用设计后端 + 前端实现。
+PLAN_PROMPT="${PLAN_PROMPT:-你在一个已初始化 codument 的干净工作区。请严格按 ./AGENTS.md 和 codument/std/actions/plan-track.md 创建一个新 track，为 codument/attractors/product.md 描述的业务应用设计后端 + 前端实现。
 
 要求：
 1. 自动推进，不向用户提问。
@@ -80,7 +80,7 @@ PLAN_PROMPT="${PLAN_PROMPT:-你在一个已初始化 codument 的干净工作区
 
 完成后列出 track id、modeling_deltas 文件、engineering_deltas 文件。}"
 
-IMPL_PROMPT="${IMPL_PROMPT:-你在一个已生成 codument track 的工作区。请读取 ./AGENTS.md、codument/tracks 下唯一 track、proposal.md、design.md、behavior_deltas、modeling_deltas、engineering_deltas。
+IMPL_PROMPT="${IMPL_PROMPT:-你在一个已生成 codument track 的工作区。请读取 ./AGENTS.md、codument/tracks/active 下唯一 track、proposal.md、design.md、behavior_deltas、modeling_deltas、engineering_deltas。
 
 请根据这些设计实现一个最小但可运行的业务应用代码：
 1. 代码必须有 package.json 和 test 脚本。
@@ -134,12 +134,12 @@ enable_xml_config() {
 }
 
 detect_track() {
-  ls "$WS/codument/tracks" 2>/dev/null | head -1
+  ls "$WS/codument/tracks/active" 2>/dev/null | head -1
 }
 
 create_smoke_track() {
   local track="smoke-modeling-engineering"
-  local dir="$WS/codument/tracks/$track"
+  local dir="$WS/codument/tracks/active/$track"
   mkdir -p "$dir/behavior_deltas/smoke" "$dir/modeling_deltas/domain" "$dir/engineering_deltas/global/howto"
   cat > "$dir/track.xml" <<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
@@ -227,8 +227,8 @@ if [ "$ENGINEERING" = "1" ]; then
 else
   ENGINEERING_RC=0
 fi
-find "$WS/codument/tracks/$TRACK/modeling_deltas" -name '*.xnl' 2>/dev/null | sed 's/^/modeling: /' || true
-find "$WS/codument/tracks/$TRACK/engineering_deltas" -name '*.xnl' 2>/dev/null | sed 's/^/engineering: /' || true
+find "$WS/codument/tracks/active/active/$TRACK/modeling_deltas" -name '*.xnl' 2>/dev/null | sed 's/^/modeling: /' || true
+find "$WS/codument/tracks/active/active/$TRACK/engineering_deltas" -name '*.xnl' 2>/dev/null | sed 's/^/engineering: /' || true
 
 if [ "$TRACK_RC" -ne 0 ] || [ "$MODELING_RC" -ne 0 ] || [ "$ENGINEERING_RC" -ne 0 ]; then
   echo "✗ delta validation failed: track=$TRACK_RC modeling=$MODELING_RC engineering=$ENGINEERING_RC"

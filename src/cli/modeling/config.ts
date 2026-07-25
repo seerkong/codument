@@ -7,8 +7,8 @@ import { DEFAULT_POLICY, type MergePolicy, type ConflictType, type Resolve } fro
 /**
  * codument/config/modeling.xml gate + settings.
  *
- * Default OFF: when the file is absent or `enabled` is not "true", modeling is
- * disabled and all modeling behavior (track delta, archive merge, lint) is skipped.
+ * Default ON: when the file is absent or omits `enabled`, modeling is enabled.
+ * An explicit `enabled="false"` disables modeling behavior for that workspace.
  * Lightweight regex read (the file is small and flat); no XML dependency.
  */
 
@@ -32,7 +32,7 @@ const VALID_RESOLVE = new Set<Resolve>(['human', 'ours', 'theirs', 'base']);
 
 export function loadModelingConfig(configPath = modelingConfigPath()): ModelingConfig {
   const def: ModelingConfig = {
-    enabled: false,
+    enabled: true,
     registryDir: path.join(CODUMENT_DIR, 'modeling'),
     thresholds: { ...DEFAULT_THRESHOLDS },
     mergePolicy: { ...DEFAULT_POLICY },
@@ -40,7 +40,8 @@ export function loadModelingConfig(configPath = modelingConfigPath()): ModelingC
   if (!fs.existsSync(configPath)) return def;
 
   const xml = fs.readFileSync(configPath, 'utf-8');
-  const enabled = /<Modeling[^>]*\benabled="true"/.test(xml);
+  const enabledAttr = /<Modeling[^>]*\benabled="(true|false)"/.exec(xml)?.[1];
+  const enabled = enabledAttr === undefined ? def.enabled : enabledAttr === 'true';
   const maxLines = matchNum(xml, /<Lint[^>]*\bmaxLines="(\d+)"/);
   const maxNodes = matchNum(xml, /<Lint[^>]*\bmaxNodes="(\d+)"/);
 

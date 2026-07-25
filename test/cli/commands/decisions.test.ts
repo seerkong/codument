@@ -88,7 +88,7 @@ describe('codument decisions validate', () => {
 
   it('resolves a track id to codument/tracks/<id>/decisions.xnl before legacy markdown', async () => {
     const ws = tmpWorkspace();
-    writeDecisionFile(path.join(ws, 'codument', 'tracks', 'add-sample', 'decisions.xnl'), `<decision #track.add_sample.use_xnl {
+    writeDecisionFile(path.join(ws, 'codument', 'tracks', 'active', 'add-sample', 'decisions.xnl'), `<decision #track.add_sample.use_xnl {
   status = "accepted"
   blocks = []
   durable_candidate = false
@@ -98,7 +98,7 @@ describe('codument decisions validate', () => {
   <answer ?>Yes.</?>
 )>
 `);
-    writeDecisionFile(path.join(ws, 'codument', 'tracks', 'add-sample', 'decisions.md'), `# Decisions
+    writeDecisionFile(path.join(ws, 'codument', 'tracks', 'active', 'add-sample', 'decisions.md'), `# Decisions
 
 ### 1. Legacy pending decision
 - Blocks: track.xml
@@ -108,12 +108,12 @@ describe('codument decisions validate', () => {
 
     const { code, out } = await runDecisions(ws, ['add-sample']);
     expect(code).toBe(0);
-    expect(out).toContain(path.join('codument', 'tracks', 'add-sample', 'decisions.xnl'));
+    expect(out).toContain(path.join('codument', 'tracks', 'active', 'add-sample', 'decisions.xnl'));
   });
 
   it('falls back to legacy decisions.md for a track id', async () => {
     const ws = tmpWorkspace();
-    writeDecisionFile(path.join(ws, 'codument', 'tracks', 'legacy-sample', 'decisions.md'), `# Decisions
+    writeDecisionFile(path.join(ws, 'codument', 'tracks', 'active', 'legacy-sample', 'decisions.md'), `# Decisions
 
 ### 1. Accepted decision
 - Blocks: none
@@ -123,7 +123,7 @@ describe('codument decisions validate', () => {
 
     const { code, out } = await runDecisions(ws, ['legacy-sample']);
     expect(code).toBe(0);
-    expect(out).toContain(path.join('codument', 'tracks', 'legacy-sample', 'decisions.md'));
+    expect(out).toContain(path.join('codument', 'tracks', 'active', 'legacy-sample', 'decisions.md'));
   });
 
   it('fails pending decisions in decisions.xnl', async () => {

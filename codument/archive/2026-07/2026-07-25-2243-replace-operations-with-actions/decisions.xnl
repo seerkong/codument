@@ -1,0 +1,20 @@
+<decision #track.replace_operations_with_actions.scope {
+  priority = "P0"
+  status = "accepted"
+  durable_candidate = false
+  confidence = 0.99
+  reversibility = "moderate"
+}
+(
+  <question ?>How is terminology migrated?</?>
+  <recommendation ?>Use action across the release surface and retain legacy terms only in migration boundaries.</?>
+  <answer { }
+  (
+    <raw-answer ?>operations → actions 应当连文件、字符串、配置和运行时术语一起彻底改；增加 std/commands。</?>
+    <decision-text ?>Use action everywhere in the product surface; operation remains only in explicit compatibility, migration, fixture, and historical boundaries.</?>
+    <rationale ?>The current interface has one vocabulary while upgrade-workspace owns the supported migration path.</?>
+    <evidence ?>Accepted Mission decision `mission.evolve_codument_action_system.action_taxonomy`.</?>
+  )
+  >
+)
+>

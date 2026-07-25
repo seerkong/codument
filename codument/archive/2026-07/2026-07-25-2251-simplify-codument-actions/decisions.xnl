@@ -1,0 +1,20 @@
+<decision #track.simplify_codument_actions.defaults {
+  priority = "P0"
+  status = "accepted"
+  durable_candidate = false
+  confidence = 0.99
+  reversibility = "moderate"
+}
+(
+  <question ?>What should planning create by default and when should attractor checks run?</?>
+  <recommendation ?>Always create design.md and decisions.xnl; keep durable folders on demand and make fresh attractor checks explicit or high-risk final-phase only.</?>
+  <answer { }
+  (
+    <raw-answer ?>The user confirmed these defaults and requested lower attractor frequency without splitting the coding profile.</?>
+    <decision-text ?>Planning creates design.md and decisions.xnl unconditionally, while decisions/ and memory/ are demand-created. Ordinary actions and phases do not run fresh attractor checks by default.</?>
+    <rationale ?>This preserves durable planning context while avoiding repeated full-context review work.</?>
+    <evidence ?>Mission decisions action_taxonomy, maintain_track, and attractor.</?>
+  )
+  >
+)
+>

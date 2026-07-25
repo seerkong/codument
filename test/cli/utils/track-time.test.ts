@@ -42,8 +42,8 @@ describe('track updated time', () => {
 
   it('builds archive destination from track updated time', () => {
     const trackDir = makeTempTrack('2026-05-30T14:32:00+08:00');
-    const dest = buildArchiveDestination(trackDir, 'refactor-spec-xml-vfs', 'codument/archive');
-    expect(dest).toContain(path.join('codument/archive', '2026-05'));
+    const dest = buildArchiveDestination(trackDir, 'refactor-spec-xml-vfs', 'codument/tracks/archived');
+    expect(dest).toContain(path.join('codument/tracks/archived', '2026-05'));
     expect(dest).toContain('refactor-spec-xml-vfs');
   });
 });
