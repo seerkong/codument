@@ -1,0 +1,22 @@
+<behaviors capability="decision-questioning" version="1">
+  <requirement id="topological-batches">
+    <statement>Planning SHALL ask all ready independent decision directions in one bounded batch before asking dependent refinements.</statement>
+    <suite id="multiple-roots" name="multiple roots">
+      <case id="asks-roots-together">
+        <given>a decision forest has multiple unresolved roots</given>
+        <when>planning requires user input</when>
+        <then>the planner SHALL present the ready roots together within the severity budget</then>
+      </case>
+    </suite>
+  </requirement>
+  <requirement id="conditional-activation">
+    <statement>Planning SHALL materialize a new decision only when its declared multi-decision activation condition is satisfied, then include it in the next topological question batch.</statement>
+    <suite id="combined-roots" name="combined roots">
+      <case id="creates-peer-decision">
+        <given>two independent root decisions select a combination that activates a new concern</given>
+        <when>the planner evaluates the completed answer batch</when>
+        <then>the new concern SHALL be recorded as a same-level pending decision with provenance and dependencies</then>
+      </case>
+    </suite>
+  </requirement>
+</behaviors>

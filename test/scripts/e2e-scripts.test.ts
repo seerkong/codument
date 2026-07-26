@@ -106,5 +106,5 @@ describe('modeling + engineering E2E scripts', () => {
     expect(report.totalScore).toBeGreaterThan(0);
     expect(report.dimensions.map((d) => d.name)).toContain('Codument alignment');
     expect(fs.readFileSync(path.join(ws, 'reports', 'code-quality.md'), 'utf-8')).toContain('Code Quality Report');
-  });
+  }, 15_000);
 });

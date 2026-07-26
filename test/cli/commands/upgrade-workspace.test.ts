@@ -25,6 +25,7 @@ describe('codument upgrade-workspace', () => {
     writeFile(path.join(ws, 'codument', 'std', 'docs-impl-fractal', 'index.md'), '# old impl fractal\n');
     writeFile(path.join(ws, 'codument', 'std', 'operations', 'init.md'), '# old init operation\n');
     writeFile(path.join(ws, 'codument', 'std', 'operations', 'status.md'), '# old status operation\n');
+    writeFile(path.join(ws, 'codument', 'std', 'root-agents.md'), '# old root AGENTS template\n');
     writeFile(path.join(ws, 'codument', 'config', 'operation-hooks.xml'), `<OperationHooks version="1">
   <Operation name="plan-track"><Hooks/></Operation>
 </OperationHooks>
@@ -90,6 +91,7 @@ describe('codument upgrade-workspace', () => {
     expect(fs.existsSync(path.join(ws, 'codument', 'attractors', 'model-driven-docs.md'))).toBe(false);
     expect(fs.existsSync(path.join(ws, 'codument', 'attractors', 'project-memory.md'))).toBe(false);
     expect(fs.existsSync(path.join(ws, 'codument', 'std', 'operations'))).toBe(false);
+    expect(fs.existsSync(path.join(ws, 'codument', 'std', 'root-agents.md'))).toBe(false);
     expect(fs.existsSync(path.join(ws, 'codument', 'config', 'operation-hooks.xml'))).toBe(false);
     expect(fs.existsSync(path.join(ws, 'codument', 'std', 'actions', 'plan-track.md'))).toBe(true);
     expect(fs.existsSync(path.join(ws, 'codument', 'config', 'action-hooks.xml'))).toBe(true);
@@ -112,7 +114,9 @@ describe('codument upgrade-workspace', () => {
     expect(profiles).not.toContain('vfs://@/codument/std/docs-impl-fractal/index.md');
 
     const agents = fs.readFileSync(path.join(ws, 'AGENTS.md'), 'utf-8');
-    expect(agents).toContain('@/codument/std/attractors/knowledge-tiers.md');
+    expect(agents).toContain('@/codument/std/AGENTS.md');
+    expect(agents).toContain('唯一的 Codument 工作流与路由真源');
+    expect(agents).not.toContain('快速路由：');
     expect(agents).toContain('# Existing project notes');
 
     const gitignore = fs.readFileSync(path.join(ws, '.gitignore'), 'utf-8');

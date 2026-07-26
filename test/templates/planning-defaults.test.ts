@@ -27,7 +27,7 @@ describe('planning template defaults', () => {
     const planTrack = template('std/actions/plan-track.md');
 
     expect(protocol).toContain('Decision-tree is the shared planning protocol');
-    expect(questioning).toContain('Decision-tree structure, storage, and frontier handling are owned');
+    expect(questioning).toContain('Decision-tree structure, storage, dependency graph, conditional activation, and topological frontier handling are owned');
     expect(planTrack).toContain('也不默认挂 `HumanConfirm`、`AttractorCheck` 或 `GapLoop`');
     expect(planTrack).toContain('架构、安全或数据一致性高风险');
   });

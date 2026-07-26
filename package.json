@@ -1,6 +1,6 @@
 {
   "name": "depa-codument",
-  "version": "0.4.6",
+  "version": "0.4.7",
   "description": "DEPA-oriented Codument workflow tool for AI coding assistants",
   "type": "module",
   "main": "src/cli/index.ts",

@@ -62,11 +62,11 @@ registry 元数据写在 XNL 节点属性中，不使用 Markdown frontmatter：
 
 ```text
 领域结构变化
-  -> tracks/<id>/modeling_deltas/<plane>/<context>.xnl
+  -> tracks/active/<id>/modeling_deltas/<plane>/<context>.xnl
   -> codument/modeling/
 
 工程知识变化
-  -> tracks/<id>/engineering_deltas/<plane>/<category>.xnl
+  -> tracks/active/<id>/engineering_deltas/<plane>/<category>.xnl
   -> codument/engineering/
 ```
 

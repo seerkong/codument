@@ -206,6 +206,7 @@ function removeLegacyWorkspacePaths(backupRoot: string): number {
     'codument/specs',
     'codument/std/workflow.md',
     'codument/std/protocols.md',
+    'codument/std/root-agents.md',
     'codument/std/operations',
     'codument/std/sop',
     'codument/std/actions/init.md',

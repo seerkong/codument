@@ -18,7 +18,6 @@ Codument 的核心状态文件按生命周期放在 `tracks/pending/<id>/`、`tr
 codument/
 ├── std/                         内置标准、规程、操作提示词；upgrade-workspace 会刷新
 │   ├── AGENTS.md                AI 入口与路由
-│   ├── root-agents.md           项目根 AGENTS.md 受管块模板
 │   ├── kernel-pointer.md        Codument 与通用 workflow/task 内核的关系
 │   ├── spec/                    文件格式规范
 │   ├── attractors/              可升级标准 attractor（knowledge/docs/memory/DEPA）

@@ -57,6 +57,11 @@ describe('codument init', () => {
     expect(fs.existsSync(path.join(ws, 'codument', 'tracks', 'archived', 'README.md'))).toBe(true);
     expect(fs.existsSync(path.join(skillsDir, 'codument-impl-quick', 'SKILL.md'))).toBe(true);
     expect(fs.existsSync(path.join(skillsDir, 'codument-maintain-track', 'SKILL.md'))).toBe(true);
+    expect(fs.existsSync(path.join(ws, 'codument', 'std', 'root-agents.md'))).toBe(false);
+    const agents = fs.readFileSync(path.join(ws, 'AGENTS.md'), 'utf-8');
+    expect(agents).toContain('@/codument/std/AGENTS.md');
+    expect(agents).toContain('唯一的 Codument 工作流与路由真源');
+    expect(agents).not.toContain('快速路由：');
     for (const deprecated of [
       'codument-archive',
       'codument-code-quality-score',

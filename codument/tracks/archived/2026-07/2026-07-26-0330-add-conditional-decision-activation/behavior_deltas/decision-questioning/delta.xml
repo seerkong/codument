@@ -1,0 +1,14 @@
+<behavior-patch capability="decision-questioning" version="1">
+  <upsert selector="behavior://decision-questioning/requirements/conditional-activation">
+    <requirement id="conditional-activation">
+      <statement>Planning SHALL materialize a new decision only when its declared multi-decision activation condition is satisfied, then include it in the next topological question batch.</statement>
+      <suite id="combined-roots" name="combined roots">
+        <case id="creates-peer-decision">
+          <given>two independent root decisions select a combination that activates a new concern</given>
+          <when>the planner evaluates the completed answer batch</when>
+          <then>the new concern SHALL be recorded as a same-level pending decision with provenance and dependencies</then>
+        </case>
+      </suite>
+    </requirement>
+  </upsert>
+</behavior-patch>

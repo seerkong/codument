@@ -1,0 +1,14 @@
+<behavior-patch capability="decision-questioning" version="1">
+  <upsert selector="behavior://decision-questioning/requirements/topological-batches">
+    <requirement id="topological-batches">
+      <statement>Planning SHALL ask all ready independent decision directions in one bounded batch before asking dependent refinements.</statement>
+      <suite id="multiple-roots" name="multiple roots">
+        <case id="asks-roots-together">
+          <given>a decision forest has multiple unresolved roots</given>
+          <when>planning requires user input</when>
+          <then>the planner SHALL present the ready roots together within the severity budget</then>
+        </case>
+      </suite>
+    </requirement>
+  </upsert>
+</behavior-patch>
