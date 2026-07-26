@@ -2,7 +2,7 @@
 
 按 `mission.xml` 的 desired DAG 执行 mission，并通过 `MissionPlanner` / `MissionObserver` / `MissionReconciler` / `MissionApplier` 四个控制论 + DEPA actor 做反馈收敛。
 
-> mission 执行不是一次性按 DAG 跑完。它是 level-triggered 的控制循环：每轮读取当前 actual state，比较 desired state，只执行一个 bounded convergence action。格式规范见 `codument/std/spec/mission-xml-spec.md`；flow notation 见 `codument/std/spec/flow-notation.md`。
+> mission 执行是持续的 level-triggered 控制循环：先读取 current actual state 并选择下一步；每个动作在自身范围内验证完成，验证通过且未发现计划失效信号时直接推进，只有不确定或偏差时才观察受影响范围并协调。格式规范见 `codument/std/spec/mission-xml-spec.md`；flow notation 见 `codument/std/spec/flow-notation.md`。
 
 ## 0. 前置
 
@@ -23,18 +23,20 @@
 
 ## 2. 主循环
 
-### 2.1 用户明确要求实现 / 落地时的连续执行边界
+### 2.1 连续执行边界
 
-如果用户话语明确包含“实现 mission”、“落地 mission”、“执行整个 mission”、“continue until done”等含义，`pending` 启动只是第一个 bounded action gate，不是本次请求的终点。
+调用 `codument-impl-mission <id>` 就是开始实现 mission，不存在仅启动后返回的模式。若 mission 位于 `pending/`，启动后必须重新读取 `active/<id>/mission.xml` 并继续执行。
 
-在这种场景下，完成 `start-mission` 后必须重新读取 `active/<id>/mission.xml`，继续进入本主循环，直到出现以下任一状态：
+主循环只可在以下情况返回：
 
-- mission 满足 completed gate 并被更新为 `completed`。
-- mission `cancelled` / `superseded`。
+- decision-tree 的 ready frontier 有需要用户确认的 pending decision（`QuestionSeverity` 不是 `auto`）。
 - 遇到真实 `BLOCKED`：缺少用户决策、外部输入、失败 track 或无法自动修复的结构偏差。
-- 用户显式限制本轮只做启动、只做一个节点、只做某个 track。
+- mission 满足 completed gate，或状态为 `cancelled` / `superseded`。
+- 当前 invocation 已完成 10 个 linked track 生命周期，写入可续跑 checkpoint。
 
-仍然保持“每轮只执行一个 bounded action，动作后重新 observe / reconcile”的节奏；禁止把 `start-mission` 的完成当作“已实现 mission”的最终响应。
+`QuestionSeverity=auto` 必须把保守假设写入 `decisions.xnl` 或报告后继续，不得为了确认而暂停。十条 track checkpoint 只结束本次 invocation；mission 仍保持 `active`，下一次 `codument-impl-mission` 从 `mission.xml` 续跑。
+
+每个 logical mission action 必须有与影响相称的完成判定，但不需要生成统一回执文件、XNL 节点或任何专用数据格式：代码改动运行相关测试或静态检查；linked track 检查叶子状态与验收证据；外部操作重新读取受影响资源；分析动作确认约定证据已写入。完成判定通过且无前提、依赖、范围或目标的失效信号时，直接继续下一个 planned ready action；判定不确定、失败或发现失效信号时，才观察受影响范围并进入 reconcile。仅在范围无法界定时才做全量观察。
 
 ```text
 @delimiter: --
@@ -42,29 +44,37 @@
 @marker: ?
 -- #loop ?mission until="mission completed/cancelled/superseded or blocked"
 ---- #step ?load
-定位 mission：优先读取 active/<id>/；若只存在 pending/<id>/，本轮唯一允许的 bounded action 是 start-mission（见 §3），不得执行任何 ready node。
+定位 mission：优先读取 active/<id>/；若只存在 pending/<id>/，执行 start-mission（见 §3）后立即重新读取 active/<id>/。
 ---- /?load
 ---- #if ?pending_start cond="mission 位于 pending/<id>/"
 ------ #call ?start target="start-mission(pending/<id>)"
 ------ /?start
------- #exit ?reload_active
-如果用户只要求 start，则启动完成后停手；如果用户要求 implement / 落地 / 执行，则从 active/<id>/ 重新加载继续主循环。不要沿用 pending 路径缓存继续执行 DAG。
+------ #step ?reload_active
+从 active/<id>/ 重新加载 mission.xml；不要沿用 pending 路径缓存继续执行 DAG。
 ------ /?reload_active
 ---- /?pending_start
+---- #if ?track_budget cond="本 invocation 已完成 10 个 linked track 生命周期"
+------ #return ?checkpoint value="写 continuation checkpoint；mission 保持 active，下一次 impl-mission 从当前 mission.xml 续跑"
+------ /?checkpoint
+---- /?track_budget
 ---- #step ?observe
 MissionObserver 读取 actual state：mission.xml 当前状态、根据 session WorkspaceBinding 定位各 `cdt:TrackLink project-ref` 的真实 tracks、archive、测试结果、用户新约束、reports。对未绑定外部项目投影 UNBOUND；不得把 workspace path 写回文件。
 ---- /?observe
 ---- #step ?reconcile
-MissionReconciler 比较 desired vs actual，判定：ready-node / drift / blocked / completed。
+MissionReconciler 比较 desired vs actual，并读取根级 decisions.xnl 的 pending decision frontier，判定：question / ready-node / drift / blocked / completed。
 ---- /?reconcile
 ---- #switch ?decision on="reconcile result"
+------ #case ?question when="存在需要用户确认的 ready pending decision，且 QuestionSeverity 不是 auto"
+-------- #return ?question_out value="按 decision-tree 的当前 ready batch 提出问题，并保留 mission active"
+-------- /?question_out
+------ /?question
 ------ #case ?ready when="存在 ready mission node"
 -------- #step ?apply_ready
-MissionApplier 执行一个 bounded action：分析一个 plan 节点、创建一个 track、续跑一个 track、归档一个 track，或写一个报告。
+MissionApplier 执行当前 ready 节点：分析一个 plan 节点、创建/续跑/验证/归档一个 track，或写一个报告。linked track 只有在生命周期完成且对应 mission leaf 写为 DONE 时才计入本 invocation 的 track 数。
 -------- /?apply_ready
--------- #exit ?wait_after_action
-动作完成后停手或进入下一轮；不要无界连续执行多个 track。
--------- /?wait_after_action
+-------- #step ?verify_action
+按当前 action 的影响范围执行完成判定；不生成独立回执格式。验证通过且未发现计划失效信号时，基于已更新的 DAG 状态直接选择下一个 planned ready action 并继续；不得把启动、单个节点或单条 track 完成当作默认停止点。验证不确定、失败或发现失效信号时，只观察受影响范围后再 reconcile；范围无法界定时才全量观察。
+-------- /?verify_action
 ------ /?ready
 ------ #case ?drift when="actual state 使当前 DAG/节点不再成立"
 -------- #step ?plan_revision
@@ -73,9 +83,9 @@ MissionPlanner 基于 evidence 或 human decision 产出重规划建议。
 -------- #step ?apply_replan
 MissionApplier 写 reports/replan-XXX.md，更新 mission.xml，递增 Revision。
 -------- /?apply_replan
--------- #exit ?wait_replan
-重规划后停手，等待下一轮观察。
--------- /?wait_replan
+-------- #step ?verify_replan
+验证修订后的 mission graph、Revision 与重规划证据。若验证明确且没有新的失效信号，直接继续修订后 ready 的分支；只有不确定或发现偏差时才观察受影响范围并 reconcile。
+-------- /?verify_replan
 ------ /?drift
 ------ #case ?blocked when="缺少 evidence、用户决策、外部状态或 track 失败"
 -------- #return ?blocked_out value="报告阻塞和所需输入"
@@ -93,7 +103,7 @@ MissionApplier 写 reports/replan-XXX.md，更新 mission.xml，递增 Revision�
 
 当 mission 位于 `pending/<id>/`：
 
-`start-mission` 是一个门禁动作，不是普通 ready node。完成前不得执行 mission DAG 中的任何节点。
+`start-mission` 是进入 continuous execution 的前置迁移，不是可单独收口的模式。完成前不得执行 mission DAG 中的任何节点；完成后必须从 active 路径重新加载并继续主循环。
 
 1. 读取 `proposal.md`、`design.md` 和 `mission.xml`。
 2. 确认用户要启动；如果用户未明确启动，返回 blocked。
@@ -103,7 +113,7 @@ MissionApplier 写 reports/replan-XXX.md，更新 mission.xml，递增 Revision�
    - `Metadata.Status=active`
    - `Metadata.UpdatedAt=<now>`
 6. 写 `reports/mission-run-001.md` 记录启动路径、启动时间和用户确认。
-7. 如果用户只要求 start，启动动作完成后停手；如果用户要求 implement / 落地 / 执行整个 mission，必须从 `active/<id>/` 重新加载再进入下一轮观察；禁止继续使用旧的 `pending/<id>/` 路径引用。
+7. 从 `active/<id>/` 重新加载再进入下一轮观察；禁止继续使用旧的 `pending/<id>/` 路径引用，也不得把启动当作完成响应。
 
 ## 4. ready node 处理
 
@@ -115,7 +125,15 @@ ready node 来自 `mission.xml` 顶层 `TaskGroup` DAG：所有 `<After>` 前驱
 - 带 `cdt:TrackLink` 的 leaf `Task`：创建、续跑、验证或归档一个 codument track；真实实现交 `codument-plan-track` / `codument-impl-track` / `codument-archive-track`。
 - 验证 leaf `Task`：独立验证 mission 成功判据。
 
-### 4.1 TrackLink 绑定写回
+### 4.1 动作完成判定
+
+MissionApplier 的每个 logical action 都必须在动作内完成与影响相称的验证。完成判定可直接使用该任务已有的验收条件、相关测试、真实 track 状态、外部资源读取或约定的分析证据；不得为此新增统一回执文件或专用序列化格式。
+
+- 判定通过且没有前提、依赖、范围或目标的失效信号：更新普通实际态与证据后，直接继续下一个 planned ready action。
+- 判定不确定或失败，或发现失效信号：先由 Observer 只读取受影响的文件、track、测试、资源或报告，再由 Reconciler 判断是否需要重规划、阻塞或继续。
+- 仅在影响范围不能可靠界定时，才重新做全量 actual-state observation。
+
+### 4.2 TrackLink 绑定写回
 
 `cdt:TrackLink` 只挂在叶子 `Task` 上，并显式指向其 ProjectRef：
 
@@ -142,6 +160,12 @@ TrackLink 是对真实 track 生命周期的承诺，不是一个普通标签：
 6. 写 `reports/track-bind-XXX.md`，至少包含 mission task id、candidate id、real track id、创建证据和时间。
 
 如果 `cdt:TrackLink state="candidate"` 指向的 track 已经存在，也按同样规则绑定为 `bound` 并写 report；不得重复创建 track。
+
+### 4.3 连续 track 预算
+
+一次 invocation 最多连续完成 10 个 linked track 生命周期。只有 linked track 完成、其 mission leaf 被写为 `DONE`，并已记录实际证据时才计数；创建、绑定、分析和普通验证不计数。
+
+达到 10 时写 `reports/continuation-XXX.md`，记录已完成 track、下一 ready 节点和恢复入口，然后返回 checkpoint。不得把 mission 改为 `blocked` 或 `completed`；下一次 invocation 重新从 `mission.xml` 观察。
 
 ## 5. 受控重规划
 

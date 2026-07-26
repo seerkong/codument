@@ -1,6 +1,6 @@
 ---
 name: codument-impl-mission
-description: 执行或续跑 active mission——按 mission.xml 的 DAG，用 MissionPlanner/Observer/Reconciler/Applier 四个控制论 + DEPA actor 观察实际态、执行一个有界动作、允许受控重规划。开始或继续长周期 mission 时使用。
+description: 连续执行或续跑 mission——按 mission.xml 的 DAG，以动作内验证驱动推进；仅在验证不确定或偏差时观察、收敛和重规划，并在待确认决策、阻塞、终态或十条 track checkpoint 时返回。
 ---
 
 # Codument · impl-mission
@@ -12,6 +12,6 @@ description: 执行或续跑 active mission——按 mission.xml 的 DAG，用 M
 mission.xml 规范见 `@/codument/std/spec/mission-xml-spec.md`；流程块规范见 `@/codument/std/spec/flow-notation.md`。
 
 - **前置**：项目已通过 `codument init` 初始化，目标 mission 已在 `pending/` 或 `active/`。
-- **用法**：实现 mission: `<mission-id>`。
+- **用法**：实现 mission: `<mission-id>`；pending mission 会直接启动并继续落地。
 
 > 壳只做路由，不重述规则。一切以 `@/codument/std/actions/impl-mission.md` 为准。

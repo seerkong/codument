@@ -61,7 +61,7 @@ codument/missions/
       <cdt:Actor role="MissionPlanner" project-ref="host"><Description>根据 runtime evidence 切分并重规划 tracks。</Description></cdt:Actor>
       <cdt:Actor role="MissionObserver" project-ref="host"><Description>读取 runtime tests、tracks、archive 与 reports 的实际态。</Description></cdt:Actor>
       <cdt:Actor role="MissionReconciler" project-ref="host"><Description>比较 runtime desired graph 与实际态，选择一个可收敛动作。</Description></cdt:Actor>
-      <cdt:Actor role="MissionApplier" project-ref="host"><Description>创建、执行或验证一个 runtime track，或受控修订 mission。</Description></cdt:Actor>
+      <cdt:Actor role="MissionApplier" project-ref="host"><Description>连续创建、执行或验证 runtime track；在动作内验证完成，只有不确定或发现偏差时才观察并协调，或受控修订 mission。</Description></cdt:Actor>
     </cdt:ActorSet>
   </cdt:ActorSets>
 
@@ -105,7 +105,7 @@ codument/missions/
 
   <Hooks>
     <Hook on="mission:after-node">
-      <cdt:MissionReconcile max-rounds="3" on-drift="replan-or-block"/>
+      <cdt:MissionReconcile max-tracks="10" on-limit="checkpoint" on-drift="replan-or-block"/>
     </Hook>
   </Hooks>
 </Mission>
@@ -125,7 +125,7 @@ codument/missions/
     <cdt:Actor role="MissionPlanner" project-ref="host"><Description>为上层应用安排反馈驱动的 tracks。</Description></cdt:Actor>
     <cdt:Actor role="MissionObserver" project-ref="host"><Description>观测应用集成、测试与用户反馈。</Description></cdt:Actor>
     <cdt:Actor role="MissionReconciler" project-ref="host"><Description>判断应用是否应等待底层库或继续独立工作。</Description></cdt:Actor>
-    <cdt:Actor role="MissionApplier" project-ref="host"><Description>执行一个应用侧有界收敛动作。</Description></cdt:Actor>
+    <cdt:Actor role="MissionApplier" project-ref="host"><Description>连续执行应用侧 track、验证或重规划；验证明确且无偏差时直接推进。</Description></cdt:Actor>
   </cdt:ActorSet>
 </cdt:ActorSets>
 ```
@@ -138,7 +138,7 @@ codument/missions/
 
 ### 4.1 单项目反馈飞轮
 
-上面的 `runtime-evolution` 是单项目示例：所有 Actor 绑定 `host`，Observer 读取同一项目的 tests/tracks，Reconciler 的 evidence 可触发 Planner 修订后续 runtime tracks。它形成 `observe -> reconcile -> apply -> observe` 的迭代闭环，而不是把四 Actor 当作固定的人名或重复的 design.md 模板。
+上面的 `runtime-evolution` 是单项目示例：所有 Actor 绑定 `host`，Observer 读取同一项目的 tests/tracks，Reconciler 的 evidence 可触发 Planner 修订后续 runtime tracks。它形成由动作验证驱动的 `observe -> reconcile -> apply -> verify` 闭环：验证明确且无偏差时直接推进，只有不确定或发现偏差时才重新观察并协调，而不是把四 Actor 当作固定的人名或重复的 design.md 模板。
 
 ### 4.2 底层库与上层应用反馈飞轮
 
@@ -294,7 +294,7 @@ mission execution is a cybernetic actor loop over a DAG-shaped desired state.
 | `MissionPlanner` | 期望态产出者 | Processor + Actor | 产出或修订 desired mission graph |
 | `MissionObserver` | 传感器 | Data + Actor | 读取 actual state projection |
 | `MissionReconciler` | 控制器 | Processor + Actor | 比较 desired vs actual，判定 drift / ready / blocked / done |
-| `MissionApplier` | 执行器 | Effect + Actor | 执行一个 bounded convergence action |
+| `MissionApplier` | 执行器 | Effect + Actor | 执行下一 mission 步骤并写入实际态 |
 
 执行协议：
 
@@ -302,10 +302,20 @@ mission execution is a cybernetic actor loop over a DAG-shaped desired state.
 MissionObserver 观测实际态
 -> MissionReconciler 比较 mission.xml 期望态 vs 实际态
 -> MissionPlanner 在必要时提出重规划
--> MissionApplier 执行一个 bounded action
+-> MissionApplier 执行下一 mission 步骤
 -> 写 report / 更新 mission.xml
--> 下一轮
+-> 同一 invocation 继续下一轮
 ```
+
+### 8.1 连续执行与 `max-tracks`
+
+`codument-impl-mission` 默认持续执行。pending mission 激活后必须立即从 `active/<id>/mission.xml` 继续；每个 logical action 在自身范围内完成验证，不以单个节点或单条 track 的完成作为默认返回点。
+
+动作验证直接使用已有的验收条件、相关测试、track 状态、外部资源读取或分析证据；不要求写回执文件，也不规定 XNL、JSON 或其他统一序列化格式。验证通过且没有前提、依赖、范围或目标的失效信号时，直接选择下一个 planned ready action。验证不确定、失败或发现失效信号时，Observer 先读取受影响范围，Reconciler 再决定继续、重规划或阻塞；只有范围无法可靠界定时才全量观察。
+
+循环只在需要用户确认的 pending decision、真实 `BLOCKED`、`completed` / `cancelled` / `superseded` 时返回。`QuestionSeverity=auto` 记录假设后继续。
+
+`<cdt:MissionReconcile max-tracks="10" on-limit="checkpoint"/>` 表示一次 invocation 最多连续完成 10 个 linked track 生命周期。达到上限时，写 continuation report 并返回 checkpoint；mission 仍为 `active`，后续 invocation 从状态真源续跑。它不是通用 action 计数器。
 
 ## 9. 受控重规划
 

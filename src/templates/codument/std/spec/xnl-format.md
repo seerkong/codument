@@ -350,7 +350,7 @@ export type XnlNode = ValueLiteral | ContainerNode | CommentNode;
 ```xnl
 <my_text id="" ?ttt>
   content
-</?qqq> 
+</?qqq>
 ❌ 错误！文本标签的结束，如果有marker，应当与开始节点一致`</?ttt>`，不能是其他marker，例如本例中错误的 `</?qqq>`
 ```
 
@@ -359,7 +359,7 @@ export type XnlNode = ValueLiteral | ContainerNode | CommentNode;
 ```xnl
 <my_text id="" ?ttt>
   content
-</?ttt> 
+</?ttt>
 ```
 
 

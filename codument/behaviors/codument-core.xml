@@ -757,7 +757,7 @@
     </suite>
   </requirement>
   <requirement id="mission-cybernetic-actors">
-    <statement>系统 SHALL model mission execution as a cybernetic DEPA actor loop over a DAG-shaped desired state.</statement>
+    <statement>系统 SHALL execute a mission as a continuous cybernetic DEPA actor loop over a DAG-shaped desired state.</statement>
     <suite id="mission-actors" name="Mission cybernetic actors">
       <case id="four-actors">
         <given>mission execution prompt describes roles</given>
@@ -765,19 +765,34 @@
         <then>系统 SHALL name and use `MissionPlanner`, `MissionObserver`, `MissionReconciler`, and `MissionApplier` actor concepts</then>
         <and>`MissionPlanner` SHALL produce or revise desired mission graph</and>
         <and>`MissionObserver` SHALL observe actual state without mutating it</and>
-        <and>`MissionReconciler` SHALL compare desired and actual state and decide the next convergence action</and>
-        <and>`MissionApplier` SHALL be the write actor for bounded convergence actions</and>
+        <and>`MissionReconciler` SHALL compare desired and actual state and decide the next execution step</and>
+        <and>`MissionApplier` SHALL be the write actor for mission execution steps</and>
       </case>
       <case id="level-triggered">
         <given>a mission execution turn resumes after interruption</given>
         <when>the next action is chosen</when>
         <then>系统 SHALL read current mission.xml, track states, archive state, reports, and relevant evidence instead of relying on chat history</then>
       </case>
-      <case id="bounded-action">
-        <given>mission execution detects a needed convergence action</given>
-        <when>MissionApplier acts</when>
-        <then>系统 SHALL perform one bounded action per turn or per explicit execution step</then>
-        <and>系统 SHALL avoid silently running unbounded multi-track automation without feedback</and>
+      <case id="continuous-implementation">
+        <given>用户 invokes `codument-impl-mission` for a pending or active mission</given>
+        <when>the mission is not terminal or blocked</when>
+        <then>系统 SHALL activate a pending mission and immediately continue execution from active mission.xml</then>
+        <and>系统 SHALL require each mission step to verify completion in proportion to its effect, using its existing tests, state, resource reads, or evidence rather than a common receipt format</and>
+        <and>系统 SHALL continue to the next planned ready step without a mandatory full re-observe/reconcile pass when verification is conclusive and reveals no invalidation signal</and>
+        <and>系统 SHALL observe the affected scope and reconcile only when verification is uncertain or signals that a prerequisite, dependency, scope, or goal has changed</and>
+        <and>系统 SHALL NOT treat activation or completion of one track as a default stopping point</and>
+      </case>
+      <case id="decision-and-terminal-pauses">
+        <given>a continuous mission execution loop is running</given>
+        <when>a ready decision requires user confirmation, actual state is blocked, or mission becomes completed, cancelled, or superseded</when>
+        <then>系统 SHALL return with the required questions, blocker, or terminal result</then>
+        <and>系统 SHALL let `QuestionSeverity=auto` record assumptions and continue without a user question</and>
+      </case>
+      <case id="max-tracks-checkpoint">
+        <given>one `codument-impl-mission` invocation continuously executes linked tracks</given>
+        <when>ten track lifecycles have completed and been written back as DONE</when>
+        <then>系统 SHALL write a resumable continuation checkpoint and return with the mission still active</then>
+        <and>系统 SHALL NOT use a general max-actions limit</and>
       </case>
       <case id="actor-set-runtime-boundary">
         <given>一个 mission references an external ProjectRef or TrackLink。</given>

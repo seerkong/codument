@@ -167,5 +167,5 @@ Mission '<mission-id>' 已创建：
 - codument/missions/pending/<mission-id>/proposal.md
 - codument/missions/pending/<mission-id>/design.md
 
-下一步：请使用 codument-impl-mission 启动或执行该 mission。
+下一步：请使用 codument-impl-mission 直接执行该 mission。
 ```
