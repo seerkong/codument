@@ -5,9 +5,9 @@
     <Description>通过五条依赖明确的 tracks，完成 modeling 默认启用和原子归档、Mission ActorSet、多项目 session binding、action 全面改名、标准分层、prompt 精简、skill 清理与升级迁移。</Description>
     <QuestionMode>decision-tree</QuestionMode>
     <QuestionSeverity>light</QuestionSeverity>
-    <Revision>11</Revision>
+    <Revision>12</Revision>
     <CreatedAt>2026-07-25T14:17:21+03:00</CreatedAt>
-    <UpdatedAt>2026-07-25T22:53:35+03:00</UpdatedAt>
+    <UpdatedAt>2026-07-27T15:45:00+03:00</UpdatedAt>
   </Metadata>
 
   <Ports scope="mission">
@@ -26,8 +26,8 @@
     <cdt:ActorSet id="codument-evolution-loop">
       <cdt:Actor role="MissionPlanner" project-ref="host"><Description>按 mission DAG 选择下一条 track，并根据验证和 dogfood 反馈调整后续切片。</Description></cdt:Actor>
       <cdt:Actor role="MissionObserver" project-ref="host"><Description>读取发布模板、CLI、tests、behavior、tracks、archive 与 dogfood 投影的实际态。</Description></cdt:Actor>
-      <cdt:Actor role="MissionReconciler" project-ref="host"><Description>区分模板、runtime、迁移、分发与文档 owner 偏差，选择 ready、drift、blocked 或 done。</Description></cdt:Actor>
-      <cdt:Actor role="MissionApplier" project-ref="host"><Description>每轮创建、执行、验证或归档一条真实 track，或基于 evidence 受控修订 mission。</Description></cdt:Actor>
+      <cdt:Actor role="MissionReconciler" project-ref="host"><Description>区分模板、runtime、迁移、分发与文档 owner 偏差，选择下一个 planned ready action 或判定 drift、blocked、done。</Description></cdt:Actor>
+      <cdt:Actor role="MissionApplier" project-ref="host"><Description>持续执行 planned ready action；子 track 或 gap-loop 返回后更新 mission 状态并继续主循环，或基于 evidence 受控修订 mission。</Description></cdt:Actor>
     </cdt:ActorSet>
   </cdt:ActorSets>
 
@@ -134,7 +134,7 @@
 
   <Hooks>
     <Hook on="mission:after-node">
-      <cdt:MissionReconcile max-rounds="3" on-drift="replan-or-block"/>
+      <cdt:MissionReconcile max-tracks="10" on-limit="checkpoint" on-drift="replan-or-block"/>
     </Hook>
   </Hooks>
 </Mission>

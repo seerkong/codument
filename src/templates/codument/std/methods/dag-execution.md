@@ -37,6 +37,7 @@ spot-check 通过后，若 CommitMode=auto 则创建 wave/任务检查点；manu
 - 默认（无 `cdt:child-mode="dag"`）按 `order` 顺序执行，不进本流程。
 - 子代理只接收路径/引用（task id、Description、cdt:Acceptance、input/output MaterialBundle 路径、前置产物位置）。
 - 子代理 prompt 必须写明：完成即停、不要开启超长会话；禁止 `git restore` / `git checkout` / `git stash`；遇到越界需求或前置成果异常时返回阻塞而不是自行大范围修复。
+- 若该 DAG 执行发生在 `codument-impl-mission` 的子 track / 子流程内，“完成即停”只约束 fresh 子代理或局部 track 流程；返回结果必须交回 mission 父层，由 mission 父层继续更新状态并推进后续 ready action。
 - 父层不能盲信子代理自述。每个 wave 至少检查目标指标、行为基线测试、diff 是否符合预期；对"非我责任"类说法用错误性质、HEAD 对照或复现实验验证。
 - 非叶节点（TaskGroup）递归：先按其自身 child-mode 调度其直接下层。
 - 失败/抽检失败/DAG 阻塞按 `validation.md` 与失败处理协议处理（重试/跳过/中止）。

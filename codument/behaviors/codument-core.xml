@@ -568,7 +568,7 @@
     </suite>
   </requirement>
   <requirement id="modeling-authoring-form">
-    <statement>系统 SHALL guide and validate the XNL *form* of modeling nodes so that LLM authors produce spec-conformant nodes — component IO blocks as bare tags, shell-kind nodes as plain element tags plus a `kind` attribute — while the validate engine accepts the common role-tagged IO variant for compatibility. Derived from E2E dogfood where a real model (codex gpt-5.5) wrote conceptually-correct modeling but tripped on these two XNL-form ambiguities across 3/3 and 1/3 topics.</statement>
+    <statement>系统 SHALL guide and validate the XNL *form* of modeling nodes so that LLM authors produce spec-conformant nodes — component IO blocks as bare tags, shell-kind nodes as plain element tags plus a `kind` attribute — while the validate engine accepts the common role-tagged IO variant for compatibility. Derived from E2E dogfood where a real agent wrote conceptually-correct modeling but tripped on these two XNL-form ambiguities across 3/3 and 1/3 topics.</statement>
     <suite id="component-io-form" name="Component IO block form">
       <case id="bare-io-tags-canonical">
         <given>A modeling `component` node needing runtime/input/config/output blocks.</given>
@@ -650,7 +650,7 @@
       <case id="verification-round-lightweight">
         <given>verify-round is ON and the parent re-spawns the first-round verification round.</given>
         <when>The fresh sub-agent runs it.</when>
-        <then>It SHALL only re-confirm the prior round's gap-report conclusion plus the current uncommitted diff, not re-derive the full target comparison; a lower reasoning effort MAY be used.</then>
+        <then>It SHALL only re-confirm the prior round's gap-report conclusion plus the current uncommitted diff, not re-derive the full target comparison.</then>
       </case>
       <case id="fix-incremental-recheck">
         <given>A prior round returned `FIX_APPLIED`.</given>
@@ -766,7 +766,7 @@
         <and>`MissionPlanner` SHALL produce or revise desired mission graph</and>
         <and>`MissionObserver` SHALL observe actual state without mutating it</and>
         <and>`MissionReconciler` SHALL compare desired and actual state and decide the next execution step</and>
-        <and>`MissionApplier` SHALL be the write actor for mission execution steps</and>
+        <and>`MissionApplier` SHALL be the write actor for mission logical actions and SHALL resume the mission loop after child action returns</and>
       </case>
       <case id="level-triggered">
         <given>a mission execution turn resumes after interruption</given>
@@ -781,6 +781,7 @@
         <and>系统 SHALL continue to the next planned ready step without a mandatory full re-observe/reconcile pass when verification is conclusive and reveals no invalidation signal</and>
         <and>系统 SHALL observe the affected scope and reconcile only when verification is uncertain or signals that a prerequisite, dependency, scope, or goal has changed</and>
         <and>系统 SHALL NOT treat activation or completion of one track as a default stopping point</and>
+        <and>系统 SHALL treat child command returns from impl-track, archive-track, verify, gap-loop, or fresh subagents as local results for MissionApplier rather than mission invocation returns</and>
       </case>
       <case id="decision-and-terminal-pauses">
         <given>a continuous mission execution loop is running</given>

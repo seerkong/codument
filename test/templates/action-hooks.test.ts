@@ -32,6 +32,10 @@ function actionHooks(): SpecXmlNode {
   return parseSpecXmlContent(fs.readFileSync(file, 'utf-8'));
 }
 
+function currentActionHooksText(): string {
+  return fs.readFileSync(path.join(ROOT, 'codument', 'config', 'action-hooks.xml'), 'utf-8');
+}
+
 describe('codument action hook template', () => {
   it('uses only official action names and matching hook prefixes', () => {
     const actions = actionNames();
@@ -57,5 +61,11 @@ describe('codument action hook template', () => {
       'archive-track',
       'gap-loop',
     ]);
+  });
+
+  it('keeps planning before hooks out of the current dogfood config', () => {
+    const config = currentActionHooksText();
+    expect(config).not.toContain('plan-track:before');
+    expect(config).not.toContain('plan-mission:before');
   });
 });

@@ -103,7 +103,7 @@ verify 的核心是**派发 fresh-subagent 实际运行**——不是父代理�
 ---- #step ?v1
 父代理：从 track.xml 收集所有 cdt:Acceptance、cdt:Gate，以及 behavior_deltas 的验收用例（suite/case），按范围（整 track / phase / wave）圈定目标集
 ---- /?v1
----- #spawn ?run as=fresh-subagent inject="按 agent 类型注入模型/档位，如 codex→gpt-5.5、effort=high"
+---- #spawn ?run as=fresh-subagent inject="注入验证范围、输入路径、输出报告要求和必要禁止事项"
 独立上下文：实跑测试 / 启动应用 / 复现用例，观察真实行为（不只读代码）；对每条验收逐项判定并收集证据
 ---- /?run
 ---- #loop ?items for="每条 cdt:Acceptance / cdt:Gate / behavior case"
@@ -135,7 +135,7 @@ verify 的核心是**派发 fresh-subagent 实际运行**——不是父代理�
 -- /?verify
 ```
 
-**fresh-spawn 注入（按 agent 类型）：** 父代理 spawn 验证子代理时按当前运行的 agent 类型注入模型/档位——例如 **codex → 模型 `gpt-5.5`、`effort=high`**；其他 agent 按其高能力档。落盘 skill 时由对应 agent 生成器补充该注入；本协议在此声明意图，确保自包含 skill 不丢"用高能力档 fresh-subagent 实跑验证"这一要求。
+**fresh-spawn 注入：** 父代理 spawn 验证子代理时只注入验证范围、输入路径、输出报告要求和必要禁止事项；具体运行时配置由当前 agent/runtime 自行决定，Codument 标准提示词不承载这类配置。
 
 **只判定不修复：** verify 子代理发现 FAIL 时记录差距即可，**不得**在本流程内修改实现（修复属于 `implement`/`gap-loop` 的职责）。
 

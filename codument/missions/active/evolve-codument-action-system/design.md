@@ -20,7 +20,7 @@
 | MissionPlanner | 按 mission DAG 选择下一条候选 track；根据已完成 track、dogfood 反馈和未满足成功判据修订后续切片。 |
 | MissionObserver | 读取发布模板、CLI、tests、behavior、active/archive tracks，以及 build + upgrade-workspace 后的 dogfood 投影；不把投影视为发布真源。 |
 | MissionReconciler | 对比期望态与实际态，区分模板源错误、CLI/runtime 错误、迁移错误、文档 owner 重复、分发泄漏和 dogfood 漂移；判断 ready、drift、blocked、done。 |
-| MissionApplier | 每轮只执行一个有界动作：创建/绑定/执行/验证/归档一条真实 track，或基于 evidence 受控修订 mission；不绕过 track 直接做大范围实现。 |
+| MissionApplier | 持续执行当前 planned ready action：创建/绑定/执行/验证/归档真实 track，或基于 evidence 受控修订 mission；子 track / gap-loop 等子流程返回后继续回到 mission 主循环，不绕过 track 直接做大范围实现。 |
 
 目标版本将把这类 Actor 绑定结构化进 `mission.xml` 的 ActorSet，并支持默认 ActorSet + TaskGroup 局部覆盖。本 Mission 创建时仍遵循当前 mission schema，因此本节是当前执行器的控制说明，不提前写入尚未实现的新 XML 节点。
 
@@ -95,6 +95,7 @@ codument/std/
 - modeling/engineering/docs 变化只检查相关 scope。
 - 用户显式 hook 保留。
 - MissionReconcile 与 AttractorCheck 是不同控制环，不互相冒充。
+- `mission:after-node` 上的 MissionReconcile 是连续循环内部的 reconcile/checkpoint gate，不是每个 node 后返回给用户的 hook；只有待确认 decision、真实 blocked、终态或十条 linked track checkpoint 才返回。
 
 ## 受控重规划
 

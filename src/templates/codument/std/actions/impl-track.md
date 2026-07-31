@@ -219,9 +219,9 @@ spot-check 通过后，auto 模式创建任务/wave 检查点；manual 模式输
 
 对每个叶 `Task`，编排器 fresh-spawn 一个子代理执行；子代理完成后编排器回写状态。
 
-### 6.1 fresh-spawn 派发（按 agent 类型注入档位）
+### 6.1 fresh-spawn 派发
 
-编排器**只传路径与引用**，子代理自行读取。spawn 时按当前运行的 agent 类型注入模型 / 档位——例如 **codex → 模型 `gpt-5.5`、`effort=high`**；其他 agent 按其高能力档。落盘 skill 时由对应 agent 生成器补充该注入；本协议在此声明意图，确保自包含 skill 不丢"用高能力档跑实现子代理"这一要求。
+编排器**只传路径与引用**，子代理自行读取。spawn 时只注入任务边界、输入路径、输出契约和必要禁止事项；具体运行时配置由当前 agent/runtime 自行决定，Codument 标准提示词不承载这类配置。
 
 ```text
 @delimiter: --
@@ -237,7 +237,7 @@ spot-check 通过后，auto 模式创建任务/wave 检查点；manual 模式输
 ---- /?t2
 ---- #call ?tb target="run-hooks(on=task:before, 该 Task)"
 ---- /?tb
----- #spawn ?run as=fresh-subagent inject="按 agent 类型注入模型/档位，如 codex→gpt-5.5、effort=high"
+---- #spawn ?run as=fresh-subagent inject="注入任务边界、输入路径、输出契约和必要禁止事项"
 只传路径与引用（不传内容）：track_dir 绝对路径、task id/name、<Description>、<cdt:Acceptance> 列表、子任务（如有）、input MaterialBundle 路径（取代旧 context_files）、前置产物位置、codument/std/methods/tdd.md 路径、analysis/findings.md 路径。子代理协议见 §6.2。等其返回完成信号
 ---- /?run
 ---- #call ?sc target="parent-spot-check(该 Task)"   ← 见 §6.4；未通过不得回写 DONE
@@ -275,6 +275,8 @@ spot-check 通过后，auto 模式创建任务/wave 检查点；manual 模式输
 ```
 
 > 子代理提示词应包含：任务信息（id / name / `<Description>`）、验收标准、子任务（如有）、**上下文文件路径列表（请自行读取）**、前置波次产物路径、`tdd.md` 路径、完成要求（完成子任务 / 验证 AC / 置 DONE / 勾 checked）。还必须包含硬禁令：禁止 `git restore` / `git checkout` / `git stash` 抹改动（只读 git 查询允许，重命名可用 `git mv`）；完成即停，不开启超长会话；不得越界修复非本任务范围；环境命令使用项目指定版本，不随意 `export PATH` 污染后续命令。
+
+> 如果当前 `codument-impl-track` 是由 `codument-impl-mission` 为某个 mission 子 track 调用的，“完成即停”只约束本 track 的 fresh 子代理或本 track 子流程。track 子流程返回后，控制权必须回到 mission 父层 `MissionApplier`；mission 父层继续读取 track 结果、更新 `mission.xml` / report、执行 action 完成判定并推进后续 ready action，不得把 track 完成当作 mission invocation 的默认停止点。
 
 ### 6.3 状态回写（step 5）
 
@@ -360,13 +362,15 @@ diff 审查：确认无无关运行时改动；对声称行为不变的任务，
 
 当某 phase 的 `phase:after` hook 是 `<cdt:GapLoop>`：实现编排器**不在原上下文里继续做 gap 校验或修正**，只负责把控制权交回**父层编排者**。父层据 fresh 子代理返回的结构化 XML 续轮——规则与 `gap-loop.md` 完全一致：
 
+如果本 track 是 mission 子 track，这里的“父层编排者”首先是 track 实现编排器；track gap-loop 收口后再把结果交回 mission 父层。`NO_GAP` / `FIX_APPLIED` / `BLOCKED` 的含义不得直接外推为 mission 主循环返回：只有 `BLOCKED` 且无法由 mission 自动重规划或改走其他 ready 分支时，mission 才按真实阻塞返回。
+
 ```text
 @delimiter: --
 -- #loop ?rounds max="cdt:GapLoop 的 max-rounds"
 ---- #step ?gp1
 父层启动新一轮前，先把当前轮次写回 track.xml `<Metadata>` 的 `<GapRound>`
 ---- /?gp1
----- #spawn ?gp2 as=fresh-subagent inject="按 agent 类型注入模型/档位，如 codex→gpt-5.5、effort=high"
+---- #spawn ?gp2 as=fresh-subagent inject="注入 gap-loop scope、输入范围、输出 XML 契约和必要禁止事项"
 fresh-spawn 一个新 gap-loop 子代理（或等价 fresh child context），让其执行当前 scope 的 gap-loop 子流程；等结构化 XML
 ---- /?gp2
 ---- #switch ?gp3 on="子代理返回 status"

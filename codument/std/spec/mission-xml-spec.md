@@ -60,7 +60,7 @@ codument/missions/
     <cdt:ActorSet id="runtime-control-loop">
       <cdt:Actor role="MissionPlanner" project-ref="host"><Description>根据 runtime evidence 切分并重规划 tracks。</Description></cdt:Actor>
       <cdt:Actor role="MissionObserver" project-ref="host"><Description>读取 runtime tests、tracks、archive 与 reports 的实际态。</Description></cdt:Actor>
-      <cdt:Actor role="MissionReconciler" project-ref="host"><Description>比较 runtime desired graph 与实际态，选择一个可收敛动作。</Description></cdt:Actor>
+      <cdt:Actor role="MissionReconciler" project-ref="host"><Description>比较 runtime desired graph 与实际态，选择下一个 planned ready action，并在验证明确时持续推进。</Description></cdt:Actor>
       <cdt:Actor role="MissionApplier" project-ref="host"><Description>连续创建、执行或验证 runtime track；在动作内验证完成，只有不确定或发现偏差时才观察并协调，或受控修订 mission。</Description></cdt:Actor>
     </cdt:ActorSet>
   </cdt:ActorSets>
@@ -293,8 +293,8 @@ mission execution is a cybernetic actor loop over a DAG-shaped desired state.
 |---|---|---|---|
 | `MissionPlanner` | 期望态产出者 | Processor + Actor | 产出或修订 desired mission graph |
 | `MissionObserver` | 传感器 | Data + Actor | 读取 actual state projection |
-| `MissionReconciler` | 控制器 | Processor + Actor | 比较 desired vs actual，判定 drift / ready / blocked / done |
-| `MissionApplier` | 执行器 | Effect + Actor | 执行下一 mission 步骤并写入实际态 |
+| `MissionReconciler` | 控制器 | Processor + Actor | 比较 desired vs actual，判定 drift / ready / blocked / done，并选择下一个 planned ready action |
+| `MissionApplier` | 执行器 | Effect + Actor | 执行当前 mission logical action 并写入实际态；子流程返回后继续回到 mission loop |
 
 执行协议：
 
@@ -302,7 +302,7 @@ mission execution is a cybernetic actor loop over a DAG-shaped desired state.
 MissionObserver 观测实际态
 -> MissionReconciler 比较 mission.xml 期望态 vs 实际态
 -> MissionPlanner 在必要时提出重规划
--> MissionApplier 执行下一 mission 步骤
+-> MissionApplier 执行当前 mission logical action
 -> 写 report / 更新 mission.xml
 -> 同一 invocation 继续下一轮
 ```
@@ -312,6 +312,8 @@ MissionObserver 观测实际态
 `codument-impl-mission` 默认持续执行。pending mission 激活后必须立即从 `active/<id>/mission.xml` 继续；每个 logical action 在自身范围内完成验证，不以单个节点或单条 track 的完成作为默认返回点。
 
 动作验证直接使用已有的验收条件、相关测试、track 状态、外部资源读取或分析证据；不要求写回执文件，也不规定 XNL、JSON 或其他统一序列化格式。验证通过且没有前提、依赖、范围或目标的失效信号时，直接选择下一个 planned ready action。验证不确定、失败或发现失效信号时，Observer 先读取受影响范围，Reconciler 再决定继续、重规划或阻塞；只有范围无法可靠界定时才全量观察。
+
+`mission:after-node` 上的 `<cdt:MissionReconcile>` 是 mission 连续循环内部的 reconcile/checkpoint gate，不是“每个 node 后返回给用户”的 hook。若当前 action 调用 `codument-impl-track`、`codument-archive-track`、`codument-verify`、`codument-gap-loop` 或 fresh 子代理，这些子流程的 `return` / “完成即停” / “收口”只返回到 `MissionApplier`；mission 父层必须用结果更新 `mission.xml` / report，并继续循环，除非命中待确认 decision、真实 BLOCKED、终态或 `max-tracks` checkpoint。
 
 循环只在需要用户确认的 pending decision、真实 `BLOCKED`、`completed` / `cancelled` / `superseded` 时返回。`QuestionSeverity=auto` 记录假设后继续。
 

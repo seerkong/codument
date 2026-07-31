@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # verify-modeling-engineering-e2e.sh
 # ─────────────────────────────────────────────────────────────────────────────
-# 用真实大模型端到端验证 codument modeling + engineering：
+# 用真实 agent 端到端验证 codument modeling + engineering：
 # 1. 在 /tmp 干净工作区初始化 codument；
 # 2. 开启 modeling + engineering；
 # 3. 让真实 agent 创建 track，并生成 modeling_deltas + engineering_deltas；
@@ -11,13 +11,12 @@
 #
 # 用法:
 #   bash scripts/verify-modeling-engineering-e2e.sh ecommerce
-#   MODE=plan-only AGENT=codex MODEL=gpt-5.5 bash scripts/verify-modeling-engineering-e2e.sh todo
+#   MODE=plan-only AGENT=codex bash scripts/verify-modeling-engineering-e2e.sh todo
 #   PRODUCT="$(cat product.md)" bash scripts/verify-modeling-engineering-e2e.sh custom
 #
 # 环境变量:
 #   MODE        full | plan-only（默认 full）
 #   AGENT       codex | claude（默认 codex）
-#   MODEL       模型名（可选）
 #   WS          工作区路径（默认 /tmp/cdt-me-e2e-<topic>-<pid>）
 #   KEEP        1=保留工作区（默认 1）
 #   ENGINEERING 1=开启 engineering（默认 1；旧 modeling-only 可设 0）
@@ -208,7 +207,7 @@ printf '%s\n' "$PRODUCT" > "$WS/codument/attractors/product.md"
 grep '<Modeling' "$WS/codument/config/modeling.xml" || true
 [ "$ENGINEERING" = "1" ] && grep '<Engineering' "$WS/codument/config/engineering.xml" || true
 
-say "3. 真实大模型创建 track 和 deltas（mode=$MODE agent=$AGENT model=${MODEL:-default}）"
+say "3. 真实 agent 创建 track 和 deltas（mode=$MODE agent=$AGENT）"
 PLAN_LOG="$WS/_agent-plan.log"
 run_agent "$PLAN_PROMPT" "$PLAN_LOG" || exit 2
 if [ "$SKIP_AGENT" = "1" ]; then
@@ -237,7 +236,7 @@ if [ "$TRACK_RC" -ne 0 ] || [ "$MODELING_RC" -ne 0 ] || [ "$ENGINEERING_RC" -ne 
 fi
 
 if [ "$MODE" = "full" ]; then
-  say "5. 真实大模型根据 track + deltas 实现代码"
+  say "5. 真实 agent 根据 track + deltas 实现代码"
   IMPL_LOG="$WS/_agent-impl.log"
   run_agent "$IMPL_PROMPT" "$IMPL_LOG" || exit 5
 else

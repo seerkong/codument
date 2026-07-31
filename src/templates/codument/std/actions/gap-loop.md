@@ -139,6 +139,8 @@ mission-gap-loop 的修正对象优先是 mission / track 结构偏差：补真�
 - 让子代理在本轮结束后自己继续下一轮。
 - 在上层 orchestrator 已声明接管时，再在下层节点内部私造一层 nested gap-loop。
 
+如果 gap-loop 是 mission 执行中的子流程，这些禁止事项只约束 gap-loop 内部角色边界：fresh 子代理不得自己开下一轮，gap-loop 父层负责续轮或收口。gap-loop 收口后必须把结果交回 `codument-impl-mission` 的 `MissionApplier`；mission 父层继续更新 `mission.xml` / report 并推进后续 ready action，除非 gap-loop 返回 `BLOCKED` 且 mission 无法自动重规划或改走其他 ready 分支。
+
 ---
 
 ## 1.0 父层编排代理章节
@@ -149,7 +151,7 @@ mission-gap-loop 的修正对象优先是 mission / track 结构偏差：补真�
 
 在 fresh-spawn 子代理之前，父层**禁止**：自己读审代码实现细节、分析未提交 diff、生成 gap 结论、写 gap 报告、修正实现。
 
-**fresh-spawn 注入（按 agent 类型）**：父层 spawn 子代理时按当前运行的 agent 类型注入模型/档位与必要指令——例如 **codex → 模型 `gpt-5.5`、`effort=high`**；其他 agent 按其高能力档。落盘 skill 时由对应 agent 生成器补充该注入；本协议在此声明意图，确保自包含 skill 不丢"用高能力档跑 fresh 复检"这一要求。
+**fresh-spawn 注入**：父层 spawn 子代理时只注入本轮 scope、输入范围、输出 XML 契约和必要禁止事项；具体运行时配置由当前 agent/runtime 自行决定，Codument 标准提示词不承载这类配置。
 
 ### 1.2 父层主循环（每轮顺序 + 收到 XML 的处理）
 
@@ -175,7 +177,7 @@ track / phase scope 读 track.xml；若该 scope 非 gap-loop 模式，先按 0.
 ---- #step ?s5
 GapRound = GapRound + 1，写回对应 XML `<Metadata><GapRound>`：track / phase scope 写 track.xml，mission scope 写 mission.xml
 ---- /?s5
----- #spawn ?run as=fresh-subagent inject="按 agent 类型注入模型/档位，如 codex→gpt-5.5、effort=high；若本轮为验证轮或 FIX 复检轮则切轻量模式（更低 effort，见 §2.5）并标注'增量复检'"
+---- #spawn ?run as=fresh-subagent inject="注入本轮 scope、输入范围、输出 XML 契约和必要禁止事项；若本轮为验证轮或 FIX 复检轮则标注'增量复检'"
 只传最小上下文（track-id、phase、background、固定输入范围、输出 XML 契约）；验证轮 / FIX 复检轮额外注入「上轮 gap 报告路径 + 本轮关注的 diff/FIX 改动范围 + 轻量模式」；等它返回结构化 XML
 ---- /?run
 ---- #switch ?dispatch on="子代理返回的 status"
@@ -308,7 +310,6 @@ review 当前实现与未提交改动；带 --phase 则聚焦该 phase；mission
 
 - **输入收窄**：只读「上轮 gap 报告（`reports/` 最新一份）的结论」+「当轮未提交 diff」。FIX 复检时**聚焦上轮 FIX 的改动范围**（哪些文件/需求被改），只确认该范围是否真正闭合、未引入新偏差；验证轮则确认「首轮 `NO_GAP` 结论在当前 diff 下仍成立」。
 - **不做的事**：不重新逐条比对 proposal / behavior_deltas / design 的全部目标，不重写完整 gap 报告（只在 `reports/` 追加一份**轻量增量复检**报告，标明本轮为验证轮 / FIX 复检轮及其聚焦范围）。
-- **更低 effort**：本轮**可用更低 reasoning effort**（父层注入档位已下调），与全量首轮区分。
 - **结论与 XML 不变**：仍按 §3.0 输出 `NO_GAP` / `FIX_APPLIED` / `BLOCKED`。轻量模式只缩输入与工作量，**不放宽** FIX 必须复检、不偷过真实偏差。
 
 非轻量模式（首轮、或全量对比轮）仍按 §2.2/§2.3 做完整目标对比，质量底线不变。

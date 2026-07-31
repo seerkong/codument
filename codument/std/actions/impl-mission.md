@@ -38,6 +38,8 @@
 
 每个 logical mission action 必须有与影响相称的完成判定，但不需要生成统一回执文件、XNL 节点或任何专用数据格式：代码改动运行相关测试或静态检查；linked track 检查叶子状态与验收证据；外部操作重新读取受影响资源；分析动作确认约定证据已写入。完成判定通过且无前提、依赖、范围或目标的失效信号时，直接继续下一个 planned ready action；判定不确定、失败或发现失效信号时，才观察受影响范围并进入 reconcile。仅在范围无法界定时才做全量观察。
 
+子流程的返回边界不得冒充 mission 主循环返回边界：`codument-impl-track`、`codument-archive-track`、`codument-verify`、`codument-gap-loop` 或 fresh 子代理返回时，只是把局部结果交还给 `MissionApplier`。若当前动作是在 mission 中处理某个子 track，子 track 的“完成即停”“返回 XML”“收口”等语句只约束该子流程；mission 父层必须读取子流程结果、更新 `mission.xml` / report、执行当前 action 完成判定，然后继续 mission 主循环，除非命中本节列出的四类返回条件。
+
 ```text
 @delimiter: --
 @node: #
@@ -70,11 +72,14 @@ MissionReconciler 比较 desired vs actual，并读取根级 decisions.xnl 的 p
 ------ /?question
 ------ #case ?ready when="存在 ready mission node"
 -------- #step ?apply_ready
-MissionApplier 执行当前 ready 节点：分析一个 plan 节点、创建/续跑/验证/归档一个 track，或写一个报告。linked track 只有在生命周期完成且对应 mission leaf 写为 DONE 时才计入本 invocation 的 track 数。
+MissionApplier 执行当前 ready leaf 作为一个 logical action：分析一个 plan 节点、创建/续跑/验证/归档一个 track，或写一个报告。ready leaf 是推进粒度，不是 invocation 返回边界；linked track 只有在生命周期完成且对应 mission leaf 写为 DONE 时才计入本 invocation 的 track 数。
 -------- /?apply_ready
 -------- #step ?verify_action
 按当前 action 的影响范围执行完成判定；不生成独立回执格式。验证通过且未发现计划失效信号时，基于已更新的 DAG 状态直接选择下一个 planned ready action 并继续；不得把启动、单个节点或单条 track 完成当作默认停止点。验证不确定、失败或发现失效信号时，只观察受影响范围后再 reconcile；范围无法界定时才全量观察。
 -------- /?verify_action
+-------- #continue ?next_ready
+验证通过且没有失效信号时，立即回到本 mission loop 选择下一个 planned ready action；子流程 return 不得结束本 invocation。
+-------- /?next_ready
 ------ /?ready
 ------ #case ?drift when="actual state 使当前 DAG/节点不再成立"
 -------- #step ?plan_revision
@@ -86,6 +91,9 @@ MissionApplier 写 reports/replan-XXX.md，更新 mission.xml，递增 Revision�
 -------- #step ?verify_replan
 验证修订后的 mission graph、Revision 与重规划证据。若验证明确且没有新的失效信号，直接继续修订后 ready 的分支；只有不确定或发现偏差时才观察受影响范围并 reconcile。
 -------- /?verify_replan
+-------- #continue ?next_after_replan
+重规划验证通过且没有失效信号时，立即回到本 mission loop 选择修订后的 planned ready action；不得把重规划完成当作本 invocation 收口。
+-------- /?next_after_replan
 ------ /?drift
 ------ #case ?blocked when="缺少 evidence、用户决策、外部状态或 track 失败"
 -------- #return ?blocked_out value="报告阻塞和所需输入"
@@ -106,7 +114,7 @@ MissionApplier 写 reports/replan-XXX.md，更新 mission.xml，递增 Revision�
 `start-mission` 是进入 continuous execution 的前置迁移，不是可单独收口的模式。完成前不得执行 mission DAG 中的任何节点；完成后必须从 active 路径重新加载并继续主循环。
 
 1. 读取 `proposal.md`、`design.md` 和 `mission.xml`。
-2. 确认用户要启动；如果用户未明确启动，返回 blocked。
+2. 本次入口是 `codument-impl-mission <id>` 或用户要求“实现 / 续跑 / 执行 mission”时，视为已经确认启动；只有用户明确要求只检查、不启动或先等待确认时，才返回 blocked 并说明需要明确启动授权。
 3. 检查 `active/<id>/` 不存在；若已存在，返回 blocked，要求人工处理，禁止覆盖。
 4. 移动目录到 `active/<id>/`。
 5. 更新 `active/<id>/mission.xml`：
@@ -117,7 +125,7 @@ MissionApplier 写 reports/replan-XXX.md，更新 mission.xml，递增 Revision�
 
 ## 4. ready node 处理
 
-ready node 来自 `mission.xml` 顶层 `TaskGroup` DAG：所有 `<After>` 前驱已 DONE / SUPERSEDED，且节点自身未完成。进入某个 ready `TaskGroup` 后，按其内部叶子 `Task` 的 `order` 顺序执行第一个未完成 Task；除非未来显式扩展 nested DAG，否则组内 Task 不并行、不写进顶层 DAG。
+ready node 来自 `mission.xml` 顶层 `TaskGroup` DAG：所有 `<After>` 前驱已 DONE / SUPERSEDED，且节点自身未完成。进入某个 ready `TaskGroup` 后，按其内部叶子 `Task` 的 `order` 顺序执行第一个未完成 Task；除非未来显式扩展 nested DAG，否则组内 Task 不并行、不写进顶层 DAG。这个“第一个未完成 Task”只是当前 logical action 的选择规则，不是执行后向用户返回的规则。
 
 常见节点类型：
 
