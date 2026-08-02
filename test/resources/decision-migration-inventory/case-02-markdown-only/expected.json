@@ -1,0 +1,13 @@
+{
+  "name": "case-02-markdown-only",
+  "classification": "markdown-only",
+  "decisionId": "fixture.migration.markdown_only",
+  "legacyRelativePath": "codument/decisions/2026-06/2026-06-02-1015-fixture.migration.markdown_only/decision.md",
+  "archiveSourceMatches": 0,
+  "targetMatches": 0,
+  "requiredLegacySentinels": [
+    "LEGACY-RAW-CONTENT-MUST-SURVIVE",
+    "### 2. A second historical choice",
+    "The original document has no recoverable XNL source."
+  ]
+}

@@ -26,11 +26,11 @@ function createTempPlan(content: string): string {
 }
 
 afterEach(() => {
+  setWorkspaceDir(originalWorkspaceDir);
   for (const d of tmpDirs) {
     fs.rmSync(d, { recursive: true, force: true });
   }
   tmpDirs.length = 0;
-  setWorkspaceDir(originalWorkspaceDir);
 });
 
 function createTempWorkspaceTrack(

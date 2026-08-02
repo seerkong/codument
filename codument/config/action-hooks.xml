@@ -7,27 +7,9 @@
 -->
 <ActionHooks version="1" xmlns:cdt="urn:codument:v1">
 
-  <Action name="discuss">
-    <Hooks>
-      <Hook on="discuss:before"><cdt:AttractorCheck use="coding"/></Hook>
-    </Hooks>
-  </Action>
-
-  <Action name="impl-quick">
-    <Hooks>
-      <Hook on="impl-quick:before"><cdt:AttractorCheck use="coding"/></Hook>
-    </Hooks>
-  </Action>
-
   <Action name="archive-track">
     <Hooks>
       <Hook on="archive-track:after"><cdt:ArtifactSync use="docs"/></Hook>
-    </Hooks>
-  </Action>
-
-  <Action name="revise-track">
-    <Hooks>
-      <Hook on="revise-track:before"><cdt:AttractorCheck use="coding"/></Hook>
     </Hooks>
   </Action>
 

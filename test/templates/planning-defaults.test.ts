@@ -15,10 +15,11 @@ describe('planning template defaults', () => {
     const planMission = template('std/actions/plan-mission.md');
 
     expect(trackSpec).toContain('`track.xml`、`proposal.md`、`design.md`、`decisions.xnl` 与 `behavior_deltas` 必有');
-    expect(trackSpec).toContain('`decisions/`、`memory/`、`analysis/` 和 `reports/` 按需');
+    expect(trackSpec).toContain('层级化 `decisions/**/*.xnl`、`memory/`、`analysis/` 和 `reports/` 按需');
     expect(planTrack).toContain('| `design.md`（+`design/`） | ★必有 |');
     expect(planTrack).toContain('| `decisions.xnl` | ★必有 |');
-    expect(planMission).toContain('`design.md` 和 `decisions.xnl` 无条件创建');
+    expect(planTrack).toContain('| `decisions/**/*.xnl` | 按需 |');
+    expect(planMission).toContain('`design.md` 和根 `decisions.xnl` 无条件创建');
   });
 
   it('keeps decision-tree rules in the shared protocol and defaults ordinary tracks to no fresh check', () => {

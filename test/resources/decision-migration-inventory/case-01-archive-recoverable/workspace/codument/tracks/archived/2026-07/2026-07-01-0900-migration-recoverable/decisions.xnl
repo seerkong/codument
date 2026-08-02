@@ -1,0 +1,40 @@
+<decision #fixture.migration.recoverable {
+  priority = "P0"
+  status = "accepted"
+  durable_candidate = true
+  confidence = 0.98
+  reversibility = "moderate"
+  source_kind = "track"
+}
+(
+  <question ?>Which recovery policy preserves historical semantics?</?>
+  <recommendation ?>Recover the complete archived XNL node instead of rebuilding it from the summary.</?>
+  <options { } [
+    <option { key = "recover_xnl" recommended = true }
+    (
+      <title ?>Recover archived XNL</?>
+      <description ?>Preserve the original decision tree and extension fields.</?>
+    )
+    >
+    <option { key = "parse_summary" }
+    (
+      <title ?>Parse the Markdown summary</?>
+      <description ?>Reconstruct only the fields visible in the lossy projection.</?>
+    )
+    >
+  ]>
+  <answer { }
+  (
+    <raw-answer ?>Recover the archived XNL node.</?>
+    <decision-text ?>Archive recovery is authoritative when one matching node exists.</?>
+    <rationale ?>The archive retains information that the Markdown summary discarded.</?>
+    <evidence ?>The summary contains no question, options, raw answer, or provenance subtree.</?>
+  )
+  >
+  <legacy-provenance { schema = "fixture-v1" }
+  (
+    <archive-path ?>codument/tracks/archived/2026-07/2026-07-01-0900-migration-recoverable/decisions.xnl</?>
+  )
+  >
+)
+>

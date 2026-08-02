@@ -16,6 +16,8 @@ import { TEMPLATE_FILES } from '../../src/templates/manifest';
 
 const TEMPLATES_DIR = path.join(__dirname, '..', '..', 'src', 'templates');
 const SELF = 'manifest.ts';
+const DECISION_MIGRATION_REFERENCE =
+  'skills/codument-migrate/references/decision-migration.md';
 
 function walk(dir: string, base: string): string[] {
   const out: string[] = [];
@@ -61,5 +63,16 @@ describe('src/templates/manifest.ts in sync with disk', () => {
       expect(typeof f.content).toBe('string');
       expect(f.content.length).toBeGreaterThan(0);
     }
+  });
+
+  it('embeds the bundled decision migration reference', () => {
+    const reference = TEMPLATE_FILES.find(
+      (file) => file.path === DECISION_MIGRATION_REFERENCE,
+    );
+
+    expect(reference).toBeDefined();
+    expect(reference?.content).toContain('# 历史 Decision Registry 迁移协议');
+    expect(reference?.content).toContain('archive-recoverable');
+    expect(reference?.content).toContain('SHA-256');
   });
 });

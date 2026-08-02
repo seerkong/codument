@@ -1,8 +1,10 @@
 <object #orders.order { kind = "entity" fact_grade = "authoritative_fact" single_writer = "modeling://domain/orders/orders_module" } [
   <desc ?>
+
   一张订单：从下单到履约的聚合根。状态由事件投影，金额是只读派生。
   </?>
   <types ?ts_order>
+
   interface Order {
     id: string
     customerId: string
@@ -14,21 +16,26 @@
   interface OrderLine { sku: string; qty: number; unitPrice: Money }
   </?ts_order>
   <fact-source ?>
+
   唯一写入者 = orders_module；total 是 derived_projection_cache，由 lines 投影，不反写。
   </?>
   <invariants ?>
+
   同一 order 内 sku 不重复；total = Σ(line.qty × line.unitPrice)；couponId 须引用 valid coupon；删除走软删 cancelled。
   </?>
   <not-owned-here ?>
+
   库存扣减属 inventory context，本节点经 message 请求，不直写。
   </?>
 ]>
 
 <state-machine #orders.order_lifecycle { kind = "state-machine" } [
   <desc ?>
+
   订单状态机：合法迁移与触发事件。【本 track 新增 refund】
   </?>
   <mermaid ?mm_life>
+
   stateDiagram-v2
     [*] --> draft
     draft --> placed: place
@@ -42,15 +49,18 @@
 
 <enum #orders.order_status { kind = "enum" } [
   <types ?ts_status>
+
   enum OrderStatus { Draft="draft", Placed="placed", Paid="paid", Shipped="shipped", Cancelled="cancelled", Refunded="refunded" }
   </?ts_status>
 ]>
 
 <policy #orders.refund_policy { kind = "policy" behaviors = ["behavior://orders/requirements/refund-window"] } [
   <desc ?>
+
   【本 track 新增】退款规则：付款后 N 天内可退，已发货按比例。
   </?>
   <pseudo { kind = "rule" } ?ps_refund>
+
   refundable(order) :- status(order, paid), within(order.paidAt, 7d).
   </?ps_refund>
 ]>

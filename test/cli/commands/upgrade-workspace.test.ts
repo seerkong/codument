@@ -5,6 +5,15 @@ import * as path from 'path';
 
 const repoRoot = path.resolve(import.meta.dir, '../../..');
 const cli = path.join(repoRoot, 'src/cli/index.ts');
+const decisionMigrationReference = path.join(
+  'codument-migrate',
+  'references',
+  'decision-migration.md',
+);
+const decisionMigrationTemplate = fs.readFileSync(
+  path.join(repoRoot, 'src', 'templates', 'skills', decisionMigrationReference),
+  'utf-8',
+);
 
 function tmpWorkspace(): string {
   return fs.mkdtempSync(path.join(os.tmpdir(), 'cdt-upgrade-workspace-'));
@@ -16,6 +25,45 @@ function writeFile(file: string, content: string): void {
 }
 
 describe('codument upgrade-workspace', () => {
+  it('removes obsolete built-in attractor hooks while preserving custom hooks', async () => {
+    const ws = tmpWorkspace();
+    const skillsDir = path.join(ws, '.skills');
+    const actionHooks = path.join(ws, 'codument', 'config', 'action-hooks.xml');
+
+    writeFile(path.join(ws, 'codument', 'std', 'AGENTS.md'), '# old std\n');
+    writeFile(actionHooks, `<ActionHooks version="1" xmlns:cdt="urn:codument:v1">
+  <Action name="discuss"><Hooks>
+    <Hook on="discuss:before"><cdt:AttractorCheck use="coding"/></Hook>
+    <Hook on="discuss:after"><cdt:HumanConfirm/></Hook>
+  </Hooks></Action>
+  <Action name="impl-quick"><Hooks>
+    <Hook on="impl-quick:before"><cdt:AttractorCheck use="coding"/></Hook>
+  </Hooks></Action>
+  <Action name="revise-track"><Hooks>
+    <Hook on="revise-track:before"><cdt:AttractorCheck use="coding"/></Hook>
+    <Hook on="revise-track:before"><cdt:AttractorCheck use="docs"/></Hook>
+  </Hooks></Action>
+</ActionHooks>
+`);
+
+    const proc = Bun.spawn([
+      'bun', 'run', cli, '--workspace-dir', ws, 'upgrade-workspace', '--skills-dir', skillsDir,
+    ], { cwd: repoRoot, stdout: 'pipe', stderr: 'pipe' });
+    const code = await proc.exited;
+    const out = await new Response(proc.stdout).text();
+    const err = await new Response(proc.stderr).text();
+
+    expect(err).toBe('');
+    expect(code).toBe(0);
+    expect(out).toContain('3 obsolete default attractor hook(s) removed');
+
+    const hooks = fs.readFileSync(actionHooks, 'utf-8');
+    expect(hooks).not.toContain('<Action name="impl-quick">');
+    expect(hooks).not.toContain('<cdt:AttractorCheck use="coding"/>');
+    expect(hooks).toContain('<Hook on="discuss:after"><cdt:HumanConfirm/></Hook>');
+    expect(hooks).toContain('<Hook on="revise-track:before"><cdt:AttractorCheck use="docs"/></Hook>');
+  });
+
   it('moves standard attractors under std/attractors and preserves project attractors', async () => {
     const ws = tmpWorkspace();
     const skillsDir = path.join(ws, '.skills');
@@ -60,6 +108,7 @@ describe('codument upgrade-workspace', () => {
       writeFile(path.join(skillsDir, deprecated, 'SKILL.md'), '# deprecated skill\n');
     }
     writeFile(path.join(skillsDir, 'codument-plan-track', 'shared', 'workflow-routing.md'), 'stale managed file\n');
+    writeFile(path.join(skillsDir, decisionMigrationReference), '# stale decision migration reference\n');
     writeFile(path.join(ws, 'AGENTS.md'), '# Existing project notes\n');
     writeFile(path.join(ws, '.gitignore'), 'node_modules\ncodument/**/analysis\n');
 
@@ -142,6 +191,8 @@ describe('codument upgrade-workspace', () => {
     expect(fs.existsSync(path.join(skillsDir, 'codument-plan-track', 'SKILL.md'))).toBe(true);
     expect(fs.existsSync(path.join(skillsDir, 'codument-maintain-track', 'SKILL.md'))).toBe(true);
     expect(fs.existsSync(path.join(skillsDir, 'codument-plan-track', 'shared', 'workflow-routing.md'))).toBe(false);
+    expect(fs.readFileSync(path.join(skillsDir, decisionMigrationReference), 'utf-8'))
+      .toBe(decisionMigrationTemplate);
   });
 
   it('refreshes Codex skills under the workspace-local .agents directory by default', async () => {

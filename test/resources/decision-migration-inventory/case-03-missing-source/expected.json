@@ -1,0 +1,12 @@
+{
+  "name": "case-03-missing-source",
+  "classification": "missing-source",
+  "decisionId": "fixture.migration.missing_source",
+  "legacyRelativePath": "codument/decisions/2026-07/2026-07-03-1115-fixture.migration.missing_source/decision.md",
+  "archiveId": "2026-07-03-1115-missing-archive",
+  "archiveSourceMatches": 0,
+  "targetMatches": 0,
+  "requiredLegacySentinels": [
+    "Evidence: The referenced archive directory is intentionally absent."
+  ]
+}

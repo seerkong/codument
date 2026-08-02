@@ -1,0 +1,131 @@
+<decision #track.lifecycle_directories.single_root {
+  status = "accepted"
+  blocks = []
+  durable_candidate = true
+}
+(
+  <question ?>Where should track lifecycle state live?</?>
+  <answer ?>Under codument/tracks as pending, active, and archived directories.</?>
+  <evidence ?>Missions already use this model, and the user explicitly requested the same layout for tracks.</?>
+  <confidence ?>0.99</?>
+  <reversibility ?>moderate</?>
+)>
+
+<decision #track.lifecycle_directories.upgrade_safety {
+  status = "accepted"
+  blocks = []
+  durable_candidate = true
+}
+(
+  <question ?>How should upgrade-workspace handle a destination conflict?</?>
+  <answer ?>Keep the legacy source in place, report the conflict, and rely on the pre-migration backup rather than overwriting data.</?>
+  <evidence ?>A track directory is user-owned project history and cannot be silently replaced.</?>
+  <confidence ?>0.98</?>
+  <reversibility ?>low</?>
+)>
+
+<decision #track.topological_decision_questions.frontier_batches {
+  status = "accepted"
+  blocks = []
+  durable_candidate = true
+}
+(
+  <question ?>How should planning ask a decision forest with multiple roots?</?>
+  <answer ?>Ask every independently answerable root or unlocked child in one bounded topological batch, then recompute after the response.</?>
+  <evidence ?>The requested protocol must avoid serialising unrelated decision directions while retaining dependency order.</?>
+  <confidence ?>0.99</?>
+  <reversibility ?>moderate</?>
+)>
+
+<decision #track.enable_modeling_and_atomic_archive.default_enablement {
+  priority = "P0"
+  status = "accepted"
+  durable_candidate = true
+  confidence = 0.99
+  reversibility = "easy"
+}
+(
+  <question ?>Modeling 的默认启用语义是什么？</?>
+  <recommendation ?>fresh init 模板与缺省 loader 都默认 enabled，显式 false 始终保留。</?>
+  <answer { }
+  (
+    <raw-answer ?>用户同意 modeling 默认值改为 true，并明确普通 track 不强制生成 delta。</?>
+    <decision-text ?>缺失配置时 modeling 默认启用；模板输出 enabled=true；已有显式 enabled=false 不被 upgrade 覆盖。</?>
+    <rationale ?>让结构知识能力开箱即用，同时尊重项目的明确关闭选择。</?>
+    <evidence ?>Mission decision `mission.evolve_codument_action_system.modeling`。</?>
+  )
+  >
+)>
+
+<decision #track.enable_modeling_and_atomic_archive.delta_trigger {
+  priority = "P0"
+  status = "accepted"
+  durable_candidate = true
+  confidence = 0.99
+  reversibility = "easy"
+}
+(
+  <question ?>默认启用后何时必须生成 modeling delta？</?>
+  <recommendation ?>仅结构知识变化时生成；无结构变化时不制造空 delta 或 registry。</?>
+  <answer { }
+  (
+    <raw-answer ?>用户同意按对象、状态机、policy、模块边界、事实源、组件 IO 等结构变化触发。</?>
+    <decision-text ?>Modeling enablement 与 delta obligation 分离；启用不等于每 track 必有 delta。</?>
+    <rationale ?>避免默认启用演化为文档噪声和无意义的空 registry。</?>
+    <evidence ?>Mission proposal 与 accepted modeling decision。</?>
+  )
+  >
+)>
+
+<decision #track.enable_modeling_and_atomic_archive.atomic_boundary {
+  priority = "P0"
+  status = "accepted"
+  durable_candidate = true
+  confidence = 0.99
+  reversibility = "moderate"
+}
+(
+  <question ?>跨 registry archive 的失败边界如何定义？</?>
+  <recommendation ?>全部 prepare/validate/conflict detect 成功后才 commit；commit 失败 rollback；成功后才移动 track。</?>
+  <answer { }
+  (
+    <raw-answer ?>用户明确要求 behavior/modeling/engineering 共享原子边界，失败不写任何内容且不移动 track。</?>
+    <decision-text ?>三个 registry 与 track move 构成单一可观察事务；任一失败恢复 archive 前实际态。</?>
+    <rationale ?>防止长期行为、结构和工程知识真源出现彼此不一致的半归档状态。</?>
+    <evidence ?>Mission design 的 Registry 原子归档模型与用户确认。</?>
+  )
+  >
+)>
+
+<decision #track.conditional_decision_activation.graph_nodes {
+  status = "accepted"
+  blocks = []
+  durable_candidate = true
+}
+(
+  <question ?>How should a combination of decisions create a new planning question?</?>
+  <answer ?>Materialize a same-level conditional decision with explicit prerequisites, activation predicate, and provenance.</?>
+  <evidence ?>A static nested tree cannot represent a question that depends on choices from multiple independent roots.</?>
+  <confidence ?>0.99</?>
+  <reversibility ?>moderate</?>
+)>
+
+<decision #refactor-codument-vfs-attractors-memory {
+  migration_kind = "markdown-only"
+  legacy_source = "codument/decisions/2026-06/2026-06-01-0036-refactor-codument-vfs-attractors-memory/decision.md"
+  legacy_sha256 = "a4ebb533da5d29a087c5836fd26628af4742f1f6b3d1802e833a6498e67baa45"
+  legacy_bytes = 7674
+  raw_backup = ".tmp/codument/migrate-2026-08-01T19-10-39-108Z/backup/legacy-sources/codument/decisions/2026-06/2026-06-01-0036-refactor-codument-vfs-attractors-memory/decision.md"
+  raw_line_endings = "CRLF"
+  archive_id = "2026-06-01-0036-refactor-codument-vfs-attractors-memory"
+}
+(
+  <migration-provenance { }
+  (
+    <conversion ?>markdown-only fidelity conversion; no archive XNL source was available.</?>
+    <raw-content ?>Immutable byte-identical Markdown remains in the backup path recorded on the decision.</?>
+    <archive-id-not-found code = "ARCHIVE_ID_NOT_FOUND" blocking = false ?>The declared archive contains no root or recursive decisions.xnl source.</?>
+    <multiple-choices-one-id code = "MULTIPLE_CHOICES_ONE_ID" blocking = false ?>The Markdown contains twelve numbered historical choices under one aggregate decision URI; do not split or mint ids.</?>
+  )
+  >
+)>

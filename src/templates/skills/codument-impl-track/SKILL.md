@@ -1,6 +1,6 @@
 ---
 name: codument-impl-track
-description: 按 track.xml 的 TaskSpace + Schedule 执行实现——编排 fresh 子代理逐任务推进、回写状态、跑生命周期 hook、支持中断续跑。开始或继续实现已批准的 track 时使用。
+description: 按 track.xml 的 TaskSpace + Schedule 执行实现——普通任务由 AI 自主选择本地或委派执行，统一验证并回写状态，运行生命周期 hook，支持中断续跑。开始或继续实现已批准的 track 时使用。
 ---
 
 # Codument · impl-track
@@ -9,7 +9,7 @@ description: 按 track.xml 的 TaskSpace + Schedule 执行实现——编排 fre
 
 `@/codument/std/actions/impl-track.md`
 
-按其中的 Markdown 说明 + `--` 流程标记块执行（遍历 phase、层内顺序/DAG 调度、派发子代理、回写 status、跑 cdt: hook、续跑检测）；方法论见 `@/codument/std/methods/{tdd,wave-exec,gap-loop}.md`（均由 body 按需引用）。
+按其中的 Markdown 说明 + `--` 流程标记块执行（遍历 phase、层内顺序/DAG 调度、自主选择 local/delegated、统一验证、回写 status、跑 cdt: hook、续跑检测）；方法论见 `@/codument/std/methods/{tdd,dag-execution}.md`（均由 body 按需引用）。
 
 - **前置**：项目已通过 `codument init` 初始化，目标 track 提案已批准。
 - **用法**：实现 track: `<track-id>` [phase]（缺省从第一个未完成 phase 起）。

@@ -1,0 +1,40 @@
+<Track id="make-subagent-delegation-autonomous" version="1" xmlns:cdt="urn:codument:v1">
+  <Metadata>
+    <Status>completed</Status>
+    <Goal>让普通任务的子代理委派由 AI 自主决定，同时保留显式独立验证语义</Goal>
+    <Description>解耦 TaskSpace 调度、任务委派与独立验证，并迁移旧工作区默认 hook</Description>
+    <QuestionMode>decision-tree</QuestionMode>
+    <QuestionSeverity>auto</QuestionSeverity>
+    <CommitMode>manual</CommitMode>
+    <CreatedAt>2026-08-02T13:13:20Z</CreatedAt>
+    <UpdatedAt>2026-08-02T14:13:56Z</UpdatedAt>
+  </Metadata>
+  <Ports scope="track">
+    <MaterialBundle role="input" name="behavior-deltas" domain="behavior" path="vfs://./behavior_deltas/"/>
+    <MaterialBundle role="output" name="templates" domain="source" path="vfs://@/src/templates/"/>
+  </Ports>
+  <TaskSpace id="space_make-subagent-delegation-autonomous" name="make-subagent-delegation-autonomous" version="1">
+    <Description>修改 delegation policy、升级迁移和测试，并 dogfood 更新工作区</Description>
+    <SubNodes>
+      <TaskGroup id="P1" name="自主委派策略与 dogfood" status="DONE" order="0">
+        <Description>完成模板、CLI migration、测试、build 和 workspace upgrade</Description>
+        <cdt:Gate>
+          <cdt:Criterion>源模板与工作区标准一致</cdt:Criterion>
+          <cdt:Criterion>类型检查、测试和 build 通过</cdt:Criterion>
+        </cdt:Gate>
+        <SubNodes>
+          <Task id="T1.1" name="实现自主委派并升级当前工作区" status="DONE" order="0" priority="P0">
+            <Description>修改 authoritative source templates；补 upgrade-workspace 精确旧 hook 迁移与测试；build 后运行新 executable upgrade-workspace 更新本仓库 codument/std 和 skills。</Description>
+            <cdt:Acceptance>
+              <cdt:Criterion id="T1.1-AC1" checked="true">普通 impl-track leaf task 明确支持由 AI 自主选择 local 或 delegated</cdt:Criterion>
+              <cdt:Criterion id="T1.1-AC2" checked="true">DAG 仅决定 readiness，不强制 subagent；track executor 是 completion state 唯一写入者</cdt:Criterion>
+              <cdt:Criterion id="T1.1-AC3" checked="true">GapLoop、AttractorCheck、独立 verify 和用户显式独立审查仍保持 fresh isolation</cdt:Criterion>
+              <cdt:Criterion id="T1.1-AC4" checked="true">upgrade-workspace 删除三个精确历史默认 coding hook 并保留其他用户 hook</cdt:Criterion>
+              <cdt:Criterion id="T1.1-AC5" checked="true">typecheck、相关测试、full test 和 build 通过；当前 workspace 已用新 build 升级</cdt:Criterion>
+            </cdt:Acceptance>
+          </Task>
+        </SubNodes>
+      </TaskGroup>
+    </SubNodes>
+  </TaskSpace>
+</Track>

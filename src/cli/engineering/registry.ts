@@ -1,7 +1,13 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { parseXnl, stringifyLineBlock, wordToString, XnlParseError } from 'xnl-core';
-import type { XnlNode, DataElementNode, XnlWord } from 'xnl-core';
+import { parseXnl, XnlParseError } from 'xnl-core';
+import type { XnlNode, DataElementNode } from 'xnl-core';
+import {
+  discoverXnlRegistryFiles,
+  isDataElement as isGenericDataElement,
+  readStableNodeId,
+  serializeXnlFile,
+} from '../xnl/registry';
 
 /**
  * codument engineering registry adapter.
@@ -31,20 +37,13 @@ export interface EngineeringRegistry {
 }
 
 export function isDataElement(node: XnlNode | undefined): node is DataElementNode {
-  return Boolean(node && typeof node === 'object' && (node as DataElementNode).kind === 'DataElement');
+  return isGenericDataElement(node);
 }
 
 /** Read a node's namespaced id from `#word` or `metadata.id`. */
 export function readNodeId(node: XnlNode): string | undefined {
   if (!isDataElement(node)) return undefined;
-  const fromWord = wordToString((node as { id?: XnlWord }).id);
-  if (fromWord) return fromWord;
-  const metaId = node.metadata?.id;
-  if (typeof metaId === 'string') return metaId;
-  if (metaId && typeof metaId === 'object' && (metaId as XnlWord).kind === 'Word') {
-    return wordToString(metaId as XnlWord);
-  }
-  return undefined;
+  return readStableNodeId(node);
 }
 
 /** Last segment of a namespaced id (`a.b.name` -> `name`). */
@@ -72,44 +71,26 @@ export function engineeringUri(relFile: string, id: string): string {
   return `engineering://${plane}/${category}/${topic}/${nodeName(id)}`;
 }
 
-function isHidden(name: string): boolean {
-  return name.startsWith('.');
-}
-
-function walkXnlFiles(dir: string, base: string, out: string[]): void {
-  if (!fs.existsSync(dir)) return;
-  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    if (isHidden(entry.name)) continue; // skip .node-meta, .tmp, .xnl-vcs, etc.
-    const abs = path.join(dir, entry.name);
-    if (entry.isDirectory()) {
-      walkXnlFiles(abs, base, out);
-    } else if (entry.isFile() && entry.name.endsWith('.xnl')) {
-      out.push(path.relative(base, abs));
-    }
-  }
-}
-
 /** Load the engineering registry from a working tree directory. */
 export function loadEngineeringRegistry(dir: string): EngineeringRegistry {
   const files = new Map<string, XnlNode[]>();
   const index = new Map<string, EngineeringNodeRef>();
-  const relFiles: string[] = [];
-  walkXnlFiles(dir, dir, relFiles);
-  relFiles.sort();
+  const relFiles = discoverXnlRegistryFiles(dir);
 
   for (const relFile of relFiles) {
-    const content = fs.readFileSync(path.join(dir, relFile), 'utf-8');
+    const nativeRelFile = relFile.split('/').join(path.sep);
+    const content = fs.readFileSync(path.join(dir, ...relFile.split('/')), 'utf-8');
     const nodes = parseXnl(content, { textBlockStyle: true }).nodes;
-    files.set(relFile, nodes);
+    files.set(nativeRelFile, nodes);
     for (const node of nodes) {
       const id = readNodeId(node);
       if (!id || !isDataElement(node)) continue;
       if (index.has(id)) {
         throw new Error(
-          `Duplicate engineering node id '${id}' in '${relFile}' and '${index.get(id)!.file}'`,
+          `Duplicate engineering node id '${id}' in '${nativeRelFile}' and '${index.get(id)!.file}'`,
         );
       }
-      index.set(id, { id, node, file: relFile, uri: engineeringUri(relFile, id) });
+      index.set(id, { id, node, file: nativeRelFile, uri: engineeringUri(nativeRelFile, id) });
     }
   }
 
@@ -148,23 +129,22 @@ export function loadEngineeringRegistrySafe(dir: string): SafeRegistryResult {
   const files = new Map<string, XnlNode[]>();
   const index = new Map<string, EngineeringNodeRef>();
   const issues: LoadIssue[] = [];
-  const relFiles: string[] = [];
-  walkXnlFiles(dir, dir, relFiles);
-  relFiles.sort();
+  const relFiles = discoverXnlRegistryFiles(dir);
 
   for (const relFile of relFiles) {
-    const content = fs.readFileSync(path.join(dir, relFile), 'utf-8');
+    const nativeRelFile = relFile.split('/').join(path.sep);
+    const content = fs.readFileSync(path.join(dir, ...relFile.split('/')), 'utf-8');
     let nodes: XnlNode[];
     try {
       nodes = parseXnl(content, { textBlockStyle: true }).nodes;
     } catch (err) {
       if (err instanceof XnlParseError) {
-        issues.push({ kind: 'syntax', file: relFile, line: err.line, message: err.message });
+        issues.push({ kind: 'syntax', file: nativeRelFile, line: err.line, message: err.message });
         continue;
       }
       throw err;
     }
-    files.set(relFile, nodes);
+    files.set(nativeRelFile, nodes);
     for (const node of nodes) {
       const id = readNodeId(node);
       if (!id || !isDataElement(node)) continue;
@@ -172,13 +152,13 @@ export function loadEngineeringRegistrySafe(dir: string): SafeRegistryResult {
       if (existing) {
         issues.push({
           kind: 'duplicate-id',
-          file: relFile,
+          file: nativeRelFile,
           otherFile: existing.file,
-          message: `Duplicate engineering node id '${id}' in '${relFile}' and '${existing.file}'`,
+          message: `Duplicate engineering node id '${id}' in '${nativeRelFile}' and '${existing.file}'`,
         });
         continue;
       }
-      index.set(id, { id, node, file: relFile, uri: engineeringUri(relFile, id) });
+      index.set(id, { id, node, file: nativeRelFile, uri: engineeringUri(nativeRelFile, id) });
     }
   }
 
@@ -203,7 +183,7 @@ export interface SerializeOptions {
 
 /** Serialize top-level nodes of a file to XNL (lineBlock pretty, block text style). */
 export function serializeEngineeringFile(nodes: XnlNode[], opts: SerializeOptions = {}): string {
-  return nodes.map((n) => stringifyLineBlock(n, { textBlockStyle: true, ...opts })).join('\n\n') + '\n';
+  return serializeXnlFile(nodes, opts);
 }
 
 /** Write one engineering file back to the working tree. */

@@ -2,8 +2,15 @@ import { describe, expect, it } from 'bun:test';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
+import { parseXnl } from 'xnl-core';
+import type { DataElementNode, XnlNode } from 'xnl-core';
 import { archiveCommand } from '../../../src/cli/commands/archive';
 import { setWorkspaceDir } from '../../../src/cli/utils';
+
+const FULL_FIDELITY_DECISION_FIXTURE = path.resolve(
+  __dirname,
+  '../../resources/archive-decision-registry/full-fidelity',
+);
 
 function makeTempDir(prefix: string): string {
   return fs.mkdtempSync(path.join(os.tmpdir(), prefix));
@@ -51,6 +58,64 @@ function writeModelingConfig(ws: string): void {
 `);
 }
 
+function countDecisionNodes(nodes: XnlNode[]): number {
+  let count = 0;
+  const visit = (node: XnlNode): void => {
+    if (!node || typeof node !== 'object' || (node as DataElementNode).kind !== 'DataElement') return;
+    const element = node as DataElementNode;
+    if (element.tag === 'decision') count += 1;
+    for (const child of element.body ?? []) visit(child);
+  };
+  for (const node of nodes) visit(node);
+  return count;
+}
+
+function recursiveFiles(root: string, extension?: string): string[] {
+  if (!fs.existsSync(root)) return [];
+  const files: string[] = [];
+  const visit = (current: string): void => {
+    for (const entry of fs.readdirSync(current, { withFileTypes: true })) {
+      const entryPath = path.join(current, entry.name);
+      if (entry.isDirectory()) {
+        visit(entryPath);
+      } else if (!extension || entry.name.endsWith(extension)) {
+        files.push(entryPath);
+      }
+    }
+  };
+  visit(root);
+  return files.sort();
+}
+
+function decisionNodeId(node: DataElementNode): string | undefined {
+  if (!node.id) return undefined;
+  return [...node.id.namespace, node.id.name].join('.');
+}
+
+function registryDecisionNodes(registryRoot: string): DataElementNode[] {
+  const decisionNodes: DataElementNode[] = [];
+  const visit = (node: XnlNode): void => {
+    if (!node || typeof node !== 'object' || (node as DataElementNode).kind !== 'DataElement') return;
+    const element = node as DataElementNode;
+    if (element.tag === 'decision') decisionNodes.push(element);
+    for (const child of element.body ?? []) visit(child);
+  };
+  for (const file of recursiveFiles(registryRoot, '.xnl')) {
+    const parsed = parseXnl(fs.readFileSync(file, 'utf-8'), { textBlockStyle: true });
+    for (const node of parsed.nodes) visit(node);
+  }
+  return decisionNodes;
+}
+
+function snapshotFiles(root: string): Record<string, string> {
+  return Object.fromEntries(
+    recursiveFiles(root).map(file => [
+      path.relative(root, file).replaceAll(path.sep, '/'),
+      fs.readFileSync(file).toString('base64'),
+    ]),
+  );
+}
+
 async function runModelingValidate(
   repoRoot: string,
   cliEntry: string,
@@ -79,7 +144,547 @@ async function runModelingValidate(
 }
 
 describe('codument archive', () => {
-  it('uses track UpdatedAt minute prefix and promotes explicit durable decisions and memory when profile enabled', async () => {
+  it('provides a full-fidelity decision forest fixture distinct from Markdown projection', () => {
+    const rootSource = fs.readFileSync(
+      path.join(FULL_FIDELITY_DECISION_FIXTURE, 'decisions.xnl'),
+      'utf-8',
+    );
+    const recursiveSource = fs.readFileSync(
+      path.join(
+        FULL_FIDELITY_DECISION_FIXTURE,
+        'decisions',
+        'platform',
+        'runtime',
+        'conditional-activation.xnl',
+      ),
+      'utf-8',
+    );
+
+    const root = parseXnl(rootSource, { textBlockStyle: true });
+    const recursive = parseXnl(recursiveSource, { textBlockStyle: true });
+    expect(root.nodes).toHaveLength(2);
+    expect(countDecisionNodes(root.nodes)).toBe(4);
+    expect(countDecisionNodes(recursive.nodes)).toBe(1);
+
+    const fullFixture = `${rootSource}\n${recursiveSource}`;
+    for (const semanticSignal of [
+      '<question ?>',
+      '<recommendation ?>',
+      '<options { } [',
+      '<raw-answer ?>',
+      '<decision-text ?>',
+      '<rationale ?>',
+      '<evidence ?>',
+      'depends_on = [',
+      'activation = {',
+      'derived_from = [',
+      'durable_candidate = false',
+      '<vendor-note',
+      '<extension-context',
+      'unknown-extension-sentinel',
+    ]) {
+      expect(fullFixture).toContain(semanticSignal);
+    }
+  });
+
+  it('archives root decisions.xnl and recursively nested decisions/**/*.xnl as one source set', async () => {
+    const repoRoot = path.resolve(__dirname, '../../..');
+    const cliEntry = path.join(repoRoot, 'src/cli/index.ts');
+    const ws = makeTempDir('codument-archive-decision-source-set-red-ws-');
+    const trackId = 'archive-full-decision-source-set';
+    const trackDir = path.join(ws, 'codument', 'tracks', 'active', trackId);
+
+    writeAttractorProfiles(ws, false);
+    writeTrackXml(trackDir, trackId);
+    writeFile(path.join(trackDir, 'proposal.md'), '# Proposal\n\nArchive every XNL decision source.\n');
+    fs.copyFileSync(
+      path.join(FULL_FIDELITY_DECISION_FIXTURE, 'decisions.xnl'),
+      path.join(trackDir, 'decisions.xnl'),
+    );
+    fs.cpSync(
+      path.join(FULL_FIDELITY_DECISION_FIXTURE, 'decisions'),
+      path.join(trackDir, 'decisions'),
+      { recursive: true },
+    );
+
+    const proc = Bun.spawn([
+      'bun',
+      'run',
+      cliEntry,
+      '--workspace-dir',
+      ws,
+      'archive',
+      trackId,
+      '--yes',
+      '--skip-specs',
+    ], {
+      cwd: repoRoot,
+      stdout: 'pipe',
+      stderr: 'pipe',
+    });
+
+    const exitCode = await proc.exited;
+    const stderr = await new Response(proc.stderr).text();
+    expect(stderr).toBe('');
+    expect(exitCode).toBe(0);
+
+    const registryRoot = path.join(ws, 'codument', 'decisions');
+    const ids = new Set(registryDecisionNodes(registryRoot).map(decisionNodeId));
+
+    // RED: the legacy archive path treats decisions/ as suppressing decisions.xnl and
+    // only scans direct Markdown children, so neither fixture source reaches the registry.
+    expect(ids).toContain('track.fixture.registry_format');
+    expect(ids).toContain('track.fixture.conditional_activation');
+
+    const archiveRoot = path.join(ws, 'codument', 'tracks', 'archived');
+    const summary = recursiveFiles(archiveRoot, '.md')
+      .find((file) => path.basename(file) === 'summary.md');
+    expect(summary).toBeDefined();
+    const summaryContent = fs.readFileSync(summary!, 'utf-8');
+    expect(summaryContent).toContain('track.fixture.registry_format');
+    expect(summaryContent).toContain('track.fixture.conditional_activation');
+  });
+
+  it('keeps equivalent XNL archive promotion idempotent without generating a Markdown registry view', async () => {
+    const repoRoot = path.resolve(__dirname, '../../..');
+    const cliEntry = path.join(repoRoot, 'src/cli/index.ts');
+    const ws = makeTempDir('codument-archive-decision-idempotent-view-ws-');
+    const trackId = 'archive-idempotent-decision-view';
+    const trackDir = path.join(ws, 'codument', 'tracks', 'active', trackId);
+    const decision = `<decision #track.archive_idempotent_decision {
+  status = "accepted"
+  durable_candidate = true
+}
+(
+  <question ?>Should equivalent archive input create a compatibility registry file?</?>
+  <answer { }
+  (
+    <raw-answer ?>Keep it canonical.</?>
+    <decision-text ?>Keep the canonical XNL node only.</?>
+    <rationale ?>Equivalent promotion must remain idempotent.</?>
+    <evidence ?>The registry already contains the same complete decision node.</?>
+  )
+  >
+)
+>
+`;
+
+    writeAttractorProfiles(ws, false);
+    writeTrackXml(trackDir, trackId);
+    writeFile(path.join(trackDir, 'proposal.md'), '# Proposal\n\nKeep decision promotion idempotent.\n');
+    writeFile(path.join(trackDir, 'decisions.xnl'), decision);
+    writeFile(path.join(ws, 'codument', 'decisions', 'registry.xnl'), decision);
+
+    const proc = Bun.spawn([
+      'bun',
+      'run',
+      cliEntry,
+      '--workspace-dir',
+      ws,
+      'archive',
+      trackId,
+      '--yes',
+      '--skip-specs',
+    ], {
+      cwd: repoRoot,
+      stdout: 'pipe',
+      stderr: 'pipe',
+    });
+
+    const exitCode = await proc.exited;
+    const stdout = await new Response(proc.stdout).text();
+    const stderr = await new Response(proc.stderr).text();
+    expect(stderr).toBe('');
+    expect(exitCode).toBe(0);
+
+    const decisionRoot = path.join(ws, 'codument', 'decisions');
+    expect(recursiveFiles(decisionRoot, '.xnl')).toEqual([
+      path.join(decisionRoot, 'registry.xnl'),
+    ]);
+    expect(recursiveFiles(decisionRoot, '.md')).toHaveLength(0);
+    expect(stdout).not.toContain('Promoted decision record');
+
+    const archiveRoot = path.join(ws, 'codument', 'tracks', 'archived');
+    const summary = recursiveFiles(archiveRoot, '.md')
+      .find((file) => path.basename(file) === 'summary.md');
+    expect(summary).toBeDefined();
+    expect(fs.readFileSync(summary!, 'utf-8')).toContain('track.archive_idempotent_decision');
+  });
+
+  it('keeps repeated markerless XNL promotion semantically idempotent after serialization', async () => {
+    const repoRoot = path.resolve(__dirname, '../../..');
+    const cliEntry = path.join(repoRoot, 'src/cli/index.ts');
+    const ws = makeTempDir('codument-archive-decision-marker-idempotent-ws-');
+    const firstTrackId = 'archive-marker-idempotent-first';
+    const secondTrackId = 'archive-marker-idempotent-second';
+    const firstTrackDir = path.join(ws, 'codument', 'tracks', 'active', firstTrackId);
+    const secondTrackDir = path.join(ws, 'codument', 'tracks', 'active', secondTrackId);
+    const decision = `<decision #track.archive_marker_idempotent {
+  status = "accepted"
+  durable_candidate = true
+}
+(
+  <question ?>Should generated text markers change decision identity?</?>
+  <answer { }
+  (
+    <raw-answer ?>No.</?>
+    <decision-text ?>Compare complete XNL semantics while ignoring serializer-only markers.</?>
+    <rationale ?>A repeated archive must be idempotent.</?>
+    <evidence ?>The source intentionally uses markerless text elements.</?>
+  )>
+)>
+`;
+
+    writeAttractorProfiles(ws, false);
+    for (const [trackId, trackDir, updatedAt] of [
+      [firstTrackId, firstTrackDir, '2026-05-30T14:31:00+08:00'],
+      [secondTrackId, secondTrackDir, '2026-05-30T14:32:00+08:00'],
+    ] as const) {
+      writeTrackXml(trackDir, trackId, updatedAt);
+      writeFile(path.join(trackDir, 'proposal.md'), '# Proposal\n\nRepeat the same decision safely.\n');
+      writeFile(path.join(trackDir, 'decisions.xnl'), decision);
+    }
+
+    const runArchive = async (trackId: string) => {
+      const proc = Bun.spawn([
+        'bun',
+        'run',
+        cliEntry,
+        '--workspace-dir',
+        ws,
+        'archive',
+        trackId,
+        '--yes',
+        '--skip-specs',
+      ], {
+        cwd: repoRoot,
+        stdout: 'pipe',
+        stderr: 'pipe',
+      });
+      return {
+        exitCode: await proc.exited,
+        stdout: await new Response(proc.stdout).text(),
+        stderr: await new Response(proc.stderr).text(),
+      };
+    };
+
+    const first = await runArchive(firstTrackId);
+    expect(first.exitCode).toBe(0);
+    expect(first.stderr).toBe('');
+    const registryRoot = path.join(ws, 'codument', 'decisions');
+    const registryAfterFirst = snapshotFiles(registryRoot);
+
+    const second = await runArchive(secondTrackId);
+    expect(second.exitCode).toBe(0);
+    expect(second.stderr).toBe('');
+    expect(snapshotFiles(registryRoot)).toEqual(registryAfterFirst);
+    expect(
+      registryDecisionNodes(registryRoot)
+        .filter(node => decisionNodeId(node) === 'track.archive_marker_idempotent'),
+    ).toHaveLength(1);
+  });
+
+  it('deduplicates equivalent stable ids discovered in root and recursive XNL sources', async () => {
+    const repoRoot = path.resolve(__dirname, '../../..');
+    const cliEntry = path.join(repoRoot, 'src/cli/index.ts');
+    const ws = makeTempDir('codument-archive-decision-source-dedup-ws-');
+    const trackId = 'archive-equivalent-source-dedup';
+    const trackDir = path.join(ws, 'codument', 'tracks', 'active', trackId);
+    const decision = `<decision #track.archive_equivalent_source {
+  status = "accepted"
+  durable_candidate = true
+}
+(
+  <question ?>Can equivalent source definitions share one canonical identity?</?>
+  <answer { }
+  (
+    <raw-answer ?>Yes.</?>
+    <decision-text ?>Write one canonical node.</?>
+    <rationale ?>Stable decision id is independent of source path.</?>
+    <evidence ?>The same node appears in root and recursive sources.</?>
+  )>
+)>
+`;
+
+    writeAttractorProfiles(ws, false);
+    writeTrackXml(trackDir, trackId);
+    writeFile(path.join(trackDir, 'proposal.md'), '# Proposal\n\nDeduplicate equivalent sources.\n');
+    writeFile(path.join(trackDir, 'decisions.xnl'), decision);
+    writeFile(path.join(trackDir, 'decisions', 'nested', 'same.xnl'), decision);
+
+    const proc = Bun.spawn([
+      'bun',
+      'run',
+      cliEntry,
+      '--workspace-dir',
+      ws,
+      'archive',
+      trackId,
+      '--yes',
+      '--skip-specs',
+    ], {
+      cwd: repoRoot,
+      stdout: 'pipe',
+      stderr: 'pipe',
+    });
+
+    expect(await proc.exited).toBe(0);
+    expect(await new Response(proc.stderr).text()).toBe('');
+    const registryRoot = path.join(ws, 'codument', 'decisions');
+    expect(
+      registryDecisionNodes(registryRoot)
+        .filter(node => decisionNodeId(node) === 'track.archive_equivalent_source'),
+    ).toHaveLength(1);
+  });
+
+  it('rejects a staged decision registry with dangling references before live writes', async () => {
+    const originalCwd = process.cwd();
+    const ws = makeTempDir('codument-archive-invalid-decision-reference-ws-');
+    const trackId = 'archive-invalid-decision-reference';
+    const trackDir = path.join(ws, 'codument', 'tracks', 'active', trackId);
+    const archiveDir = path.join(
+      ws,
+      'codument',
+      'tracks',
+      'archived',
+      '2026-05',
+      `2026-05-30-0632-${trackId}`,
+    );
+
+    writeAttractorProfiles(ws, false);
+    writeTrackXml(trackDir, trackId);
+    writeFile(path.join(trackDir, 'proposal.md'), '# Proposal\n\nReject invalid references.\n');
+    writeFile(path.join(trackDir, 'decisions.xnl'), `<decision #track.archive_invalid_reference {
+  status = "accepted"
+  durable_candidate = true
+  depends_on = ["track.missing_dependency"]
+}>
+`);
+
+    setWorkspaceDir(ws);
+    try {
+      await expect(
+        archiveCommand([trackId, '--yes', '--skip-specs']),
+      ).rejects.toThrow("unresolved depends_on reference 'track.missing_dependency'");
+    } finally {
+      setWorkspaceDir(originalCwd);
+    }
+
+    expect(fs.existsSync(path.join(ws, 'codument', 'decisions'))).toBe(false);
+    expect(fs.existsSync(trackDir)).toBe(true);
+    expect(fs.existsSync(archiveDir)).toBe(false);
+    expect(
+      fs.readdirSync(path.join(ws, 'codument')).some((name) => name.startsWith('.archive-staging-')),
+    ).toBe(false);
+  });
+
+  it('preserves the full decision AST and nested durable tree closure in the XNL registry', async () => {
+    const repoRoot = path.resolve(__dirname, '../../..');
+    const cliEntry = path.join(repoRoot, 'src/cli/index.ts');
+    const ws = makeTempDir('codument-archive-decision-ast-red-ws-');
+    const trackId = 'archive-full-decision-ast';
+    const trackDir = path.join(ws, 'codument', 'tracks', 'active', trackId);
+
+    writeAttractorProfiles(ws, false);
+    writeTrackXml(trackDir, trackId);
+    writeFile(path.join(trackDir, 'proposal.md'), '# Proposal\n\nPreserve the complete decision forest.\n');
+    fs.copyFileSync(
+      path.join(FULL_FIDELITY_DECISION_FIXTURE, 'decisions.xnl'),
+      path.join(trackDir, 'decisions.xnl'),
+    );
+
+    const proc = Bun.spawn([
+      'bun',
+      'run',
+      cliEntry,
+      '--workspace-dir',
+      ws,
+      'archive',
+      trackId,
+      '--yes',
+      '--skip-specs',
+    ], {
+      cwd: repoRoot,
+      stdout: 'pipe',
+      stderr: 'pipe',
+    });
+
+    const exitCode = await proc.exited;
+    const stderr = await new Response(proc.stderr).text();
+    expect(stderr).toBe('');
+    expect(exitCode).toBe(0);
+
+    const registryRoot = path.join(ws, 'codument', 'decisions');
+    const xnlFiles = recursiveFiles(registryRoot, '.xnl');
+
+    // RED: the legacy implementation writes flattened decision.md summaries, so
+    // no canonical XNL AST exists and every assertion below is currently violated.
+    expect(xnlFiles.length).toBeGreaterThan(0);
+    expect(recursiveFiles(registryRoot, '.md')).toHaveLength(0);
+
+    const nodes = registryDecisionNodes(registryRoot);
+    const registryFormat = nodes.find(
+      node => decisionNodeId(node) === 'track.fixture.registry_format',
+    );
+    expect(registryFormat).toBeDefined();
+    expect(registryFormat!.attributes?.extension_policy).toEqual({
+      namespace: 'fixture.vendor',
+      schema_version: 7,
+    });
+    expect(registryFormat!.extend?.children?.recommendation).toMatchObject({
+      text: 'Preserve the complete XNL decision forest.',
+    });
+    expect(registryFormat!.extend?.children?.['vendor-note']).toMatchObject({
+      attributes: { format: 'opaque-v1' },
+      text: expect.stringContaining('unknown extension slot'),
+    });
+    expect(
+      (registryFormat!.body ?? [])
+        .filter((node): node is DataElementNode =>
+          Boolean(node && typeof node === 'object' && (node as DataElementNode).kind === 'DataElement'),
+        )
+        .map(decisionNodeId),
+    ).toContain('track.fixture.registry_format.owner_policy');
+
+    const nonDurableContext = nodes.find(
+      node => decisionNodeId(node) === 'track.fixture.non_durable_context',
+    );
+    expect(nonDurableContext).toBeDefined();
+    expect(nonDurableContext!.attributes?.durable_candidate).toBe(false);
+    expect(
+      (nonDurableContext!.body ?? [])
+        .filter((node): node is DataElementNode =>
+          Boolean(node && typeof node === 'object' && (node as DataElementNode).kind === 'DataElement'),
+        )
+        .map(decisionNodeId),
+    ).toContain('track.fixture.non_durable_context.audit_child');
+
+    const auditChild = nodes.find(
+      node => decisionNodeId(node) === 'track.fixture.non_durable_context.audit_child',
+    );
+    expect(auditChild).toBeDefined();
+    expect(auditChild!.attributes?.depends_on).toEqual([
+      'track.fixture.registry_format.owner_policy',
+    ]);
+    expect(auditChild!.attributes?.activation).toEqual({
+      all: ['track.fixture.non_durable_context=regulated'],
+    });
+    expect(auditChild!.attributes?.derived_from).toEqual([
+      'track.fixture.non_durable_context=regulated',
+    ]);
+    expect(auditChild!.extend?.children?.answer).toMatchObject({
+      extend: {
+        children: {
+          'raw-answer': { text: 'Yes.' },
+          'decision-text': {
+            text: 'Every promoted node retains provenance and merge evidence.',
+          },
+          rationale: {
+            text: 'A durable child cannot be understood after flattening away its context.',
+          },
+        },
+      },
+    });
+  });
+
+  it('rejects a conflicting stable decision id instead of creating a timestamped duplicate', async () => {
+    const repoRoot = path.resolve(__dirname, '../../..');
+    const cliEntry = path.join(repoRoot, 'src/cli/index.ts');
+    const ws = makeTempDir('codument-archive-duplicate-id-red-ws-');
+    const firstTrackId = 'archive-shared-decision-first';
+    const secondTrackId = 'archive-shared-decision-conflict';
+    const firstTrackDir = path.join(ws, 'codument', 'tracks', 'active', firstTrackId);
+    const secondTrackDir = path.join(ws, 'codument', 'tracks', 'active', secondTrackId);
+    const sharedDecision = (
+      decisionText: string,
+      evidence: string,
+    ): string => `<decision #track.fixture.shared_registry_policy {
+  status = "accepted"
+  durable_candidate = true
+}
+(
+  <question ?>Which shared registry policy applies?</?>
+  <answer { }
+  (
+    <raw-answer ?>Apply the recorded shared policy.</?>
+    <decision-text ?>${decisionText}</?>
+    <rationale ?>The shared policy must retain one stable identity.</?>
+    <evidence ?>${evidence}</?>
+  )
+  >
+)>
+`;
+
+    writeAttractorProfiles(ws, false);
+    writeTrackXml(firstTrackDir, firstTrackId, '2026-05-30T14:31:00+08:00');
+    writeFile(path.join(firstTrackDir, 'proposal.md'), '# Proposal\n\nFirst decision owner.\n');
+    writeFile(
+      path.join(firstTrackDir, 'decisions.xnl'),
+      sharedDecision('Use the first registry policy.', 'Approved by the first archive.'),
+    );
+
+    const first = Bun.spawn([
+      'bun',
+      'run',
+      cliEntry,
+      '--workspace-dir',
+      ws,
+      'archive',
+      firstTrackId,
+      '--yes',
+      '--skip-specs',
+    ], {
+      cwd: repoRoot,
+      stdout: 'pipe',
+      stderr: 'pipe',
+    });
+    expect(await first.exited).toBe(0);
+    expect(await new Response(first.stderr).text()).toBe('');
+
+    const registryRoot = path.join(ws, 'codument', 'decisions');
+    const registryBeforeConflict = snapshotFiles(registryRoot);
+
+    writeTrackXml(secondTrackDir, secondTrackId, '2026-05-30T14:32:00+08:00');
+    writeFile(path.join(secondTrackDir, 'proposal.md'), '# Proposal\n\nConflicting decision owner.\n');
+    writeFile(
+      path.join(secondTrackDir, 'decisions.xnl'),
+      sharedDecision('Use a conflicting registry policy.', 'Approved by the second archive.'),
+    );
+
+    const second = Bun.spawn([
+      'bun',
+      'run',
+      cliEntry,
+      '--workspace-dir',
+      ws,
+      'archive',
+      secondTrackId,
+      '--yes',
+      '--skip-specs',
+    ], {
+      cwd: repoRoot,
+      stdout: 'pipe',
+      stderr: 'pipe',
+    });
+    const secondExitCode = await second.exited;
+    const secondStdout = await new Response(second.stdout).text();
+    const secondStderr = await new Response(second.stderr).text();
+
+    // RED: the legacy implementation keys output by timestamp and silently writes
+    // another decision.md for the same logical id instead of reporting a node conflict.
+    expect(secondExitCode).not.toBe(0);
+    expect(`${secondStdout}\n${secondStderr}`).toMatch(/conflict|duplicate/i);
+    expect(snapshotFiles(registryRoot)).toEqual(registryBeforeConflict);
+    expect(fs.existsSync(secondTrackDir)).toBe(true);
+    const archivedMonth = path.join(ws, 'codument', 'tracks', 'archived', '2026-05');
+    expect(
+      fs.existsSync(archivedMonth)
+        ? fs.readdirSync(archivedMonth).some(entry => entry.endsWith(secondTrackId))
+        : false,
+    ).toBe(false);
+  });
+
+  it('uses track UpdatedAt minute prefix for explicit legacy Markdown compatibility and memory promotion', async () => {
     const repoRoot = path.resolve(__dirname, '../../..');
     const cliEntry = path.join(repoRoot, 'src/cli/index.ts');
     const ws = makeTempDir('codument-archive-ws-');
@@ -167,7 +772,7 @@ describe('codument archive', () => {
     expect(fs.existsSync(path.join(ws, 'codument', 'memory'))).toBe(false);
   });
 
-  it('promotes durable root decisions.xnl records', async () => {
+  it('merges durable root decisions.xnl records into the canonical XNL registry', async () => {
     const repoRoot = path.resolve(__dirname, '../../..');
     const cliEntry = path.join(repoRoot, 'src/cli/index.ts');
     const ws = makeTempDir('codument-archive-xnl-decision-ws-');
@@ -211,11 +816,11 @@ describe('codument archive', () => {
     expect(err).toBe('');
     expect(exitCode).toBe(0);
 
-    const decisionRoot = path.join(ws, 'codument', 'decisions', '2026-05');
-    const decisionDir = fs.readdirSync(decisionRoot)[0];
-    const promoted = fs.readFileSync(path.join(decisionRoot, decisionDir, 'decision.md'), 'utf-8');
-    expect(promoted).toContain('Decision URI: decision://track.archive_xnl_decision.promote_durable');
-    expect(promoted).toContain('Evidence: The user approved decisions.xnl as the canonical carrier.');
+    const promotedPath = path.join(ws, 'codument', 'decisions', 'registry.xnl');
+    const promoted = fs.readFileSync(promotedPath, 'utf-8');
+    expect(promoted).toContain('#track.archive_xnl_decision.promote_durable');
+    expect(promoted).toContain('The user approved decisions.xnl as the canonical carrier.');
+    expect(fs.existsSync(path.join(ws, 'codument', 'decisions', '2026-05'))).toBe(false);
     const archiveRoot = path.join(ws, 'codument', 'tracks', 'archived', '2026-05');
     const archived = fs.readdirSync(archiveRoot).find((name) => name.endsWith(trackId))!;
     expect(fs.readFileSync(path.join(archiveRoot, archived, 'summary.md'), 'utf-8')).toContain(
@@ -248,7 +853,7 @@ describe('codument archive', () => {
     }
   });
 
-  it('promotes decision directory entries with stable decision.md files and unique decision URIs', async () => {
+  it('keeps explicit legacy decision-directory Markdown promotion as a compatibility fallback', async () => {
     const repoRoot = path.resolve(__dirname, '../../..');
     const cliEntry = path.join(repoRoot, 'src/cli/index.ts');
     const ws = makeTempDir('codument-archive-decision-dir-ws-');
@@ -302,7 +907,7 @@ describe('codument archive', () => {
     expect(markdownDecision).toContain('Decision URI: decision://keep-markdown-compat');
   });
 
-  it('ignores legacy knowledge sync config and does not copy durable decisions into docs targets', async () => {
+  it('keeps legacy Markdown decision compatibility inside Codument and ignores old knowledge sync targets', async () => {
     const repoRoot = path.resolve(__dirname, '../../..');
     const cliEntry = path.join(repoRoot, 'src/cli/index.ts');
     const ws = makeTempDir('codument-archive-knowledge-sync-ws-');
@@ -522,20 +1127,13 @@ describe('codument archive', () => {
     expect(updatedBehavior).toContain('inject-cache-control');
   });
 
-  it('commits behavior, modeling, and engineering registries before moving the track', async () => {
+  it('commits behavior, modeling, engineering, and decision registries before moving the track', async () => {
     const repoRoot = path.resolve(__dirname, '../../..');
     const cliEntry = path.join(repoRoot, 'src/cli/index.ts');
     const ws = makeTempDir('codument-archive-all-registries-ws-');
     const trackId = 'archive-all-registries';
     const trackDir = path.join(ws, 'codument', 'tracks', 'active', trackId);
-    const archiveDir = path.join(
-      ws,
-      'codument',
-      'tracks',
-      'archived',
-      '2026-05',
-      `2026-05-30-0203-${trackId}`,
-    );
+    const archiveRoot = path.join(ws, 'codument', 'tracks', 'archived', '2026-05');
 
     writeModelingConfig(ws);
     writeFile(path.join(ws, 'codument', 'config', 'engineering.xml'), `<Engineering version="1" enabled="true">
@@ -573,6 +1171,21 @@ describe('codument archive', () => {
     );
     fs.writeFileSync(path.join(trackDir, 'track.xml'), trackXml, 'utf-8');
     writeFile(path.join(trackDir, 'proposal.md'), '# Proposal\n\nArchive all registries together.\n');
+    writeFile(path.join(trackDir, 'decisions.xnl'), `<decision #track.archive_all_registries.atomic {
+  status = "accepted"
+  durable_candidate = true
+}
+(
+  <question ?>Must all registries commit before track movement?</?>
+  <answer { }
+  (
+    <raw-answer ?>Yes.</?>
+    <decision-text ?>Commit all registries atomically.</?>
+    <rationale ?>Partial registry state is invalid.</?>
+    <evidence ?>The archive transaction owns all registry stages.</?>
+  )>
+)>
+`);
     writeFile(path.join(trackDir, 'behavior_deltas', 'orders', 'delta.xml'), `<behavior-patch capability="orders" version="1">
   <upsert selector="behavior://orders/requirements/archive-safety">
     <requirement id="archive-safety">
@@ -626,14 +1239,17 @@ describe('codument archive', () => {
       'utf-8',
     );
     const engineering = fs.readFileSync(path.join(ws, 'codument', 'engineering', 'global', 'howto', 'orders.xnl'), 'utf-8');
+    const decision = fs.readFileSync(path.join(ws, 'codument', 'decisions', 'registry.xnl'), 'utf-8');
     expect(behavior).toContain('Archive commits every applicable registry together.');
     expect(modeling).toContain('#orders.order');
     expect(engineering).toContain('#global.howto.orders.add_endpoint');
+    expect(decision).toContain('#track.archive_all_registries.atomic');
     expect(fs.existsSync(trackDir)).toBe(false);
-    expect(fs.existsSync(archiveDir)).toBe(true);
+    expect(fs.readdirSync(archiveRoot).some((name) => name.endsWith(trackId))).toBe(true);
     expect(stdout).toContain('✓ Updated behavior/spec registry: orders');
-    expect(stdout).toContain('✓ Updated modeling registry: domain/orders/index.xnl');
-    expect(stdout).toContain('✓ Updated engineering registry: global/howto/orders.xnl');
+    expect(stdout).toContain(`✓ Updated modeling registry: ${path.join('domain', 'orders', 'index.xnl')}`);
+    expect(stdout).toContain(`✓ Updated engineering registry: ${path.join('global', 'howto', 'orders.xnl')}`);
+    expect(stdout).toContain('✓ Updated decision registry: registry.xnl');
   });
 
   it('three-way merges disjoint modeling registry and track changes when modeling is enabled', async () => {
@@ -1021,6 +1637,11 @@ describe('codument archive', () => {
     writeFile(behaviorPath, originalBehavior);
     writeTrackXml(trackDir, trackId, '2026-05-30T02:03:00+03:00');
     writeFile(path.join(trackDir, 'proposal.md'), '# Proposal\n\nTrack move rollback.\n');
+    writeFile(path.join(trackDir, 'decisions.xnl'), `<decision #track.rollback_after_move.decision {
+  status = "accepted"
+  durable_candidate = true
+}>
+`);
     writeFile(path.join(trackDir, 'behavior_deltas', 'orders', 'delta.xml'), `<behavior-patch capability="orders" version="1">
   <upsert selector="behavior://orders/requirements/archive-safety">
     <requirement id="archive-safety">
@@ -1042,6 +1663,7 @@ describe('codument archive', () => {
     }
 
     expect(fs.readFileSync(behaviorPath, 'utf-8')).toBe(originalBehavior);
+    expect(fs.existsSync(path.join(ws, 'codument', 'decisions'))).toBe(false);
     expect(fs.existsSync(trackDir)).toBe(true);
     expect(fs.existsSync(archiveDir)).toBe(false);
     expect(

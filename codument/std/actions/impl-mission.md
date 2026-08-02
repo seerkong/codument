@@ -63,7 +63,7 @@
 MissionObserver 读取 actual state：mission.xml 当前状态、根据 session WorkspaceBinding 定位各 `cdt:TrackLink project-ref` 的真实 tracks、archive、测试结果、用户新约束、reports。对未绑定外部项目投影 UNBOUND；不得把 workspace path 写回文件。
 ---- /?observe
 ---- #step ?reconcile
-MissionReconciler 比较 desired vs actual，并读取根级 decisions.xnl 的 pending decision frontier，判定：question / ready-node / drift / blocked / completed。
+MissionReconciler 比较 desired vs actual，并读取根 `decisions.xnl` 与递归 `decisions/**/*.xnl` 组成的 pending decision frontier，判定：question / ready-node / drift / blocked / completed。
 ---- /?reconcile
 ---- #switch ?decision on="reconcile result"
 ------ #case ?question when="存在需要用户确认的 ready pending decision，且 QuestionSeverity 不是 auto"

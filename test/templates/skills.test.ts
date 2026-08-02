@@ -59,7 +59,7 @@ describe('codument skill templates', () => {
     for (const skill of skillNames()) {
       const file = path.join(ROOT, 'src', 'templates', 'skills', skill, 'SKILL.md');
       const content = fs.readFileSync(file, 'utf-8');
-      expect(content).toStartWith('---\n');
+      expect(content).toMatch(/^---\r?\n/);
       expect(content).toContain(`name: ${skill}`);
       expect(content).toMatch(/description: .+/);
       expect(content).toContain('# Codument');

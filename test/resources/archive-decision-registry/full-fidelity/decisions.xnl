@@ -1,0 +1,104 @@
+<decision #track.fixture.registry_format {
+  status = "accepted"
+  priority = "P0"
+  durable_candidate = true
+  confidence = 0.99
+  reversibility = "hard"
+  extension_policy = {
+    namespace = "fixture.vendor"
+    schema_version = 7
+  }
+}
+(
+  <question ?>Which representation should the durable decision registry preserve?</?>
+  <recommendation ?>Preserve the complete XNL decision forest.</?>
+  <options { } [
+    <option { key = "full_xnl" recommended = true }
+    (
+      <title ?>Full XNL forest</?>
+      <description ?>Keep attributes, semantic slots, options, answers, and child decisions.</?>
+      <tradeoff ?>Requires structural registry merge.</?>
+    )
+    >
+    <option { key = "markdown_projection" }
+    (
+      <title ?>Markdown projection</?>
+      <description ?>Write one summary file for each flattened decision.</?>
+      <tradeoff ?>Loses fields and hierarchy.</?>
+    )
+    >
+  ]>
+  <answer { channel = "user-confirmation" }
+  (
+    <raw-answer ?>Use the complete XNL merge result.</?>
+    <decision-text ?>The durable registry preserves the complete XNL AST.</?>
+    <rationale ?>A summary cannot represent conditional or nested decision semantics.</?>
+    <evidence ?>The fixture must distinguish AST merge from Markdown projection.</?>
+  )
+  >
+  <vendor-note { format = "opaque-v1" } ?>
+    This unknown extension slot must survive promotion and serialization.
+  </?>
+)
+[
+  <decision #track.fixture.registry_format.owner_policy {
+    status = "resolved"
+    priority = "P1"
+    durable_candidate = true
+    depends_on = ["track.fixture.registry_format"]
+  }
+  (
+    <question ?>How is a decision owner selected?</?>
+    <answer { }
+    (
+      <raw-answer ?>Keep the existing owner when one exists.</?>
+      <decision-text ?>Owner placement is stable across repeated archive operations.</?>
+      <rationale ?>Stable placement makes registry diffs deterministic.</?>
+      <evidence ?>The parent-child relationship is part of the decision semantics.</?>
+    )
+    >
+  )
+  >
+]>
+
+<decision #track.fixture.non_durable_context {
+  status = "accepted"
+  priority = "P1"
+  durable_candidate = false
+}
+(
+  <question ?>Which contextual branch activates the durable child?</?>
+  <answer { }
+  (
+    <raw-answer ?>Use the regulated branch.</?>
+    <decision-text ?>Regulated mode supplies context for the nested durable decision.</?>
+    <rationale ?>The parent itself is process context, but its child is durable.</?>
+    <evidence ?>Tree closure must preserve enough ancestry to explain the child.</?>
+  )
+  >
+)
+[
+  <decision #track.fixture.non_durable_context.audit_child {
+    status = "accepted"
+    priority = "P0"
+    durable_candidate = true
+    depends_on = ["track.fixture.registry_format.owner_policy"]
+    activation = {
+      all = ["track.fixture.non_durable_context=regulated"]
+    }
+    derived_from = ["track.fixture.non_durable_context=regulated"]
+  }
+  (
+    <question ?>Must durable registry updates retain an audit trail?</?>
+    <recommendation ?>Retain source provenance and merge evidence.</?>
+    <answer { }
+    (
+      <raw-answer ?>Yes.</?>
+      <decision-text ?>Every promoted node retains provenance and merge evidence.</?>
+      <rationale ?>A durable child cannot be understood after flattening away its context.</?>
+      <evidence ?>This child is durable while its direct parent is not.</?>
+    )
+    >
+  )
+  >
+]>

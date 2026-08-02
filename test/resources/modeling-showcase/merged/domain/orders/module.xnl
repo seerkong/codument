@@ -1,8 +1,10 @@
 <module #orders.orders_module { kind = "module" depends_on = ["modeling://domain/inventory/inventory" "modeling://domain/orders/order"] } [
   <desc ?>
+
   订单模块：拥有 order 聚合的写入边界，编排下单流程。
   </?>
   <capsule-tree ?cap>
+
   orders/                            # module 根（写入边界 = order 聚合）
     contract/                        # 对外类型；无副作用、无内向依赖
       order-create.ts                # OrderCreate / CartLine 入参 DTO
@@ -19,15 +21,18 @@
       create-order.ts                # POST /orders -> #orders.place_order（message）
   </?cap>
   <dependency-rule ?>
+
   层向依赖单向：ports → logic → contract；support 实现 contract 接口由 ports 注入；跨 context 只经 inventory 的 message，不读其 internals。
   </?>
 ]>
 
 <component #orders.place_order { kind = "component" } [
   <desc ?>
+
   下单标准组件：output = fn(runtime, input, config)。
   </?>
   <runtime ?rt>
+
   interface PlaceOrderRuntime {
     orderStore: OrderStore        // 副作用契约
     inventory: InventoryMailbox   // 跨 actor 的 message 投递口
@@ -36,15 +41,19 @@
   }
   </?rt>
   <input ?in>
+
   interface PlaceOrderInput { cart: CartLine[] }
   </?in>
   <config ?cfg>
+
   interface PlaceOrderConfig { allowBackorder: boolean }
   </?cfg>
   <output ?out>
+
   interface PlaceOrderOutput { order: Order }
   </?out>
   <pseudo { kind = "ctrl" } ?ctrl>
+
   function placeOrder(runtime, input, config) {
     const reserved = send(runtime.inventory, ReserveStock(input.cart))  // message, 异步
     if (!reserved.ok && !config.allowBackorder) return fail("out_of_stock")

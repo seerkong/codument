@@ -1,0 +1,16 @@
+{
+  "name": "case-04-ambiguous-id",
+  "classification": "ambiguous-id",
+  "decisionId": "fixture.migration.ambiguous",
+  "legacyRelativePath": "codument/decisions/2026-07/2026-07-04-1230-fixture.migration.ambiguous/decision.md",
+  "archiveId": "2026-07-04-1230-ambiguous-archive",
+  "archiveSourceMatches": 2,
+  "targetMatches": 0,
+  "requiredLegacySentinels": [
+    "Evidence: Two archive source files intentionally claim the same stable id."
+  ],
+  "requiredArchiveSentinels": [
+    "Root candidate must not win by scan order.",
+    "Recursive candidate must not win by scan order."
+  ]
+}

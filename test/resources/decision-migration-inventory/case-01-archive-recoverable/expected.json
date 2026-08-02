@@ -1,0 +1,19 @@
+{
+  "name": "case-01-archive-recoverable",
+  "classification": "archive-recoverable",
+  "decisionId": "fixture.migration.recoverable",
+  "legacyRelativePath": "codument/decisions/2026-07/2026-07-01-0900-fixture.migration.recoverable/decision.md",
+  "archiveId": "2026-07-01-0900-migration-recoverable",
+  "archiveSourceMatches": 1,
+  "targetMatches": 0,
+  "requiredLegacySentinels": [
+    "Status: accepted",
+    "Evidence: The summary intentionally omits the complete decision structure."
+  ],
+  "requiredArchiveSentinels": [
+    "<question ?>Which recovery policy preserves historical semantics?</?>",
+    "<options { } [",
+    "<raw-answer ?>Recover the archived XNL node.</?>",
+    "<legacy-provenance"
+  ]
+}

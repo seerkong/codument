@@ -394,4 +394,120 @@ describe('codument decisions validate', () => {
     expect(out).toContain('[error] track.sample.incomplete_answer: answer is missing Rationale');
     expect(out).toContain('[error] track.sample.incomplete_answer: answer is missing Evidence');
   });
+
+  it('recursively validates a decision registry directory and fails closed on duplicate stable ids', async () => {
+    const ws = tmpWorkspace();
+    const registry = path.join(ws, 'codument', 'decisions');
+    writeDecisionFile(path.join(registry, 'registry.xnl'), `<decision #registry.shared {
+  status = "accepted"
+}>
+`);
+    writeDecisionFile(path.join(registry, 'platform', 'runtime.xnl'), `<decision #registry.shared {
+  status = "resolved"
+}>
+`);
+
+    const { code, out } = await runDecisions(ws, [registry]);
+    expect(code).toBe(1);
+    expect(out).toContain("Duplicate decision node id 'registry.shared'");
+    expect(out).toContain('registry.xnl');
+    expect(out).toContain('platform/runtime.xnl');
+    expect(out).toContain('hierarchy');
+  });
+
+  it('validates the root and recursive decision source set for a track id', async () => {
+    const ws = tmpWorkspace();
+    const track = path.join(ws, 'codument', 'tracks', 'active', 'source-set');
+    writeDecisionFile(path.join(track, 'decisions.xnl'), `<decision #track.source_set.root {
+  status = "accepted"
+}>
+`);
+    writeDecisionFile(path.join(track, 'decisions', 'platform', 'conditional.xnl'), `<decision #track.source_set.conditional {
+  status = "accepted"
+  depends_on = ["track.source_set.root"]
+  activation = { all = ["track.source_set.missing_activation=enabled"] }
+  derived_from = ["track.source_set.missing_derivation=enabled"]
+}>
+`);
+
+    const { code, out } = await runDecisions(ws, ['source-set']);
+    expect(code).toBe(1);
+    expect(out).toContain("unresolved activation reference 'track.source_set.missing_activation'");
+    expect(out).toContain("unresolved derived_from reference 'track.source_set.missing_derivation'");
+    expect(out).toContain('decisions/platform/conditional.xnl');
+  });
+
+  it('resolves an active mission id and validates its recursive decision source set', async () => {
+    const ws = tmpWorkspace();
+    const mission = path.join(ws, 'codument', 'missions', 'active', 'mission-source-set');
+    writeDecisionFile(path.join(mission, 'decisions.xnl'), `<decision #mission.source_set.root {
+  status = "accepted"
+}>
+`);
+    writeDecisionFile(path.join(mission, 'decisions', 'nested.xnl'), `<decision #mission.source_set.child {
+  status = "pending"
+}>
+`);
+
+    const { code, out } = await runDecisions(ws, ['mission-source-set']);
+    expect(code).toBe(1);
+    expect(out).toContain('[error] mission.source_set.child: decision is still pending');
+    expect(out).toContain('decisions/nested.xnl');
+  });
+
+  it('rejects invalid decision hierarchy and dangling dependency references', async () => {
+    const ws = tmpWorkspace();
+    const file = path.join(ws, 'decisions.xnl');
+    writeDecisionFile(file, `<decision #track.hierarchy.root {
+  status = "accepted"
+  depends_on = ["track.hierarchy.missing"]
+}
+[
+  <note ?>Decision bodies cannot contain arbitrary child elements.</?>
+]>
+`);
+
+    const { code, out } = await runDecisions(ws, [file]);
+    expect(code).toBe(1);
+    expect(out).toContain("unresolved depends_on reference 'track.hierarchy.missing'");
+    expect(out).toContain('decision body may contain only nested decision nodes');
+    expect(out).toContain('hierarchy');
+  });
+
+  it('rejects cycles in the cross-file decision dependency graph', async () => {
+    const ws = tmpWorkspace();
+    const registry = path.join(ws, 'codument', 'decisions');
+    writeDecisionFile(path.join(registry, 'a.xnl'), `<decision #registry.cycle.a {
+  status = "accepted"
+  depends_on = ["registry.cycle.b"]
+}>
+`);
+    writeDecisionFile(path.join(registry, 'nested', 'b.xnl'), `<decision #registry.cycle.b {
+  status = "accepted"
+  depends_on = ["registry.cycle.a"]
+}>
+`);
+
+    const { code, out } = await runDecisions(ws, [registry]);
+    expect(code).toBe(1);
+    expect(out).toContain('decision dependency graph contains a cycle');
+    expect(out).toContain('registry.cycle.a');
+    expect(out).toContain('registry.cycle.b');
+  });
+
+  it('keeps explicit legacy Markdown file validation compatible', async () => {
+    const ws = tmpWorkspace();
+    const file = path.join(ws, 'legacy-decisions.md');
+    writeDecisionFile(file, `# Decisions
+
+### Legacy pending
+- Blocks: implementation
+- Durable candidate: no
+- Status: pending
+`);
+
+    const { code, out } = await runDecisions(ws, [file]);
+    expect(code).toBe(1);
+    expect(out).toContain('[error] Legacy pending: decision is still pending');
+  });
 });

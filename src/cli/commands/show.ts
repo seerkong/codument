@@ -1,6 +1,20 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { getActiveTrackDir, getTrack, getSpecs, parseOptions, formatStatus, codumentExists, SPECS_DIR } from '../utils';
+import { wordToString } from 'xnl-core';
+import {
+  DECISIONS_DIR,
+  getActiveTrackDir,
+  getTrack,
+  parseOptions,
+  formatStatus,
+  codumentExists,
+  SPECS_DIR,
+} from '../utils';
+import {
+  decisionIdFromReference,
+  loadDecisionRegistrySafe,
+  resolveDecisionRegistryReference,
+} from '../decisions/registry';
 import { getSpecXmlStats, loadSpecXml } from '../utils/spec-xml';
 
 export async function showCommand(args: string[]) {
@@ -15,15 +29,15 @@ export async function showCommand(args: string[]) {
   const jsonOutput = options['json'] === true;
 
   if (!itemId) {
-    console.error('Please specify a track or spec ID.');
-    console.log('Usage: codument show <id> [--type track|spec] [--json]');
+    console.error('Please specify a track, spec, or decision ID.');
+    console.log('Usage: codument show <id|decision://id> [--type track|spec|decision] [--json]');
     process.exit(1);
   }
 
   // Try to determine type
-  let foundType: 'track' | 'spec' | null = null;
+  let foundType: 'track' | 'spec' | 'decision' | null = null;
 
-  if (itemType === 'track' || itemType === 'spec') {
+  if (itemType === 'track' || itemType === 'spec' || itemType === 'decision') {
     foundType = itemType;
   } else {
     // Auto-detect
@@ -35,19 +49,30 @@ export async function showCommand(args: string[]) {
       foundType = 'track';
     } else if (fs.existsSync(specDir) || fs.existsSync(specXmlFile)) {
       foundType = 'spec';
+    } else {
+      const decisionId = decisionIdFromReference(itemId);
+      const loaded = loadDecisionRegistrySafe(DECISIONS_DIR);
+      if (loaded.issues.length > 0) {
+        throw new Error(loaded.issues.map((issue) => issue.message).join('\n'));
+      }
+      if (loaded.registry.index.has(decisionId)) {
+        foundType = 'decision';
+      }
     }
   }
 
   if (!foundType) {
     console.error(`Item not found: ${itemId}`);
-    console.log('Use --type to specify whether this is a track or spec.');
+    console.log('Use --type to specify whether this is a track, spec, or decision.');
     process.exit(1);
   }
 
   if (foundType === 'track') {
     showTrack(itemId, jsonOutput);
-  } else {
+  } else if (foundType === 'spec') {
     showSpec(itemId, jsonOutput);
+  } else {
+    showDecision(itemId, jsonOutput);
   }
 }
 
@@ -76,7 +101,7 @@ function showTrack(trackId: string, jsonOutput: boolean) {
       }
     }
     for (const filePath of specDeltaFiles) {
-      const relativePath = path.relative(trackDir, filePath);
+      const relativePath = portableRelative(trackDir, filePath);
       (result.files as Record<string, string>)[relativePath] = fs.readFileSync(filePath, 'utf-8');
     }
 
@@ -118,13 +143,17 @@ function showTrack(trackId: string, jsonOutput: boolean) {
   }
   if (specDeltaFiles.length > 0) {
     for (const filePath of specDeltaFiles) {
-      console.log(`  ✓ ${path.relative(trackDir, filePath)}`);
+      console.log(`  ✓ ${portableRelative(trackDir, filePath)}`);
     }
   } else {
     console.log(`  ✗ behavior_deltas/**/*.xml`);
   }
 
   console.log('');
+}
+
+function portableRelative(base: string, file: string): string {
+  return path.relative(base, file).split(path.sep).join('/');
 }
 
 function collectTrackXmlSpecDeltas(trackDir: string): string[] {
@@ -234,5 +263,65 @@ function showSpec(specId: string, jsonOutput: boolean) {
     console.log(`  ${status} ${file}`);
   }
 
+  console.log('');
+}
+
+function displayValue(value: unknown): string | undefined {
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+  if (value && typeof value === 'object' && !Array.isArray(value)) {
+    const word = wordToString(value as Parameters<typeof wordToString>[0]);
+    if (word !== undefined) return word;
+    return JSON.stringify(value);
+  }
+  if (Array.isArray(value)) return JSON.stringify(value);
+  return undefined;
+}
+
+function decisionField(
+  node: ReturnType<typeof resolveDecisionRegistryReference>['node'],
+  key: string,
+): string | undefined {
+  return displayValue(node.attributes?.[key] ?? node.metadata?.[key]);
+}
+
+function showDecision(reference: string, jsonOutput: boolean): void {
+  const resolved = resolveDecisionRegistryReference(DECISIONS_DIR, reference);
+  const status = decisionField(resolved.node, 'status');
+  const source = decisionField(resolved.node, 'source');
+  const provenance = decisionField(resolved.node, 'provenance');
+  const ancestors = resolved.ancestors.map(({ tag, id }) => ({ tag, id }));
+
+  if (jsonOutput) {
+    console.log(JSON.stringify({
+      id: resolved.id,
+      uri: resolved.uri ?? `decision://${resolved.id}`,
+      owner_file: resolved.file,
+      owner: resolved.owner,
+      status,
+      source,
+      provenance,
+      ancestors,
+      parent: resolved.parent,
+      path: resolved.path,
+      node: resolved.node,
+    }, null, 2));
+    return;
+  }
+
+  console.log('\n' + '='.repeat(60));
+  console.log(`Decision: ${resolved.id}`);
+  console.log('='.repeat(60));
+  console.log(`\nURI:         ${resolved.uri ?? `decision://${resolved.id}`}`);
+  console.log(`Owner:       ${resolved.file}`);
+  if (status) console.log(`Status:      ${status}`);
+  if (source) console.log(`Source:      ${source}`);
+  if (provenance) console.log(`Provenance:  ${provenance}`);
+  if (ancestors.length > 0) {
+    console.log('Hierarchy:');
+    for (const ancestor of ancestors) {
+      console.log(`  - ${ancestor.tag}${ancestor.id ? ` #${ancestor.id}` : ''}`);
+    }
+  }
   console.log('');
 }

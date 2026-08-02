@@ -1,0 +1,54 @@
+<decision #track.fixture.conditional_activation {
+  status = "accepted"
+  priority = "P0"
+  durable_candidate = true
+  depends_on = [
+    "track.fixture.registry_format"
+    "track.fixture.non_durable_context.audit_child"
+  ]
+  activation = {
+    all = [
+      "track.fixture.registry_format=full_xnl"
+      "track.fixture.non_durable_context=regulated"
+    ]
+  }
+  derived_from = [
+    "track.fixture.registry_format=full_xnl"
+    "track.fixture.non_durable_context=regulated"
+  ]
+  source = "decisions/platform/runtime/conditional-activation.xnl"
+}
+(
+  <question ?>When should the conditional registry policy be active?</?>
+  <recommendation ?>Activate only after both prerequisite decisions are resolved.</?>
+  <options { } [
+    <option { key = "after_dependencies" recommended = true }
+    (
+      <title ?>After dependencies resolve</?>
+      <description ?>Use the declared dependency and activation graph.</?>
+      <tradeoff ?>Requires retaining graph attributes in the durable registry.</?>
+    )
+    >
+    <option { key = "always" }
+    (
+      <title ?>Always active</?>
+      <description ?>Ignore activation facts after archive.</?>
+      <tradeoff ?>Produces incorrect behavior outside the selected branch.</?>
+    )
+    >
+  ]>
+  <answer { }
+  (
+    <raw-answer ?>Activate it only for the selected full-XNL regulated branch.</?>
+    <decision-text ?>Activation remains conditional on both derived facts.</?>
+    <rationale ?>The graph is durable decision semantics, not presentation metadata.</?>
+    <evidence ?>The source lives below a recursive decisions directory.</?>
+  )
+  >
+  <extension-context { owner = "runtime" preserve = true }
+  (
+    <opaque-payload ?>unknown-extension-sentinel</?>
+  )
+  >
+)
+>

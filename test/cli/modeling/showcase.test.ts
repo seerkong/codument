@@ -21,7 +21,7 @@ describe('modeling showcase (all kinds + delta + apply effect)', () => {
     expect(files.size).toBeGreaterThan(0);
     for (const [rel, content] of files) {
       const committed = fs.readFileSync(path.join(SHOW, 'merged', rel), 'utf-8');
-      expect(committed).toBe(content);
+      expect(committed.replace(/\r\n/g, '\n')).toBe(content.replace(/\r\n/g, '\n'));
     }
   });
 
@@ -43,7 +43,7 @@ describe('modeling showcase (all kinds + delta + apply effect)', () => {
   it('writes text elements in block style (content on its own indented line)', () => {
     const moduleFile = fs.readFileSync(path.join(SHOW, 'merged', 'domain/orders/module.xnl'), 'utf-8');
     // even a single-line IO block renders as: <input ?m>\n  interface...\n  </?m>
-    expect(moduleFile).toMatch(/<input \?\w+>\n\s+interface PlaceOrderInput/);
+    expect(moduleFile).toMatch(/<input \?\w+>\r?\n\s+interface PlaceOrderInput/);
     // not the legacy inline-open form
     expect(moduleFile).not.toMatch(/<input \?\w+>interface/);
   });

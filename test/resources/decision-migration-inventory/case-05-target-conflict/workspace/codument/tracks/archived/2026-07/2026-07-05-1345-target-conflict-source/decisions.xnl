@@ -1,0 +1,14 @@
+<decision #fixture.migration.target_conflict {
+  status = "accepted"
+  durable_candidate = true
+}
+(
+  <question ?>Which target policy applies?</?>
+  <answer { }
+  (
+    <decision-text ?>Use the recovered archive policy.</?>
+    <evidence ?>This node conflicts with the existing canonical registry node.</?>
+  )
+  >
+)
+>

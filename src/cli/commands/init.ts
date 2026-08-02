@@ -6,6 +6,7 @@ import {
   injectAgentsBlock,
   parseAgents,
   resolveSkillsTargets,
+  toPortablePath,
   writeCliToolsConfig,
 } from '../utils/install';
 
@@ -40,7 +41,7 @@ export async function initCommand(args: string[]): Promise<void> {
   console.log(`  codument/ : ${result.workspaceWritten} written, ${result.workspaceSkipped} kept`);
   for (const skillResult of skillResults) {
     const removed = skillResult.skillsRemoved ? `, ${skillResult.skillsRemoved} deprecated removed` : '';
-    console.log(`  skills    : ${skillResult.skillsWritten} → ${skillResult.skillsDir} (agent: ${skillResult.agent}${removed})`);
+    console.log(`  skills    : ${skillResult.skillsWritten} → ${toPortablePath(skillResult.skillsDir)} (agent: ${skillResult.agent}${removed})`);
   }
   writeCliToolsConfig(selectedTools);
   console.log('  config/cli-tools.json: tools updated');

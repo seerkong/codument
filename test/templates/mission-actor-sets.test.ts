@@ -10,7 +10,7 @@ function read(relativePath: string): string {
 }
 
 function missionExamples(spec: string): string[] {
-  return [...spec.matchAll(/```xml\n(<Mission[\s\S]*?<\/Mission>)\n```/g)].map((match) => match[1]);
+  return [...spec.matchAll(/```xml\r?\n(<Mission[\s\S]*?<\/Mission>)\r?\n```/g)].map((match) => match[1]);
 }
 
 describe('Mission ActorSet release templates', () => {

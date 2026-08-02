@@ -1,0 +1,14 @@
+<decision #fixture.migration.ambiguous {
+  status = "accepted"
+  durable_candidate = true
+}
+(
+  <question ?>Which archive candidate is authoritative?</?>
+  <answer { }
+  (
+    <decision-text ?>Recursive candidate must not win by scan order.</?>
+    <evidence ?>This is the recursive source candidate.</?>
+  )
+  >
+)
+>

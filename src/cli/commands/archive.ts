@@ -39,6 +39,8 @@ import { mergeModeling, type MergeConflict as ModelingMergeConflict } from '../m
 import { validateModelingTree } from '../modeling/validate';
 import { applySpecXmlPatchToRegistry } from '../utils/spec-xml';
 import { buildArchiveDestination, formatLocalMinutePrefix, resolveTrackUpdatedDate } from '../utils/track-time';
+import { applyDecisionSources, collectDecisionSourceFiles } from '../decisions/registry';
+import { discoverXnlRegistryFiles } from '../xnl/registry';
 import {
   readXnlDecisionRecords,
   type XnlDecisionRecord,
@@ -110,10 +112,12 @@ export async function archiveCommand(
   assertValidArchiveDecisions(trackDir);
   const engineeringPlan = prepareEngineeringDeltaMerge(trackDir);
   const modelingPlan = prepareModelingDeltaMerge(trackDir);
+  const decisionSources = collectDecisionSourceFiles(trackDir);
   const transaction = createRegistryStagingTransaction();
   let updatedBehaviorCapabilities: string[] | null = null;
   let updatedEngineeringFiles: string[] = [];
   let updatedModelingFiles: string[] = [];
+  let updatedDecisionFiles: string[] = [];
   let preserveStaging = false;
 
   try {
@@ -126,6 +130,10 @@ export async function archiveCommand(
     const modelingStage = modelingPlan
       ? stagePreparedRegistryMerge(transaction, modelingPlan)
       : null;
+    const decisionUpdate = decisionSources.length > 0
+      ? stageRegistry(transaction, 'decision', DECISIONS_DIR, (stagedDir) =>
+        applyDecisionSources(stagedDir, trackDir, decisionSources))
+      : null;
 
     if (engineeringStage) {
       validateStagedRegistry(engineeringStage);
@@ -137,13 +145,16 @@ export async function archiveCommand(
     updatedBehaviorCapabilities = skipSpecs ? null : behaviorUpdate?.updated ?? [];
     const commitReceipt = commitRegistryStages(
       transaction,
-      [behaviorUpdate?.stage, engineeringStage, modelingStage],
+      [behaviorUpdate?.stage, engineeringStage, modelingStage, decisionUpdate?.stage],
     );
     if (engineeringStage) {
       updatedEngineeringFiles = engineeringStage.changedFiles;
     }
     if (modelingStage) {
       updatedModelingFiles = modelingStage.changedFiles;
+    }
+    if (decisionUpdate) {
+      updatedDecisionFiles = decisionUpdate.result;
     }
 
     try {
@@ -185,7 +196,13 @@ export async function archiveCommand(
     console.log('  No modeling updates needed');
   }
 
-  const promotedDecision = promoteDecisionRecord(archiveDir, archiveId, trackId, updatedDate);
+  if (updatedDecisionFiles.length > 0) {
+    console.log(`✓ Updated decision registry: ${updatedDecisionFiles.join(', ')}`);
+  }
+
+  const promotedDecision = decisionSources.length === 0
+    ? promoteDecisionRecord(archiveDir, archiveId, trackId, updatedDate)
+    : null;
   if (promotedDecision) {
     console.log(`✓ Promoted decision record: ${promotedDecision}`);
   }
@@ -679,20 +696,32 @@ function promoteDecisionRecord(archiveDir: string, archiveId: string, trackId: s
 }
 
 function generateArchiveSummary(archiveDir: string, trackId: string): string | null {
+  const xnlFiles: string[] = [];
+  const rootXnl = path.join(archiveDir, 'decisions.xnl');
+  if (fs.existsSync(rootXnl)) {
+    xnlFiles.push(rootXnl);
+  }
   const decisionsDir = path.join(archiveDir, 'decisions');
-  if (!fs.existsSync(decisionsDir) || !fs.statSync(decisionsDir).isDirectory()) {
-    const xnlPath = path.join(archiveDir, 'decisions.xnl');
-    if (fs.existsSync(xnlPath)) {
-      const records = readXnlDecisionRecords(xnlPath);
-      if (records.length === 0) {
-        return null;
-      }
-      const lines = [`# Archive Summary: ${trackId}`, '', ...records.map(record => `- ${record.id}`), ''];
-      const summaryPath = path.join(archiveDir, 'summary.md');
-      fs.writeFileSync(summaryPath, lines.join('\n'), 'utf-8');
-      return summaryPath;
-    }
+  if (fs.existsSync(decisionsDir) && fs.statSync(decisionsDir).isDirectory()) {
+    xnlFiles.push(...discoverXnlRegistryFiles(decisionsDir).map(
+      (relFile) => path.join(decisionsDir, ...relFile.split('/')),
+    ));
+  }
 
+  if (xnlFiles.length > 0) {
+    const ids = [...new Set(
+      xnlFiles.flatMap((file) => readXnlDecisionRecords(file).map((record) => record.id)),
+    )].sort();
+    if (ids.length === 0) {
+      return null;
+    }
+    const lines = [`# Archive Summary: ${trackId}`, '', ...ids.map((id) => `- ${id}`), ''];
+    const summaryPath = path.join(archiveDir, 'summary.md');
+    fs.writeFileSync(summaryPath, lines.join('\n'), 'utf-8');
+    return summaryPath;
+  }
+
+  if (!fs.existsSync(decisionsDir) || !fs.statSync(decisionsDir).isDirectory()) {
     const legacyPath = path.join(archiveDir, 'decisions.md');
     if (!fs.existsSync(legacyPath)) {
       return null;

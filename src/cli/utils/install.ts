@@ -59,6 +59,10 @@ export interface ResolvedSkillsTarget {
   skillsDir: string;
 }
 
+export function toPortablePath(value: string): string {
+  return value.split(path.sep).join('/');
+}
+
 export const CLI_TOOLS_CONFIG_FILE = path.join('codument', 'config', 'cli-tools.json');
 const LEGACY_STATE_FILE = path.join('codument', 'state.json');
 

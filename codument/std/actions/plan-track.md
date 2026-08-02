@@ -49,8 +49,8 @@
 | `behavior_deltas/<cap>/delta.xml` | ★必有 | 行为增量（`<behavior-patch>`） |
 | `design.md`（+`design/`） | ★必有 | 方案 / 决策摘要 / 风险 / 兼容 / 迁移 |
 | `analysis/{findings,knowledge}.md` | 按需 | 规划期 planning-with-files 外部记忆 |
-| `decisions.xnl` | ★必有 | 单一过程决策载体；旧 `decisions.md` 仅兼容读取 |
-| `decisions/` | 按需 | archive-ready legacy durable 单文件决策 |
+| `decisions.xnl` | ★必有 | 默认过程决策 forest 入口；旧 `decisions.md` 仅兼容读取 |
+| `decisions/**/*.xnl` | 按需 | 按 owner/topic 分片的层级 decision forest；与根文件同时参与 |
 | `memory/` | 按需 | 长期记忆候选 |
 | `reports/` | 运行期生成 | gap-loop / verify 报告 |
 
@@ -187,8 +187,8 @@
    |      |         |
    ```
 6. **建决策与记忆目录**（仅有合格内容时创建，已存在则跳过）：
-   - `decisions/` —— archive-ready 的 legacy durable 单文件决策（每个长期决策一个 `.md`，历史归档可提升 `decision://`）。
-   - 根级 `decisions.xnl` 无条件创建，作为唯一过程决策入口；旧 `decisions.md` 只作为 legacy fallback 读取，不再作为新建默认。
+   - `decisions/` —— 仅在 decision forest 需要按 owner/topic 分片时创建，内容使用递归 `*.xnl`；它与根 `decisions.xnl` 共同组成 source set。
+   - 根级 `decisions.xnl` 无条件创建，作为默认过程决策入口；旧 `decisions.md` / `decisions/**/*.md` 只作为显式 legacy fallback 或 migration input，不再作为新建格式。
    - `memory/` —— 记忆上下文，按类型分子目录 `lessons/`、`incidents/`、`patterns/`、`summaries/`（归档且 `memory` profile 启用时提升 `memory://`）。
 7. **写 Metadata**（在 `track.xml` 的 `<Metadata>`，§3.6 一并落盘）：
 
@@ -298,7 +298,7 @@ behavior delta 确认后："现在我将创建完整的变更提案"。按下面
 
 ### 3.5 方案与决策（design.md、decisions.xnl，默认创建）
 
-每个新 track 都创建 `design.md` 和 `decisions.xnl`。没有待决事项时，`decisions.xnl` 保持有效的空 decision forest；出现决策时在同一文件追加记录。复杂设计可再建立 `design/` 子目录。
+每个新 track 都创建 `design.md` 和 `decisions.xnl`。没有待决事项时，`decisions.xnl` 保持有效的空 decision forest；出现决策时默认写入根文件。forest 需要按 owner/topic 分片时可建立递归 `decisions/**/*.xnl`，但根文件与递归文件始终作为一个 source set 读取。复杂设计可再建立 `design/` 子目录。
 
 设计内容大时建 `design/` 子目录，根级 `design.md` 作总览引用子设计。
 
@@ -307,7 +307,7 @@ behavior delta 确认后："现在我将创建完整的变更提案"。按下面
 
 **决策记录（decisions.xnl）：**
 
-1. `codument/tracks/pending/<track_id>/decisions.xnl` 是默认存在的决策评审主入口——**无论创建 / 设计还是后续执行阶段，只要出现新决策都追加回写到该文件**，不新建分散的过程决策记录。旧 `decisions.md` 只作为 legacy fallback 读取；不要为新 track 新建根级 `decisions.md`。某决策若属未来仍需遵守的 durable 长期项目决策，在 `decisions.xnl` 上标 `durable_candidate = true`；历史 `decisions/<slug>.md` durable 单文件记录仍可供 archive 兼容提升 `decision://`。
+1. `codument/tracks/pending/<track_id>/decisions.xnl` 是默认存在的决策评审入口。普通新决策默认回写根文件；只有明确需要 owner/topic 分片时才写入递归 `decisions/**/*.xnl`。两类 XNL source 同时参与 archive/validation，不能互相压制。旧 `decisions.md` / `decisions/**/*.md` 只作为显式 legacy fallback 或 migration input；不要为新 track 创建。未来仍需遵守的长期项目决策标 `durable_candidate = true`，归档时完整 XNL tree 按 stable id 合并进 `codument/decisions/**/*.xnl`，而不是生成 canonical `decision.md`。
 2. **起草 decisions.xnl**：先梳理待决策 forest 并标 `P0`/`P1`/`P2`，把问题、候选选项、当前建议写入。嵌套 `<decision>` 表示需要先解决父问题的细化；跨分支前置条件用 `depends_on = ["decision-id"]`，不要滥用 `blocks`。模板：
    ```xnl
    <decision #track.example.decision_1 {

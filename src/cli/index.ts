@@ -25,7 +25,7 @@ Commands:
   upgrade-workspace  Upgrade workspace Codument files to latest
   upgrade-track      Upgrade a track plan.xml to wave-capable format
   list              List active tracks or specs
-  show [item]       Show details of a track or spec
+  show [item]       Show details of a track, spec, or decision
   validate [item]   Validate track or spec format
   archive <id>      Archive a completed track
   status            Show project status overview
@@ -46,6 +46,7 @@ Examples:
   codument upgrade-workspace --agent=codex,claude,eidolon,sparrow  # Refresh std + selected agent skills
   codument list                          # List active tracks
   codument show add-user-auth            # Show track details
+  codument show decision://policy.id     # Resolve a decision by stable ID
   codument validate                      # Validate all tracks (track.xml + behavior deltas)
   codument validate add-user-auth        # Validate one track
   codument status                         # Show project status
@@ -77,11 +78,12 @@ Options:
 `,
   show: `
 Usage:
-  codument show [item] [--json]
+  codument show [item] [--type track|spec|decision] [--json]
 
-Show details of a track or behavior registry item.
+Show details of a track, spec, or decision registry item.
 
 Options:
+  --type <type>         Disambiguate track, spec, or decision
   --json                Print machine-readable JSON
   -h, --help            Show this help message
 `,

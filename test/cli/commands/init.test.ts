@@ -5,6 +5,15 @@ import * as path from 'path';
 
 const repoRoot = path.resolve(import.meta.dir, '../../..');
 const cli = path.join(repoRoot, 'src/cli/index.ts');
+const decisionMigrationReference = path.join(
+  'codument-migrate',
+  'references',
+  'decision-migration.md',
+);
+const decisionMigrationTemplate = fs.readFileSync(
+  path.join(repoRoot, 'src', 'templates', 'skills', decisionMigrationReference),
+  'utf-8',
+);
 
 function tmpWorkspace(): string {
   return fs.mkdtempSync(path.join(os.tmpdir(), 'cdt-init-'));
@@ -57,6 +66,8 @@ describe('codument init', () => {
     expect(fs.existsSync(path.join(ws, 'codument', 'tracks', 'archived', 'README.md'))).toBe(true);
     expect(fs.existsSync(path.join(skillsDir, 'codument-impl-quick', 'SKILL.md'))).toBe(true);
     expect(fs.existsSync(path.join(skillsDir, 'codument-maintain-track', 'SKILL.md'))).toBe(true);
+    expect(fs.readFileSync(path.join(skillsDir, decisionMigrationReference), 'utf-8'))
+      .toBe(decisionMigrationTemplate);
     expect(fs.existsSync(path.join(ws, 'codument', 'std', 'root-agents.md'))).toBe(false);
     const agents = fs.readFileSync(path.join(ws, 'AGENTS.md'), 'utf-8');
     expect(agents).toContain('@/codument/std/AGENTS.md');

@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { CODUMENT_DIR } from '../utils';
 
-export type RegistryStageKind = 'behavior' | 'spec' | 'modeling' | 'engineering';
+export type RegistryStageKind = 'behavior' | 'spec' | 'modeling' | 'engineering' | 'decision';
 
 export interface RegistryStagingTransaction {
   rootDir: string;

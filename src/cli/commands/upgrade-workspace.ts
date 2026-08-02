@@ -10,6 +10,7 @@ import {
   parseAgents,
   readCliToolsConfig,
   resolveSkillsTargets,
+  toPortablePath,
   writeCliToolsConfig,
   type CLITool,
 } from '../utils/install';
@@ -46,6 +47,7 @@ export async function upgradeWorkspaceCommand(args: string[]): Promise<void> {
     writeCliToolsConfig(selectedTools);
   }
   const migratedLegacyActionHooks = migrateLegacyActionHooks(backupRoot);
+  const removedObsoleteDefaultHooks = removeObsoleteDefaultAttractorHooks();
   const removedLegacyPaths = removeLegacyWorkspacePaths(backupRoot);
   const migratedConfigRefs = migrateWorkspaceConfigRefs(backupRoot);
   const targets = resolveSkillsTargets(options, selectedTools);
@@ -64,7 +66,7 @@ export async function upgradeWorkspaceCommand(args: string[]): Promise<void> {
   console.log(`  codument/ : ${result.workspaceWritten} written (std refreshed), ${result.workspaceSkipped} kept`);
   for (const skillResult of skillResults) {
     const removed = skillResult.skillsRemoved ? `, ${skillResult.skillsRemoved} deprecated removed` : '';
-    console.log(`  skills    : ${skillResult.skillsWritten} → ${skillResult.skillsDir} (agent: ${skillResult.agent}${removed})`);
+    console.log(`  skills    : ${skillResult.skillsWritten} → ${toPortablePath(skillResult.skillsDir)} (agent: ${skillResult.agent}${removed})`);
   }
   if (shouldWriteCliToolsConfig) {
     console.log('  config/cli-tools.json: tools updated');
@@ -74,6 +76,9 @@ export async function upgradeWorkspaceCommand(args: string[]): Promise<void> {
   }
   if (migratedLegacyActionHooks > 0) {
     console.log(`  hooks     : ${migratedLegacyActionHooks} legacy hook file(s) migrated`);
+  }
+  if (removedObsoleteDefaultHooks > 0) {
+    console.log(`  hooks     : ${removedObsoleteDefaultHooks} obsolete default attractor hook(s) removed`);
   }
   if (migratedConfigRefs > 0) {
     console.log(`  config    : ${migratedConfigRefs} legacy reference(s) updated`);
@@ -249,6 +254,45 @@ function migrateLegacyActionHooks(backupRoot: string): number {
   fs.writeFileSync(actionPath, migrated, 'utf-8');
   fs.rmSync(legacyPath, { force: true });
   return 1;
+}
+
+function removeObsoleteDefaultAttractorHooks(): number {
+  const actionPath = path.join('codument', 'config', 'action-hooks.xml');
+  if (!fs.existsSync(actionPath)) {
+    return 0;
+  }
+
+  const obsoletePoints = ['discuss:before', 'impl-quick:before', 'revise-track:before'];
+  const original = fs.readFileSync(actionPath, 'utf-8');
+  let updated = original;
+  let removed = 0;
+
+  for (const point of obsoletePoints) {
+    const hook = new RegExp(
+      `\\s*<Hook\\s+on=["']${point}["']\\s*>\\s*`
+        + `<cdt:AttractorCheck\\s+use=["']coding["']\\s*/>\\s*</Hook>`,
+      'g',
+    );
+    updated = updated.replace(hook, () => {
+      removed++;
+      return '';
+    });
+  }
+
+  if (removed === 0) {
+    return 0;
+  }
+
+  for (const action of ['discuss', 'impl-quick', 'revise-track']) {
+    const emptyAction = new RegExp(
+      `\\s*<Action\\s+name=["']${action}["']\\s*>\\s*<Hooks\\s*>\\s*</Hooks>\\s*</Action>`,
+      'g',
+    );
+    updated = updated.replace(emptyAction, '');
+  }
+
+  fs.writeFileSync(actionPath, updated, 'utf-8');
+  return removed;
 }
 
 function migrateWorkspaceConfigRefs(backupRoot: string): number {

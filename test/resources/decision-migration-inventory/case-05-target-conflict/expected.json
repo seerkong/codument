@@ -1,0 +1,15 @@
+{
+  "name": "case-05-target-conflict",
+  "classification": "target-conflict",
+  "decisionId": "fixture.migration.target_conflict",
+  "legacyRelativePath": "codument/decisions/legacy/2026-07-05-1345-fixture.migration.target_conflict/decision.md",
+  "archiveId": "2026-07-05-1345-target-conflict-source",
+  "archiveSourceMatches": 1,
+  "targetMatches": 1,
+  "requiredLegacySentinels": [
+    "Evidence: The archive node conflicts with an existing canonical target."
+  ],
+  "requiredArchiveSentinels": [
+    "Use the recovered archive policy."
+  ]
+}

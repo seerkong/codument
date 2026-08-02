@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Track id="upgrade-decision-registry-to-xnl" version="1" xmlns:cdt="urn:codument:v1">
+  <Metadata>
+    <Status>completed</Status>
+    <Goal>将长期 Decision Registry 改为 track/mission 完整 XNL decision forest 的递归、保真、可冲突检测合并结果，并安全迁移历史 decisions。</Goal>
+    <Description>修复 archive 的有损 Markdown decision promotion，扩展 codument-migrate decisions，并在本仓库执行可回滚 dogfood migration。</Description>
+    <QuestionMode>decision-tree</QuestionMode>
+    <QuestionSeverity>light</QuestionSeverity>
+    <CommitMode>manual</CommitMode>
+    <GapRound>2</GapRound>
+    <CreatedAt>2026-08-01T14:12:30Z</CreatedAt>
+    <UpdatedAt>2026-08-02T15:02:00Z</UpdatedAt>
+  </Metadata>
+
+  <Ports scope="track">
+    <MaterialBundle role="input" name="behavior-deltas" domain="behavior" path="vfs://./behavior_deltas/"/>
+    <MaterialBundle role="state" name="decisions" domain="decision" path="vfs://./decisions.xnl"/>
+    <MaterialBundle role="state" name="analysis" domain="track" path="vfs://./analysis/"/>
+    <MaterialBundle role="output" name="decision-registry" domain="decision" path="vfs://@/codument/decisions/"/>
+    <MaterialBundle role="output" name="migrate-skill" domain="skill" path="vfs://@/src/templates/skills/codument-migrate/"/>
+    <MaterialBundle role="output" name="behavior" domain="codument" path="vfs://@/codument/behaviors/"/>
+  </Ports>
+
+  <TaskSpace id="space_upgrade-decision-registry-to-xnl" name="upgrade-decision-registry-to-xnl" version="1" cdt:child-mode="sequential">
+    <Description>先用测试冻结有损行为，再实现完整 XNL registry merge、archive transaction、migration skill 与本仓 dogfood。</Description>
+    <SubNodes>
+      <TaskGroup id="P1" name="Characterize current decision loss" status="DONE" order="0">
+        <Description>用失败测试和 fixtures 精确冻结当前字段、层级、来源发现和重复 id 缺陷。</Description>
+        <cdt:Gate>
+          <cdt:Criterion>测试证明当前 promotion 会丢失完整 XNL AST 与 nested hierarchy</cdt:Criterion>
+          <cdt:Criterion>测试覆盖 root decisions.xnl 与 recursive decisions/**/*.xnl 同时存在</cdt:Criterion>
+          <cdt:Criterion>测试覆盖 duplicate id、activation/derived_from、unknown extension 与 durable child tree closure</cdt:Criterion>
+        </cdt:Gate>
+        <SubNodes>
+          <Task id="T1.1" name="Add archive characterization fixtures" status="DONE" order="0" priority="P0">
+            <Description>构造包含 root forest、层级化 decisions、完整 answer/options、依赖/激活、嵌套 child 和未知字段的 archive fixture。</Description>
+            <cdt:Acceptance>
+              <cdt:Criterion id="T1.1-AC1" checked="true">fixture 能区分 full AST merge 与现有 Markdown projection</cdt:Criterion>
+            </cdt:Acceptance>
+          </Task>
+          <Task id="T1.2" name="Add failing promotion and discovery tests" status="DONE" order="1" priority="P0">
+            <Description>证明当前 root suppression、non-recursive directory scan、tree flattening 和 duplicate timestamp outputs 不符合行为 delta。</Description>
+          </Task>
+          <Task id="T1.3" name="Add migration inventory fixtures" status="DONE" order="2" priority="P1">
+            <Description>覆盖 archive-recoverable summary、Markdown-only record、missing source、ambiguous id 和 target conflict。</Description>
+          </Task>
+        </SubNodes>
+      </TaskGroup>
+
+      <TaskGroup id="P2" name="Build reusable XNL registry primitives" status="DONE" order="1">
+        <Description>抽取递归 loader、stable-id index、serializer 与 conservative node merge，供 decision 并尽量复用 modeling/engineering。</Description>
+        <cdt:Gate>
+          <cdt:Criterion>registry loader 递归扫描且排序稳定</cdt:Criterion>
+          <cdt:Criterion>serializer round-trip 保留完整 AST 和未知字段语义</cdt:Criterion>
+          <cdt:Criterion>merge 覆盖 add/add、same-field、delete/modify、move/modify 与等价幂等</cdt:Criterion>
+        </cdt:Gate>
+        <SubNodes>
+          <Task id="T2.1" name="Extract recursive registry loader and index" status="DONE" order="0" priority="P0">
+            <Description>从 modeling/engineering 的重复实现中抽取通用文件发现、解析、id index 与 owner metadata。</Description>
+          </Task>
+          <Task id="T2.2" name="Implement full-fidelity serializer" status="DONE" order="1" priority="P0">
+            <Description>直接序列化 AST，不经 validation DTO；加入 parse-serialize-parse semantic parity tests。</Description>
+          </Task>
+          <Task id="T2.3" name="Implement conservative node merge" status="DONE" order="2" priority="P0">
+            <Description>按 stable id 和节点结构实现 merge/conflict，并保留 hierarchy/provenance。</Description>
+          </Task>
+          <Task id="T2.4" name="Refactor modeling and engineering adapters" status="DONE" order="3" priority="P1">
+            <Description>在不改变既有行为的前提下复用 primitives，运行原有 registry/merge 回归测试。</Description>
+          </Task>
+        </SubNodes>
+      </TaskGroup>
+
+      <TaskGroup id="P3" name="Integrate decision archive transaction" status="DONE" order="2">
+        <Description>实现 track/mission decision source discovery、durable selection、node merge 和 atomic registry staging。</Description>
+        <cdt:Gate>
+          <cdt:Criterion>root 和 recursive XNL source 同时参与</cdt:Criterion>
+          <cdt:Criterion>new archive 不生成 canonical decision.md</cdt:Criterion>
+          <cdt:Criterion>decision prepare/commit failure 不留下 registry 或 track partial state</cdt:Criterion>
+        </cdt:Gate>
+        <SubNodes>
+          <Task id="T3.1" name="Collect full decision source sets" status="DONE" order="0" priority="P0">
+            <Description>统一 track/mission root decisions.xnl、recursive decisions/**/*.xnl 和 legacy fallback 的发现规则。</Description>
+          </Task>
+          <Task id="T3.2" name="Select durable tree closure" status="DONE" order="1" priority="P0">
+            <Description>按 eligibility 选择 accepted/resolved nodes，并保留解释 durable child 所需的层级上下文。</Description>
+          </Task>
+          <Task id="T3.3" name="Stage and merge decision registry" status="DONE" order="2" priority="P0">
+            <Description>把 decision registry 接入 archive staging transaction，按 id 合并 owner files 并校验 staged tree。</Description>
+          </Task>
+          <Task id="T3.4" name="Add rollback and failpoint tests" status="DONE" order="3" priority="P0">
+            <Description>覆盖 decision conflict、validation failure、partial registry replacement failure 与 track move ordering。</Description>
+          </Task>
+        </SubNodes>
+      </TaskGroup>
+
+      <TaskGroup id="P4" name="Extend decision validation and VFS" status="DONE" order="3">
+        <Description>使 validate/show/URI resolution 理解递归 registry、全局 stable id 和完整关联。</Description>
+        <cdt:Gate>
+          <cdt:Criterion>`decision://id` 与物理路径解耦</cdt:Criterion>
+          <cdt:Criterion>duplicate id 和 invalid references 有 file/id/layer reason</cdt:Criterion>
+          <cdt:Criterion>legacy explicit Markdown validation 保持兼容</cdt:Criterion>
+        </cdt:Gate>
+        <SubNodes>
+          <Task id="T4.1" name="Add recursive registry validation" status="DONE" order="0" priority="P0">
+            <Description>扩展 decisions command 验证 registry、track/mission source set、hierarchy 与 dependency/activation references。</Description>
+          </Task>
+          <Task id="T4.2" name="Index decision URIs globally" status="DONE" order="1" priority="P0">
+            <Description>让 VFS/show 通过 stable-id index 解析 owner file，并对重复 id fail closed。</Description>
+          </Task>
+          <Task id="T4.3" name="Update archive summaries and compatibility views" status="DONE" order="2" priority="P1">
+            <Description>保留可派生 summary/provenance，但确保其不参与 registry merge 或 canonical resolution。</Description>
+          </Task>
+        </SubNodes>
+      </TaskGroup>
+
+      <TaskGroup id="P5" name="Update decision standards and tests" status="DONE" order="4">
+        <Description>同步 std/templates 中关于 durable XNL、recursive sources、legacy Markdown 和 archive transaction 的权威口径。</Description>
+        <cdt:Gate>
+          <cdt:Criterion>decision/archive/VFS 规范与实现行为一致</cdt:Criterion>
+          <cdt:Criterion>模板与 workspace std 不再要求新 durable decision.md</cdt:Criterion>
+          <cdt:Criterion>authoring/template tests 防止旧摘要语义回归</cdt:Criterion>
+        </cdt:Gate>
+        <SubNodes>
+          <Task id="T5.1" name="Revise decision and archive standards" status="DONE" order="0" priority="P0">
+            <Description>更新 XNL、knowledge tiers、archive、VFS 和相关 action 文档中的长期 decision 规则。</Description>
+          </Task>
+          <Task id="T5.2" name="Update behavior and template assertions" status="DONE" order="1" priority="P0">
+            <Description>补齐 template/authoring tests，禁止新的 canonical decision.md promotion。</Description>
+          </Task>
+        </SubNodes>
+      </TaskGroup>
+
+      <TaskGroup id="P6" name="Extend codument-migrate for decisions" status="DONE" order="5">
+        <Description>更新 migrate skill shell、authoritative body 和 bundled reference，支持历史 decisions 迁移。</Description>
+        <cdt:Gate>
+          <cdt:Criterion>SKILL.md 支持 decisions/all 并路由 reference</cdt:Criterion>
+          <cdt:Criterion>decision-migration reference 说明 recovery、conversion、conflict、backup、manifest、verify 和 rollback</cdt:Criterion>
+          <cdt:Criterion>manifest/init/upgrade tests 证明 reference 被打包安装</cdt:Criterion>
+        </cdt:Gate>
+        <SubNodes>
+          <Task id="T6.1" name="Create decision migration reference" status="DONE" order="0" priority="P0">
+            <Description>新增 `src/templates/skills/codument-migrate/references/decision-migration.md`，提供完整迁移协议。</Description>
+          </Task>
+          <Task id="T6.2" name="Route migrate skill to decisions" status="DONE" order="1" priority="P0">
+            <Description>更新 SKILL.md description/usage/routing 和 authoritative migrate action 的 what/flow/output。</Description>
+          </Task>
+          <Task id="T6.3" name="Add template packaging tests" status="DONE" order="2" priority="P0">
+            <Description>验证 manifest、init、upgrade-workspace 和 installed skill reference。</Description>
+          </Task>
+        </SubNodes>
+      </TaskGroup>
+
+      <TaskGroup id="P7" name="Build upgrade and dogfood migration" status="DONE" order="6">
+        <Description>使用已构建的新版本升级当前 workspace，并安全迁移本仓库现有长期 decisions。</Description>
+        <cdt:Gate>
+          <cdt:Criterion>迁移前 backup/inventory/manifest 可恢复</cdt:Criterion>
+          <cdt:Criterion>七条 archive-recoverable records 保持完整 XNL 语义</cdt:Criterion>
+          <cdt:Criterion>Markdown-only record 保留原文 provenance 和所有 ambiguity</cdt:Criterion>
+          <cdt:Criterion>八条历史 identity 均有成功结果或显式 issue</cdt:Criterion>
+        </cdt:Gate>
+        <SubNodes>
+          <Task id="T7.1" name="Build and install latest workspace templates" status="DONE" order="0" priority="P0">
+            <Description>运行 build 刷新 manifest，使用新 CLI 执行 upgrade-workspace，确认 migrate reference 安装。</Description>
+          </Task>
+          <Task id="T7.2" name="Inventory and back up current decisions" status="DONE" order="1" priority="P0">
+            <Description>记录八条 source、hash、archive mapping、target owner 与风险，建立可恢复备份。</Description>
+          </Task>
+          <Task id="T7.3" name="Run decision registry migration" status="DONE" order="2" priority="P0">
+            <Description>恢复七条完整 XNL nodes，保真转换 Markdown-only 文档，在 staged registry 中校验后提交。</Description>
+          </Task>
+          <Task id="T7.4" name="Verify dogfood semantic parity" status="DONE" order="3" priority="P0">
+            <Description>比较 id、AST/字段、hierarchy、provenance、hash manifest，并确认无 canonical lossy Markdown output。</Description>
+          </Task>
+        </SubNodes>
+      </TaskGroup>
+
+      <TaskGroup id="P8" name="Final verification and gap closure" status="DONE" order="7">
+        <Description>运行 focused/full tests、typecheck、build、strict validation，并对行为目标做最终独立纠偏。</Description>
+        <cdt:Gate>
+          <cdt:Criterion>decisions/archive/VFS/migrate/template/upgrade focused tests 全部通过</cdt:Criterion>
+          <cdt:Criterion>full test suite、typecheck 与 build 通过</cdt:Criterion>
+          <cdt:Criterion>`codument decisions validate` 与 `codument validate upgrade-decision-registry-to-xnl --strict` 通过</cdt:Criterion>
+          <cdt:Criterion>git diff 区分生成物、workspace upgrade 与 dogfood data migration</cdt:Criterion>
+          <cdt:Criterion>GapLoop 收口且 coding AttractorCheck PASS</cdt:Criterion>
+        </cdt:Gate>
+        <SubNodes>
+          <Task id="T8.1" name="Run focused and full automated verification" status="DONE" order="0" priority="P0">
+            <Description>运行相关单测、全量测试、typecheck、build 和 template manifest consistency。</Description>
+          </Task>
+          <Task id="T8.2" name="Validate track and migrated registries" status="DONE" order="1" priority="P0">
+            <Description>运行 decisions validation、strict track validation、URI resolution checks 和 migration parity checks。</Description>
+          </Task>
+          <Task id="T8.3" name="Review final diff and rollback evidence" status="DONE" order="2" priority="P0">
+            <Description>确认无未授权数据删除、备份/manifest 完整、legacy sources 可追溯且 worktree 变更可解释。</Description>
+          </Task>
+        </SubNodes>
+        <Hooks>
+          <Hook on="phase:after"><cdt:GapLoop max-rounds="5" on-exhausted="block" verify-round="true"/></Hook>
+          <Hook on="phase:after"><cdt:AttractorCheck use="coding"/></Hook>
+        </Hooks>
+      </TaskGroup>
+    </SubNodes>
+  </TaskSpace>
+
+  <Schedule>
+  </Schedule>
+
+  <Hooks>
+  </Hooks>
+</Track>
