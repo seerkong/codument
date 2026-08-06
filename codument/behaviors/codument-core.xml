@@ -783,6 +783,26 @@
         <and>系统 SHALL NOT treat activation or completion of one track as a default stopping point</and>
         <and>系统 SHALL treat child command returns from impl-track, archive-track, verify, gap-loop, or fresh subagents as local results for MissionApplier rather than mission invocation returns</and>
       </case>
+      <case id="candidate-track-auto-activation">
+        <given>a mission ready action is a `cdt:TrackLink state="candidate"` and the mission runs under `QuestionSeverity=auto` or continuous-execution mode</given>
+        <when>plan-track creates the real track for the candidate</when>
+        <then>系统 SHALL activate the created track to `tracks/active/`, write back `TrackLink state="bound"` and a bind report, and continue the mission loop without waiting for user approval</then>
+        <and>plan-track 的"提案获批前不开始实现"门禁在 mission auto 语境 SHALL 视为已由 mission 层批准</and>
+        <and>系统 SHALL stop at the activation point only when an explicit confirmation gate is configured (`cdt:HumanConfirm`, or an explicit higher severity decision with no conservative default)</and>
+      </case>
+      <case id="execution-severity-inheritance">
+        <given>a mission or track enters continuous implementation after planning</given>
+        <when>the ready frontier contains unresolved decisions and no explicit confirmation gate is configured</when>
+        <then>系统 SHALL treat plan-time question budgets (light/normal/deep) as non-blocking during execution, record assumptions with conservative defaults, and continue without a user question</then>
+        <and>只有显式配置的 `cdt:HumanConfirm` 或显式更高 severity 且无保守默认可替代的决策 SHALL 才构成执行期停点</and>
+      </case>
+      <case id="sub-track-failure-returns-to-applier">
+        <given>`codument-impl-track` runs as a mission sub-track</given>
+        <when>a task, gate, or DAG failure cannot be fixed within task bounds, or an ACTIVE task is detected on resume</when>
+        <then>系统 SHALL record the failure and recommendation in `analysis/findings.md` and return a structured BLOCKED result to `MissionApplier` for replanning, rather than defaulting to an interactive user question</then>
+        <and>续跑检测在 auto/mission 语境 SHALL 默认继续 ACTIVE 任务，不默认提问</and>
+        <and>delegated prompt SHALL 以"完成即返回产物与证据（stop 仅限子流程边界，调用方决定是否继续）"代替"完成即停"</and>
+      </case>
       <case id="decision-and-terminal-pauses">
         <given>a continuous mission execution loop is running</given>
         <when>a ready decision requires user confirmation, actual state is blocked, or mission becomes completed, cancelled, or superseded</when>

@@ -23,7 +23,8 @@ describe('continuous mission execution templates', () => {
     expect(action).toContain('不生成独立回执格式');
     expect(action).not.toContain('动作完成后必须重新 observe -> reconcile');
     expect(action).not.toContain('重规划后必须重新 observe -> reconcile');
-    expect(action).toContain('需要用户确认的 ready pending decision');
+    expect(action).toContain('显式确认 gate');
+    expect(action).toContain('规划期问答预算（`light`/`normal`/`deep`）不构成执行期停点');
     expect(action).toContain('视为已经确认启动');
     expect(action).not.toContain('#exit ?reload_active');
     expect(action).not.toContain('#exit ?wait_after_action');
@@ -60,6 +61,23 @@ describe('continuous mission execution templates', () => {
     expect(dagExecution).toContain('若该 DAG 执行发生在 `codument-impl-mission` 的子 track / 子流程内');
   });
 
+  it('activates candidate tracks without an approval wait and inherits auto severity during execution', () => {
+    const action = readTemplate('codument/std/actions/impl-mission.md');
+    const planTrack = readTemplate('codument/std/actions/plan-track.md');
+    const spec = readTemplate('codument/std/spec/mission-xml-spec.md');
+
+    expect(action).toContain('候选 track 激活（candidate activation）');
+    expect(action).toContain('立即将该 track 激活到 `tracks/active/<id>/`');
+    expect(action).toContain('不等待用户批准');
+    expect(action).toContain('`plan-track` 的“提案获批前不开始实现”门禁在 mission 语境由 mission 层代为批准');
+    expect(action).toContain('若该 action 是 `cdt:TrackLink state="candidate"`');
+    expect(planTrack).toContain('由 `codument-impl-mission` 以 `QuestionSeverity=auto` 调用时，创建直接落在 `tracks/active/<id>/`');
+    expect(planTrack).toContain('mission 层代为批准、创建即激活');
+    expect(planTrack).toContain('调用方上下文（mission 连续执行）');
+    expect(spec).toContain('`cdt:TrackLink state="candidate"` 的激活是 mission logical action 的一部分');
+    expect(spec).toContain('不等待用户批准');
+  });
+
   it('does not bind fresh subagents to model or reasoning settings', () => {
     const files = [
       readTemplate('codument/std/actions/impl-track.md'),
@@ -82,6 +100,9 @@ describe('continuous mission execution templates', () => {
     expect(behavior).toContain('continuous cybernetic DEPA actor loop');
     expect(behavior).toContain('continuous-implementation');
     expect(behavior).toContain('max-tracks-checkpoint');
+    expect(behavior).toContain('candidate-track-auto-activation');
+    expect(behavior).toContain('execution-severity-inheritance');
+    expect(behavior).toContain('sub-track-failure-returns-to-applier');
     expect(behavior).toContain('rather than a common receipt format');
     expect(behavior).toContain('without a mandatory full re-observe/reconcile pass');
     expect(behavior).toContain('child command returns from impl-track, archive-track, verify, gap-loop, or fresh subagents as local results for MissionApplier');
