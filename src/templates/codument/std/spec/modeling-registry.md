@@ -37,7 +37,7 @@ codument/modeling/
 
 - **kind 谱系**：越靠内核越用 DEPA 跨领域概念（裸名 kind：`entity`/`enum`/`state-machine`/`module`/`component`/`port`/`actor`/`policy`）；越靠 shell 越用命名空间领域 kind（`surface:route`/`backend:endpoint`/`cli:command`…）。
 - **节点属性承载**：`kind`、`fact_grade`、`single_writer`、`depends_on` 等常规语义属性写进 XNL `{}` 属性块；metadata 只留给系统级解析/合并字段。
-- **最小必备表征**（CLI 校验）：`entity` 必带 `types`+`fact_grade`+`single_writer`；`state-machine` 必带 `mermaid`；`module` 必带 `depends_on`+capsule-tree（**到文件/符号级**，非仅 contract/logic/support）；`component` 必带 `runtime`/`input`/`config`/`output` 四个 `types` 块。
+- **最小必备表征**：`entity`/`object` 必带 `types`+`fact_grade`+`single_writer`；`state-machine` 必带声明状态的 `mermaid`；`module`/`capsule` 必带 `depends_on`+capsule-tree；`component` 必带 `runtime`/`input`/`config`/`output` 四个 `types` 块 + `pseudo` 槽位；`port` 必带 `command|message` 标注；`policy` 必带 rule `pseudo` 或 `behavior://` 引用——以上由 CLI 强制（`codument modeling validate`）。内容质量项（entity invariants、actor 单写边界/偏重/解环论述、module capsule-tree 的文件/符号级深度）为**评审项**（非 CLI 强制），见 `modeling-node-schema.md §2`。
 - **不重复 behaviors**：可测行为契约归 `behaviors`；modeling 的 behavior/policy 节点**引用 `behavior://…`**，不复述 case。
 
 ## 应用 delta（归档时）

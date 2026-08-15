@@ -1,0 +1,76 @@
+<decision-tree #track.wire_decisions_validate.root {
+  kind = "decision-tree"
+  status = "accepted"
+  severity = "light"
+  root = "track.wire_decisions_validate.root"
+}
+[
+  <decision #track.wire_decisions_validate.wire_into_validate {
+    kind = "planning-decision"
+    priority = "P0"
+    status = "accepted"
+    blocks = ["src/cli/commands/validate.ts" "test/cli/commands/validate.test.ts"]
+    frontier = false
+    durable_candidate = false
+    confidence = 0.95
+    reversibility = "reversible"
+  }
+  (
+    <question ?>如何让 track 创建时拦截 decisions.xnl 的 XNL 语法错误？</?>
+    <recommendation ?>复用 validateDecisionsFile 接线进 codument validate 的 track 校验面：plan-track 收尾的 best-effort validate 自动覆盖 decisions，无需改提示词。</?>
+    <options { } [
+      <option { key = "wire-cli" recommended = true }
+      (
+        <title ?>接线进 codument validate</?>
+        <description ?>validateCommand 的 track 循环内对 decisions.xnl / decisions/ source set 调用 validateDecisionsFile。</?>
+        <tradeoff ?>需要一次 CLI 改动与测试；但创建即拦截，且 plan-track 提示词零改动。</?>
+      )
+      >
+      <option { key = "prompt-only" }
+      (
+        <title ?>改 plan-track 收尾提示词</?>
+        <description ?>在 §3.8 加一句"另跑 codument decisions validate"。</?>
+        <tradeoff ?>堆提示词、依赖模型自觉执行，违背 CLI 优先原则。</?>
+      )
+      >
+    ]>
+    <answer ?>接线进 codument validate。</?>
+    <rationale ?>plan-track 收尾已固定跑 codument validate；把 decisions 并入该校验面即可零提示词改动覆盖，符合既有原则。</?>
+    <evidence ?>plan-track.md §3.8 L568 的 best-effort validate 只跑 codument validate；decisions.ts 已导出 validateDecisionsFile 且与 validate.ts 无循环依赖。</?>
+  )
+  >
+  <decision #track.wire_decisions_validate.closer_hint {
+    kind = "planning-decision"
+    priority = "P1"
+    status = "accepted"
+    blocks = ["src/cli/commands/decisions.ts"]
+    frontier = false
+    durable_candidate = false
+    confidence = 0.9
+    reversibility = "reversible"
+  }
+  (
+    <question ?>decisions 的 XNL 语法错误提示是否需要可操作化？</?>
+    <recommendation ?>在 parseXnl 失败路径的消息中追加 XNL 文本块闭合写法提示：闭合 marker 是反引号问号形式（斜杠加问号的尖括号闭合），而非 XML 风格的标签名对称闭合。</?>
+    <options { } [
+      <option { key = "add-hint" recommended = true }
+      (
+        <title ?>追加闭合提示</?>
+        <description ?>错误消息指向具体的 XNL 闭合写法，AI 可直接据提示修正。</?>
+        <tradeoff ?>消息略长；但降低"Missing closing ')'"这类解析器原文的困惑。</?>
+      )
+      >
+      <option { key = "raw-only" }
+      (
+        <title ?>保持解析器原文</?>
+        <description ?>不加包装提示。</?>
+        <tradeoff ?>本次归档正是被该原文卡住，可操作提示价值明确。</?>
+      )
+      >
+    ]>
+    <answer ?>追加闭合提示。</?>
+    <rationale ?>xnl-core 的 "Missing closing ')' for extend" 不指向"闭合标签写错"这一实际原因；AI 友好输出应给出可操作修复提示。</?>
+    <evidence ?>归档时实际报错原文即 Missing closing 右括号；根因是 14 处把 XNL 文本块闭合误写成 XML 风格的标签名闭合。</?>
+  )
+  >
+]>

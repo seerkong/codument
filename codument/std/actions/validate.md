@@ -10,13 +10,13 @@
 
 ## 1. 校验流程
 
-接收可选参数 `item`（track 或 behavior 名）与可选 `--strict`。
+接收可选参数 `item`（track / behavior / mission 名）与可选 `--strict`。
 
 ```text
 @delimiter: --
 -- #sequence ?validate
 ---- #step ?args
-解析参数：有 [item] → 校验特定 track/behavior；无 → 批量模式（§6）
+解析参数：有 [item] → 校验特定 track/behavior/mission；无 → 批量模式（§6）
 ---- /?args
 ---- #switch ?type on="item 类型"
 ------ #case ?as-track when="item 在 codument/tracks/pending/ 或 codument/tracks/active/"
@@ -25,6 +25,9 @@
 ------ #case ?as-behavior when="item 在 codument/behaviors/"
 按 §3 校验 behavior 登记表
 ------ /?as-behavior
+------ #case ?as-mission when="item 在 codument/missions/{pending,active,archived}/"
+按 §2.8 校验 mission.xml
+------ /?as-mission
 ------ #case ?ambiguous when="两者都存在或都不存在"
 用 --type 参数消歧
 ------ /?ambiguous
@@ -120,6 +123,18 @@
 - [ ] BDD 场景用可嵌套 `<suite>` / `<case>`，case 内用 `<given>`、`<when>`、`<then>`。
 - [ ] 旧 track 的 `spec.md` 仅作兼容格式验证。
 
+### 2.8 Mission 验证（mission-xml-spec §5/§6/§8；CLI rule 前缀 `mission.*`）
+
+`codument validate <mission-id>` 或批量模式会校验 `codument/missions/{pending,active,archived}/<id>/mission.xml`：
+
+- [ ] `<Metadata><Status>` 为 `pending|active|completed|cancelled|superseded|archived`（`mission.metadata.status`）。
+- [ ] `TaskGroup`/`Task` 的 `status` 为 mission 枚举 `NOT_STARTED|ACTIVE|DONE|BLOCKED|ABANDONED|SUPERSED`（`mission.taskspace.status`）——与 track 枚举不同。
+- [ ] `<Hook on>` 取值：`track:before|after`、`phase:before|after`、`task:before|after`、`mission:after-node`（`mission.hook.on`）。
+- [ ] `<cdt:MissionReconcile>` 的 `max-tracks` 为正整数，`on-limit` ∈ `checkpoint|continue|block`，`on-drift` ∈ `replan-or-block|replan|block`（`mission.reconcile.*`）。
+- [ ] `<Schedule><Dag for>` 引用 `cdt:child-mode="dag"` 节点，`Node id`/`After ref` 只引用该层直接下层，且无环（`mission.schedule.*`）。
+- [ ] `<cdt:TrackLink>` 只挂在叶子 `<Task>` 上（`mission.tracklink.group`）。
+- [ ] `<cdt:ProjectRefs>` / `<cdt:ActorSets>` 契约（四个角色各一次、唯一 host、引用可解析）。
+
 ---
 
 ## 3. 校验 Behavior 登记表
@@ -204,9 +219,10 @@
 当未指定 `[item]` 时：
 
 1. 列出 `codument/tracks/pending/` 与 `codument/tracks/active/` 下的 tracks。
-2. 列出所有 `codument/behaviors/` 下的 behaviors。
-3. 依次验证每个项目。
-4. 汇总结果：
+2. 列出 `codument/missions/{pending,active,archived}/` 下的 missions。
+3. 列出所有 `codument/behaviors/` 下的 behaviors。
+4. 依次验证每个项目。
+5. 汇总结果：
 
 ```text
 批量验证结果:
@@ -244,6 +260,8 @@ Behaviors:
 | "Track must have at least one delta" | 没有 XML behavior delta | 添加 `behavior_deltas/<capability>/delta.xml` |
 | "Dag for refers to non-dag node" | `<Dag for>` 指向未标 `cdt:child-mode="dag"` 的节点 | 给该节点加 `cdt:child-mode="dag"`，或移除该 Dag |
 | "After ref crosses layer" | `<After ref>` 引用了非直接下层 id | 只在同一父的直接下层之间连边 |
+| "mission.taskspace.status 非法" | mission 节点用了 track 枚举（如 `DELEGATED`）或旧 `TODO` | 用 mission 枚举 `NOT_STARTED|ACTIVE|DONE|BLOCKED|ABANDONED|SUPERSED` |
+| "mission.hook.on 取值非法" | Hook 用了非 mission 生命周期点 | 用 `track/phase/task:before|after` 或 `mission:after-node` |
 
 ---
 

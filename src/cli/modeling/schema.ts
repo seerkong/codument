@@ -84,6 +84,31 @@ function propString(node: DataElementNode, key: string): string | undefined {
   return typeof v === 'string' ? v : undefined;
 }
 
+/** Deep text of the first TextElement with the given tag (canonical 表征 form). */
+function deepText(node: DataElementNode, tag: string): string | undefined {
+  for (const child of bodyChildren(node)) {
+    if (child.tag === tag) return child.kind === 'TextElement' ? child.text : undefined;
+    if (isDataElement(child)) {
+      const nested = deepText(child, tag);
+      if (nested !== undefined) return nested;
+    }
+  }
+  return undefined;
+}
+
+/** Whether any attribute/metadata value (string or string[]) contains the needle. */
+function anyPropContains(node: DataElementNode, needle: string): boolean {
+  const values = [
+    ...Object.values(node.attributes ?? {}),
+    ...Object.values(node.metadata ?? {}),
+  ];
+  return values.some((v) => {
+    if (typeof v === 'string') return v.includes(needle);
+    if (Array.isArray(v)) return v.some((item) => typeof item === 'string' && item.includes(needle));
+    return false;
+  });
+}
+
 export function nodeKind(node: DataElementNode): string | undefined {
   return propString(node, 'kind');
 }
@@ -124,9 +149,14 @@ export function validateModelingNode(node: XnlNode): string[] {
     case 'enum':
       req(tags.has('types'), 'enum requires a <types> representation');
       break;
-    case 'state-machine':
-      req(hasChildDeep(node, 'mermaid'), 'state-machine requires a <mermaid> diagram');
+    case 'state-machine': {
+      const mermaid = deepText(node, 'mermaid');
+      const declaresStates = Boolean(
+        mermaid && (/stateDiagram/i.test(mermaid) || /-->/.test(mermaid) || /state\s+["'\w]/i.test(mermaid)),
+      );
+      req(declaresStates, 'state-machine requires a <mermaid> diagram that declares states (stateDiagram header or transitions)');
       break;
+    }
     case 'module':
     case 'capsule':
       req(hasProp(node, 'depends_on'), 'module requires depends_on');
@@ -136,9 +166,25 @@ export function validateModelingNode(node: XnlNode): string[] {
       for (const slot of ['runtime', 'input', 'config', 'output']) {
         req(hasIoSlot(node, slot), `component requires a <${slot}> block`);
       }
+      req(bodyChildren(node).some((c) => c.tag === 'pseudo'), 'component requires a ctrl|rule|dataflow <pseudo> slot');
       break;
-    // port/actor/policy: lenient (kind valid is enough for now)
+    case 'port': {
+      const portKind = propString(node, 'port_kind');
+      const hasMarker = (portKind === 'command' || portKind === 'message')
+        || tags.has('commands') || tags.has('messages')
+        || hasProp(node, 'command') || hasProp(node, 'message');
+      req(hasMarker, 'port requires a command|message marker (port_kind, <commands>/<messages> slot, or command/message property)');
+      break;
+    }
+    case 'policy': {
+      const hasRulePseudo = tags.has('rule');
+      const hasBehaviorRef = anyPropContains(node, 'behavior://');
+      req(hasRulePseudo || hasBehaviorRef, 'policy requires a rule pseudo or a behavior:// reference');
+      break;
+    }
     default:
+      // actor: content-quality review items (single-writer stance, tilt, decoupling) stay
+      // non-enforced by CLI; only kernel-kind membership is checked above.
       break;
   }
 

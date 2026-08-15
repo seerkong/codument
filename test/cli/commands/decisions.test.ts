@@ -49,7 +49,7 @@ describe('codument decisions validate', () => {
     expect(out).toContain('no issues');
   });
 
-  it('fails pending decisions', async () => {
+  it('warns on pending decisions', async () => {
     const ws = tmpWorkspace();
     const file = path.join(ws, 'decisions.md');
     writeDecisionFile(file, `# Decisions
@@ -61,8 +61,8 @@ describe('codument decisions validate', () => {
 `);
 
     const { code, out } = await runDecisions(ws, [file]);
-    expect(code).toBe(1);
-    expect(out).toContain('[error] 1. Pending decision: decision is still pending');
+    expect(code).toBe(0);
+    expect(out).toContain('[warning] 1. Pending decision: decision is still pending');
   });
 
   it('warns but succeeds when durable metadata is incomplete', async () => {
@@ -126,7 +126,7 @@ describe('codument decisions validate', () => {
     expect(out).toContain(path.join('codument', 'tracks', 'active', 'legacy-sample', 'decisions.md'));
   });
 
-  it('fails pending decisions in decisions.xnl', async () => {
+  it('warns on pending decisions in decisions.xnl', async () => {
     const ws = tmpWorkspace();
     const file = path.join(ws, 'decisions.xnl');
     writeDecisionFile(file, `<decision #track.sample.pending {
@@ -142,9 +142,9 @@ describe('codument decisions validate', () => {
 `);
 
     const { code, out } = await runDecisions(ws, [file]);
-    expect(code).toBe(1);
-    expect(out).toContain('[error] track.sample.pending: decision is still pending');
-    expect(out).toContain("[error] track.sample.pending: blocking decision has unresolved status 'pending'");
+    expect(code).toBe(0);
+    expect(out).toContain('[warning] track.sample.pending: decision is still pending');
+    expect(out).toContain("[warning] track.sample.pending: blocking decision has unresolved status 'pending'");
   });
 
   it('validates nested decision-tree decisions from body children', async () => {
@@ -171,8 +171,8 @@ describe('codument decisions validate', () => {
 `);
 
     const { code, out } = await runDecisions(ws, [file]);
-    expect(code).toBe(1);
-    expect(out).toContain('[error] track.root.child: decision is still pending');
+    expect(code).toBe(0);
+    expect(out).toContain('[warning] track.root.child: decision is still pending');
   });
 
   it('validates options wrapper separately from nested decision children', async () => {
@@ -215,8 +215,8 @@ describe('codument decisions validate', () => {
 `);
 
     const { code, out } = await runDecisions(ws, [file]);
-    expect(code).toBe(1);
-    expect(out).toContain('[error] track.options.valid: decision is still pending');
+    expect(code).toBe(0);
+    expect(out).toContain('[warning] track.options.valid: decision is still pending');
     expect(out).not.toContain('options must be inside the decision extend block');
   });
 
@@ -450,8 +450,8 @@ describe('codument decisions validate', () => {
 `);
 
     const { code, out } = await runDecisions(ws, ['mission-source-set']);
-    expect(code).toBe(1);
-    expect(out).toContain('[error] mission.source_set.child: decision is still pending');
+    expect(code).toBe(0);
+    expect(out).toContain('[warning] mission.source_set.child: decision is still pending');
     expect(out).toContain('decisions/nested.xnl');
   });
 
@@ -507,7 +507,7 @@ describe('codument decisions validate', () => {
 `);
 
     const { code, out } = await runDecisions(ws, [file]);
-    expect(code).toBe(1);
-    expect(out).toContain('[error] Legacy pending: decision is still pending');
+    expect(code).toBe(0);
+    expect(out).toContain('[warning] Legacy pending: decision is still pending');
   });
 });

@@ -57,14 +57,14 @@ describe('modeling node schema validation', () => {
 
   it('accepts bare-tag IO blocks on component (canonical)', () => {
     const ok = node(
-      `<component #c.ok { kind = "component" } [ <runtime ?r>x</?r> <input ?i>x</?i> <config ?cf>x</?cf> <output ?o>x</?o> ]>`,
+      `<component #c.ok { kind = "component" } [ <runtime ?r>x</?r> <input ?i>x</?i> <config ?cf>x</?cf> <output ?o>x</?o> <pseudo { kind = "ctrl" } ?p>fn() {}</?p> ]>`,
     );
     expect(validateModelingNode(ok)).toEqual([]);
   });
 
   it('accepts role-tagged <types { role = "..." }> IO blocks on component (compat)', () => {
     const ok = node(
-      `<component #c.role { kind = "component" } [ <types { role = "runtime" } ?r>x</?r> <types { role = "input" } ?i>x</?i> <types { role = "config" } ?cf>x</?cf> <types { role = "output" } ?o>x</?o> ]>`,
+      `<component #c.role { kind = "component" } [ <types { role = "runtime" } ?r>x</?r> <types { role = "input" } ?i>x</?i> <types { role = "config" } ?cf>x</?cf> <types { role = "output" } ?o>x</?o> <pseudo { kind = "ctrl" } ?p>fn() {}</?p> ]>`,
     );
     const e = validateModelingNode(ok).join('\n');
     expect(e).not.toMatch(/requires a <runtime> block/);
@@ -101,5 +101,33 @@ describe('modeling node schema validation', () => {
       `<object #resource.legacy kind="entity" fact_grade="authoritative_fact" single_writer="resource.store" [ <types ?t>interface X {}</?t> ]>`,
     );
     expect(validateModelingNode(n)).toEqual([]);
+  });
+
+  it('requires a ctrl|rule|dataflow pseudo slot on component', () => {
+    const bad = node(
+      `<component #c.nopseudo { kind = "component" } [ <runtime ?r>x</?r> <input ?i>x</?i> <config ?cf>x</?cf> <output ?o>x</?o> ]>`,
+    );
+    expect(validateModelingNode(bad).join('\n')).toMatch(/requires a ctrl\|rule\|dataflow <pseudo> slot/);
+  });
+
+  it('requires a command|message marker on port', () => {
+    const bad = node(`<port #p.plain { kind = "port" } [ <types ?t>x</?t> ]>`);
+    expect(validateModelingNode(bad).join('\n')).toMatch(/requires a command\|message marker/);
+    const ok = node(`<port #p.ok { kind = "port" port_kind = "message" } [ <types ?t>x</?t> ]>`);
+    expect(validateModelingNode(ok)).toEqual([]);
+  });
+
+  it('requires a rule pseudo or behavior:// reference on policy', () => {
+    const bad = node(`<policy #pol.plain { kind = "policy" } [ <desc ?>x</?> ]>`);
+    expect(validateModelingNode(bad).join('\n')).toMatch(/requires a rule pseudo or a behavior:\/\/ reference/);
+    const okRule = node(`<policy #pol.rule { kind = "policy" } [ <rule ?>if x then y</?> ]>`);
+    expect(validateModelingNode(okRule)).toEqual([]);
+    const okRef = node(`<policy #pol.ref { kind = "policy" behaviors = ["behavior://codument-core/x"] } [ <desc ?>x</?> ]>`);
+    expect(validateModelingNode(okRef)).toEqual([]);
+  });
+
+  it('rejects a state-machine mermaid without state declarations', () => {
+    const bad = node(`<state-machine #sm.plain { kind = "state-machine" } [ <mermaid ?m>flowchart LR</?m> ]>`);
+    expect(validateModelingNode(bad).join('\n')).toMatch(/declares states/);
   });
 });

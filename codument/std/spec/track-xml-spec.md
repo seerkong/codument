@@ -131,7 +131,7 @@ tracks/
   <SubNodes>
 
     <!-- 第一层 TaskGroup = phase -->
-    <TaskGroup id="P1" name="后端导出端点" status="ACTIVE" order="0">
+    <TaskGroup id="P1" name="后端导出端点" status="ACTIVE" order="0" cdt:child-mode="dag">
       <Description>新增 /reports/export.csv，复用现有查询</Description>
       <cdt:Gate>                              <!-- 阶段门控（旧 gate_criteria） -->
         <cdt:Criterion>所有 P0 任务 DONE</cdt:Criterion>
@@ -152,6 +152,10 @@ tracks/
             <Task id="T1.2.2" name="流式写出" status="ACTIVE" order="1"/>
           </SubNodes>
         </TaskGroup>
+        <!-- 有前驱的直接下层：§5 <Dag for="P1"> 的 T1.3 依赖 T1.1/T1.2（P1 直接下层） -->
+        <Task id="T1.3" name="导出文档与样例" status="NOT_STARTED" order="2" priority="P1">
+          <Description>补充导出 API 文档与 CSV 样例</Description>
+        </Task>
       </SubNodes>
       <!-- phase 级行为 hook（见 §6） -->
       <Hooks>
@@ -159,17 +163,17 @@ tracks/
       </Hooks>
     </TaskGroup>
 
-    <TaskGroup id="P2" name="前端导出按钮" status="TODO" order="1">
+    <TaskGroup id="P2" name="前端导出按钮" status="NOT_STARTED" order="1">
       <Description>报表页"导出 CSV"按钮</Description>
       <SubNodes>
-        <Task id="T2.1" name="按钮与下载" status="TODO" order="0" priority="P0"/>
+        <Task id="T2.1" name="按钮与下载" status="NOT_STARTED" order="0" priority="P0"/>
       </SubNodes>
     </TaskGroup>
 
-    <TaskGroup id="P3" name="docs 同步与收尾" status="TODO" order="2">
+    <TaskGroup id="P3" name="docs 同步与收尾" status="NOT_STARTED" order="2">
       <Description>同步 docs，终态人工确认</Description>
       <SubNodes>
-        <Task id="T3.1" name="同步 codument/modeling 与 codument/engineering" status="TODO" order="0" priority="P1">
+        <Task id="T3.1" name="同步 codument/modeling 与 codument/engineering" status="NOT_STARTED" order="0" priority="P1">
           <Hooks><Hook on="task:after"><cdt:AttractorCheck use="docs"/></Hook></Hooks>
         </Task>
       </SubNodes>

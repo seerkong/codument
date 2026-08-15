@@ -9,6 +9,7 @@ XNL（Extensible Notation Language）
 - 数组块：`[ item1 item2 <child> ]` → 存入 `body`（元素可为值或子节点）。
 - 唯一子节点块（extend）：`( <child1> <child2> )` → 存入 `extend`，同名覆盖旧值并警告，保持出现顺序。
 - 文本块：`<name metadata {attr} ?marker> ... </?marker>`，允许 metadata/`{}`，禁止 `[]`/`()`；标记可选但必须首尾一致。
+- ⚠️ **文本块闭合永远是 `</?>`**：不要写 XML 风格的 `</tagname>` 对称闭合（解析器不识别，会导致 extend/body 结构错乱）。❌ `<description ?>…</description>`；✅ `<description ?>…</?>`。文本内容中也不要出现 `</?` 字面量（会被当成提前闭合）。
 - 无其它块时直接以 `>` 结束节点。
 
 ## metadata 与 attributes 的语义边界

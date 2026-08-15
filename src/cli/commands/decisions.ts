@@ -211,18 +211,29 @@ function validateXnlDecisionRecords(
   for (const record of records) {
     const status = record.status;
     if (status === 'pending') {
+      // pending 是规划期作者态（decision-tree 协议）：validate 只给 warning，不阻断。
+      findings.push({
+        file,
+        severity: 'warning',
+        decision: record.id,
+        message: 'decision is still pending (authoring state; resolve to accepted/resolved/deferred before archive/promotion)',
+      });
+    }
+
+    // durable 决策在提升/归档前必须 resolve：未决保持 error（归档 gate 语义）。
+    if (record.durableCandidate && status && !RESOLVED_DECISION_STATUS.has(status)) {
       findings.push({
         file,
         severity: 'error',
         decision: record.id,
-        message: 'decision is still pending',
+        message: `durable candidate decision has unresolved status '${status}' (must be accepted/resolved/deferred before promotion)`,
       });
     }
 
     if (hasBlockingBlocks(record.blocks) && status && !RESOLVED_DECISION_STATUS.has(status)) {
       findings.push({
         file,
-        severity: status === 'pending' ? 'error' : 'warning',
+        severity: 'warning',
         decision: record.id,
         message: `blocking decision has unresolved status '${status}'`,
       });
@@ -674,7 +685,7 @@ function validateXnlDecisionSourceSet(sources: DecisionSourceSpec[]): DecisionFi
         severity: 'error',
         decision: '(file)',
         layer: 'syntax',
-        message: `invalid XNL: ${message}`,
+        message: `invalid XNL: ${message}（提示：XNL 文本块闭合应为 </?>，检查是否误写为 </tagname> 的 XML 风格闭合）`,
       });
       continue;
     }
@@ -775,18 +786,19 @@ export function validateDecisionsFile(file: string): DecisionFinding[] {
     const durable = field(section.body, 'Durable candidate')?.toLowerCase();
 
     if (status === 'pending') {
+      // pending 是规划期作者态：validate 只给 warning，不阻断。
       findings.push({
         file,
-        severity: 'error',
+        severity: 'warning',
         decision: section.title,
-        message: 'decision is still pending',
+        message: 'decision is still pending (authoring state; resolve to accepted/resolved/deferred before archive/promotion)',
       });
     }
 
     if (blocks && blocks !== '-' && blocks.toLowerCase() !== 'none' && status && !RESOLVED_DECISION_STATUS.has(status)) {
       findings.push({
         file,
-        severity: status === 'pending' ? 'error' : 'warning',
+        severity: 'warning',
         decision: section.title,
         message: `blocking decision has unresolved status '${status}'`,
       });
@@ -931,9 +943,16 @@ export async function decisionsCommand(args: string[]) {
   const rest = args.slice(1);
   switch (sub) {
     case 'validate': {
+      const json = rest.includes('--json');
       const { positional } = parseOptions(rest);
       const target = resolveTarget(positional[0]);
-      report(validateTarget(target), target.display);
+      const findings = validateTarget(target);
+      if (json) {
+        console.log(JSON.stringify(findings, null, 2));
+        if (findings.some((f) => f.severity === 'error')) process.exit(1);
+      } else {
+        report(findings, target.display);
+      }
       return;
     }
     default:

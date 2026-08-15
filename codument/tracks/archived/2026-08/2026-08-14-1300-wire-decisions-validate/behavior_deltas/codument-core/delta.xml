@@ -1,0 +1,36 @@
+<behavior-patch capability="codument-core" version="1">
+  <upsert selector="behavior://codument-core/requirements/track-decisions-validation">
+    <requirement id="track-decisions-validation">
+      <statement>Codument SHALL validate a track's decisions.xnl (and its recursive decisions/** source set) as part of codument validate, so XNL authoring errors are caught at creation time instead of the archive gate.</statement>
+      <suite id="validate-covers-decisions" name="validate 覆盖 decisions">
+        <case id="syntax-error-fails">
+          <given>一个 active/pending track 的 decisions.xnl 含 XNL 文本块闭合误写（如 `&lt;/description&gt;` 代替 `&lt;/?&gt;`）</given>
+          <when>用户运行 codument validate &lt;track-id&gt;</when>
+          <then>系统 SHALL report an error that names the file and hints the correct `&lt;/?&gt;` closer</then>
+        </case>
+        <case id="valid-decisions-passes">
+          <given>一个 track 的 decisions.xnl 语法合法</given>
+          <when>用户运行 codument validate &lt;track-id&gt;</when>
+          <then>系统 SHALL pass with no decisions-related errors</then>
+        </case>
+        <case id="missing-decisions-not-false-positive">
+          <given>一个 track 没有 decisions.xnl 也没有 decisions/ 目录</given>
+          <when>用户运行 codument validate &lt;track-id&gt;</when>
+          <then>系统 SHALL NOT report a decisions error for that track</then>
+        </case>
+        <case id="recursive-source-set">
+          <given>一个 track 存在 decisions/**/*.xnl 递归 source set</given>
+          <when>用户运行 codument validate &lt;track-id&gt;</when>
+          <then>系统 SHALL validate the recursive set the same way codument decisions validate does</then>
+        </case>
+      </suite>
+      <suite id="closer-spec" name="XNL 闭合规范">
+        <case id="spec-bad-example">
+          <given>xnl-format.md 的文本块语法规则</given>
+          <when>审查者阅读该规范</when>
+          <then>系统 SHALL document `&lt;/description&gt;` 等 XML 风格闭合为错误写法，闭合永远为 `&lt;/?&gt;`</then>
+        </case>
+      </suite>
+    </requirement>
+  </upsert>
+</behavior-patch>

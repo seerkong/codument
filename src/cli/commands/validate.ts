@@ -2,12 +2,15 @@ import * as fs from 'fs';
 import * as path from 'path';
 import {
   ACTIVE_TRACKS_DIR,
+  ARCHIVED_TRACKS_DIR,
   CONFIG_DIR,
   PENDING_TRACKS_DIR,
   codumentExists,
   parseOptions,
 } from '../utils';
 import { parseSpecXmlContent, type SpecXmlNode } from '../utils/spec-xml';
+import { validateMissionXml } from '../mission/validate';
+import { validateDecisionsFile } from './decisions';
 
 /**
  * `codument validate [track-id]` — validates the new XML standard:
@@ -20,6 +23,8 @@ interface ValidationError {
   file: string;
   message: string;
   severity: 'error' | 'warning';
+  /** Stable rule id (see T1.5 unified AI-friendly output). */
+  rule?: string;
 }
 
 const METADATA_STATUS = new Set(['new', 'in_progress', 'completed', 'cancelled']);
@@ -172,7 +177,7 @@ function validateHooks(track: SpecXmlNode, file: string, errors: ValidationError
     }
     const onEx = gl.attrs['on-exhausted'];
     if (onEx !== undefined && !ON_EXHAUSTED.has(onEx)) {
-      errors.push({ file, severity: 'warning', message: `<cdt:GapLoop on-exhausted="${onEx}"> 非常见取值（block|continue|fail）` });
+      errors.push({ file, severity: 'error', rule: 'gap-loop.on-exhausted-illegal', message: `<cdt:GapLoop on-exhausted="${onEx}"> 非法（block|continue|fail）` });
     }
     const verifyRound = gl.attrs['verify-round'];
     if (verifyRound !== undefined && verifyRound !== 'true' && verifyRound !== 'false') {
@@ -280,6 +285,28 @@ function validateBehaviorDeltas(trackDir: string, errors: ValidationError[]): nu
   return files.length;
 }
 
+/**
+ * Validate a track's decision source set (root decisions.xnl + recursive
+ * decisions/**) the same way `codument decisions validate` does, so XNL
+ * authoring errors are caught at plan/impl time instead of the archive gate.
+ * Absence of both targets is a pass (legacy tracks are not false-flagged).
+ */
+function validateTrackDecisions(trackDir: string, errors: ValidationError[]): void {
+  const root = path.join(trackDir, 'decisions.xnl');
+  const dir = path.join(trackDir, 'decisions');
+  const targets = [root, dir].filter((t) => fs.existsSync(t));
+  for (const target of targets) {
+    for (const f of validateDecisionsFile(target)) {
+      errors.push({
+        file: f.file,
+        message: f.message,
+        severity: f.severity,
+        rule: f.layer ? `decision.${f.layer}` : undefined,
+      });
+    }
+  }
+}
+
 // --- command ----------------------------------------------------------------
 
 function trackDirectories(): Array<{ id: string; dir: string }> {
@@ -291,27 +318,48 @@ function trackDirectories(): Array<{ id: string; dir: string }> {
   });
 }
 
+function missionDirectories(): Array<{ id: string; dir: string }> {
+  return ['pending', 'active', 'archived'].flatMap((state) => {
+    const parent = path.join('codument', 'missions', state);
+    if (!fs.existsSync(parent)) return [];
+    return fs.readdirSync(parent, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory() && fs.existsSync(path.join(parent, entry.name, 'mission.xml')))
+      .map((entry) => ({ id: entry.name, dir: path.join(parent, entry.name) }));
+  });
+}
+
+function printFinding(e: ValidationError, baseDir: string): void {
+  const rule = e.rule ? ` (${e.rule})` : '';
+  console.log(`    ${e.severity === 'error' ? '✗' : '⚠'} [${path.relative(baseDir, e.file)}]${rule} ${e.message}`);
+}
+
 export async function validateCommand(args: string[]): Promise<void> {
   if (!codumentExists()) {
     console.error('Codument is not initialized. Run codument init first.');
     process.exit(1);
   }
+  const json = args.includes('--json');
   const { positional } = parseOptions(args);
   const target = positional[0];
   const tracks = trackDirectories();
-  const targets = !target || target === 'all'
+  const missions = missionDirectories();
+  const trackTargets = !target || target === 'all'
     ? tracks
     : tracks.filter((track) => track.id === target);
+  const missionTargets = !target || target === 'all'
+    ? missions
+    : (missions.some((m) => m.id === target) ? missions.filter((m) => m.id === target) : []);
 
-  if (targets.length === 0) {
-    console.log('No tracks to validate.');
+  if (trackTargets.length === 0 && missionTargets.length === 0) {
+    console.log('No tracks or missions to validate.');
     return;
   }
 
   const profiles = loadProfileNames();
   let hadError = false;
+  const allFindings: ValidationError[] = [];
 
-  for (const { id, dir: trackDir } of targets) {
+  for (const { id, dir: trackDir } of trackTargets) {
     const trackXml = path.join(trackDir, 'track.xml');
     const errors: ValidationError[] = [];
 
@@ -322,6 +370,7 @@ export async function validateCommand(args: string[]): Promise<void> {
     }
     validateTrackXml(fs.readFileSync(trackXml, 'utf-8'), trackXml, errors, profiles);
     const deltaCount = validateBehaviorDeltas(trackDir, errors);
+    validateTrackDecisions(trackDir, errors);
 
     const errs = errors.filter((e) => e.severity === 'error');
     const warns = errors.filter((e) => e.severity === 'warning');
@@ -332,8 +381,36 @@ export async function validateCommand(args: string[]): Promise<void> {
       console.log(`✗ ${id}: ${errs.length} error(s)`);
     }
     for (const e of errors) {
-      console.log(`    ${e.severity === 'error' ? '✗' : '⚠'} [${path.relative(trackDir, e.file)}] ${e.message}`);
+      printFinding(e, trackDir);
     }
+    allFindings.push(...errors);
+  }
+
+  for (const { id, dir: missionDir } of missionTargets) {
+    const missionXml = path.join(missionDir, 'mission.xml');
+    const errors: ValidationError[] = validateMissionXml(fs.readFileSync(missionXml, 'utf-8')).map((f) => ({
+      file: missionXml,
+      severity: f.severity,
+      message: f.message,
+      rule: f.rule,
+    }));
+
+    const errs = errors.filter((e) => e.severity === 'error');
+    const warns = errors.filter((e) => e.severity === 'warning');
+    if (errs.length === 0) {
+      console.log(`✓ mission ${id}: mission.xml OK${warns.length ? ` (${warns.length} warning)` : ''}`);
+    } else {
+      hadError = true;
+      console.log(`✗ mission ${id}: ${errs.length} error(s)`);
+    }
+    for (const e of errors) {
+      printFinding(e, missionDir);
+    }
+    allFindings.push(...errors);
+  }
+
+  if (json) {
+    console.log(JSON.stringify(allFindings, null, 2));
   }
 
   if (hadError) process.exit(1);

@@ -22,6 +22,7 @@ export async function modelingCommand(args: string[]) {
 
 function modelingValidate(args: string[]): void {
   const { positional, options } = parseOptions(args);
+  const json = args.includes('--json');
   const deltaTrack = typeof options.deltas === 'string' ? options.deltas : undefined;
 
   let dir: string;
@@ -48,7 +49,12 @@ function modelingValidate(args: string[]): void {
   }
 
   const findings = validateModelingTree(dir, { mode });
-  reportFindings(findings, dir);
+  if (json) {
+    console.log(JSON.stringify(findings, null, 2));
+    if (findings.some((f) => f.severity === 'error')) process.exit(1);
+  } else {
+    reportFindings(findings, dir);
+  }
 }
 
 function reportFindings(findings: ValidateFinding[], dir: string): void {

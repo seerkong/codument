@@ -10,11 +10,11 @@ Codument 是一个 CLI 工具，为 AI 辅助软件开发带来结构化和可�
 
 在使用 AI 编程助手时，很容易忘记计划了什么、实现了什么、还有什么待完成。Codument 通过以下方式解决这个问题：
 
-- **结构化规划**：把工作拆解到 `plan.xml` 的阶段、任务和子任务
-- **规范优先**：先用 XML spec delta 定义需求，再编码
-- **进度追踪**：从 `plan.xml` 读取 TODO / IN_PROGRESS / DONE / BLOCKED 状态
+- **结构化规划**：把工作拆解到 `track.xml` 的阶段、任务和子任务
+- **规范优先**：先用 XML behavior delta 定义需求，再编码
+- **进度追踪**：从 `track.xml` 读取 NOT_STARTED / ACTIVE / DONE 等任务状态
 - **Gap Loop 校验**：在收口前用 fresh 轮次做目标偏差复检与修正
-- **支持波次工作流**：支持 discuss / plan-wave / execute-wave / verify 命令流
+- **支持 DAG 工作流**：支持 plan-track / impl-track / gap-loop / verify 命令流
 - **多工具支持**：支持 Claude Code、CodeFlicker、OpenAI Codex CLI、Eidolon、Sparrow 和 OpenCode
 
 ## 功能特性
@@ -23,10 +23,10 @@ Codument 是一个 CLI 工具，为 AI 辅助软件开发带来结构化和可�
 
 每个功能或 Bug 修复作为一个 "track" 进行管理，通常包含：
 - **proposal.md** - 变更提案，包含背景和范围
-- **spec_deltas/** - XML 行为规范和需求增量
-- **plan.xml** - 阶段 / 任务 / 子任务计划、状态、提交模式以及可选的 wave DAG
+- **behavior_deltas/** - XML 行为增量（`<behavior-patch>`，旧 `spec_deltas/`）
+- **track.xml** - 阶段 / 任务 / 子任务计划、状态、提交模式以及可选的 Schedule DAG
 - **proposal/** 和 **design/** - 大型 track 可选的子目录
-- **decisions/** 和 **memory/** - 可选的 track 内长期决策和记忆候选
+- **decisions.xnl** 和 **memory/** - track 内过程决策 forest 与记忆候选
 - **design.md** - 可选的技术设计
 
 ### 层级化任务管理
@@ -87,7 +87,7 @@ codument init --agent=claude,codeflicker,codex,eidolon,sparrow,opencode
 
 这将：
 - 创建 `codument/` 目录结构
-- 生成 `codument/attractors/project.md`、`codument/attractors/product.md`、`codument/config/feature.json` 和 `state.json`
+- 生成 `codument/` 目录结构（config/*.xml、std/、tracks/、missions/、behaviors/、modeling/、engineering/、decisions/ 等）
 - 生成 `codument/std/` 和 `codument/workflows/workflow.md`
 - 为你选择的 target 生成对应的独立 `codument-*` skill 目录
 - 对仍支持 command 的 target 额外生成 command wrapper
@@ -108,7 +108,7 @@ Sparrow：使用 codument:track 或 codument-track 创建“添加用户认证�
 
 助手会引导你完成：
 1. 讨论需求
-2. 创建 XML spec delta、`proposal.md` 和 `plan.xml`
+2. 创建 behavior delta、`proposal.md`、`design.md` 和 `track.xml`
 3. 将工作拆解为阶段、任务和子任务
 4. 选择提交模式（`auto` / `manual`）
 
@@ -120,12 +120,11 @@ Codex：使用 codument:implement 或 codument-implement 实现 track <track-id>
 Sparrow：使用 codument:implement 或 codument-implement 实现 track <track-id>
 ```
 
-如果采用 wave 工作流，生成的命令集还包括：
-- `discuss`
-- `plan-wave`
-- `execute-wave`
-- `gap-loop`
-- `verify`
+如果采用 DAG 波次工作流，相关命令还包括：
+- `discuss`（plan-track 前置讨论）
+- `gap-loop`（fresh 轮次目标偏差复检与修正）
+- `verify`（独立验证）
+- `archive-track`（归档）
 
 启用 `yield-gap-loop` 时应使用 fresh round；若已有上层编排应用接管该协议，则遵循上层协议，不再在当前节点启动冲突的嵌套 loop。
 
@@ -137,7 +136,7 @@ Codex：使用 codument:archive 或 codument-archive 归档 track add-user-auth
 Sparrow：使用 codument:archive 或 codument-archive 归档 track add-user-auth
 ```
 
-将 track 移动到 `codument/archive/YYYY-MM/YYYY-MM-DD-HHmm-add-user-auth/`，时间来自 track 的最后更新时间。
+将 track 移动到 `codument/tracks/archived/YYYY-MM/YYYY-MM-DD-HHmm-add-user-auth/`，时间来自 track 的最后更新时间。
 
 ## 升级已有工作区
 
@@ -147,7 +146,7 @@ Sparrow：使用 codument:archive 或 codument-archive 归档 track add-user-aut
 codument upgrade-workspace
 ```
 
-该命令会升级 `codument/std/`，并根据 `codument/state.json` 中的 `cli_tools` 重新生成对应 AI CLI 工具的工作流入口。
+该命令会升级 `codument/std/`，并根据 `codument/config/cli-tools.json` 中的配置重新生成对应 AI CLI 工具的工作流入口。
 对于命令型 target，会先同步工作区内的 skill 模板，再重新生成 command wrapper。
 对于 Claude，会将内置 skill 模板同步到 `.claude/skills/codument-*/`。
 对于 CodeFlicker，会将内置 skill 模板同步到 `.codeflicker/skills/codument-*/`。
@@ -161,7 +160,7 @@ codument upgrade-workspace
 
 ## 升级已有 Track
 
-将单个 track（活跃或已归档）升级到支持波次的新 plan.xml 版本：
+将单个 track（活跃或已归档）升级到当前 track.xml 约定（含 Schedule DAG 与 cdt: 节点迁移）：
 
 ```bash
 codument upgrade-track <track-id-或-archive-id>
@@ -180,7 +179,7 @@ codument upgrade-track <track-id-或-archive-id>
 | `codument validate [id] [--type track\|spec] [--strict]` | 验证 track 或 spec |
 | `codument archive <track-id> [--skip-specs] [--yes]` | 归档已完成的 track |
 | `codument upgrade-workspace [--no-backup] [--backup-dir <path>]` | 升级内置工作区文件和 AI 命令 |
-| `codument upgrade-track <track-id-or-archive-id> [--mode wave\|sequential]` | 将单个 track 升级到当前 `plan.xml` 约定 |
+| `codument upgrade-track <track-id-or-archive-id>` | 将单个 track 升级到当前 `track.xml` 约定 |
 | `codument --help` / `codument --version` | 显示帮助或版本号 |
 
 ### 全局选项
@@ -196,99 +195,82 @@ codument upgrade-track <track-id-或-archive-id>
 ```text
 your-project/
 ├── codument/
-│   ├── state.json
-│   ├── attractors/
-│   │   ├── project.md
-│   │   └── product.md
 │   ├── config/
-│   │   └── feature.json
-│   ├── std/
+│   │   ├── modeling.xml          # modeling 默认启用开关与阈值
+│   │   ├── engineering.xml
+│   │   ├── attractor-profiles.xml # <cdt:AttractorCheck use="<name>"/> 的 profile 定义
+│   │   ├── action-hooks.xml
+│   │   └── cli-tools.json
+│   ├── std/                      # 内置标准（AGENTS.md / actions / spec / methods / protocols）
 │   │   ├── AGENTS.md
-│   │   ├── plan-xml-spec.md
-│   │   ├── workflow.md
-│   │   └── protocols.md
-│   ├── workflows/
-│   │   └── workflow.md
+│   │   └── spec/
+│   │       ├── track-xml-spec.md
+│   │       ├── mission-xml-spec.md
+│   │       ├── xnl-format.md
+│   │       └── ...
 │   ├── tracks/
-│   │   └── <track-id>/          # 由 AI 命令后续创建
-│   │       ├── spec_deltas/
-│   │       ├── proposal.md
-│   │       ├── plan.xml
-│   │       ├── design.md        # 可选
-│   │       ├── proposal/        # 可选，大型 track
-│   │       ├── design/          # 可选，大型 track
-│   │       ├── decisions/       # 可选，决策记录
-│   │       ├── memory/          # 可选，记忆候选
-│   │       ├── analysis/        # 可选，规划产物
-│   │       ├── context.md       # 可选，wave 工作流
-│   │       ├── state.md         # 可选，wave 工作流
-│   │       ├── phases/          # 可选，wave 工作流
-│   │       └── waves/           # 可选，wave 工作流
-│   ├── decisions/
-│   ├── legacy/
-│   ├── specs/
-│   └── archive/
+│   │   ├── pending/<id>/         # 待批准的 track（track.xml / proposal.md / design.md / behavior_deltas/ / decisions.xnl）
+│   │   ├── active/<id>/          # 执行中的 track
+│   │   └── archived/YYYY-MM/     # 已归档 track
+│   ├── missions/                 # 长周期 mission（pending / active / archived）
+│   ├── behaviors/                # behavior 登记表（<capability>.xml）
+│   ├── modeling/                 # 领域建模 XNL registry（plane/context）
+│   ├── engineering/              # 工程知识 XNL registry
+│   ├── decisions/                # 长期承重决策 canonical XNL registry
+│   └── memory/                   # 长期记忆候选
 ├── .claude/skills/codument-*/    # 选择 Claude Code 时生成
 ├── .claude/commands/codument/    # 选择 Claude Code 时生成
-├── .codeflicker/skills/codument-*/ # 选择 CodeFlicker 时生成
-├── .codeflicker/commands/codument/    # 选择 CodeFlicker 时生成
-├── ~/.codex/skills/codument-*/   # 选择 Codex CLI 时生成
 ├── .eidolon/skills/codument-*/   # 选择 Eidolon 时生成
-├── .eidolon/commands/codument/   # 选择 Eidolon 时生成
-├── .sparrow/skills/codument-*/   # 选择 Sparrow 时生成
-├── .opencode/skills/codument-*/  # 选择 OpenCode 时生成
-├── .opencode/command/            # 选择 OpenCode 时生成
 └── AGENTS.md
 ```
 
-## plan.xml 格式
+## track.xml 格式
+
+`track.xml` 是 track 的**结构 / 状态 / 调度真源**（根 `<Track xmlns:cdt="urn:codument:v1">`），由三轴组成：`TaskSpace`（结构轴）、`Schedule`（调度轴）、`Hooks`（行为轴）：
 
 ```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<plan>
-  <metadata>
-    <track_id>add-user-auth</track_id>
-    <track_name>添加用户认证</track_name>
-    <goal>实现登录和注册功能</goal>
-    <created_at>2026-01-01T10:00:00Z</created_at>
-    <updated_at>2026-01-01T10:00:00Z</updated_at>
-    <status>new</status>
-    <commit_mode>auto</commit_mode>
-  </metadata>
+<Track id="add-user-auth" version="1" xmlns:cdt="urn:codument:v1">
+  <Metadata>
+    <Status>new</Status>
+    <Goal>实现登录和注册功能</Goal>
+    <Description>添加用户认证</Description>
+    <QuestionMode>decision-tree</QuestionMode>
+    <QuestionSeverity>light</QuestionSeverity>
+    <CommitMode>manual</CommitMode>
+  </Metadata>
 
-  <phases>
-    <phase id="P1" name="基础设施">
-      <goal>搭建认证基础架构</goal>
-      <tasks>
-        <task id="T1.1" name="创建用户模型" status="TODO" priority="P0">
-          <description>定义 User 模型，包含用户名、密码哈希、邮箱</description>
-          <acceptance_criteria>
-            <criterion id="T1.1-AC1" checked="false">User 模型包含必要字段</criterion>
-          </acceptance_criteria>
-          <subtasks>
-            <subtask id="T1.1.1" name="编写测试" status="TODO" estimated_hours="2"/>
-            <subtask id="T1.1.2" name="实现模型" status="TODO" estimated_hours="4"/>
-          </subtasks>
-        </task>
-      </tasks>
-      <gate_criteria>
-        <criterion>所有 P0 任务完成</criterion>
-        <criterion>测试覆盖率 >80%</criterion>
-      </gate_criteria>
-    </phase>
-  </phases>
+  <TaskSpace id="space_add-user-auth" name="add-user-auth" version="1">
+    <SubNodes>
+      <!-- 第一层 TaskGroup = phase -->
+      <TaskGroup id="P1" name="基础设施" status="NOT_STARTED" order="0">
+        <cdt:Gate>
+          <cdt:Criterion>所有 P0 任务 DONE</cdt:Criterion>
+          <cdt:Criterion>测试覆盖率 &gt;80%</cdt:Criterion>
+        </cdt:Gate>
+        <SubNodes>
+          <Task id="T1.1" name="创建用户模型" status="NOT_STARTED" order="0" priority="P0">
+            <Description>定义 User 模型，包含用户名、密码哈希、邮箱</Description>
+            <cdt:Acceptance>
+              <cdt:Criterion id="T1.1-AC1">User 模型包含必要字段</cdt:Criterion>
+            </cdt:Acceptance>
+          </Task>
+          <Task id="T1.2" name="实现模型与测试（TDD）" status="NOT_STARTED" order="1" priority="P0"/>
+        </SubNodes>
+      </TaskGroup>
+    </SubNodes>
+  </TaskSpace>
 
-  <summary>
-    <total_phases>1</total_phases>
-    <total_tasks>1</total_tasks>
-    <completed>0</completed>
-    <in_progress>0</in_progress>
-    <todo>1</todo>
-    <blocked>0</blocked>
-  </summary>
-</plan>
+  <!-- 仅在被 cdt:child-mode="dag" 标记的层才声明依赖 -->
+  <Schedule>
+    <Dag for="P1">
+      <Node id="T1.2"><After ref="T1.1"/></Node>
+    </Dag>
+  </Schedule>
+</Track>
 ```
 
+状态枚举：`NOT_STARTED` / `ACTIVE` / `DELEGATED` / `FORWARDED` / `DONE` / `REFUSED` / `ABANDONED`。
+完整规范见 `codument/std/spec/track-xml-spec.md`；`codument validate` 会校验 track.xml / behavior delta / mission.xml，并以 rule-id + 文件位置 + 消息输出 AI 友好的 findings（`--json` 输出结构化结果）。
 ### 优先级
 
 | 优先级 | 描述 |
@@ -301,11 +283,13 @@ your-project/
 
 | 状态 | 描述 |
 |------|------|
-| TODO | 待处理 |
-| IN_PROGRESS | 进行中 |
+| NOT_STARTED | 未开始（旧 `TODO`） |
+| ACTIVE | 进行中（旧 `IN_PROGRESS`） |
+| DELEGATED | 已委派给子代理 |
+| FORWARDED | 已转交其他 agent |
 | DONE | 已完成 |
-| BLOCKED | 被阻塞 |
-| CANCELLED | 已取消 |
+| REFUSED | 已拒绝 |
+| ABANDONED | 已放弃 |
 
 ## 提交模式
 
@@ -320,7 +304,7 @@ your-project/
 
 ## 最佳实践
 
-1. **规范优先**：始终在实现前定义 XML spec delta
+1. **规范优先**：始终在实现前定义 behavior delta
 2. **小任务**：将任务分解为 1-4 小时的小块
 3. **TDD 工作流**：实现前先编写测试
 4. **阶段门控**：在进入下一阶段前验证门控标准
@@ -339,8 +323,8 @@ Codument 强制先定义规范再实现代码。通过 GIVEN/WHEN/THEN 格式，
 
 每个变更都有完整的文档记录：
 - 变更背景和动机（proposal.md）
-- 行为规范（XML spec delta）
-- 任务分解和进度（plan.xml）
+- 行为增量（XML behavior delta）
+- 任务分解和进度（track.xml）
 - 相关实现记录与状态追踪
 
 ### 3. AI 友好
@@ -388,9 +372,9 @@ A: Codument 专门为 AI 辅助开发设计。它：
 
 A: 不需要。在 `codument init` 时选择你实际使用的工具即可。
 
-### Q: plan.xml 格式是否可以扩展？
+### Q: track.xml 格式是否可以扩展？
 
-A: 是的。plan.xml 设计为可扩展格式，你可以添加自定义字段，但不应删除必需字段。
+A: 是的。track.xml 设计为可扩展格式，你可以添加自定义字段，但不应删除必需字段；扩展节点建议使用 `cdt:` 命名空间。
 
 ### Q: 如何处理跨 Track 的依赖？
 

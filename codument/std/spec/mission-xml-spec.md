@@ -225,7 +225,7 @@ mission TaskSpace 必须保持接近 track.xml 的结构：
 - `cdt:TrackLink` 只允许挂在叶子 `Task` 上，不挂在 `TaskGroup` 上。
 - 顶层 `TaskGroup` id 建议使用 `G1` / `G2` / `VERIFY` / `CLOSE` 等语义化或稳定短 id；叶子 task id 建议使用 `G1-T1` 形态。
 
-节点状态复用 track TaskSpace 状态：
+mission 使用**独立的状态枚举**（与 track TaskSpace 枚举不同：mission 专有 `BLOCKED` / `SUPERSED`，不使用 track 的 `DELEGATED` / `FORWARDED` / `REFUSED`）：
 
 - `NOT_STARTED`
 - `ACTIVE`
@@ -234,7 +234,7 @@ mission TaskSpace 必须保持接近 track.xml 的结构：
 - `ABANDONED`
 - `SUPERSEDED`
 
-如果现有 validator 只支持 track 状态枚举，第一版实现可以在 mission spec 中定义语义，后续再扩 validator。
+该枚举与 track 的 `NOT_STARTED|ACTIVE|DELEGATED|FORWARDED|DONE|REFUSED|ABANDONED` 不同；由 `codument validate` 的 mission 校验面（rule `mission.taskspace.status`）强制，见 `actions/validate.md`。
 
 ### 6.1 TrackLink
 

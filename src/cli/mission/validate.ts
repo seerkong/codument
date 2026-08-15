@@ -3,6 +3,8 @@ import { parseSpecXmlContent, type SpecXmlNode } from '../utils/spec-xml';
 export interface MissionValidationFinding {
   severity: 'error' | 'warning';
   message: string;
+  /** Stable rule id for machine-readable findings (see T1.5 unified output). */
+  rule?: string;
 }
 
 const ACTOR_ROLES = new Set([
@@ -11,6 +13,23 @@ const ACTOR_ROLES = new Set([
   'MissionReconciler',
   'MissionApplier',
 ]);
+
+/** Metadata.Status vocabulary (mission-xml-spec §5). */
+const MISSION_STATUS = new Set(['pending', 'active', 'completed', 'cancelled', 'superseded', 'archived']);
+/** TaskGroup/Task status vocabulary (mission-xml-spec §6, mission-specific). */
+const MISSION_NODE_STATUS = new Set([
+  'NOT_STARTED', 'ACTIVE', 'DONE', 'BLOCKED', 'ABANDONED', 'SUPERSED',
+]);
+/** Hook on values: track points plus the mission-specific mission:after-node (mission-xml-spec §3/§8.1). */
+const MISSION_HOOK_POINTS = new Set([
+  'track:before', 'track:after',
+  'phase:before', 'phase:after',
+  'task:before', 'task:after',
+  'mission:after-node',
+]);
+const RECONCILE_ON_LIMIT = new Set(['checkpoint', 'continue', 'block']);
+const RECONCILE_ON_DRIFT = new Set(['replan-or-block', 'replan', 'block']);
+const MISSION_CHILD_MODE = new Set(['sequential', 'dag']);
 
 function childrenByTag(node: SpecXmlNode, tag: string): SpecXmlNode[] {
   return node.children.filter((child) => child.tag === tag);
@@ -38,6 +57,193 @@ function persistedPathAttributes(node: SpecXmlNode): string[] {
   });
 }
 
+function validateMissionMetadata(root: SpecXmlNode, findings: MissionValidationFinding[]): void {
+  const metadata = firstChild(root, 'Metadata') ?? root;
+  const status = firstChild(metadata, 'Status');
+  if (status && status.text && !MISSION_STATUS.has(status.text.trim())) {
+    findings.push({
+      severity: 'error',
+      rule: 'mission.metadata.status',
+      message: `<Metadata><Status>${status.text.trim()}</Status> 非法（pending|active|completed|cancelled|superseded|archived）`,
+    });
+  }
+}
+
+function validateMissionTaskSpace(root: SpecXmlNode, findings: MissionValidationFinding[]): void {
+  const taskSpace = firstChild(root, 'TaskSpace');
+  if (!taskSpace) {
+    findings.push({ severity: 'error', rule: 'mission.taskspace.missing', message: '缺少 <TaskSpace>' });
+    return;
+  }
+  const seen = new Set<string>();
+  for (const n of descendants(taskSpace, (x) => x.tag === 'TaskGroup' || x.tag === 'Task')) {
+    const id = n.attrs['id'];
+    if (!id) {
+      findings.push({ severity: 'error', rule: 'mission.taskspace.id', message: `<${n.tag}> 缺少 id 属性` });
+      continue;
+    }
+    if (seen.has(id)) {
+      findings.push({ severity: 'error', rule: 'mission.taskspace.duplicate-id', message: `节点 id 重复：${id}` });
+    }
+    seen.add(id);
+
+    const s = n.attrs['status'];
+    if (s && !MISSION_NODE_STATUS.has(s)) {
+      findings.push({
+        severity: 'error',
+        rule: 'mission.taskspace.status',
+        message: `<${n.tag} id="${id}"> status="${s}" 非法（NOT_STARTED|ACTIVE|DONE|BLOCKED|ABANDONED|SUPERSED）`,
+      });
+    }
+    const cm = n.attrs['cdt:child-mode'];
+    if (cm && !MISSION_CHILD_MODE.has(cm)) {
+      findings.push({
+        severity: 'error',
+        rule: 'mission.taskspace.child-mode',
+        message: `<${n.tag} id="${id}"> cdt:child-mode="${cm}" 非法（sequential|dag）`,
+      });
+    }
+    // cdt:TrackLink is a leaf-Task-only binding pointer (mission-xml-spec §6.1).
+    if (n.tag === 'TaskGroup' && childrenByTag(n, 'cdt:TrackLink').length > 0) {
+      findings.push({
+        severity: 'error',
+        rule: 'mission.tracklink.group',
+        message: `<TaskGroup id="${id}"> 不允许挂 <cdt:TrackLink>（只允许挂在叶子 <Task> 上）`,
+      });
+    }
+  }
+}
+
+function validateMissionSchedule(root: SpecXmlNode, findings: MissionValidationFinding[]): void {
+  const schedule = firstChild(root, 'Schedule');
+  if (!schedule) return;
+  const byId = new Map<string, SpecXmlNode>();
+  const taskSpace = firstChild(root, 'TaskSpace');
+  if (taskSpace) {
+    for (const n of [taskSpace, ...descendants(taskSpace, (x) => x.tag === 'TaskGroup' || x.tag === 'Task')]) {
+      if (n.attrs['id']) byId.set(n.attrs['id'], n);
+    }
+  }
+  const directChildIds = (n: SpecXmlNode): Set<string> => {
+    const sub = firstChild(n, 'SubNodes') ?? n;
+    return new Set(
+      sub.children
+        .filter((c) => c.tag === 'TaskGroup' || c.tag === 'Task')
+        .map((c) => c.attrs['id'])
+        .filter((v): v is string => Boolean(v)),
+    );
+  };
+
+  for (const dag of childrenByTag(schedule, 'Dag')) {
+    const forId = dag.attrs['for'];
+    const owner = forId ? byId.get(forId) : undefined;
+    if (!owner) {
+      findings.push({
+        severity: 'error',
+        rule: 'mission.schedule.dag-target',
+        message: `<Schedule><Dag for="${forId}"> 引用了不存在的节点`,
+      });
+      continue;
+    }
+    if (owner.attrs['cdt:child-mode'] !== 'dag') {
+      findings.push({
+        severity: 'error',
+        rule: 'mission.schedule.dag-mode',
+        message: `<Dag for="${forId}"> 的目标节点未声明 cdt:child-mode="dag"`,
+      });
+    }
+    const layer = directChildIds(owner);
+    const nodes = childrenByTag(dag, 'Node');
+    const ids = nodes.map((n) => n.attrs['id']).filter((v): v is string => Boolean(v));
+    const preds = new Map<string, string[]>();
+
+    for (const node of nodes) {
+      const nid = node.attrs['id'];
+      if (!nid || !layer.has(nid)) {
+        findings.push({
+          severity: 'error',
+          rule: 'mission.schedule.node-layer',
+          message: `<Dag for="${forId}"><Node id="${nid}"> 不是该层的直接下层`,
+        });
+        continue;
+      }
+      const afters = childrenByTag(node, 'After').map((a) => a.attrs['ref']).filter((v): v is string => Boolean(v));
+      for (const ref of afters) {
+        if (!layer.has(ref)) {
+          findings.push({
+            severity: 'error',
+            rule: 'mission.schedule.after-layer',
+            message: `<Node id="${nid}"><After ref="${ref}"> 不是该层的直接下层`,
+          });
+        }
+      }
+      preds.set(nid, afters);
+    }
+
+    // Kahn cycle detection.
+    const indeg = new Map<string, number>();
+    for (const id of ids) indeg.set(id, (preds.get(id) ?? []).filter((p) => ids.includes(p)).length);
+    const queue = ids.filter((id) => (indeg.get(id) ?? 0) === 0);
+    let visited = 0;
+    while (queue.length) {
+      const cur = queue.shift()!;
+      visited++;
+      for (const [node, ps] of preds) {
+        if (ps.includes(cur)) {
+          indeg.set(node, (indeg.get(node) ?? 1) - 1);
+          if (indeg.get(node) === 0) queue.push(node);
+        }
+      }
+    }
+    if (visited < ids.length) {
+      findings.push({
+        severity: 'error',
+        rule: 'mission.schedule.cycle',
+        message: `<Dag for="${forId}"> 存在环（依赖不可拓扑排序）`,
+      });
+    }
+  }
+}
+
+function validateMissionHooks(root: SpecXmlNode, findings: MissionValidationFinding[]): void {
+  for (const hook of descendants(root, (n) => n.tag === 'Hook')) {
+    const on = hook.attrs['on'];
+    if (!on || !MISSION_HOOK_POINTS.has(on)) {
+      findings.push({
+        severity: 'error',
+        rule: 'mission.hook.on',
+        message: `<Hook on="${on}"> 取值非法（track:before|after、phase:before|after、task:before|after、mission:after-node）`,
+      });
+    }
+  }
+  for (const rec of descendants(root, (n) => n.tag === 'cdt:MissionReconcile')) {
+    const maxTracks = rec.attrs['max-tracks'];
+    if (maxTracks !== undefined && (!/^\d+$/.test(maxTracks) || Number(maxTracks) < 1)) {
+      findings.push({
+        severity: 'error',
+        rule: 'mission.reconcile.max-tracks',
+        message: `<cdt:MissionReconcile max-tracks="${maxTracks}"> 必须是正整数`,
+      });
+    }
+    const onLimit = rec.attrs['on-limit'];
+    if (onLimit !== undefined && !RECONCILE_ON_LIMIT.has(onLimit)) {
+      findings.push({
+        severity: 'error',
+        rule: 'mission.reconcile.on-limit',
+        message: `<cdt:MissionReconcile on-limit="${onLimit}"> 非法（checkpoint|continue|block）`,
+      });
+    }
+    const onDrift = rec.attrs['on-drift'];
+    if (onDrift !== undefined && !RECONCILE_ON_DRIFT.has(onDrift)) {
+      findings.push({
+        severity: 'error',
+        rule: 'mission.reconcile.on-drift',
+        message: `<cdt:MissionReconcile on-drift="${onDrift}"> 非法（replan-or-block|replan|block）`,
+      });
+    }
+  }
+}
+
 /**
  * Validates the ActorSet/ProjectRef extension independently from Track XML.
  * Older missions remain readable: absence of the new extension is a warning
@@ -62,6 +268,13 @@ export function validateMissionXml(content: string): MissionValidationFinding[] 
   if (root.attrs['xmlns:cdt'] === undefined) {
     findings.push({ severity: 'error', message: '<Mission> requires the cdt namespace declaration' });
   }
+
+  // Structural validation runs for every mission, including legacy ones, so the
+  // state/schedule/hook rules are never silently skipped by the early return below.
+  validateMissionMetadata(root, findings);
+  validateMissionTaskSpace(root, findings);
+  validateMissionSchedule(root, findings);
+  validateMissionHooks(root, findings);
 
   for (const node of [root, ...descendants(root, () => true)]) {
     for (const name of persistedPathAttributes(node)) {

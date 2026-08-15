@@ -1,0 +1,80 @@
+<Track id="spec-example-add-csv-export" version="1" xmlns:cdt="urn:codument:v1">
+  <Metadata>
+    <Status>in_progress</Status>
+    <Goal>add-csv-export 规范示例（track-xml-spec §4 + §5 组合，供 validate 防回归）</Goal>
+    <Description>track-xml-spec.md §4/§5 修正后的 canonical 组合示例；任何使示例不再合法的修改都会在此失败。</Description>
+  </Metadata>
+
+  <TaskSpace id="space_add-csv-export" name="add-csv-export" version="1">
+    <Description>为报表新增 CSV 导出</Description>
+    <SubNodes>
+
+      <!-- 第一层 TaskGroup = phase -->
+      <TaskGroup id="P1" name="后端导出端点" status="ACTIVE" order="0" cdt:child-mode="dag">
+        <Description>新增 /reports/export.csv，复用现有查询</Description>
+        <cdt:Gate>                              <!-- 阶段门控（旧 gate_criteria） -->
+          <cdt:Criterion>所有 P0 任务 DONE</cdt:Criterion>
+          <cdt:Criterion>转义场景有测试覆盖</cdt:Criterion>
+        </cdt:Gate>
+        <SubNodes>
+          <Task id="T1.1" name="CSV 序列化器" ownerAccount="agent:impl" status="DONE" order="0" priority="P0">
+            <Description>RFC 4180 序列化，处理表头/转义</Description>
+            <cdt:Acceptance>
+              <cdt:Criterion id="T1.1-AC1" checked="true">逗号/引号/换行被正确转义</cdt:Criterion>
+            </cdt:Acceptance>
+          </Task>
+          <!-- 非叶 task → 多层嵌套（旧 subtasks 的泛化） -->
+          <TaskGroup id="T1.2" name="导出端点" status="ACTIVE" order="1" priority="P0">
+            <Description>GET /reports/export.csv，流式返回</Description>
+            <SubNodes>
+              <Task id="T1.2.1" name="路由与参数复用" status="DONE" order="0"/>
+              <Task id="T1.2.2" name="流式写出" status="ACTIVE" order="1"/>
+            </SubNodes>
+          </TaskGroup>
+          <!-- 有前驱的直接下层：§5 <Dag for="P1"> 的 T1.3 依赖 T1.1/T1.2（P1 直接下层） -->
+          <Task id="T1.3" name="导出文档与样例" status="NOT_STARTED" order="2" priority="P1">
+            <Description>补充导出 API 文档与 CSV 样例</Description>
+          </Task>
+        </SubNodes>
+        <!-- phase 级行为 hook（见 §6） -->
+        <Hooks>
+          <Hook on="phase:after"><cdt:AttractorCheck use="coding"/></Hook>
+        </Hooks>
+      </TaskGroup>
+
+      <TaskGroup id="P2" name="前端导出按钮" status="NOT_STARTED" order="1">
+        <Description>报表页"导出 CSV"按钮</Description>
+        <SubNodes>
+          <Task id="T2.1" name="按钮与下载" status="NOT_STARTED" order="0" priority="P0"/>
+        </SubNodes>
+      </TaskGroup>
+
+      <TaskGroup id="P3" name="docs 同步与收尾" status="NOT_STARTED" order="2">
+        <Description>同步 docs，终态人工确认</Description>
+        <SubNodes>
+          <Task id="T3.1" name="同步 codument/modeling 与 codument/engineering" status="NOT_STARTED" order="0" priority="P1">
+            <Hooks><Hook on="task:after"><cdt:AttractorCheck use="docs"/></Hook></Hooks>
+          </Task>
+        </SubNodes>
+        <Hooks><Hook on="phase:after"><cdt:HumanConfirm/></Hook></Hooks>   <!-- 终态校验=人工确认 -->
+      </TaskGroup>
+
+    </SubNodes>
+  </TaskSpace>
+
+  <Schedule>
+    <!-- 每个 <Dag for="<父节点 id>"> 只管该父节点的【直接下层】依赖（单层、可有多个父） -->
+    <Dag for="P1">
+      <Node id="T1.3">                        <!-- 有前驱的直接下层各一个 <Node> -->
+        <After ref="T1.1"/>                    <!-- 前驱用 <After ref> 子元素，一个前驱一行 -->
+        <After ref="T1.2"/>
+      </Node>
+    </Dag>
+    <!-- 顶层（phase 间）若也并行，再加 <Dag for="<TaskSpace id>">；本例 phase 默认顺序，不需要 -->
+    <Parallel max-concurrent="3" spot-check="true"/>   <!-- 旧 wave_config -->
+  </Schedule>
+
+  <Hooks>
+    <Hook on="track:after"><cdt:AttractorCheck use="coding"/></Hook>
+  </Hooks>
+</Track>

@@ -133,3 +133,139 @@ test('validate rejects a behavior-patch without behavior:// selector', async () 
   expect(out).toContain('behavior://');
   expect(code).toBe(1);
 });
+
+test('validate passes the canonical track-xml-spec §4+§5 example fixture', async () => {
+  const ws = tmpWorkspace();
+  const xml = fs.readFileSync(path.join(repoRoot, 'test', 'resources', 'validate', 'track-spec-example.xml'), 'utf-8');
+  writeTrack(ws, 'spec-example', xml);
+  const { code, out } = await runValidate(ws, ['spec-example']);
+  expect(out).toContain('✓ spec-example');
+  expect(code).toBe(0);
+});
+
+test('validate rejects an illegal cdt:GapLoop on-exhausted value', async () => {
+  const ws = tmpWorkspace();
+  writeTrack(ws, 'ton',
+    GOOD_TRACK.replace('id="t1"', 'id="ton"')
+      .replace('<cdt:GapLoop max-rounds="5" on-exhausted="block"/>',
+        '<cdt:GapLoop max-rounds="5" on-exhausted="whatever"/>'));
+  const { code, out } = await runValidate(ws, ['ton']);
+  expect(out).toContain('on-exhausted="whatever"');
+  expect(out).toContain('gap-loop.on-exhausted-illegal');
+  expect(code).toBe(1);
+});
+
+test('validate checks mission.xml status, hook, schedule, and reconcile rules', async () => {
+  const ws = tmpWorkspace();
+  const missionDir = path.join(ws, 'codument', 'missions', 'active', 'm1');
+  fs.mkdirSync(missionDir, { recursive: true });
+  fs.writeFileSync(path.join(missionDir, 'mission.xml'), `<Mission id="m1" xmlns:cdt="urn:codument:v1">
+  <Metadata>
+    <Status>active</Status>
+    <Goal>mission fixture</Goal>
+  </Metadata>
+  <TaskSpace id="space_m1" name="m1" version="1" cdt:child-mode="dag">
+    <SubNodes>
+      <TaskGroup id="G1" name="g1" status="NOT_STARTED" order="0">
+        <cdt:TrackLink state="candidate" id="some-track" project-ref="host"/>
+        <SubNodes>
+          <Task id="G1-T1" name="t" status="TODO" order="0"/>
+        </SubNodes>
+      </TaskGroup>
+    </SubNodes>
+  </TaskSpace>
+  <Schedule>
+    <Dag for="space_m1"><Node id="G1"/></Dag>
+  </Schedule>
+  <Hooks>
+    <Hook on="mission:after-node"><cdt:MissionReconcile max-tracks="0" on-limit="bogus" on-drift="bogus"/></Hook>
+    <Hook on="phase:weird"/>
+  </Hooks>
+</Mission>
+`);
+
+  const { code, out } = await runValidate(ws, ['m1']);
+  expect(code).toBe(1);
+  expect(out).toContain('mission.taskspace.status');        // status="TODO" 非法
+  expect(out).toContain('mission.reconcile.max-tracks');    // max-tracks="0" 非法
+  expect(out).toContain('mission.reconcile.on-limit');
+  expect(out).toContain('mission.reconcile.on-drift');
+  expect(out).toContain('mission.hook.on');                 // phase:weird 非法
+  expect(out).toContain('mission.tracklink.group');         // TrackLink 挂在 TaskGroup 上
+});
+
+test('validate accepts a well-formed mission.xml', async () => {
+  const ws = tmpWorkspace();
+  const missionDir = path.join(ws, 'codument', 'missions', 'active', 'm2');
+  fs.mkdirSync(missionDir, { recursive: true });
+  fs.writeFileSync(path.join(missionDir, 'mission.xml'), `<Mission id="m2" xmlns:cdt="urn:codument:v1">
+  <Metadata>
+    <Status>active</Status>
+    <Goal>mission fixture</Goal>
+  </Metadata>
+  <TaskSpace id="space_m2" name="m2" version="1" cdt:child-mode="dag">
+    <SubNodes>
+      <TaskGroup id="G1" name="g1" status="NOT_STARTED" order="0">
+        <SubNodes>
+          <Task id="G1-T1" name="t" status="NOT_STARTED" order="0">
+            <cdt:TrackLink state="candidate" id="some-track" project-ref="host"/>
+          </Task>
+        </SubNodes>
+      </TaskGroup>
+    </SubNodes>
+  </TaskSpace>
+  <Schedule>
+    <Dag for="space_m1"><Node id="G1"/></Dag>
+  </Schedule>
+  <Hooks>
+    <Hook on="mission:after-node"><cdt:MissionReconcile max-tracks="10" on-limit="checkpoint" on-drift="replan-or-block"/></Hook>
+  </Hooks>
+</Mission>
+`.replace('<Dag for="space_m1">', '<Dag for="space_m2">'));
+
+  const { code, out } = await runValidate(ws, ['m2']);
+  expect(out).toContain('✓ mission m2');
+  expect(code).toBe(0);
+});
+
+test('validate rejects a track whose decisions.xnl has XNL syntax errors', async () => {
+  const ws = tmpWorkspace();
+  writeTrack(ws, 'tdec-bad', GOOD_TRACK.replace('id="t1"', 'id="tdec-bad"'));
+  const dir = path.join(ws, 'codument', 'tracks', 'active', 'tdec-bad');
+  fs.writeFileSync(path.join(dir, 'decisions.xnl'), `<decision #track.tdec.bad {
+  status = "accepted"
+}
+(
+  <question ?>q</?>
+  <recommendation ?>r</tradeoff>
+)>`);
+
+  const { code, out } = await runValidate(ws, ['tdec-bad']);
+  expect(code).toBe(1);
+  expect(out).toContain('decisions.xnl');
+  expect(out).toContain('XNL 文本块闭合应为');
+});
+
+test('validate passes a track with a valid decisions.xnl', async () => {
+  const ws = tmpWorkspace();
+  writeTrack(ws, 'tdec-ok', GOOD_TRACK.replace('id="t1"', 'id="tdec-ok"'));
+  const dir = path.join(ws, 'codument', 'tracks', 'active', 'tdec-ok');
+  fs.writeFileSync(path.join(dir, 'decisions.xnl'), `<decision #track.tdec.ok {
+  status = "accepted"
+}
+(
+  <question ?>q</?>
+  <answer ?>a</?>
+)>`);
+
+  const { code, out } = await runValidate(ws, ['tdec-ok']);
+  expect(code).toBe(0);
+});
+
+test('validate passes a track without decisions.xnl (no false positive)', async () => {
+  const ws = tmpWorkspace();
+  writeTrack(ws, 'tdec-none', GOOD_TRACK.replace('id="t1"', 'id="tdec-none"'));
+
+  const { code, out } = await runValidate(ws, ['tdec-none']);
+  expect(code).toBe(0);
+});

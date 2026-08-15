@@ -1,0 +1,82 @@
+<Track id="wire-decisions-validate" version="1" xmlns:cdt="urn:codument:v1">
+  <Metadata>
+    <Status>completed</Status>
+    <Goal>把 track 的 decisions.xnl 校验接入 codument validate 创建时收尾，并固化 XNL 文本块闭合规范，从源头拦截 `&lt;/?&gt;` 与 `&lt;/tagname&gt;` 混用</Goal>
+    <Description>根因修复：decisions.xnl 的 XNL 语法错误此前只在归档 gate 被拦截（plan-track 收尾的 codument validate 不覆盖 decisions）。本次把 validateDecisionsFile 接线进 codument validate 的 track 校验面，增强 decisions 语法错误提示，并在 xnl-format.md 文本块规则补充显式反例。</Description>
+    <QuestionMode>decision-tree</QuestionMode>
+    <QuestionSeverity>light</QuestionSeverity>
+    <CommitMode>manual</CommitMode>
+    <CreatedAt>2026-08-14T04:00:00Z</CreatedAt>
+    <UpdatedAt>2026-08-14T05:00:00Z</UpdatedAt>
+  </Metadata>
+
+  <Ports scope="track">
+    <MaterialBundle role="input" name="behavior-deltas" domain="behavior" path="vfs://./behavior_deltas/"/>
+    <MaterialBundle role="state" name="decisions" domain="decision" path="vfs://./decisions.xnl"/>
+    <MaterialBundle role="state" name="analysis" domain="track" path="vfs://./analysis/"/>
+    <MaterialBundle role="output" name="cli" domain="codument" path="vfs://@/src/cli/"/>
+    <MaterialBundle role="output" name="std" domain="codument" path="vfs://@/codument/std/"/>
+    <MaterialBundle role="output" name="templates" domain="codument" path="vfs://@/src/templates/"/>
+    <MaterialBundle role="output" name="tests" domain="codument" path="vfs://@/test/"/>
+  </Ports>
+
+  <TaskSpace id="space_wire-decisions-validate" name="wire-decisions-validate" version="1">
+    <Description>把 decisions.xnl 校验下沉到 track 创建时的 validate 面，并给 XNL 文本块闭合提供显式规范锚点。</Description>
+    <SubNodes>
+
+      <TaskGroup id="P1" name="CLI 接线与错误提示" status="DONE" order="0" cdt:child-mode="dag">
+        <Description>codument validate 覆盖 track 的 decisions.xnl；decisions 语法错误提示可操作化。</Description>
+        <cdt:Gate>
+          <cdt:Criterion>codument validate &lt;track-id&gt; 校验该 track 的 decisions.xnl（含 decisions/** 递归 source set）</cdt:Criterion>
+          <cdt:Criterion>decisions 的 XNL 语法错误消息提示 `&lt;/?&gt;` 闭合写法</cdt:Criterion>
+        </cdt:Gate>
+        <SubNodes>
+          <Task id="T1.1" name="Wire decisions validate into track validate" status="DONE" order="0" priority="P0">
+            <Description>在 src/cli/commands/validate.ts 的 validateCommand 中，对每个 track target 复用 validateDecisionsFile 校验其 decisions.xnl（不存在则跳过；存在 decisions/ 目录则按递归 source set 校验）；findings 并入统一输出（human 带 rule 前缀，--json 合并数组）。确保与现有 track.xml/behavior/mission 校验互不干扰。</Description>
+          </Task>
+          <Task id="T1.2" name="Enhance XNL syntax error hint" status="DONE" order="1" priority="P1">
+            <Description>在 decisions validate 对 XNL 解析失败（parseXnl 抛错）的路径，消息中追加提示：XNL 文本块闭合应为 `&lt;/?&gt;`，检查是否误写为 `&lt;/tagname&gt;`（XML 风格闭合）；覆盖 validateDecisionsFile / validateXnlDecisionsFile 的 syntax error 分支。</Description>
+          </Task>
+        </SubNodes>
+        <Hooks>
+          <Hook on="phase:after"><cdt:AttractorCheck use="coding"/></Hook>
+        </Hooks>
+      </TaskGroup>
+
+      <TaskGroup id="P2" name="规范反例与防回归收口" status="DONE" order="1">
+        <Description>xnl-format.md 补充显式反例；测试固化；dogfood 与 verify 收口。</Description>
+        <cdt:Gate>
+          <cdt:Criterion>xnl-format.md 文本块规则含 `&lt;description ?&gt;…&lt;/description&gt;` 错误闭合反例</cdt:Criterion>
+          <cdt:Criterion>validate 测试覆盖：track 的 decisions.xnl 语法错误 → validate 失败；语法正确 → 通过</cdt:Criterion>
+          <cdt:Criterion>bun run check 全绿；模板与工作区规范一致</cdt:Criterion>
+        </cdt:Gate>
+        <SubNodes>
+          <Task id="T2.1" name="Add XNL closer bad example to spec" status="DONE" order="0" priority="P0">
+            <Description>在 codument/std/spec/xnl-format.md 的文本块语法规则（§核心语法速览 或 §3）补充显式反例：`&lt;description ?&gt;…&lt;/description&gt;` 为错误闭合（XML 风格），闭合永远是 `&lt;/?&gt;`；同步 src/templates/codument/std/spec/xnl-format.md。</Description>
+          </Task>
+          <Task id="T2.2" name="Add regression tests" status="DONE" order="1" priority="P0">
+            <Description>在 test/cli/commands/validate.test.ts 新增：track 含语法错误的 decisions.xnl → codument validate 失败且提示 XNL 闭合；track 含合法 decisions.xnl → validate 通过；track 无 decisions.xnl → 通过（不误报）。</Description>
+          </Task>
+          <Task id="T2.3" name="Dogfood check and verify" status="DONE" order="2" priority="P0">
+            <Description>bun run check 全绿；同步模板副本；出具 reports/verify-report.md 逐项关闭；归档。</Description>
+          </Task>
+        </SubNodes>
+        <Hooks>
+          <Hook on="phase:after"><cdt:AttractorCheck use="coding"/></Hook>
+        </Hooks>
+      </TaskGroup>
+
+    </SubNodes>
+  </TaskSpace>
+
+  <Schedule>
+    <Dag for="P1">
+      <Node id="T1.1"/>
+      <Node id="T1.2"/>
+    </Dag>
+  </Schedule>
+
+  <Hooks>
+    <Hook on="track:after"><cdt:AttractorCheck use="coding"/></Hook>
+  </Hooks>
+</Track>
