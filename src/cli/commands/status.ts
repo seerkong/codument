@@ -1,6 +1,5 @@
 import * as fs from 'fs';
-import * as path from 'path';
-import { getActiveTrackDir, getTracks, getSpecs, codumentExists, formatStatus, walkTrackTasks } from '../utils';
+import { getActiveTrackDir, getTrackAuthority, getTracks, getSpecs, codumentExists, formatStatus, walkTrackTasks } from '../utils';
 
 export async function statusCommand(args: string[]) {
   if (!codumentExists()) {
@@ -42,8 +41,8 @@ export async function statusCommand(args: string[]) {
   let nextTask = '';
 
   if (currentTrack) {
-    const file = path.join(getActiveTrackDir(currentTrack.id), 'track.xml');
-    if (fs.existsSync(file)) {
+    const file = getTrackAuthority(getActiveTrackDir(currentTrack.id))?.file;
+    if (file && fs.existsSync(file)) {
       for (const task of walkTrackTasks(file)) {
         if (!currentTask && task.status === 'ACTIVE') {
           currentPhase = task.phaseName;

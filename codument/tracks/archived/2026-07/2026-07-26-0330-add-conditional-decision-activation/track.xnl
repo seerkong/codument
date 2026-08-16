@@ -1,0 +1,12 @@
+<Track #add-conditional-decision-activation apiVersion="codument.tech/v1alpha1" version="1" { status = "completed" goal = "Document conditional activation of decision graph nodes." description = "Add a multi-root conditional decision protocol and example." question_mode = "decision-tree" question_severity = "auto" commit_mode = "manual" created_at = "2026-07-26T00:00:00Z" updated_at = "2026-07-26T00:30:00Z" } (
+  <TaskSpace #conditional-decision-space { name = "conditional decision activation" } (
+    <SubNodes [
+      <TaskGroup #P1 { name = "Protocol" status = "DONE" } (
+        <SubNodes [
+          <Task #T1 { name = "Document conditional activation semantics and example" status = "DONE" priority = "P0" }>
+          <Task #T2 { name = "Verify template contract" status = "DONE" priority = "P0" }>
+        ]>
+      )>
+    ]>
+  )>
+)>

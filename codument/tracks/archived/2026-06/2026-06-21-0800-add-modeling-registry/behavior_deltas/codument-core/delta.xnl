@@ -1,0 +1,348 @@
+<BehaviorPatch #track.r_2_0_2_6_-_0_6_-_2_1_-_0_8_0_0_-_a_d_d_-_m_o_d_e_l_i_n_g_-_r_e_g_i_s_t_r_y.behavior_patch.codument-core apiVersion="codument.tech/v1alpha1" version="1" { capability = "codument-core" } (
+  <Mutations [
+    <Upsert { selector = "behavior://codument-core/requirements/modeling-registry" } (
+      <Requirement #modeling-registry (
+        <Statement ?01M02NT0W7CGA6F981BEA4G5BF>
+        系统 SHALL provide a domain modeling registry at `codument/modeling/` as an xnl-vfs working tree backed by an xnl-vcs repository, replacing free-form `docs/modeling` as the modeling source of truth.
+        </?01M02NT0W7CGA6F981BEA4G5BF>
+        <Suites [
+          <Suite #modeling-registry-shape { name = "Modeling registry shape" } (
+            <Cases [
+              <Case #working-tree (
+                <Given ?01M02NT0W7CGA6F981BEA4G5BG>
+                A workspace enables the modeling profile.
+                </?01M02NT0W7CGA6F981BEA4G5BG>
+                <When ?01M02NT0W7CGA6F981BEA4G5BH>
+                The system materializes the modeling registry.
+                </?01M02NT0W7CGA6F981BEA4G5BH>
+                <Then ?01M02NT0W7CGA6F981BEA4G5BJ>
+                `codument/modeling/&lt;plane&gt;/&lt;context&gt;/*.xnl` SHALL be human-readable XNL files on disk.
+                </?01M02NT0W7CGA6F981BEA4G5BJ>
+                <Ands [
+                  <And ?01M02NT0W7CGA6F981BEA4G5BK>
+                  Node identity SHALL be stable via XNL namespaced ids or `.node-meta` sidecars.
+                  </?01M02NT0W7CGA6F981BEA4G5BK>
+                ]>
+              )>
+              <Case #host-git-versioned (
+                <Given ?01M02NT0W7CGA6F981BEA4G5BM>
+                The modeling registry exists.
+                </?01M02NT0W7CGA6F981BEA4G5BM>
+                <When ?01M02NT0W7CGA6F981BEA4G5BN>
+                The system records modeling history and collaboration.
+                </?01M02NT0W7CGA6F981BEA4G5BN>
+                <Then ?01M02NT0W7CGA6F981BEA4G5BP>
+                `codument/modeling/**.xnl` SHALL be versioned by the host project git, not a persisted parallel vcs repo.
+                </?01M02NT0W7CGA6F981BEA4G5BP>
+                <Ands [
+                  <And ?01M02NT0W7CGA6F981BEA4G5BQ>
+                  Any xnl-vfs/xnl-vcs artifacts (e.g. `.xnl-vcs/`) used as an ephemeral merge engine SHALL live under `.tmp/` and be gitignored.
+                  </?01M02NT0W7CGA6F981BEA4G5BQ>
+                ]>
+              )>
+              <Case #docs-impl-retained (
+                <Given ?01M02NT0W7CGA6F981BEA4G5BR>
+                The modeling registry is introduced.
+                </?01M02NT0W7CGA6F981BEA4G5BR>
+                <When ?01M02NT0W7CGA6F981BEA4G5BS>
+                Implementation knowledge must be recorded.
+                </?01M02NT0W7CGA6F981BEA4G5BS>
+                <Then ?01M02NT0W7CGA6F981BEA4G5BT>
+                `docs/impl/` SHALL remain the derived implementation/maintenance knowledge plane, not moved into `codument/`.
+                </?01M02NT0W7CGA6F981BEA4G5BT>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/modeling-node-schema" } (
+      <Requirement #modeling-node-schema (
+        <Statement ?01M02NT0W7CGA6F981BEA4G5BV>
+        系统 SHALL define modeling nodes as XNL elements with a cross-domain kind spectrum, DEPA fact-source metadata, and minimal required representations per kind.
+        </?01M02NT0W7CGA6F981BEA4G5BV>
+        <Suites [
+          <Suite #kind-spectrum { name = "Kind spectrum and representations" } (
+            <Cases [
+              <Case #kernel-kinds (
+                <Given ?01M02NT0W7CGA6F981BEA4G5BW>
+                A modeling node close to the modeling kernel.
+                </?01M02NT0W7CGA6F981BEA4G5BW>
+                <When ?01M02NT0W7CGA6F981BEA4G5BX>
+                An author declares its kind.
+                </?01M02NT0W7CGA6F981BEA4G5BX>
+                <Then ?01M02NT0W7CGA6F981BEA4G5BY>
+                Kernel kinds SHALL use bare cross-domain tags: `entity`/`object`, `enum`, `state-machine`, `module`/`capsule`, `component`, `port`, `actor`, `policy`.
+                </?01M02NT0W7CGA6F981BEA4G5BY>
+              )>
+              <Case #shell-kinds (
+                <Given ?01M02NT0W7CGA6F981BEA4G5BZ>
+                A modeling node close to shell/presentation/interaction.
+                </?01M02NT0W7CGA6F981BEA4G5BZ>
+                <When ?01M02NT0W7CGA6F981BEA4G5C0>
+                An author declares its kind.
+                </?01M02NT0W7CGA6F981BEA4G5C0>
+                <Then ?01M02NT0W7CGA6F981BEA4G5C1>
+                Shell kinds SHALL use namespaced domain tags such as `surface:route`, `backend:endpoint`, `cli:command`, `agent:tool`.
+                </?01M02NT0W7CGA6F981BEA4G5C1>
+              )>
+              <Case #minimal-representations (
+                <Given ?01M02NT0W7CGA6F981BEA4G5C2>
+                A modeling node of a given kind.
+                </?01M02NT0W7CGA6F981BEA4G5C2>
+                <When ?01M02NT0W7CGA6F981BEA4G5C3>
+                The system validates the node.
+                </?01M02NT0W7CGA6F981BEA4G5C3>
+                <Then ?01M02NT0W7CGA6F981BEA4G5C4>
+                `entity` SHALL carry `types` + `fact_grade` + `single_writer`; `state-machine` SHALL carry `mermaid`; `module` SHALL carry `depends_on` + a capsule-tree; `component` SHALL carry runtime/input/config/output `types` blocks.
+                </?01M02NT0W7CGA6F981BEA4G5C4>
+                <Ands [
+                  <And ?01M02NT0W7CGA6F981BEA4G5C5>
+                  A `module` capsule-tree SHALL reach file/symbol granularity (the files inside each capsule with their responsibility and the modeling node each realizes), not stop at the contract/logic/support layer names.
+                  </?01M02NT0W7CGA6F981BEA4G5C5>
+                ]>
+              )>
+              <Case #prose-no-escape (
+                <Given ?01M02NT0W7CGA6F981BEA4G5C6>
+                A node embeds TypeScript, mermaid, or pseudocode.
+                </?01M02NT0W7CGA6F981BEA4G5C6>
+                <When ?01M02NT0W7CGA6F981BEA4G5C7>
+                It is stored.
+                </?01M02NT0W7CGA6F981BEA4G5C7>
+                <Then ?01M02NT0W7CGA6F981BEA4G5C8>
+                The content SHALL be an XNL `TextElement` with a marker, requiring no escaping.
+                </?01M02NT0W7CGA6F981BEA4G5C8>
+              )>
+              <Case #namespaced-id (
+                <Given ?01M02NT0W7CGA6F981BEA4G5C9>
+                A modeling node needs a globally unique id.
+                </?01M02NT0W7CGA6F981BEA4G5C9>
+                <When ?01M02NT0W7CGA6F981BEA4G5CA>
+                The id is assigned.
+                </?01M02NT0W7CGA6F981BEA4G5CA>
+                <Then ?01M02NT0W7CGA6F981BEA4G5CB>
+                The id SHALL use a multi-level XNL namespaced word: `#&lt;context&gt;.&lt;name&gt;`, or fully qualified across planes as `#&lt;plane&gt;.&lt;context&gt;.&lt;name&gt;`.
+                </?01M02NT0W7CGA6F981BEA4G5CB>
+              )>
+              <Case #modeling-references-behavior (
+                <Given ?01M02NT0W7CGA6F981BEA4G5CC>
+                A modeling node describes testable behavior.
+                </?01M02NT0W7CGA6F981BEA4G5CC>
+                <When ?01M02NT0W7CGA6F981BEA4G5CD>
+                An author models it.
+                </?01M02NT0W7CGA6F981BEA4G5CD>
+                <Then ?01M02NT0W7CGA6F981BEA4G5CE>
+                The node SHALL reference `behavior://…` rather than duplicating BDD cases.
+                </?01M02NT0W7CGA6F981BEA4G5CE>
+              )>
+              <Case #vfs-uri-references (
+                <Given ?01M02NT0W7CGA6F981BEA4G5CF>
+                A modeling node references another node or a behavior.
+                </?01M02NT0W7CGA6F981BEA4G5CF>
+                <When ?01M02NT0W7CGA6F981BEA4G5CG>
+                The reference is written and resolved.
+                </?01M02NT0W7CGA6F981BEA4G5CG>
+                <Then ?01M02NT0W7CGA6F981BEA4G5CH>
+                The canonical reference syntax SHALL be a VFS URI (`modeling://&lt;plane&gt;/&lt;context&gt;/&lt;name&gt;` or `behavior://…`).
+                </?01M02NT0W7CGA6F981BEA4G5CH>
+                <Ands [
+                  <And ?01M02NT0W7CGA6F981BEA4G5CJ>
+                  The resolver SHALL treat any metadata/attribute value matching a known VFS scheme as a reference (scheme self-identifying), without a fixed key whitelist.
+                  </?01M02NT0W7CGA6F981BEA4G5CJ>
+                ]>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/modeling-delta-merge" } (
+      <Requirement #modeling-delta-merge (
+        <Statement ?01M02NT0W7CGA6F981BEA4G5CK>
+        系统 SHALL express a track's modeling change as target-state nodes and apply it at archive via an ephemeral node-level three-way merge (xnl-vfs as merge engine), with the base anchored on the host git commit, rather than a custom delta node type or a persisted parallel vcs repo.
+        </?01M02NT0W7CGA6F981BEA4G5CK>
+        <Suites [
+          <Suite #delta-merge { name = "Modeling delta as three-way merge" } (
+            <Cases [
+              <Case #target-state-export (
+                <Given ?01M02NT0W7CGA6F981BEA4G5CM>
+                A track changes modeling.
+                </?01M02NT0W7CGA6F981BEA4G5CM>
+                <When ?01M02NT0W7CGA6F981BEA4G5CN>
+                The track is created and implemented.
+                </?01M02NT0W7CGA6F981BEA4G5CN>
+                <Then ?01M02NT0W7CGA6F981BEA4G5CP>
+                The change SHALL be written as target-state nodes under `tracks/&lt;id&gt;/modeling_deltas/&lt;plane&gt;/&lt;context&gt;.xnl` (the merge `theirs` side), git-tracked and reviewable.
+                </?01M02NT0W7CGA6F981BEA4G5CP>
+              )>
+              <Case #base-anchor (
+                <Given ?01M02NT0W7CGA6F981BEA4G5CQ>
+                A track modeling change.
+                </?01M02NT0W7CGA6F981BEA4G5CQ>
+                <When ?01M02NT0W7CGA6F981BEA4G5CR>
+                The track is created.
+                </?01M02NT0W7CGA6F981BEA4G5CR>
+                <Then ?01M02NT0W7CGA6F981BEA4G5CS>
+                The system SHALL record the current host git commit id of `codument/modeling` as the three-way merge base.
+                </?01M02NT0W7CGA6F981BEA4G5CS>
+              )>
+              <Case #archive-merge (
+                <Given ?01M02NT0W7CGA6F981BEA4G5CT>
+                An archived track with modeling changes.
+                </?01M02NT0W7CGA6F981BEA4G5CT>
+                <When ?01M02NT0W7CGA6F981BEA4G5CV>
+                The system applies the modeling delta.
+                </?01M02NT0W7CGA6F981BEA4G5CV>
+                <Then ?01M02NT0W7CGA6F981BEA4G5CW>
+                The system SHALL materialize base (from host git), ours (working tree), and theirs (modeling_deltas), and run an ephemeral node-level three-way merge via xnl-vfs `xnlFileHandler.merge`.
+                </?01M02NT0W7CGA6F981BEA4G5CW>
+                <Ands [
+                  <And ?01M02NT0W7CGA6F981BEA4G5CX>
+                  Conflicts (`RENAME_RENAME`, `DELETE_MODIFY`, `BINARY_UNMERGEABLE`) SHALL be resolved via `{ metadataId, choice }` or reported issues-first, never silently overwritten.
+                  </?01M02NT0W7CGA6F981BEA4G5CX>
+                  <And ?01M02NT0W7CGA6F981BEA4G5CY>
+                  The merged result SHALL be written back to the working tree and committed by host git; ephemeral merge artifacts SHALL NOT be persisted.
+                  </?01M02NT0W7CGA6F981BEA4G5CY>
+                ]>
+              )>
+              <Case #conflict-policy (
+                <Given ?01M02NT0W7CGA6F981BEA4G5CZ>
+                A three-way modeling merge produces conflicts.
+                </?01M02NT0W7CGA6F981BEA4G5CZ>
+                <When ?01M02NT0W7CGA6F981BEA4G5D0>
+                The system resolves them.
+                </?01M02NT0W7CGA6F981BEA4G5D0>
+                <Then ?01M02NT0W7CGA6F981BEA4G5D1>
+                By default it SHALL auto-merge only unambiguous cases (disjoint nodes, disjoint sub-parts, pure adds, pure deletes) and report true conflicts (same-field, DELETE_MODIFY, RENAME_RENAME, ADD/ADD same id) issues-first, pausing rather than silently choosing a side.
+                </?01M02NT0W7CGA6F981BEA4G5D1>
+                <Ands [
+                  <And ?01M02NT0W7CGA6F981BEA4G5D2>
+                  Per-conflict-type policy SHALL be configurable in `codument/config/modeling.xml` `&lt;merge-policy&gt;` with `resolve` of `human|ours|theirs|base`, defaulting to `human`.
+                  </?01M02NT0W7CGA6F981BEA4G5D2>
+                ]>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/modeling-fractal-split" } (
+      <Requirement #modeling-fractal-split (
+        <Statement ?01M02NT0W7CGA6F981BEA4G5D3>
+        系统 SHALL provide a `codument modeling lint` check that flags oversized modeling XNL files for same-name-folder fractal split.
+        </?01M02NT0W7CGA6F981BEA4G5D3>
+        <Suites [
+          <Suite #fractal-split { name = "Fractal split check" } (
+            <Cases [
+              <Case #oversize-flag (
+                <Given ?01M02NT0W7CGA6F981BEA4G5D4>
+                A modeling XNL file exceeds the configured line or node-count threshold.
+                </?01M02NT0W7CGA6F981BEA4G5D4>
+                <When ?01M02NT0W7CGA6F981BEA4G5D5>
+                `codument modeling lint` runs.
+                </?01M02NT0W7CGA6F981BEA4G5D5>
+                <Then ?01M02NT0W7CGA6F981BEA4G5D6>
+                The system SHALL flag the file as a fractal-split candidate.
+                </?01M02NT0W7CGA6F981BEA4G5D6>
+              )>
+              <Case #split-is-vcs-tracked (
+                <Given ?01M02NT0W7CGA6F981BEA4G5D7>
+                A flagged file is split.
+                </?01M02NT0W7CGA6F981BEA4G5D7>
+                <When ?01M02NT0W7CGA6F981BEA4G5D8>
+                The split is applied.
+                </?01M02NT0W7CGA6F981BEA4G5D8>
+                <Then ?01M02NT0W7CGA6F981BEA4G5D9>
+                The split SHALL use `vfs.rename` so xnl-vcs tracks the move.
+                </?01M02NT0W7CGA6F981BEA4G5D9>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/modeling-config" } (
+      <Requirement #modeling-config (
+        <Statement ?01M02NT0W7CGA6F981BEA4G5DA>
+        系统 SHALL gate all modeling behavior behind `codument/config/modeling.xml` (modeled on `attractor-profiles.xml`), disabled by default.
+        </?01M02NT0W7CGA6F981BEA4G5DA>
+        <Suites [
+          <Suite #modeling-config-gate { name = "Modeling config gate" } (
+            <Cases [
+              <Case #default-off (
+                <Given ?01M02NT0W7CGA6F981BEA4G5DB>
+                A workspace without `codument/config/modeling.xml` or with the modeling profile not enabled.
+                </?01M02NT0W7CGA6F981BEA4G5DB>
+                <When ?01M02NT0W7CGA6F981BEA4G5DC>
+                Track create, implement, archive, or lint runs.
+                </?01M02NT0W7CGA6F981BEA4G5DC>
+                <Then ?01M02NT0W7CGA6F981BEA4G5DD>
+                The system SHALL skip all modeling behavior and leave existing behavior unchanged.
+                </?01M02NT0W7CGA6F981BEA4G5DD>
+              )>
+              <Case #enabled (
+                <Given ?01M02NT0W7CGA6F981BEA4G5DE>
+                `codument/config/modeling.xml` enables the modeling profile.
+                </?01M02NT0W7CGA6F981BEA4G5DE>
+                <When ?01M02NT0W7CGA6F981BEA4G5DF>
+                A track is created, implemented, or archived.
+                </?01M02NT0W7CGA6F981BEA4G5DF>
+                <Then ?01M02NT0W7CGA6F981BEA4G5DG>
+                The system SHALL produce and apply modeling deltas per this spec.
+                </?01M02NT0W7CGA6F981BEA4G5DG>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/modeling-docs-impl-writeback" } (
+      <Requirement #modeling-docs-impl-writeback (
+        <Statement ?01M02NT0W7CGA6F981BEA4G5DH>
+        系统 SHALL, at archive when modeling is enabled, write the track's design rationale into `docs/impl/` by category after merging modeling deltas.
+        </?01M02NT0W7CGA6F981BEA4G5DH>
+        <Suites [
+          <Suite #docs-impl-writeback { name = "docs/impl writeback" } (
+            <Cases [
+              <Case #category-routing (
+                <Given ?01M02NT0W7CGA6F981BEA4G5DJ>
+                An archived track whose design adds implementation knowledge.
+                </?01M02NT0W7CGA6F981BEA4G5DJ>
+                <When ?01M02NT0W7CGA6F981BEA4G5DK>
+                The system writes back to docs/impl.
+                </?01M02NT0W7CGA6F981BEA4G5DK>
+                <Then ?01M02NT0W7CGA6F981BEA4G5DM>
+                Content SHALL be routed by category (overview/howto/rules/reference/troubleshooting) per the impl fractal standard.
+                </?01M02NT0W7CGA6F981BEA4G5DM>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/knowledgesync-residue-removed" } (
+      <Requirement #knowledgesync-residue-removed (
+        <Statement ?01M02NT0W7CGA6F981BEA4G5DN>
+        系统 SHALL NOT retain `knowledgeSync` string residue; modeling enablement is governed only by `codument/config/modeling.xml`.
+        </?01M02NT0W7CGA6F981BEA4G5DN>
+        <Suites [
+          <Suite #knowledgesync-cleanup { name = "knowledgeSync cleanup" } (
+            <Cases [
+              <Case #no-residue (
+                <Given ?01M02NT0W7CGA6F981BEA4G5DP>
+                The codebase and templates after this change.
+                </?01M02NT0W7CGA6F981BEA4G5DP>
+                <When ?01M02NT0W7CGA6F981BEA4G5DQ>
+                The project is searched for `knowledgeSync`.
+                </?01M02NT0W7CGA6F981BEA4G5DQ>
+                <Then ?01M02NT0W7CGA6F981BEA4G5DR>
+                No `knowledgeSync` references SHALL remain except intentional migration notes.
+                </?01M02NT0W7CGA6F981BEA4G5DR>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+  ]>
+)>

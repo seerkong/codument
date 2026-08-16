@@ -1,0 +1,44 @@
+<Track #refactor-prompt-question-protocols apiVersion="codument.tech/v1alpha1" version="1" { status = "completed" goal = "统一提问协议并同步归档 XML 规范" description = "统一提问协议并同步归档 XML 规范" commit_mode = "manual" created_at = "2026-01-22T20:00:00Z" updated_at = "2026-01-22T20:00:00Z" } (
+  <Ports { scope = "track" } [
+    <MaterialBundle { role = "input" name = "behavior-deltas" domain = "behavior" path = "vfs://./behavior_deltas/" }>
+    <MaterialBundle { role = "output" name = "docs" domain = "doc" path = "vfs://@/docs/" }>
+    <MaterialBundle { role = "output" name = "behavior" domain = "codument" path = "vfs://@/codument/behaviors/" }>
+  ]>
+  <TaskSpace #space_refactor-prompt-question-protocols { name = "refactor-prompt-question-protocols" } (
+    <Description ?01M02JBRYEC2P2CCQXH2C89QZ5>
+    统一提问协议并同步归档 XML 规范
+    </?01M02JBRYEC2P2CCQXH2C89QZ5>
+    <SubNodes [
+      <TaskGroup #P1 { name = "Refactor Prompt Protocols" status = "DONE" order = 0 child_mode = "dag" } (
+        <SubNodes [
+          <Task #P1-T1 { name = "Extract Question protocol" status = "DONE" order = 0 } (
+            <Description ?01M02JBRYEC2P2CCQXH2C89QZ6>
+            Extract the question protocol from the old prompt format.
+            </?01M02JBRYEC2P2CCQXH2C89QZ6>
+          )>
+          <Task #P1-T2 { name = "Define Question type variants" status = "DONE" order = 1 } (
+            <Description ?01M02JBRYEC2P2CCQXH2C89QZ7>
+            Define variants for yes_no, text, number, single_select, multi_select question types.
+            </?01M02JBRYEC2P2CCQXH2C89QZ7>
+          )>
+          <Task #P1-T3 { name = "Implement Message overloads" status = "DONE" order = 2 } (
+            <Description ?01M02JBRYEC2P2CCQXH2C89QZ8>
+            Implement Message overloads for each question type variant.
+            </?01M02JBRYEC2P2CCQXH2C89QZ8>
+          )>
+        ]>
+      )>
+    ]>
+  )>
+  <Schedule [
+    <Dag { for = "P1" } [
+      <Node #P1-T2 [
+        <After { ref = "P1-T1" }>
+      ]>
+      <Node #P1-T3 [
+        <After { ref = "P1-T1" }>
+        <After { ref = "P1-T2" }>
+      ]>
+    ]>
+  ]>
+)>

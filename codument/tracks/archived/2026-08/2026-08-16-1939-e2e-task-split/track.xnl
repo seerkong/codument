@@ -1,0 +1,40 @@
+<Track #e2e-task-split apiVersion="codument.tech/v1alpha1" version="1" { status = "completed" goal = "拆分重 e2e 任务为多个 track，使单次 claude 会话可承载" description = "将 ecommerce product.md 拆分为 core/payment 两个独立 track，通过 derived_from 关联；新增 product-core.md 和 product-payment.md，原有 product.md 保留作为完整 e2e 入口。" question_mode = "decision-tree" question_severity = "auto" commit_mode = "manual" created_at = "2026-08-16T14:02:00.000Z" updated_at = "2026-08-16T16:39:50.025Z" modeling_base_commit = "3f7ee9d56e871fadcec1354f32582326ad187b03" engineering_base_commit = "3f7ee9d56e871fadcec1354f32582326ad187b03" } (
+  <Ports { scope = "track" } [
+    <MaterialBundle { role = "input" name = "e2e-definitions" domain = "code" path = "vfs://./e2e/modeling-engineering/ecommerce/" }>
+  ]>
+  <TaskSpace #space_e2e-task-split { name = "e2e-task-split" version = "1" } (
+    <SubNodes [
+      <TaskGroup #P1 { name = "拆分 ecommerce 定义" status = "DONE" priority = "P0" order = 0 } (
+        <Description ?01M05Q2JQY91AEEVWH8DFB19RD>
+        新增 product-core.md 和 product-payment.md，拆分原 product.md 为两个独立 product 定义。
+        </?01M05Q2JQY91AEEVWH8DFB19RD>
+        <Acceptance [
+          <Criterion #P1-AC1 { checked = true } ?01M05Q2JQZWMCA76NYXX0CCC7D>
+          product-core.md 覆盖 SKU + 购物车 + 库存 + 订单生命周期。
+          </?01M05Q2JQZWMCA76NYXX0CCC7D>
+          <Criterion #P1-AC2 { checked = true } ?01M05Q2JQZWMCA76NYXX0CCC7E>
+          product-payment.md 覆盖支付 + 优惠券 + 金额派生，并通过 derived_from 引用 core 域节点。
+          </?01M05Q2JQZWMCA76NYXX0CCC7E>
+          <Criterion #P1-AC3 { checked = true } ?01M05Q2JQZWMCA76NYXX0CCC7F>
+          原有 product.md 保留，完整 e2e 仍可运行。
+          </?01M05Q2JQZWMCA76NYXX0CCC7F>
+        ]>
+      )>
+      <TaskGroup #P2 { name = "验证拆分后 e2e" status = "DONE" priority = "P0" order = 1 } (
+        <Description ?01M05Q2JQZWMCA76NYXX0CCC7G>
+        分别运行 ecommerce-core 和 ecommerce-payment e2e，确认单次 claude 会话可完成且 score >= 80。
+        </?01M05Q2JQZWMCA76NYXX0CCC7G>
+        <Acceptance [
+          <Criterion #P2-AC1 { checked = true } ?01M05Q2JQZWMCA76NYXX0CCC7H>
+          ecommerce-core plan-only + full 通过，score >= 80。
+          </?01M05Q2JQZWMCA76NYXX0CCC7H>
+          <Criterion #P2-AC2 { checked = true } ?01M05Q2JQZWMCA76NYXX0CCC7J>
+          ecommerce-payment plan-only + full 通过，score >= 80。
+          </?01M05Q2JQZWMCA76NYXX0CCC7J>
+        ]>
+      )>
+    ]>
+  )>
+  <Schedule []>
+  <Hooks []>
+)>

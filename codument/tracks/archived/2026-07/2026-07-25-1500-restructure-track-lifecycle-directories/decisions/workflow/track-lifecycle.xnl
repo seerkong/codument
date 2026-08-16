@@ -1,0 +1,35 @@
+<decision #track.lifecycle_directories.single_root apiVersion="codument.tech/v1alpha1" { status = "accepted" blocks = [] durable_candidate = true } (
+  <question ?01M02EGVAXKD297KP0R9XSZXV2>
+  Where should track lifecycle state live?
+  </?01M02EGVAXKD297KP0R9XSZXV2>
+  <answer ?01M02EGVAXKD297KP0R9XSZXV3>
+  Under codument/tracks as pending, active, and archived directories.
+  </?01M02EGVAXKD297KP0R9XSZXV3>
+  <evidence ?01M02EGVAXKD297KP0R9XSZXV4>
+  Missions already use this model, and the user explicitly requested the same layout for tracks.
+  </?01M02EGVAXKD297KP0R9XSZXV4>
+  <confidence ?01M02EGVAXKD297KP0R9XSZXV5>
+  0.99
+  </?01M02EGVAXKD297KP0R9XSZXV5>
+  <reversibility ?01M02EGVAXKD297KP0R9XSZXV6>
+  moderate
+  </?01M02EGVAXKD297KP0R9XSZXV6>
+)>
+
+<decision #track.lifecycle_directories.upgrade_safety apiVersion="codument.tech/v1alpha1" { status = "accepted" blocks = [] durable_candidate = true } (
+  <question ?01M02EGVAXKD297KP0R9XSZXV7>
+  How should upgrade-workspace handle a destination conflict?
+  </?01M02EGVAXKD297KP0R9XSZXV7>
+  <answer ?01M02EGVAXKD297KP0R9XSZXV8>
+  Keep the legacy source in place, report the conflict, and rely on the pre-migration backup rather than overwriting data.
+  </?01M02EGVAXKD297KP0R9XSZXV8>
+  <evidence ?01M02EGVAXKD297KP0R9XSZXV9>
+  A track directory is user-owned project history and cannot be silently replaced.
+  </?01M02EGVAXKD297KP0R9XSZXV9>
+  <confidence ?01M02EGVAXKD297KP0R9XSZXVA>
+  0.98
+  </?01M02EGVAXKD297KP0R9XSZXVA>
+  <reversibility ?01M02EGVAXKD297KP0R9XSZXVB>
+  low
+  </?01M02EGVAXKD297KP0R9XSZXVB>
+)>

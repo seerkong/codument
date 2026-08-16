@@ -1,0 +1,38 @@
+<Track #use-native-xnl-behavior-mutations apiVersion="codument.tech/v1alpha1" version="1" {
+  status = "completed"
+  goal = "让 canonical BehaviorPatch 通过 xnl-core 原生 mutation batch 原子执行。"
+  description = "保留 Upsert/Delete/Move DSL，将期望 AST 编译为 diffNodes mutation，并通过 dryRunMutations 校验提交。"
+  question_mode = "decision-tree"
+  question_severity = "auto"
+  commit_mode = "manual"
+  created_at = "2026-08-15T13:37:56.183Z"
+  updated_at = "2026-08-15T13:43:26Z"
+} (
+  <Ports { scope = "track" } [
+    <MaterialBundle { role = "input" name = "behavior-dsl" domain = "code" path = "vfs://@/src/cli/utils/spec-xml.ts" }>
+    <MaterialBundle { role = "input" name = "xnl-mutation-api" domain = "external" path = "vfs:///Users/kongweixian/lang/xnl.ts/packages/core/src/mutation/index.ts" }>
+    <MaterialBundle { role = "output" name = "native-executor" domain = "code" path = "vfs://@/src/cli/behavior/mutations.ts" }>
+    <MaterialBundle { role = "output" name = "tests" domain = "test" path = "vfs://@/test/cli/utils/spec-xml.test.ts" }>
+  ]>
+  <TaskSpace #space_use-native-xnl-behavior-mutations { name = "use-native-xnl-behavior-mutations" version = "1" child_mode = "dag" } (
+    <SubNodes [
+      <TaskGroup #P1 { name = "原生 mutation 编译与执行" status = "DONE" order = 0 } (
+        <SubNodes [
+          <Task #P1-T1 { name = "升级 xnl-core 并实现 diff/dry-run pipeline" status = "DONE" order = 0 }>
+          <Task #P1-T2 { name = "接入 canonical Behavior registry 写入" status = "DONE" order = 1 }>
+        ]>
+      )>
+      <TaskGroup #P2 { name = "原子性与兼容验证" status = "DONE" order = 1 } (
+        <SubNodes [
+          <Task #P2-T1 { name = "补齐 upsert/delete/move 与 rejection 测试" status = "DONE" order = 0 }>
+          <Task #P2-T2 { name = "运行 archive、build 与 dogfood 验证" status = "DONE" order = 1 }>
+        ]>
+      )>
+    ]>
+  )>
+  <Schedule [
+    <Dag { for = "space_use-native-xnl-behavior-mutations" } [
+      <Node #P2 [<After { ref = "P1" }>]>
+    ]>
+  ]>
+)>

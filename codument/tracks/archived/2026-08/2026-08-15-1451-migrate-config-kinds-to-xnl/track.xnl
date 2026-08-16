@@ -1,0 +1,35 @@
+<Track #migrate-config-kinds-to-xnl apiVersion="codument.tech/v1alpha1" version="1" {
+  status = "completed"
+  goal = "将四个 workspace 配置 authority 从 XML 迁移为 Halfcode-backed XNL Kind。"
+  description = "定义 Kind/catalog、结构化 migration、兼容 reader、模板与 dogfood。"
+  question_mode = "decision-tree"
+  question_severity = "auto"
+  commit_mode = "manual"
+  created_at = "2026-08-15T11:40:44.200Z"
+  updated_at = "2026-08-15T11:51:24Z"
+} (
+  <Ports { scope = "track" } [
+    <MaterialBundle { role = "output" name = "config-kinds" domain = "resource" path = "vfs://@/src/templates/codument/std/kinds/" }>
+    <MaterialBundle { role = "output" name = "config-readers" domain = "code" path = "vfs://@/src/cli/" }>
+    <MaterialBundle { role = "output" name = "config-templates" domain = "config" path = "vfs://@/src/templates/codument/config/" }>
+  ]>
+  <TaskSpace #space_migrate-config-kinds-to-xnl { name = "migrate-config-kinds-to-xnl" version = "1" } (
+    <SubNodes [
+      <TaskGroup #P1 { name = "Kind and migration" status = "DONE" order = 0 } (
+        <SubNodes [
+          <Task #P1-T1 { name = "升级 Halfcode registry dependency 并定义四个 Kind/catalog" status = "DONE" order = 0 }>
+          <Task #P1-T2 { name = "实现配置 XML-to-XNL codec 与 migration" status = "DONE" order = 1 }>
+          <Task #P1-T3 { name = "切换 modeling、engineering 与 profile readers" status = "DONE" order = 2 }>
+        ]>
+      )>
+      <TaskGroup #P2 { name = "Templates and dogfood" status = "DONE" order = 1 } (
+        <SubNodes [
+          <Task #P2-T1 { name = "迁移模板、prompt 路径与测试" status = "DONE" order = 0 }>
+          <Task #P2-T2 { name = "构建、自升级并用 Halfcode 加载配置资源" status = "DONE" order = 1 }>
+        ]>
+      )>
+    ]>
+  )>
+  <Schedule []>
+  <Hooks []>
+)>

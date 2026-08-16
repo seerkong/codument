@@ -1,0 +1,174 @@
+<Mission #evolve-codument-action-system apiVersion="codument.tech/v1alpha1" version="1" { status = "archived" goal = "演进 Codument Action、Mission 控制论、Modeling 归档与分发体系" description = "通过五条依赖明确的 tracks，完成 modeling 默认启用和原子归档、Mission ActorSet、多项目 session binding、action 全面改名、标准分层、prompt 精简、skill 清理与升级迁移。" question_mode = "decision-tree" question_severity = "light" revision = 13 created_at = "2026-07-25T14:17:21+03:00" updated_at = "2026-08-16T08:19:47.003Z" } (
+  <Ports { scope = "mission" } [
+    <MaterialBundle { role = "input" name = "release-source" domain = "code" path = "vfs://@/src/templates/" }>
+    <MaterialBundle { role = "input" name = "runtime-source" domain = "code" path = "vfs://@/src/cli/" }>
+    <MaterialBundle { role = "input" name = "tests" domain = "test" path = "vfs://@/test/" }>
+    <MaterialBundle { role = "state" name = "analysis" domain = "mission" path = "vfs://./analysis/" }>
+    <MaterialBundle { role = "state" name = "reports" domain = "mission" path = "vfs://./reports/" }>
+    <MaterialBundle { role = "output" name = "tracks" domain = "codument" path = "vfs://@/codument/tracks/" }>
+  ]>
+  <ProjectRefs [
+    <ProjectRef #host { kind = "host" }>
+  ]>
+  <ActorSets { default = "codument-evolution-loop" } [
+    <ActorSet #codument-evolution-loop [
+      <Actor { role = "MissionPlanner" project_ref = "host" } (
+        <Description ?01M02K495T394NCV1MCKP2QGN9>
+        按 mission DAG 选择下一条 track，并根据验证和 dogfood 反馈调整后续切片。
+        </?01M02K495T394NCV1MCKP2QGN9>
+      )>
+      <Actor { role = "MissionObserver" project_ref = "host" } (
+        <Description ?01M02K495T394NCV1MCKP2QGNA>
+        读取发布模板、CLI、tests、behavior、tracks、archive 与 dogfood 投影的实际态。
+        </?01M02K495T394NCV1MCKP2QGNA>
+      )>
+      <Actor { role = "MissionReconciler" project_ref = "host" } (
+        <Description ?01M02K495T394NCV1MCKP2QGNB>
+        区分模板、runtime、迁移、分发与文档 owner 偏差，选择下一个 planned ready action 或判定 drift、blocked、done。
+        </?01M02K495T394NCV1MCKP2QGNB>
+      )>
+      <Actor { role = "MissionApplier" project_ref = "host" } (
+        <Description ?01M02K495T394NCV1MCKP2QGNC>
+        持续执行 planned ready action；子 track 或 gap-loop 返回后更新 mission 状态并继续主循环，或基于 evidence 受控修订 mission。
+        </?01M02K495T394NCV1MCKP2QGNC>
+      )>
+    ]>
+  ]>
+  <TaskSpace #space_evolve-codument-action-system { name = "evolve-codument-action-system" child_mode = "dag" } (
+    <Description ?01M02K495T394NCV1MCKP2QGND>
+    先并行收敛 modeling runtime、Mission ActorSet 与 action taxonomy，再精简 actions，最后统一迁移、分发和 E2E 收口。
+    </?01M02K495T394NCV1MCKP2QGND>
+    <SubNodes [
+      <TaskGroup #G1 { name = "Modeling 与原子归档" status = "DONE" order = 0 } (
+        <Description ?01M02K495T394NCV1MCKP2QGNE>
+        默认启用 modeling，并将 behavior/modeling/engineering 纳入统一的原子归档边界。
+        </?01M02K495T394NCV1MCKP2QGNE>
+        <SubNodes [
+          <Task #G1-T1 { name = "创建并执行 modeling 原子归档 track" status = "DONE" order = 0 } (
+            <Description ?01M02K495T394NCV1MCKP2QGNF>
+            实现 modeling 默认 true、按变化生成 delta、空 registry warning、真实三方合并和跨 registry 原子 commit。
+            </?01M02K495T394NCV1MCKP2QGNF>
+            <TrackLink #enable-modeling-and-atomic-archive { state = "bound" project_ref = "host" }>
+          )>
+          <Task #G1-T2 { name = "验证归档失败与回滚矩阵" status = "DONE" order = 1 } (
+            <Description ?01M02K495T394NCV1MCKP2QGNG>
+            验证任一 registry 冲突或写入失败时不产生部分更新且不移动 track。
+            </?01M02K495T394NCV1MCKP2QGNG>
+          )>
+        ]>
+      )>
+      <TaskGroup #G2 { name = "Mission ActorSet 与多项目运行时" status = "DONE" order = 1 } (
+        <Description ?01M02K495T394NCV1MCKP2QGNH>
+        把四 Actor 的具体绑定写入 mission.xml，并支持单项目和 session-local 多项目反馈飞轮。
+        </?01M02K495T394NCV1MCKP2QGNH>
+        <SubNodes [
+          <Task #G2-T1 { name = "创建并执行 Mission ActorSet track" status = "DONE" order = 0 } (
+            <Description ?01M02K495T394NCV1MCKP2QGNJ>
+            新增默认 ActorSet、TaskGroup override、ProjectRef、session WorkspaceBinding、UNBOUND 与外部 TrackLink actual-state 语义。
+            </?01M02K495T394NCV1MCKP2QGNJ>
+            <TrackLink #add-mission-actor-sets { state = "bound" project_ref = "host" }>
+          )>
+          <Task #G2-T2 { name = "验证单项目与多项目飞轮示例" status = "DONE" order = 1 } (
+            <Description ?01M02K495T394NCV1MCKP2QGNK>
+            验证单项目迭代和底层库/上层应用跨项目反馈回流示例可被 impl-mission 执行和恢复。
+            </?01M02K495T394NCV1MCKP2QGNK>
+          )>
+        ]>
+      )>
+      <TaskGroup #G3 { name = "Action 术语与标准 taxonomy" status = "DONE" order = 2 } (
+        <Description ?01M02K495T394NCV1MCKP2QGNM>
+        全面以 action 替换 operation，并建立 commands/protocols/methods/compat 等唯一 owner 分类。
+        </?01M02K495T394NCV1MCKP2QGNM>
+        <SubNodes [
+          <Task #G3-T1 { name = "创建并执行 action taxonomy track" status = "DONE" order = 0 } (
+            <Description ?01M02K495T394NCV1MCKP2QGNN>
+            迁移 std/actions、action-hooks.xml、ActionHooks/Action XML、CLI 文案和全仓引用，并新增复杂命令使用文档。
+            </?01M02K495T394NCV1MCKP2QGNN>
+            <TrackLink #replace-operations-with-actions { state = "bound" project_ref = "host" }>
+          )>
+          <Task #G3-T2 { name = "审计标准文档唯一 owner" status = "DONE" order = 1 } (
+            <Description ?01M02K495T394NCV1MCKP2QGNP>
+            确认共享枚举、协议、算法、示例和兼容映射不再跨 action/spec/method/protocol 重复定义。
+            </?01M02K495T394NCV1MCKP2QGNP>
+          )>
+        ]>
+      )>
+      <TaskGroup #G4 { name = "Action 与 Track 维护精简" status = "DONE" order = 3 } (
+        <Description ?01M02K495T394NCV1MCKP2QGNQ>
+        在新 taxonomy 和 ActorSet 语义上收敛默认生成、attractor、track 维护和 decision-tree。
+        </?01M02K495T394NCV1MCKP2QGNQ>
+        <SubNodes [
+          <Task #G4-T1 { name = "创建并执行 action 精简 track" status = "DONE" order = 0 } (
+            <Description ?01M02K495T394NCV1MCKP2QGNR>
+            合并 maintain-track 三模式、下沉 decision-tree protocol、调整必建/按需产物、去重共享方法并降低 attractor 频率。
+            </?01M02K495T394NCV1MCKP2QGNR>
+            <TrackLink #simplify-codument-actions { state = "bound" project_ref = "host" }>
+          )>
+          <Task #G4-T2 { name = "验证 action 能力无损" status = "DONE" order = 1 } (
+            <Description ?01M02K495T394NCV1MCKP2QGNS>
+            对 discuss-phase/revise/schedule、planning、implementation、verification 和 archive 主路径做能力对照。
+            </?01M02K495T394NCV1MCKP2QGNS>
+          )>
+        ]>
+      )>
+      <TaskGroup #G5 { name = "分发、升级迁移与 E2E" status = "DONE" order = 4 } (
+        <Description ?01M02K495T394NCV1MCKP2QGNT>
+        清理下游 skill，迁移旧工作区并用真实 init/build/upgrade/E2E 验证发布结果。
+        </?01M02K495T394NCV1MCKP2QGNT>
+        <SubNodes [
+          <Task #G5-T1 { name = "创建并执行分发迁移 track" status = "DONE" order = 0 } (
+            <Description ?01M02K495T394NCV1MCKP2QGNV>
+            移除仓库测试 skill、历史别名和被合并 skill；结构化迁移旧 action hooks；修正 E2E 直接调用方式。
+            </?01M02K495T394NCV1MCKP2QGNV>
+            <TrackLink #clean-distribution-and-upgrade { state = "bound" project_ref = "host" }>
+          )>
+          <Task #G5-T2 { name = "运行发布与 dogfood 验证" status = "DONE" order = 1 } (
+            <Description ?01M02K495T394NCV1MCKP2QGNW>
+            运行 manifest 生成、typecheck、tests、build、fresh init、upgrade-workspace、严格校验和真实 E2E。
+            </?01M02K495T394NCV1MCKP2QGNW>
+          )>
+        ]>
+      )>
+      <TaskGroup #G6 { name = "Mission 收口验证" status = "DONE" order = 5 } (
+        <Description ?01M02K495T394NCV1MCKP2QGNX>
+        确认所有目标、迁移、安全边界和分发结果收敛。
+        </?01M02K495T394NCV1MCKP2QGNX>
+        <SubNodes [
+          <Task #G6-T1 { name = "执行跨 track 最终验证" status = "DONE" order = 0 } (
+            <Description ?01M02K495T394NCV1MCKP2QGNY>
+            对 mission 成功判据逐项映射源码、模板、CLI、测试、生成物和 dogfood 证据。
+            </?01M02K495T394NCV1MCKP2QGNY>
+          )>
+          <Task #G6-T2 { name = "生成 mission complete 报告" status = "DONE" order = 1 } (
+            <Description ?01M02K495T394NCV1MCKP2QGNZ>
+            记录最终 actual state、剩余风险、兼容边界和归档建议。
+            </?01M02K495T394NCV1MCKP2QGNZ>
+          )>
+        ]>
+      )>
+    ]>
+  )>
+  <Schedule [
+    <Dag { for = "space_evolve-codument-action-system" } [
+      <Node #G1>
+      <Node #G2>
+      <Node #G3>
+      <Node #G4 [
+        <After { ref = "G2" }>
+        <After { ref = "G3" }>
+      ]>
+      <Node #G5 [
+        <After { ref = "G1" }>
+        <After { ref = "G4" }>
+      ]>
+      <Node #G6 [
+        <After { ref = "G5" }>
+      ]>
+    ]>
+  ]>
+  <Hooks [
+    <Hook { on = "mission:after-node" } (
+      <MissionReconcile { max_tracks = 10 on_limit = "checkpoint" on_drift = "replan-or-block" }>
+    )>
+  ]>
+)>

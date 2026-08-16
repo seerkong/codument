@@ -1,37 +1,45 @@
-<decision #track.add_mission_actor_sets.actor_set_shape {
-  priority = "P0"
-  status = "accepted"
-  blocks = ["design.md" "track.xml"]
-}
-(
-  <question ?>TaskGroup 如何局部改变四 Actor 的工作方式？</?>
-  <recommendation ?>每个 ActorSet 必须完整，TaskGroup 以 actor-set 属性整组替换，最近祖先优先。</?>
-  <answer { }
-  (
-    <raw-answer ?>用户同意 Mission 默认 ActorSet 与 TaskGroup 局部覆盖，并允许不同阶段使用多个四 Actor 组合。</?>
-    <decision-text ?>禁止逐角色隐式 merge；覆盖引用完整 ActorSet。</?>
-    <rationale ?>防止阶段继承产生难以观察的半套控制角色。</?>
-    <evidence ?>Mission accepted decision `actor_sets` 与 coding AttractorCheck 结论。</?>
-  )
->
-)
->
+<decision #track.add_mission_actor_sets.actor_set_shape apiVersion="codument.tech/v1alpha1" { priority = "P0" status = "accepted" blocks = ["design.md" "track.xml"] } (
+  <question ?01M02EGVB9F2KM9QWSY1WWH724>
+  TaskGroup 如何局部改变四 Actor 的工作方式？
+  </?01M02EGVB9F2KM9QWSY1WWH724>
+  <recommendation ?01M02EGVB9F2KM9QWSY1WWH725>
+  每个 ActorSet 必须完整，TaskGroup 以 actor-set 属性整组替换，最近祖先优先。
+  </?01M02EGVB9F2KM9QWSY1WWH725>
+  <answer {  } (
+    <raw-answer ?01M02EGVB9F2KM9QWSY1WWH726>
+    用户同意 Mission 默认 ActorSet 与 TaskGroup 局部覆盖，并允许不同阶段使用多个四 Actor 组合。
+    </?01M02EGVB9F2KM9QWSY1WWH726>
+    <decision-text ?01M02EGVB9F2KM9QWSY1WWH727>
+    禁止逐角色隐式 merge；覆盖引用完整 ActorSet。
+    </?01M02EGVB9F2KM9QWSY1WWH727>
+    <rationale ?01M02EGVB9F2KM9QWSY1WWH728>
+    防止阶段继承产生难以观察的半套控制角色。
+    </?01M02EGVB9F2KM9QWSY1WWH728>
+    <evidence ?01M02EGVB9F2KM9QWSY1WWH729>
+    Mission accepted decision `actor_sets` 与 coding AttractorCheck 结论。
+    </?01M02EGVB9F2KM9QWSY1WWH729>
+  )>
+)>
 
-<decision #track.add_mission_actor_sets.workspace_binding_boundary {
-  priority = "P0"
-  status = "accepted"
-  blocks = ["design.md" "track.xml"]
-}
-(
-  <question ?>跨项目 workspace 路径应落在哪里？</?>
-  <recommendation ?>只在 impl-mission 当前 session runtime 中保存 WorkspaceBinding；mission 仅保存 ProjectRef。</?>
-  <answer { }
-  (
-    <raw-answer ?>用户明确拒绝可 Git 管理的 workspaces.xml，并接受 ProjectRef + session-local WorkspaceBinding。</?>
-    <decision-text ?>路径不得写入任何持久 Codument 文件；未绑定外部 ProjectRef 的实际态为 UNBOUND。</?>
-    <rationale ?>开发者机器目录不同，路径不是共享项目事实。</?>
-    <evidence ?>Mission accepted decision `project_binding`。</?>
-  )
->
-)
->
+<decision #track.add_mission_actor_sets.workspace_binding_boundary apiVersion="codument.tech/v1alpha1" { priority = "P0" status = "accepted" blocks = ["design.md" "track.xml"] } (
+  <question ?01M02EGVB9F2KM9QWSY1WWH72A>
+  跨项目 workspace 路径应落在哪里？
+  </?01M02EGVB9F2KM9QWSY1WWH72A>
+  <recommendation ?01M02EGVB9F2KM9QWSY1WWH72B>
+  只在 impl-mission 当前 session runtime 中保存 WorkspaceBinding；mission 仅保存 ProjectRef。
+  </?01M02EGVB9F2KM9QWSY1WWH72B>
+  <answer {  } (
+    <raw-answer ?01M02EGVB9F2KM9QWSY1WWH72C>
+    用户明确拒绝可 Git 管理的 workspaces.xml，并接受 ProjectRef + session-local WorkspaceBinding。
+    </?01M02EGVB9F2KM9QWSY1WWH72C>
+    <decision-text ?01M02EGVB9F2KM9QWSY1WWH72D>
+    路径不得写入任何持久 Codument 文件；未绑定外部 ProjectRef 的实际态为 UNBOUND。
+    </?01M02EGVB9F2KM9QWSY1WWH72D>
+    <rationale ?01M02EGVB9F2KM9QWSY1WWH72E>
+    开发者机器目录不同，路径不是共享项目事实。
+    </?01M02EGVB9F2KM9QWSY1WWH72E>
+    <evidence ?01M02EGVB9F2KM9QWSY1WWH72F>
+    Mission accepted decision `project_binding`。
+    </?01M02EGVB9F2KM9QWSY1WWH72F>
+  )>
+)>

@@ -9,7 +9,7 @@ function node(src: string) {
 describe('modeling node schema validation', () => {
   it('passes a complete entity', () => {
     const n = node(
-      `<object #resource.skill_tool { kind = "entity" fact_grade = "authoritative_fact" single_writer = "resource.store" } [ <types ?t>interface X {}</?t> ]>`,
+      `<object #resource.skill_tool { kind = "entity" fact_grade = "authoritative_fact" single_writer = "resource.store" } ( <types ?t>interface X {}</?t> )>`,
     );
     expect(validateModelingNode(n)).toEqual([]);
   });
@@ -30,7 +30,7 @@ describe('modeling node schema validation', () => {
   });
 
   it('requires mermaid on state-machine', () => {
-    const ok = node(`<state-machine #r.sm { kind = "state-machine" } [ <mermaid ?m>stateDiagram-v2</?m> ]>`);
+    const ok = node(`<state-machine #r.sm { kind = "state-machine" } ( <mermaid ?m>stateDiagram-v2</?m> )>`);
     expect(validateModelingNode(ok)).toEqual([]);
     const bad = node(`<state-machine #r.sm2 { kind = "state-machine" } [ <desc ?>x</?> ]>`);
     expect(validateModelingNode(bad).join('\n')).toMatch(/requires a <mermaid>/);
@@ -38,7 +38,7 @@ describe('modeling node schema validation', () => {
 
   it('requires depends_on + capsule-tree on module', () => {
     const ok = node(
-      `<module #m.resource { kind = "module" depends_on = [] } [ <capsule-tree ?>resource/</?> ]>`,
+      `<module #m.resource { kind = "module" depends_on = [] } ( <capsule-tree ?>resource/</?> )>`,
     );
     expect(validateModelingNode(ok)).toEqual([]);
     const bad = node(`<module #m.bad { kind = "module" } [ <desc ?>x</?> ]>`);
@@ -57,7 +57,7 @@ describe('modeling node schema validation', () => {
 
   it('accepts bare-tag IO blocks on component (canonical)', () => {
     const ok = node(
-      `<component #c.ok { kind = "component" } [ <runtime ?r>x</?r> <input ?i>x</?i> <config ?cf>x</?cf> <output ?o>x</?o> <pseudo { kind = "ctrl" } ?p>fn() {}</?p> ]>`,
+      `<component #c.ok { kind = "component" } ( <runtime ?r>x</?r> <input ?i>x</?i> <config ?cf>x</?cf> <output ?o>x</?o> <pseudo { kind = "ctrl" } ?p>fn() {}</?p> )>`,
     );
     expect(validateModelingNode(ok)).toEqual([]);
   });
@@ -103,9 +103,16 @@ describe('modeling node schema validation', () => {
     expect(validateModelingNode(n)).toEqual([]);
   });
 
+  it('keeps accepting legacy body representations during migration', () => {
+    const n = node(
+      `<object #resource.legacy_body { kind = "entity" fact_grade = "authoritative_fact" single_writer = "resource.store" } [ <types ?t>interface X {}</?t> ]>`,
+    );
+    expect(validateModelingNode(n)).toEqual([]);
+  });
+
   it('requires a ctrl|rule|dataflow pseudo slot on component', () => {
     const bad = node(
-      `<component #c.nopseudo { kind = "component" } [ <runtime ?r>x</?r> <input ?i>x</?i> <config ?cf>x</?cf> <output ?o>x</?o> ]>`,
+      `<component #c.nopseudo { kind = "component" } ( <runtime ?r>x</?r> <input ?i>x</?i> <config ?cf>x</?cf> <output ?o>x</?o> )>`,
     );
     expect(validateModelingNode(bad).join('\n')).toMatch(/requires a ctrl\|rule\|dataflow <pseudo> slot/);
   });

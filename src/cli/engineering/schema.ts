@@ -1,4 +1,5 @@
-import type { XnlNode, DataElementNode, TextElementNode } from 'xnl-core';
+import type { XnlNode, DataElementNode } from 'xnl-core';
+import { orderedElementChildren } from '../xnl/registry';
 import { isDataElement, readNodeId, type EngineeringRegistry } from './registry';
 
 /**
@@ -18,21 +19,8 @@ export const ENGINEERING_KINDS = [
   'code-map',
 ] as const;
 
-type Element = DataElementNode | TextElementNode;
-
-function isElement(node: XnlNode | undefined): node is Element {
-  return Boolean(
-    node && typeof node === 'object' &&
-      ((node as Element).kind === 'DataElement' || (node as Element).kind === 'TextElement'),
-  );
-}
-
-function bodyChildren(node: DataElementNode): Element[] {
-  return (node.body ?? []).filter(isElement);
-}
-
 function childTags(node: DataElementNode): Set<string> {
-  return new Set(bodyChildren(node).map((c) => c.tag));
+  return new Set(orderedElementChildren(node).map((c) => c.tag));
 }
 
 function propString(node: DataElementNode, key: string): string | undefined {

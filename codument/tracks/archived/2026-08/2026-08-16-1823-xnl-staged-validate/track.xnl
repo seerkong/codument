@@ -1,0 +1,40 @@
+<Track #xnl-staged-validate apiVersion="codument.tech/v1alpha1" version="1" { status = "completed" goal = "将 run.sh 的 planning 阶段从分批 validate 改为 staged validate，减少子进程调用" description = "修改 e2e/modeling-engineering/run.sh（和 project-implementation/run.sh）的 plan 阶段时序：agent 完成所有 deltas 后一次性 validate，不再每批后强制校验。" question_mode = "decision-tree" question_severity = "auto" commit_mode = "manual" created_at = "2026-08-16T14:00:00.000Z" updated_at = "2026-08-16T15:23:19.192Z" modeling_base_commit = "3f7ee9d56e871fadcec1354f32582326ad187b03" engineering_base_commit = "3f7ee9d56e871fadcec1354f32582326ad187b03" } (
+  <Ports { scope = "track" } [
+    <MaterialBundle { role = "input" name = "e2e-runners" domain = "code" path = "vfs://./e2e/" }>
+  ]>
+  <TaskSpace #space_xnl-staged-validate { name = "xnl-staged-validate" version = "1" } (
+    <SubNodes [
+      <TaskGroup #P1 { name = "改造 run.sh" status = "DONE" priority = "P0" order = 0 } (
+        <Description ?01M05JG2NZ6M77B2GF06HEM76X>
+        修改 modeling-engineering/run.sh 和 project-implementation/run.sh，plan 阶段改为 staged validate（agent 完成所有 deltas 后一次性校验）。
+        </?01M05JG2NZ6M77B2GF06HEM76X>
+        <Acceptance [
+          <Criterion #P1-AC1 { checked = true } ?01M05JG2P06QC3SRC87DRWJEW1>
+          run.sh step 3-4 不再每批后 validate，改为 agent 完成后一次性校验。
+          </?01M05JG2P06QC3SRC87DRWJEW1>
+          <Criterion #P1-AC2 { checked = true } ?01M05JG2P06QC3SRC87DRWJEW2>
+          三次 validate（validate, modeling validate, engineering validate）仍在最终执行。
+          </?01M05JG2P06QC3SRC87DRWJEW2>
+        ]>
+      )>
+      <TaskGroup #P2 { name = "回归测试" status = "DONE" priority = "P0" order = 1 } (
+        <Description ?01M05JG2P06QC3SRC87DRWJEW3>
+        运行 todo/ecommerce e2e (plan-only)，确认 validate 仍正确捕获错误，且 planning 时间缩短。
+        </?01M05JG2P06QC3SRC87DRWJEW3>
+        <Acceptance [
+          <Criterion #P2-AC1 { checked = true } ?01M05JG2P06QC3SRC87DRWJEW4>
+          todo plan-only 通过 staged validate。
+          </?01M05JG2P06QC3SRC87DRWJEW4>
+          <Criterion #P2-AC2 { checked = true } ?01M05JG2P06QC3SRC87DRWJEW5>
+          ecommerce plan-only 通过 staged validate。
+          </?01M05JG2P06QC3SRC87DRWJEW5>
+          <Criterion #P2-AC3 { checked = true } ?01M05JG2P06QC3SRC87DRWJEW6>
+          错误修复循环仍工作（一轮修复 + 一轮 re-validate 通过）。
+          </?01M05JG2P06QC3SRC87DRWJEW6>
+        ]>
+      )>
+    ]>
+  )>
+  <Schedule []>
+  <Hooks []>
+)>

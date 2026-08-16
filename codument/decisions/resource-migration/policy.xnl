@@ -1,0 +1,68 @@
+<decision #track.add_unified_resource_upgrade.command apiVersion="codument.tech/v1alpha1" { priority = "P0" status = "accepted" durable_candidate = true confidence = 1 reversibility = "easy" } (
+  <question ?01M04TF0CAY1JM2XNSFEVP4XSM>
+  单资源升级是否使用统一高层命令，同时保留 migrate 四阶段诊断接口？
+  </?01M04TF0CAY1JM2XNSFEVP4XSM>
+  <recommendation ?01M04TF0CB7Y4JBGFRS5CA881Z>
+  新增 `codument upgrade-resource &lt;path&gt;`，内部复用现有 migration registry。
+  </?01M04TF0CB7Y4JBGFRS5CA881Z>
+  <answer {  } (
+    <raw-answer ?01M04TF0CB7Y4JBGFRS5CA8820>
+    同意使用 codument upgrade-resource &lt;path&gt;，现有 migrate 四阶段命令保留为底层诊断接口。
+    </?01M04TF0CB7Y4JBGFRS5CA8820>
+    <decision-text ?01M04TF0CB7Y4JBGFRS5CA8821>
+    提供一条自动 inspect、plan、backup、apply、verify 的单资源升级命令。
+    </?01M04TF0CB7Y4JBGFRS5CA8821>
+    <rationale ?01M04TF0CB7Y4JBGFRS5CA8822>
+    普通升级不应要求用户手工编排四阶段，但诊断和 AI 修订仍需要分阶段接口。
+    </?01M04TF0CB7Y4JBGFRS5CA8822>
+    <evidence ?01M04TF0CB7Y4JBGFRS5CA8823>
+    用户在本次 mission 续跑前明确确认该方案。
+    </?01M04TF0CB7Y4JBGFRS5CA8823>
+  )>
+)>
+
+<decision #track.add_unified_resource_upgrade.decision_owner apiVersion="codument.tech/v1alpha1" { priority = "P0" status = "accepted" durable_candidate = true confidence = 1 reversibility = "moderate" } (
+  <question ?01M04TF0CB7Y4JBGFRS5CA8824>
+  长期 Decision Registry 如何确定业务 owner，并处理缺少 owner 的根 durable decision？
+  </?01M04TF0CB7Y4JBGFRS5CA8824>
+  <recommendation ?01M04TF0CB7Y4JBGFRS5CA8825>
+  递归业务路径原样晋升；根 durable decision 缺 owner 时交 AI；取消 registry.xnl fallback。
+  </?01M04TF0CB7Y4JBGFRS5CA8825>
+  <answer {  } (
+    <raw-answer ?01M04TF0CB7Y4JBGFRS5CA8826>
+    同意递归业务路径原样晋升，根 durable decision 缺少归属时交给 AI，彻底取消 registry.xnl fallback。
+    </?01M04TF0CB7Y4JBGFRS5CA8826>
+    <decision-text ?01M04TF0CB7Y4JBGFRS5CA8827>
+    长期 Decision 使用业务语义 XNL 目录树；CLI 不再把未知归属写进 registry.xnl。
+    </?01M04TF0CB7Y4JBGFRS5CA8827>
+    <rationale ?01M04TF0CB7Y4JBGFRS5CA8828>
+    通用聚合文件丢失维护语义，而 AI 可以基于完整上下文选择稳定业务 owner。
+    </?01M04TF0CB7Y4JBGFRS5CA8828>
+    <evidence ?01M04TF0CB7Y4JBGFRS5CA8829>
+    历史 Track 设计已要求 owner-or-topic/subtopic 结构，用户再次确认该不变量。
+    </?01M04TF0CB7Y4JBGFRS5CA8829>
+  )>
+)>
+
+<decision #track.add_unified_resource_upgrade.remove_legacy_markdown apiVersion="codument.tech/v1alpha1" { priority = "P0" status = "accepted" durable_candidate = true confidence = 1 reversibility = "moderate" } (
+  <question ?01M04TF0CB7Y4JBGFRS5CA882A>
+  legacy decision.md/decisions.md 的清理范围是否包括 archived Track？
+  </?01M04TF0CB7Y4JBGFRS5CA882A>
+  <recommendation ?01M04TF0CB7Y4JBGFRS5CA882B>
+  包括 archived Track；先保真迁入 XNL 与备份，再移除 Markdown。
+  </?01M04TF0CB7Y4JBGFRS5CA882B>
+  <answer {  } (
+    <raw-answer ?01M04TF0CB7Y4JBGFRS5CA882C>
+    包括。
+    </?01M04TF0CB7Y4JBGFRS5CA882C>
+    <decision-text ?01M04TF0CB7Y4JBGFRS5CA882D>
+    项目 Codument 资产中不再保留 Decision Markdown，包括历史 archive。
+    </?01M04TF0CB7Y4JBGFRS5CA882D>
+    <rationale ?01M04TF0CB7Y4JBGFRS5CA882E>
+    只有彻底移除兼容 authoring 才能避免旧格式继续被误用。
+    </?01M04TF0CB7Y4JBGFRS5CA882E>
+    <evidence ?01M04TF0CB7Y4JBGFRS5CA882F>
+    用户明确确认 archived Track 也在迁移范围内。
+    </?01M04TF0CB7Y4JBGFRS5CA882F>
+  )>
+)>

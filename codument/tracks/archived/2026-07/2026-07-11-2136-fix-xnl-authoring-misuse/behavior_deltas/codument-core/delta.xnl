@@ -1,0 +1,85 @@
+<BehaviorPatch #track.fix-xnl-authoring-misuse.behavior_patch.codument-core apiVersion="codument.tech/v1alpha1" version="1" { capability = "codument-core" } (
+  <Mutations [
+    <Upsert { selector = "behavior://codument-core/requirements/xnl-authoring-canonical-shape" } (
+      <Requirement #xnl-authoring-canonical-shape (
+        <Statement ?01M02NT0V75CSPRT9FW4APA568>
+        Codument SHALL author XNL examples, generated XNL, and XNL fixtures using canonical XNL structure semantics.
+        </?01M02NT0V75CSPRT9FW4APA568>
+        <Suites [
+          <Suite #metadata-attributes { name = "metadata 与 attributes" } (
+            <Cases [
+              <Case #normal-properties-use-attributes (
+                <Given ?01M02NT0V75CSPRT9FW4APA569>
+                一个 XNL 节点包含普通业务或知识属性，例如 kind、fact_grade、single_writer、priority 或 status
+                </?01M02NT0V75CSPRT9FW4APA569>
+                <When ?01M02NT0V75CSPRT9FW4APA56A>
+                系统生成或修订该节点
+                </?01M02NT0V75CSPRT9FW4APA56A>
+                <Then ?01M02NT0V75CSPRT9FW4APA56B>
+                系统 SHALL put the properties in the `{}` attribute block
+                </?01M02NT0V75CSPRT9FW4APA56B>
+                <Ands [
+                  <And ?01M02NT0V75CSPRT9FW4APA56C>
+                  系统 SHALL reserve metadata for system-level parser/tooling fields
+                  </?01M02NT0V75CSPRT9FW4APA56C>
+                ]>
+              )>
+              <Case #legacy-metadata-is-explicit (
+                <Given ?01M02NT0V75CSPRT9FW4APA56D>
+                测试资源保留 legacy metadata 写法用于兼容性覆盖
+                </?01M02NT0V75CSPRT9FW4APA56D>
+                <When ?01M02NT0V75CSPRT9FW4APA56E>
+                系统保留该 fixture
+                </?01M02NT0V75CSPRT9FW4APA56E>
+                <Then ?01M02NT0V75CSPRT9FW4APA56F>
+                系统 SHALL label or isolate it as legacy compatibility coverage
+                </?01M02NT0V75CSPRT9FW4APA56F>
+              )>
+            ]>
+          )>
+          <Suite #extend-array { name = "extend 与 array" } (
+            <Cases [
+              <Case #singleton-slots-use-extend (
+                <Given ?01M02NT0V75CSPRT9FW4APA56G>
+                一个 XNL DSL 节点包含只出现一次的语义槽位，例如 question、answer、rationale 或 evidence
+                </?01M02NT0V75CSPRT9FW4APA56G>
+                <When ?01M02NT0V75CSPRT9FW4APA56H>
+                系统生成该节点
+                </?01M02NT0V75CSPRT9FW4APA56H>
+                <Then ?01M02NT0V75CSPRT9FW4APA56J>
+                系统 SHALL put singleton semantic slots in the `()` extend block
+                </?01M02NT0V75CSPRT9FW4APA56J>
+              )>
+              <Case #child-decisions-use-array (
+                <Given ?01M02NT0V75CSPRT9FW4APA56K>
+                一个 decision tree 节点包含下级 decision 节点集合
+                </?01M02NT0V75CSPRT9FW4APA56K>
+                <When ?01M02NT0V75CSPRT9FW4APA56M>
+                系统生成该决策树
+                </?01M02NT0V75CSPRT9FW4APA56M>
+                <Then ?01M02NT0V75CSPRT9FW4APA56N>
+                系统 SHALL put child decision nodes in the `[]` array block
+                </?01M02NT0V75CSPRT9FW4APA56N>
+              )>
+            ]>
+          )>
+          <Suite #regression { name = "防回归" } (
+            <Cases [
+              <Case #lint-or-tests-catch-misuse (
+                <Given ?01M02NT0V75CSPRT9FW4APA56P>
+                未来新增 XNL 规范示例或 fixture
+                </?01M02NT0V75CSPRT9FW4APA56P>
+                <When ?01M02NT0V75CSPRT9FW4APA56Q>
+                普通属性被写进 metadata 或单例槽位被写进 `[]`
+                </?01M02NT0V75CSPRT9FW4APA56Q>
+                <Then ?01M02NT0V75CSPRT9FW4APA56R>
+                系统 SHOULD fail a focused test or lint check unless the file is explicitly legacy compatibility coverage
+                </?01M02NT0V75CSPRT9FW4APA56R>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+  ]>
+)>

@@ -1,0 +1,68 @@
+<decision #track.enable_modeling_and_atomic_archive.default_enablement apiVersion="codument.tech/v1alpha1" { priority = "P0" status = "accepted" durable_candidate = true confidence = 0.99 reversibility = "easy" } (
+  <question ?01M0004E2HCGV6D5H4MA93N74G>
+  Modeling 的默认启用语义是什么？
+  </?01M0004E2HCGV6D5H4MA93N74G>
+  <recommendation ?01M0004E2HCGV6D5H4MA93N74H>
+  fresh init 模板与缺省 loader 都默认 enabled，显式 false 始终保留。
+  </?01M0004E2HCGV6D5H4MA93N74H>
+  <answer {  } (
+    <raw-answer ?01M0004E2HCGV6D5H4MA93N74J>
+    用户同意 modeling 默认值改为 true，并明确普通 track 不强制生成 delta。
+    </?01M0004E2HCGV6D5H4MA93N74J>
+    <decision-text ?01M0004E2HCGV6D5H4MA93N74K>
+    缺失配置时 modeling 默认启用；模板输出 enabled=true；已有显式 enabled=false 不被 upgrade 覆盖。
+    </?01M0004E2HCGV6D5H4MA93N74K>
+    <rationale ?01M0004E2HCGV6D5H4MA93N74M>
+    让结构知识能力开箱即用，同时尊重项目的明确关闭选择。
+    </?01M0004E2HCGV6D5H4MA93N74M>
+    <evidence ?01M0004E2HCGV6D5H4MA93N74N>
+    Mission decision `mission.evolve_codument_action_system.modeling`。
+    </?01M0004E2HCGV6D5H4MA93N74N>
+  )>
+)>
+
+<decision #track.enable_modeling_and_atomic_archive.delta_trigger apiVersion="codument.tech/v1alpha1" { priority = "P0" status = "accepted" durable_candidate = true confidence = 0.99 reversibility = "easy" } (
+  <question ?01M0004E2HCGV6D5H4MA93N74P>
+  默认启用后何时必须生成 modeling delta？
+  </?01M0004E2HCGV6D5H4MA93N74P>
+  <recommendation ?01M0004E2HCGV6D5H4MA93N74Q>
+  仅结构知识变化时生成；无结构变化时不制造空 delta 或 registry。
+  </?01M0004E2HCGV6D5H4MA93N74Q>
+  <answer {  } (
+    <raw-answer ?01M0004E2HCGV6D5H4MA93N74R>
+    用户同意按对象、状态机、policy、模块边界、事实源、组件 IO 等结构变化触发。
+    </?01M0004E2HCGV6D5H4MA93N74R>
+    <decision-text ?01M0004E2HCGV6D5H4MA93N74S>
+    Modeling enablement 与 delta obligation 分离；启用不等于每 track 必有 delta。
+    </?01M0004E2HCGV6D5H4MA93N74S>
+    <rationale ?01M0004E2HCGV6D5H4MA93N74T>
+    避免默认启用演化为文档噪声和无意义的空 registry。
+    </?01M0004E2HCGV6D5H4MA93N74T>
+    <evidence ?01M0004E2HCGV6D5H4MA93N74V>
+    Mission proposal 与 accepted modeling decision。
+    </?01M0004E2HCGV6D5H4MA93N74V>
+  )>
+)>
+
+<decision #track.enable_modeling_and_atomic_archive.atomic_boundary apiVersion="codument.tech/v1alpha1" { priority = "P0" status = "accepted" durable_candidate = true confidence = 0.99 reversibility = "moderate" } (
+  <question ?01M0004E2HCGV6D5H4MA93N74W>
+  跨 registry archive 的失败边界如何定义？
+  </?01M0004E2HCGV6D5H4MA93N74W>
+  <recommendation ?01M0004E2HCGV6D5H4MA93N74X>
+  全部 prepare/validate/conflict detect 成功后才 commit；commit 失败 rollback；成功后才移动 track。
+  </?01M0004E2HCGV6D5H4MA93N74X>
+  <answer {  } (
+    <raw-answer ?01M0004E2HCGV6D5H4MA93N74Y>
+    用户明确要求 behavior/modeling/engineering 共享原子边界，失败不写任何内容且不移动 track。
+    </?01M0004E2HCGV6D5H4MA93N74Y>
+    <decision-text ?01M0004E2HCGV6D5H4MA93N74Z>
+    三个 registry 与 track move 构成单一可观察事务；任一失败恢复 archive 前实际态。
+    </?01M0004E2HCGV6D5H4MA93N74Z>
+    <rationale ?01M0004E2HCGV6D5H4MA93N750>
+    防止长期行为、结构和工程知识真源出现彼此不一致的半归档状态。
+    </?01M0004E2HCGV6D5H4MA93N750>
+    <evidence ?01M0004E2HCGV6D5H4MA93N751>
+    Mission design 的 Registry 原子归档模型与用户确认。
+    </?01M0004E2HCGV6D5H4MA93N751>
+  )>
+)>

@@ -1,0 +1,138 @@
+<Track #update-codex-skill-compatibility apiVersion="codument.tech/v1alpha1" version="1" { status = "completed" goal = "让 Codument 在 init、upgrade-workspace 和文档层面从旧的 ~/.codex/prompts 模式迁移到 ~/.codex/skills/codument-workflow/ 模式" description = "让 Codument 在 init、upgrade-workspace 和文档层面从旧的 ~/.codex/prompts 模式迁移到 ~/.codex/skills/codument-workflow/ 模式" commit_mode = "manual" created_at = "2026-04-04T12:00:00Z" updated_at = "2026-04-04T16:00:00Z" } (
+  <Ports { scope = "track" } [
+    <MaterialBundle { role = "input" name = "behavior-deltas" domain = "behavior" path = "vfs://./behavior_deltas/" }>
+    <MaterialBundle { role = "output" name = "docs" domain = "doc" path = "vfs://@/docs/" }>
+    <MaterialBundle { role = "output" name = "behavior" domain = "codument" path = "vfs://@/codument/behaviors/" }>
+  ]>
+  <TaskSpace #space_update-codex-skill-compatibility { name = "update-codex-skill-compatibility" } (
+    <Description ?01M02JDH8ZYSX9GPD30T6Y3Y6N>
+    让 Codument 在 init、upgrade-workspace 和文档层面从旧的 ~/.codex/prompts 模式迁移到 ~/.codex/skills/codument-workflow/ 模式
+    </?01M02JDH8ZYSX9GPD30T6Y3Y6N>
+    <SubNodes [
+      <TaskGroup #P1 { name = "模板源与生成器切换" status = "DONE" order = 0 } (
+        <Description ?01M02JDH8ZYSX9GPD30T6Y3Y6P>
+        建立 Codex skill 模板源，并让生成器输出到 ~/.codex/skills/codument-workflow/
+        </?01M02JDH8ZYSX9GPD30T6Y3Y6P>
+        <Gate [
+          <Criterion ?01M02JDH8ZYSX9GPD30T6Y3Y6Q>
+          Codex 生成器已切换为 skill 模式
+          </?01M02JDH8ZYSX9GPD30T6Y3Y6Q>
+        ]>
+        <SubNodes [
+          <Task { id = "T1.1" name = "引入 codument-workflow skill 模板" status = "DONE" order = 0 priority = "P0" } (
+            <Description ?01M02JDH8ZYSX9GPD30T6Y3Y6R>
+            将当前可工作的 codument-workflow skill 结构纳入仓库内受控模板，至少包含 SKILL.md、agents/openai.yaml、references/ 下的工作流参考文件。
+            </?01M02JDH8ZYSX9GPD30T6Y3Y6R>
+            <Acceptance [
+              <Criterion { id = "T1.1-AC1" checked = true } ?01M02JDH8ZYSX9GPD30T6Y3Y6S>
+              仓库内存在完整的 codument-workflow skill 模板源
+              </?01M02JDH8ZYSX9GPD30T6Y3Y6S>
+              <Criterion { id = "T1.1-AC2" checked = true } ?01M02JDH8ZYSX9GPD30T6Y3Y6T>
+              模板目录结构与用户现有可用版本一致
+              </?01M02JDH8ZYSX9GPD30T6Y3Y6T>
+            ]>
+          )>
+          <Task { id = "T1.2" name = "改造 Codex 生成器" status = "DONE" order = 1 priority = "P0" } (
+            <Description ?01M02JDH8ZYSX9GPD30T6Y3Y6V>
+            修改 src/cli/generators/codex.ts，使其不再生成 ~/.codex/prompts/codument-*.md，而是将模板同步到 ~/.codex/skills/codument-workflow/。
+            </?01M02JDH8ZYSX9GPD30T6Y3Y6V>
+            <Acceptance [
+              <Criterion { id = "T1.2-AC1" checked = true } ?01M02JDH8ZYSX9GPD30T6Y3Y6W>
+              generateCodexCommands 不再写入 ~/.codex/prompts
+              </?01M02JDH8ZYSX9GPD30T6Y3Y6W>
+              <Criterion { id = "T1.2-AC2" checked = true } ?01M02JDH8ZYSX9GPD30T6Y3Y6X>
+              generateCodexCommands 能正确同步 ~/.codex/skills/codument-workflow/
+              </?01M02JDH8ZYSX9GPD30T6Y3Y6X>
+            ]>
+          )>
+        ]>
+      )>
+      <TaskGroup #P2 { name = "初始化与升级流程更新" status = "DONE" order = 1 } (
+        <Description ?01M02JDH8ZYSX9GPD30T6Y3Y6Y>
+        让 init 和 upgrade-workspace 正确安装、备份和升级 Codex skill
+        </?01M02JDH8ZYSX9GPD30T6Y3Y6Y>
+        <Gate [
+          <Criterion ?01M02JDH8ZYSX9GPD30T6Y3Y6Z>
+          init 和 upgrade-workspace 都已兼容 Codex skill 模式
+          </?01M02JDH8ZYSX9GPD30T6Y3Y6Z>
+        ]>
+        <SubNodes [
+          <Task { id = "T2.1" name = "更新 init.ts 中的 Codex 初始化逻辑与输出" status = "DONE" order = 0 priority = "P0" } (
+            <Description ?01M02JDH8ZYSX9GPD30T6Y3Y70>
+            修改 src/cli/commands/init.ts：
+                        - 选择 Codex 时调用新的 skill 同步逻辑
+                        - 输出文案改为 ~/.codex/skills/codument-workflow/
+                        - 移除 prompts 相关提示
+            </?01M02JDH8ZYSX9GPD30T6Y3Y70>
+            <Acceptance [
+              <Criterion { id = "T2.1-AC1" checked = true } ?01M02JDH8ZYSX9GPD30T6Y3Y71>
+              init 选择 Codex 时安装的是 skill 目录
+              </?01M02JDH8ZYSX9GPD30T6Y3Y71>
+              <Criterion { id = "T2.1-AC2" checked = true } ?01M02JDH8ZYSX9GPD30T6Y3Y72>
+              init 输出不再提及 ~/.codex/prompts
+              </?01M02JDH8ZYSX9GPD30T6Y3Y72>
+            ]>
+          )>
+          <Task { id = "T2.2" name = "更新 upgrade-workspace.ts 中的 Codex 备份与升级逻辑" status = "DONE" order = 1 priority = "P0" } (
+            <Description ?01M02JDH8ZYSX9GPD30T6Y3Y73>
+            修改 src/cli/commands/upgrade-workspace.ts：
+                        - 备份 ~/.codex/skills/codument-workflow/
+                        - 升级时同步 skill 目录
+                        - 输出文案同步更新
+            </?01M02JDH8ZYSX9GPD30T6Y3Y73>
+            <Acceptance [
+              <Criterion { id = "T2.2-AC1" checked = true } ?01M02JDH8ZYSX9GPD30T6Y3Y74>
+              upgrade-workspace 备份的是 Codex skill 目录
+              </?01M02JDH8ZYSX9GPD30T6Y3Y74>
+              <Criterion { id = "T2.2-AC2" checked = true } ?01M02JDH8ZYSX9GPD30T6Y3Y75>
+              upgrade-workspace 输出不再提及 ~/.codex/prompts
+              </?01M02JDH8ZYSX9GPD30T6Y3Y75>
+            ]>
+          )>
+        ]>
+      )>
+      <TaskGroup #P3 { name = "文档与回归验证" status = "DONE" order = 2 } (
+        <Description ?01M02JDH8ZYSX9GPD30T6Y3Y76>
+        同步 README 和升级文档，并验证 Codex skill 模式输出正确
+        </?01M02JDH8ZYSX9GPD30T6Y3Y76>
+        <Gate [
+          <Criterion ?01M02JDH8ZYSX9GPD30T6Y3Y77>
+          文档与实现对 Codex 的描述一致
+          </?01M02JDH8ZYSX9GPD30T6Y3Y77>
+          <Criterion ?01M02JDH8ZYSX9GPD30T6Y3Y78>
+          Codex 兼容逻辑有回归验证
+          </?01M02JDH8ZYSX9GPD30T6Y3Y78>
+        ]>
+        <SubNodes [
+          <Task { id = "T3.1" name = "更新 README 与升级文档" status = "DONE" order = 0 priority = "P1" } (
+            <Description ?01M02JDH8ZYSX9GPD30T6Y3Y79>
+            修改 README.md、README-cn.md、UPGRADE_WORKSPACE.md 中 Codex 的路径、调用方式和升级说明，统一改为 ~/.codex/skills/codument-workflow/。
+            </?01M02JDH8ZYSX9GPD30T6Y3Y79>
+            <Acceptance [
+              <Criterion { id = "T3.1-AC1" checked = true } ?01M02JDH8ZYSX9GPD30T6Y3Y7A>
+              公开文档中 Codex 主路径改为 ~/.codex/skills/codument-workflow/
+              </?01M02JDH8ZYSX9GPD30T6Y3Y7A>
+              <Criterion { id = "T3.1-AC2" checked = true } ?01M02JDH8ZYSX9GPD30T6Y3Y7B>
+              不再把 ~/.codex/prompts 作为 Codex 主入口说明
+              </?01M02JDH8ZYSX9GPD30T6Y3Y7B>
+            ]>
+          )>
+          <Task { id = "T3.2" name = "补充测试或校验" status = "DONE" order = 1 priority = "P1" } (
+            <Description ?01M02JDH8ZYSX9GPD30T6Y3Y7C>
+            补充与 Codex 相关的生成器或 upgrade-workspace 测试/校验，确保新版路径与模板同步逻辑正确。
+            </?01M02JDH8ZYSX9GPD30T6Y3Y7C>
+            <Acceptance [
+              <Criterion { id = "T3.2-AC1" checked = true } ?01M02JDH8ZYSX9GPD30T6Y3Y7D>
+              相关测试或校验通过
+              </?01M02JDH8ZYSX9GPD30T6Y3Y7D>
+              <Criterion { id = "T3.2-AC2" checked = true } ?01M02JDH8ZYSX9GPD30T6Y3Y7E>
+              Codex 兼容路径行为可被回归验证
+              </?01M02JDH8ZYSX9GPD30T6Y3Y7E>
+            ]>
+          )>
+        ]>
+      )>
+    ]>
+  )>
+  <Schedule>
+)>

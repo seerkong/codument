@@ -1,0 +1,56 @@
+<BehaviorPatch #track.reuse-verification-receipts-and-portable-python.behavior_patch.codument-core apiVersion="codument.tech/v1alpha1" version="1" { capability = "codument-core" } (
+  <Mutations [
+    <Upsert { selector = "behavior://codument-core/requirements/verification-receipt-reuse" } (
+      <Requirement #verification-receipt-reuse (
+        <Statement ?>系统 SHALL 以工作区内容指纹约束成功验证回执，并在 Track executor 的多个 gate 之间安全复用相同命令。</?>
+        <Suites [
+          <Suite #receipt-lifecycle { name = "验证回执生命周期" } (
+            <Cases [
+              <Case #reuse-unchanged-evidence (
+                <Given ?>同一 Track 的验证命令已经成功，且工作区验证输入未变化。</?>
+                <When ?>后续 task、phase 或最终 gate 请求相同命令。</?>
+                <Then ?>系统 SHALL 复用已有成功回执，不再次启动验证进程。</?>
+              )>
+              <Case #invalidate-changed-evidence (
+                <Given ?>已有成功回执后，源码、测试、配置或 Track 规范输入发生变化。</?>
+                <When ?>后续 gate 请求原验证命令。</?>
+                <Then ?>系统 SHALL 判定旧回执失效并重新执行命令。</?>
+              )>
+              <Case #force-fresh-evidence (
+                <Given ?>调用方要求独立或强制重新验证。</?>
+                <When ?>调用 `track verify --fresh` 或 `task complete --fresh`。</?>
+                <Then ?>系统 SHALL 忽略可复用回执并真实执行命令。</?>
+              )>
+              <Case #failed-command-has-no-receipt (
+                <Given ?>验证命令退出非零或无法启动。</?>
+                <When ?>CLI 处理验证请求。</?>
+                <Then ?>系统 SHALL 不生成成功回执，且 task 状态保持不变。</?>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/portable-e2e-python" } (
+      <Requirement #portable-e2e-python (
+        <Statement ?>系统 SHALL 为开发 E2E 选择满足生成项目声明且能实际创建、运行隔离环境的 Python，不在 Agent 提示中绑定具体次版本或工具。</?>
+        <Suites [
+          <Suite #environment-selection { name = "Python 环境选择" } (
+            <Cases [
+              <Case #reject-broken-venv-provider (
+                <Given ?>候选 Python 可报告版本但创建的 venv 无法运行。</?>
+                <When ?>E2E 准备独立验收环境。</?>
+                <Then ?>系统 SHALL 跳过该候选并继续发现可用环境。</?>
+              )>
+              <Case #portable-agent-guidance (
+                <Given ?>E2E 把原始工程需求交给 coding agent。</?>
+                <When ?>runner 追加 Python 环境约束。</?>
+                <Then ?>提示 SHALL 仅要求使用满足项目声明的可用隔离环境，不指定固定 Python 版本或环境工具。</?>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+  ]>
+)>

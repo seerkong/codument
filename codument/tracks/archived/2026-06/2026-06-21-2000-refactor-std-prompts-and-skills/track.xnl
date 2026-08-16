@@ -1,0 +1,161 @@
+<Track #refactor-std-prompts-and-skills apiVersion="codument.tech/v1alpha1" version="1" { status = "completed" goal = "std/prompts 与 skills 整理：(1) sop 去重（archive/artifact-sync/gap-loop 并入 operations）；(2) gap-loop 验证轮做成 verify-round 配置项（默认关）+ 复检轻量/增量；(3) skill 与 operation 改名到 plan-track 家族（impl-track / plan-track / plan-track-wave；旧 implement、track 留别名，旧 plan-schedule 废弃）。" description = "三块：sop 回归纯方法论；gap-loop 首轮怀疑改可配（verify-round 全局默认 false + 节点覆盖 + 创建询问）、验证/FIX 复检轻量增量；skill/operation 改名——codument-implement→codument-impl-track、codument-track→codument-plan-track（二者旧名留别名壳兼容）、codument-plan-schedule→codument-plan-track-wave（废弃旧名），operation 文件同步改名（implement.md/track.md/plan-schedule.md → impl-track.md/plan-track.md/plan-track-wave.md），约 90 处引用重定向（src/templates + dogfood）。未来 plan-mission（默认 DAG）按 plan-track 家族风格预留。" type = "refactor" commit_mode = "manual" created_at = "2026-06-21T00:00:00Z" updated_at = "2026-06-21T12:00:00Z" } (
+  <Ports { scope = "track" } [
+    <MaterialBundle { role = "input" name = "behavior-deltas" domain = "behavior" path = "vfs://./behavior_deltas/" }>
+    <MaterialBundle { role = "output" name = "behavior" domain = "codument" path = "vfs://@/codument/behaviors/" }>
+  ]>
+  <TaskSpace #space_refactor-std-prompts-and-skills { name = "refactor-std-prompts-and-skills" } (
+    <Description ?01M02JDH9BBXTPBGS3ESSDFYBJ>
+    sop 去重 + gap-loop verify-round/轻量复检 + skill/operation 改名（plan-track 家族）。
+    </?01M02JDH9BBXTPBGS3ESSDFYBJ>
+    <SubNodes [
+      <TaskGroup #P1 { name = "sop/operations 去重合并" status = "DONE" order = 0 } (
+        <Description ?01M02JDH9BBXTPBGS3ESSDFYBK>
+        删 3 个重复 sop，独有内容并入 operations，引用全重定向，manifest 重生成。
+        </?01M02JDH9BBXTPBGS3ESSDFYBK>
+        <SubNodes [
+          <Task { id = "T1.1" name = "合并 artifact-sync docs 路由段 → operations" status = "DONE" order = 0 priority = "P0" } (
+            <Description ?01M02JDH9BBXTPBGS3ESSDFYBM>
+            把 sop/artifact-sync.md 的「docs 路由」段（knowledge-tiers 判定 + 建模/实现路由 + model-driven-docs Routing Table + folder-manifest 补齐）并入 operations/artifact-sync.md（src/templates + dogfood），不丢内容。archive/gap-loop 的 sop 是 operations 子集，无需额外合并。
+            </?01M02JDH9BBXTPBGS3ESSDFYBM>
+            <Acceptance [
+              <Criterion { id = "T1.1-AC1" checked = true } ?01M02JDH9BBXTPBGS3ESSDFYBN>
+              operations/artifact-sync.md 含原 sop 的 docs 路由内容（两副本一致）
+              </?01M02JDH9BBXTPBGS3ESSDFYBN>
+            ]>
+          )>
+          <Task { id = "T1.2" name = "删 3 个 sop + 重定向引用" status = "DONE" order = 1 priority = "P0" } (
+            <Description ?01M02JDH9BBXTPBGS3ESSDFYBP>
+            删 std/sop/{archive,artifact-sync,gap-loop}.md（src+dogfood）；把所有引用（operations/{archive,artifact-sync,implement}.md、spec/{behavior-registry,track-xml-spec}.md、memory/README.md、attractors/model-driven-docs.md、skills 壳，src+dogfood）重定向到 operations 对应文件。
+            </?01M02JDH9BBXTPBGS3ESSDFYBP>
+            <Acceptance [
+              <Criterion { id = "T1.2-AC1" checked = true } ?01M02JDH9BBXTPBGS3ESSDFYBQ>
+              3 个 sop 文件已删（两副本）；grep sop/{archive,artifact-sync,gap-loop}.md 残留=0
+              </?01M02JDH9BBXTPBGS3ESSDFYBQ>
+              <Criterion { id = "T1.2-AC2" checked = true } ?01M02JDH9BBXTPBGS3ESSDFYBR>
+              sop/ 只剩 questioning/tdd/validation/wave-exec/workflow
+              </?01M02JDH9BBXTPBGS3ESSDFYBR>
+            ]>
+          )>
+          <Task { id = "T1.3" name = "重生成 manifest" status = "DONE" order = 2 priority = "P0" } (
+            <Description ?01M02JDH9BBXTPBGS3ESSDFYBS>
+            bun run scripts/gen-template-manifest.ts；test/templates/manifest.test.ts 守护通过。
+            </?01M02JDH9BBXTPBGS3ESSDFYBS>
+            <Acceptance [
+              <Criterion { id = "T1.3-AC1" checked = true } ?01M02JDH9BBXTPBGS3ESSDFYBT>
+              manifest 重生成且 manifest.test 通过
+              </?01M02JDH9BBXTPBGS3ESSDFYBT>
+            ]>
+          )>
+        ]>
+        <Hooks [
+          <Hook { on = "phase:after" } (
+            <AttractorCheck { use = "docs" }>
+          )>
+        ]>
+      )>
+      <TaskGroup #P2 { name = "gap-loop 验证轮配置 + 复检轻量化" status = "DONE" order = 1 } (
+        <Description ?01M02JDH9BBXTPBGS3ESSDFYBV>
+        verify-round 配置项（首轮怀疑可配、默认关）+ 验证轮/FIX 复检轻量增量。
+        </?01M02JDH9BBXTPBGS3ESSDFYBV>
+        <SubNodes [
+          <Task { id = "T2.1" name = "gap-loop.md 加轻量复检 + FIX 增量复检" status = "DONE" order = 0 priority = "P0" } (
+            <Description ?01M02JDH9BBXTPBGS3ESSDFYBW>
+            operations/gap-loop.md（src+dogfood）：§2 子代理新增「轻量模式」分支——验证轮 / FIX 复检轮只读上轮 gap 报告 + 当轮 diff（FIX 则聚焦改动范围）做确认、不重做全量目标对比、可降 effort；§1.2/§1.3 父层 dispatch 在 FIX_APPLIED 续轮标「增量复检」。双角色/XML 契约/max-rounds 不变。FIX 复检始终强制。
+            </?01M02JDH9BBXTPBGS3ESSDFYBW>
+            <Acceptance [
+              <Criterion { id = "T2.1-AC1" checked = true } ?01M02JDH9BBXTPBGS3ESSDFYBX>
+              gap-loop.md 含轻量验证 + FIX 增量复检说明（两副本一致）
+              </?01M02JDH9BBXTPBGS3ESSDFYBX>
+            ]>
+          )>
+          <Task { id = "T2.2" name = "verify-round 配置链（全局默认 + 节点属性 + 创建询问）" status = "DONE" order = 1 priority = "P0" } (
+            <Description ?01M02JDH9BBXTPBGS3ESSDFYBY>
+            把首轮怀疑验证轮做成 verify-round 配置项：(a) 全局开关默认 false（落在 gap-loop 配置处，沿用现有 config 风格）；(b) operations/gap-loop.md §0.2.4/§1.2/§1.3 改为「首轮 NO_GAP+无历史时，verify-round=true 才跑（轻量）验证轮，false 则直接收口」，读取节点 cdt:GapLoop 的 verify-round 属性（缺省取全局默认）；(c) operations/plan-track.md（即改名后的 track 操作）§3.7 同轮确认增问「是否启用 gap-loop 验证轮」，据答复写各 GapLoop 节点 verify-round，后续 phase 沿用；(d) std/spec/track-xml-spec.md 记录 GapLoop 的 verify-round 属性；(e) src/cli 校验接受该属性（validate 不报未知属性）。均 src+dogfood 同步。
+            </?01M02JDH9BBXTPBGS3ESSDFYBY>
+            <Acceptance [
+              <Criterion { id = "T2.2-AC1" checked = true } ?01M02JDH9BBXTPBGS3ESSDFYBZ>
+              全局默认 false + 节点 verify-round 覆盖 + 创建时询问写入，三处一致；gap-loop.md 父层据 verify-round 决策
+              </?01M02JDH9BBXTPBGS3ESSDFYBZ>
+              <Criterion { id = "T2.2-AC2" checked = true } ?01M02JDH9BBXTPBGS3ESSDFYC0>
+              track-xml-spec 记录该属性；validate 接受带 verify-round 的 GapLoop 节点
+              </?01M02JDH9BBXTPBGS3ESSDFYC0>
+            ]>
+          )>
+        ]>
+        <Hooks [
+          <Hook { on = "phase:after" } (
+            <AttractorCheck { use = "docs" }>
+          )>
+        ]>
+      )>
+      <TaskGroup #P3 { name = "skill / operation 改名（plan-track 家族）" status = "DONE" order = 2 } (
+        <Description ?01M02JDH9BBXTPBGS3ESSDFYC1>
+        operation 文件 + skill 改名到 plan-track 家族；旧 implement/track 留别名，旧 plan-schedule 废弃；引用重定向。
+        </?01M02JDH9BBXTPBGS3ESSDFYC1>
+        <SubNodes [
+          <Task { id = "T3.1" name = "operation 文件改名" status = "DONE" order = 0 priority = "P0" } (
+            <Description ?01M02JDH9BBXTPBGS3ESSDFYC2>
+            git mv（src/templates + dogfood）：operations/implement.md→impl-track.md、track.md→plan-track.md、plan-schedule.md→plan-track-wave.md。文件内自指标题/口径同步更新。
+            </?01M02JDH9BBXTPBGS3ESSDFYC2>
+            <Acceptance [
+              <Criterion { id = "T3.1-AC1" checked = true } ?01M02JDH9BBXTPBGS3ESSDFYC3>
+              3 个 operation 文件已改名（两副本）；旧文件名不再存在
+              </?01M02JDH9BBXTPBGS3ESSDFYC3>
+            ]>
+          )>
+          <Task { id = "T3.2" name = "skill 目录改名 + 别名兼容" status = "DONE" order = 1 priority = "P0" } (
+            <Description ?01M02JDH9BBXTPBGS3ESSDFYC4>
+            src/templates/skills：新增 codument-impl-track（@ impl-track.md）、codument-plan-track（@ plan-track.md）；codument-plan-schedule 改名为 codument-plan-track-wave（@ plan-track-wave.md，废弃旧名、不留别名）。旧 codument-implement、codument-track 目录**保留为别名壳**：description 标注「已更名为 codument-impl-track / codument-plan-track」，body 路由到新 operation，仍可触发。.claude/skills 为部署产物随 init/upgrade 再生，本 track 改模板源即可。
+            </?01M02JDH9BBXTPBGS3ESSDFYC4>
+            <Acceptance [
+              <Criterion { id = "T3.2-AC1" checked = true } ?01M02JDH9BBXTPBGS3ESSDFYC5>
+              新名 skill 壳就位（impl-track/plan-track/plan-track-wave）；implement/track 留别名壳；plan-schedule 旧名删除
+              </?01M02JDH9BBXTPBGS3ESSDFYC5>
+            ]>
+          )>
+          <Task { id = "T3.3" name = "引用重定向 + manifest 重生成" status = "DONE" order = 2 priority = "P0" } (
+            <Description ?01M02JDH9BBXTPBGS3ESSDFYC6>
+            把 codument-implement / codument-track / codument-plan-schedule 的引用（operations 互引、AGENTS.md、skills/README、src/cli/commands/init.ts、std 文档；src+dogfood）更新到新名（旧 implement/track 在用户可见处指新名，别名壳除外）；plan-schedule 旧名引用全改为 plan-track-wave。重生成 manifest（路径含改名后文件）。
+            </?01M02JDH9BBXTPBGS3ESSDFYC6>
+            <Acceptance [
+              <Criterion { id = "T3.3-AC1" checked = true } ?01M02JDH9BBXTPBGS3ESSDFYC7>
+              grep codument-plan-schedule 残留=0；codument-implement/codument-track 仅在别名壳保留；manifest 与磁盘一致（守护过）
+              </?01M02JDH9BBXTPBGS3ESSDFYC7>
+            ]>
+          )>
+        ]>
+        <Hooks [
+          <Hook { on = "phase:after" } (
+            <AttractorCheck { use = "docs" }>
+          )>
+        ]>
+      )>
+      <TaskGroup #P4 { name = "校验收口" status = "DONE" order = 3 } (
+        <Description ?01M02JDH9BBXTPBGS3ESSDFYC8>
+        全套校验 + 残留检查 + 别名验证 + track 校验。
+        </?01M02JDH9BBXTPBGS3ESSDFYC8>
+        <SubNodes [
+          <Task { id = "T4.1" name = "运行校验" status = "DONE" order = 0 priority = "P0" } (
+            <Description ?01M02JDH9BBXTPBGS3ESSDFYC9>
+            bun run typecheck + 全套 test 全绿（含 manifest 守护）；grep 残留=0：sop/{archive,artifact-sync,gap-loop}.md、codument-plan-schedule、operations/{implement,track,plan-schedule}.md 旧路径；别名验证：codument-implement / codument-track 旧名 skill 壳仍存在且路由到新 operation；codument validate refactor-std-prompts-and-skills --strict OK；抽查改名后文件与两副本一致。
+            </?01M02JDH9BBXTPBGS3ESSDFYC9>
+            <Acceptance [
+              <Criterion { id = "T4.1-AC1" checked = true } ?01M02JDH9BBXTPBGS3ESSDFYCA>
+              typecheck + tests 通过；残留=0；旧名别名可路由；track 校验 OK
+              </?01M02JDH9BBXTPBGS3ESSDFYCA>
+            ]>
+          )>
+        ]>
+        <Hooks [
+          <Hook { on = "phase:after" } (
+            <AttractorCheck { use = "coding" }>
+          )>
+          <Hook { on = "phase:after" } (
+            <GapLoop { max_rounds = 5 on_exhausted = "block" status = "DONE" }>
+          )>
+        ]>
+      )>
+    ]>
+  )>
+  <Schedule>
+)>

@@ -1,0 +1,25 @@
+<BehaviorPatch #track.modernize-real-agent-e2e.behavior_patch.codument-core apiVersion="codument.tech/v1alpha1" version="1" { capability = "codument-core" } (
+  <Mutations [
+    <Upsert { selector = "behavior://codument-core/requirements/modeling-engineering-e2e" } (
+      <Requirement #modeling-engineering-e2e (
+        <Statement ?>系统 SHALL 在临时工作区使用当前 Codument CLI 与 XNL 资源运行可重复的 smoke 或真实 coding-agent E2E，并验证规划、实现、registry delta 与代码质量证据。</?>
+        <Suites [
+          <Suite #current-harness { name = "Current Codument real-agent harness" } (
+            <Cases [
+              <Case #smoke-current-xnl (
+                <Given ?>E2E 以 SKIP_AGENT=1 运行</?>
+                <When ?>harness 初始化临时项目并生成当前 Track 与 delta fixture</?>
+                <Then ?>Track、modeling、engineering 校验和评分 SHALL 成功</?>
+              )>
+              <Case #real-agent-lifecycle (
+                <Given ?>E2E 以 Codex 或 Claude CLI 运行</?>
+                <When ?>agent 规划出 pending 或 active Track 并在 full mode 实现</?>
+                <Then ?>harness SHALL 发现真实 authority，并对同一 Track 完成验证与评分</?>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+  ]>
+)>

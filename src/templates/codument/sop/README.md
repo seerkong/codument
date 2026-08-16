@@ -7,7 +7,7 @@
 
 ## 约定
 
-- 两段式可选（「轻量 XML 骨架 + prose」，同 `std/actions/_action-spec.md` 精神）。
+- 默认使用简洁 Markdown prose；需要结构化资源时先调用对应 Codument CLI scaffold，再按当前 Kind 规范填写语义。
 - 项目自定义 skill / 或对内置 skill 的项目特化，可经 `<protocols><ref>codument/sop/<name>.md</ref>` 引用本目录。
 - 与内置规程同名时，项目可在此覆盖/扩展（由引用方决定优先级）。
 

@@ -1,0 +1,73 @@
+<Track #refine-mission-track-binding apiVersion="codument.tech/v1alpha1" version="1" { status = "completed" goal = "Refine mission track binding semantics and archive prechecks." description = "Update mission.xml specification and mission operation prompts so TrackLink binds leaf Tasks to real track ids with candidate/bound state, while archive-mission prechecks bound tracks." question_mode = "decision-tree" question_severity = "light" commit_mode = "manual" created_at = "2026-06-28T07:08:06Z" updated_at = "2026-06-28T07:14:08Z" } (
+  <Ports { scope = "track" } [
+    <MaterialBundle { role = "input" name = "behavior-deltas" domain = "behavior" path = "vfs://./behavior_deltas/" }>
+    <MaterialBundle { role = "output" name = "behavior" domain = "behavior" path = "vfs://@/codument/behaviors/" }>
+    <MaterialBundle { role = "output" name = "templates" domain = "codument" path = "vfs://@/src/templates/" }>
+  ]>
+  <TaskSpace #space_refine-mission-track-binding { name = "Refine mission track binding" } (
+    <Description ?01M02JBRYA05AF55B86T0RJ1VV>
+    Implement compact TrackLink binding semantics for mission workflows.
+    </?01M02JBRYA05AF55B86T0RJ1VV>
+    <SubNodes [
+      <TaskGroup #P1 { name = "Plan and record track" status = "DONE" order = 0 } (
+        <Description ?01M02JBRYA05AF55B86T0RJ1VW>
+        Record the user decisions and behavior delta for mission TrackLink semantics.
+        </?01M02JBRYA05AF55B86T0RJ1VW>
+        <SubNodes [
+          <Task #P1-T1 { name = "Create track artifacts" status = "DONE" order = 0 } (
+            <Description ?01M02JBRYA05AF55B86T0RJ1VX>
+            Create proposal, design, decisions, analysis, behavior delta, and track.xml.
+            </?01M02JBRYA05AF55B86T0RJ1VX>
+            <Acceptance ?01M02JBRYA05AF55B86T0RJ1VY>
+            Track folder contains self-contained artifacts with the discussed requirements.
+            </?01M02JBRYA05AF55B86T0RJ1VY>
+          )>
+        ]>
+      )>
+      <TaskGroup #P2 { name = "Update mission standards" status = "DONE" order = 1 } (
+        <Description ?01M02JBRYA05AF55B86T0RJ1VZ>
+        Update mission spec and operation prompts in dogfood and templates.
+        </?01M02JBRYA05AF55B86T0RJ1VZ>
+        <SubNodes [
+          <Task #P2-T1 { name = "Update mission XML spec" status = "DONE" order = 0 } (
+            <Description ?01M02JBRYA05AF55B86T0RJ1W0>
+            Document TrackLink, leaf Task placement, top-level TaskGroup DAG, sequential group tasks, and path-free binding resolution.
+            </?01M02JBRYA05AF55B86T0RJ1W0>
+            <Acceptance ?01M02JBRYA05AF55B86T0RJ1W1>
+            Dogfood and template mission XML specs contain the new TrackLink model and example.
+            </?01M02JBRYA05AF55B86T0RJ1W1>
+          )>
+          <Task #P2-T2 { name = "Update impl/archive mission operations" status = "DONE" order = 1 } (
+            <Description ?01M02JBRYA05AF55B86T0RJ1W2>
+            Add impl-mission bind writeback/reporting and archive-mission bound-track precheck rules.
+            </?01M02JBRYA05AF55B86T0RJ1W2>
+            <Acceptance ?01M02JBRYA05AF55B86T0RJ1W3>
+            Dogfood and template operation prompts include the new rules.
+            </?01M02JBRYA05AF55B86T0RJ1W3>
+          )>
+        ]>
+      )>
+      <TaskGroup #P3 { name = "Validate" status = "DONE" order = 2 } (
+        <Description ?01M02JBRYA05AF55B86T0RJ1W4>
+        Regenerate template manifest and run checks.
+        </?01M02JBRYA05AF55B86T0RJ1W4>
+        <SubNodes [
+          <Task #P3-T1 { name = "Regenerate manifest and run tests" status = "DONE" order = 0 } (
+            <Description ?01M02JBRYA05AF55B86T0RJ1W5>
+            Regenerate src/templates/manifest.ts and run targeted/full validation.
+            </?01M02JBRYA05AF55B86T0RJ1W5>
+            <Acceptance ?01M02JBRYA05AF55B86T0RJ1W6>
+            Typecheck and tests pass.
+            </?01M02JBRYA05AF55B86T0RJ1W6>
+          )>
+        ]>
+      )>
+    ]>
+  )>
+  <Schedule>
+  <Hooks [
+    <Hook { on = "phase:after" } (
+      <AttractorCheck { use = "coding" }>
+    )>
+  ]>
+)>

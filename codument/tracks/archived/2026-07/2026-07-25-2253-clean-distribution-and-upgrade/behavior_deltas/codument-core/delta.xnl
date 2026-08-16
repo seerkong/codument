@@ -1,0 +1,28 @@
+<BehaviorPatch #track.r_2_0_2_6_-_0_7_-_2_5_-_2_2_5_3_-_c_l_e_a_n_-_d_i_s_t_r_i_b_u_t_i_o_n_-_a_n_d_-_u_p_g_r_a_d_e.behavior_patch.codument-core apiVersion="codument.tech/v1alpha1" version="1" { capability = "codument-core" } (
+  <Mutations [
+    <Upsert { selector = "behavior://codument-core/requirements/distribution-cleanup" } (
+      <Requirement #distribution-cleanup (
+        <Statement ?01M02NT0WN72K98A4PAXPXTJSA>
+        系统 SHALL distribute only current Codument skill shells, and upgrade-workspace SHALL remove deprecated skill directories and legacy action taxonomy paths after backup.
+        </?01M02NT0WN72K98A4PAXPXTJSA>
+        <Suites [
+          <Suite #workspace-release { name = "Workspace release" } (
+            <Cases [
+              <Case #fresh-and-upgrade (
+                <Given ?01M02NT0WN72K98A4PAXPXTJSB>
+                a fresh or legacy workspace
+                </?01M02NT0WN72K98A4PAXPXTJSB>
+                <When ?01M02NT0WN72K98A4PAXPXTJSC>
+                init or upgrade-workspace runs
+                </?01M02NT0WN72K98A4PAXPXTJSC>
+                <Then ?01M02NT0WN72K98A4PAXPXTJSD>
+                the installed workspace SHALL expose the current action taxonomy and no deprecated skill shell
+                </?01M02NT0WN72K98A4PAXPXTJSD>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+  ]>
+)>

@@ -1,3 +1,0 @@
-<behavior-patch capability="codument-core" version="1">
-  <upsert selector="behavior://codument-core/requirements/action-taxonomy"><requirement id="action-taxonomy"><statement>系统 SHALL expose actions rather than operations in its release surface, while retaining old names only in explicit compat and migration boundaries.</statement><suite id="taxonomy" name="Action taxonomy"><case id="workspace-upgrade"><given>旧 workspace contains operation paths or hooks</given><when>upgrade-workspace runs</when><then>系统 SHALL migrate supported configuration and remove deprecated managed paths after backup</then></case></suite></requirement></upsert>
-</behavior-patch>

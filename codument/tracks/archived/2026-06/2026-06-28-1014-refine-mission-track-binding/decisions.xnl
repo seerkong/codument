@@ -1,0 +1,102 @@
+<decision #track.refine_mission_track_binding.legacy.d01 apiVersion="codument.tech/v1alpha1" { kind = "historical-decision" status = "accepted" durable_candidate = false legacy_source = "codument/tracks/active/refine-mission-track-binding/decisions.md" } (
+  <question ?m>
+  TrackLink Shape
+  </?m>
+  <answer {  } (
+    <raw-answer ?m>
+    Decision: Use one XML node, `cdt:TrackLink`, with a compact `state` attribute instead of multiple nodes.
+
+    ```xml
+    <cdt:TrackLink state="candidate" id="add-runtime-contracts"/>
+    <cdt:TrackLink state="bound" id="add-runtime-contracts"/>
+    ```
+
+    Rationale:
+    - Keeps mission.xml simple.
+    - Avoids separate `TrackCandidate` / `TrackRef` / `TrackBinding` nodes.
+    - Makes the binding lifecycle explicit without duplicating track status.
+    </?m>
+    <decision-text ?m>
+    Decision: Use one XML node, `cdt:TrackLink`, with a compact `state` attribute instead of multiple nodes.
+    </?m>
+    <rationale ?m>
+    - Keeps mission.xml simple.
+    </?m>
+    <evidence ?m>
+    从 legacy decisions.md 保真迁移；完整原始段落保存在 raw-answer。
+    </?m>
+  )>
+)>
+
+<decision #track.refine_mission_track_binding.legacy.d02 apiVersion="codument.tech/v1alpha1" { kind = "historical-decision" status = "accepted" durable_candidate = false legacy_source = "codument/tracks/active/refine-mission-track-binding/decisions.md" } (
+  <question ?m>
+  No Path Attribute
+  </?m>
+  <answer {  } (
+    <raw-answer ?m>
+    Decision: `cdt:TrackLink` has no `path` attribute.
+
+    Rationale:
+    - Active or archived location is derived by scanning `codument/tracks/<id>/` and `codument/archive/**/<timestamp>-<id>/`.
+    - Avoids updating mission.xml again solely because a track moved to archive.
+    - Keeps mission.xml as desired/control state, not a projection cache of filesystem paths.
+    </?m>
+    <decision-text ?m>
+    Decision: `cdt:TrackLink` has no `path` attribute.
+    </?m>
+    <rationale ?m>
+    - Active or archived location is derived by scanning `codument/tracks/<id>/` and `codument/archive/**/<timestamp>-<id>/`.
+    </?m>
+    <evidence ?m>
+    从 legacy decisions.md 保真迁移；完整原始段落保存在 raw-answer。
+    </?m>
+  )>
+)>
+
+<decision #track.refine_mission_track_binding.legacy.d03 apiVersion="codument.tech/v1alpha1" { kind = "historical-decision" status = "accepted" durable_candidate = false legacy_source = "codument/tracks/active/refine-mission-track-binding/decisions.md" } (
+  <question ?m>
+  Link Placement
+  </?m>
+  <answer {  } (
+    <raw-answer ?m>
+    Decision: `cdt:TrackLink` must be attached to a leaf `Task`, not a `TaskGroup`.
+
+    Rationale:
+    - Mission TaskSpace should stay aligned with track.xml: `TaskGroup` groups work; `Task` is the executable unit.
+    - Task/TaskGroup status remains on those nodes. `TrackLink` only binds a task to a track id.
+    </?m>
+    <decision-text ?m>
+    Decision: `cdt:TrackLink` must be attached to a leaf `Task`, not a `TaskGroup`.
+    </?m>
+    <rationale ?m>
+    - Mission TaskSpace should stay aligned with track.xml: `TaskGroup` groups work; `Task` is the executable unit.
+    </?m>
+    <evidence ?m>
+    从 legacy decisions.md 保真迁移；完整原始段落保存在 raw-answer。
+    </?m>
+  )>
+)>
+
+<decision #track.refine_mission_track_binding.legacy.d04 apiVersion="codument.tech/v1alpha1" { kind = "historical-decision" status = "accepted" durable_candidate = false legacy_source = "codument/tracks/active/refine-mission-track-binding/decisions.md" } (
+  <question ?m>
+  Mission Scheduling
+  </?m>
+  <answer {  } (
+    <raw-answer ?m>
+    Decision: Mission top-level `TaskGroup` nodes may be DAG-scheduled, while tasks inside each group execute sequentially by `order` unless a future spec explicitly allows nested DAG.
+
+    Rationale:
+    - Keeps long-running mission planning parallel enough at the group level.
+    - Keeps each group understandable and close to track.xml semantics.
+    </?m>
+    <decision-text ?m>
+    Decision: Mission top-level `TaskGroup` nodes may be DAG-scheduled, while tasks inside each group execute sequentially by `order` unless a future spec explicitly allows nested DAG.
+    </?m>
+    <rationale ?m>
+    - Keeps long-running mission planning parallel enough at the group level.
+    </?m>
+    <evidence ?m>
+    从 legacy decisions.md 保真迁移；完整原始段落保存在 raw-answer。
+    </?m>
+  )>
+)>

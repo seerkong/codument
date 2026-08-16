@@ -1,0 +1,39 @@
+<BehaviorPatch #track.add-autonomous-workspace-migration.behavior_patch.codument-core apiVersion="codument.tech/v1alpha1" version="1" { capability = "codument-core" } (
+  <Mutations [
+    <Upsert { selector = "behavior://codument-core/requirements/autonomous-workspace-migration" } (
+      <Requirement #autonomous-workspace-migration (
+        <Statement ?>Codument SHALL let one migrate Skill invocation converge either an entire workspace or one selected resource to the current CLI Kind versions.</?>
+        <Suites [
+          <Suite #workspace-mode { name = "Workspace migration mode" } (
+            <Cases [
+              <Case #no-argument-full-upgrade (
+                <Given ?>A user invokes codument-migrate without a resource path in an initialized workspace.</?>
+                <When ?>The Skill starts migration.</?>
+                <Then ?>It SHALL run workspace upgrade, process every review receipt in the current Coding Agent, revalidate all resource domains, and stop only when complete or explicitly blocked.</?>
+              )>
+              <Case #structured-workspace-receipt (
+                <Given ?>The Skill needs to orchestrate a workspace upgrade without scraping human-readable output.</?>
+                <When ?>It invokes codument upgrade-workspace with JSON output.</?>
+                <Then ?>The CLI SHALL return the backup, migration results, review resources, conflicts, and installation statistics as a stable JSON receipt.</?>
+              )>
+              <Case #no-agent-relaunch (
+                <Given ?>A review-required resource is discovered while migration already runs inside a Coding Agent.</?>
+                <When ?>Semantic conversion is required.</?>
+                <Then ?>The current Agent SHALL perform the review while the CLI remains deterministic; the agent option SHALL only select skill installation targets.</?>
+              )>
+            ]>
+          )>
+          <Suite #resource-mode { name = "Single resource migration mode" } (
+            <Cases [
+              <Case #path-selects-resource (
+                <Given ?>A user invokes codument-migrate with one resource path.</?>
+                <When ?>The Skill starts migration.</?>
+                <Then ?>It SHALL upgrade and semantically review only that resource and its required validation context.</?>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+  ]>
+)>

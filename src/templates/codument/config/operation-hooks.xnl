@@ -1,0 +1,7 @@
+<OperationHooks #codument.config.operation_hooks apiVersion="codument.tech/v1alpha1" version="1" (
+  <Operations [
+    <Operation #gap-loop (
+      <GapLoopDefaults { verify_round = false }>
+    )>
+  ]>
+)>

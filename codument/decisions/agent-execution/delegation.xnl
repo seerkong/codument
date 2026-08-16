@@ -1,0 +1,45 @@
+<decision #track.make_subagent_delegation_autonomous.execution_policy apiVersion="codument.tech/v1alpha1" { priority = "P0" status = "accepted" durable_candidate = true confidence = 0.99 } (
+  <question ?01M02EGV9M820F1701ZX5XCGRY>
+  普通 track 叶任务是否必须由 fresh 子代理执行？
+  </?01M02EGV9M820F1701ZX5XCGRY>
+  <recommendation ?01M02EGV9M820F1701ZX5XCGRZ>
+  普通任务由当前 AI 自主选择 local 或 delegated；只有独立性属于协议语义时强制 fresh context。
+  </?01M02EGV9M820F1701ZX5XCGRZ>
+  <answer {  } (
+    <raw-answer ?01M02EGV9M820F1701ZX5XCGS0>
+    除了 gap-loop、attractor review 等场景，其他应当由 AI 自主决定。
+    </?01M02EGV9M820F1701ZX5XCGS0>
+    <decision-text ?01M02EGV9M820F1701ZX5XCGS1>
+    Codument SHALL separate orchestration, delegation, and independent validation. Ordinary leaf-task delegation is an AI execution choice, not a mandatory impl-track rule.
+    </?01M02EGV9M820F1701ZX5XCGS1>
+    <rationale ?01M02EGV9M820F1701ZX5XCGS2>
+    任务结构不等于执行者拓扑；强制逐叶委派会增加等待、重复加载和状态冲突，却不能为普通实现提供额外正确性。
+    </?01M02EGV9M820F1701ZX5XCGS2>
+    <evidence ?01M02EGV9M820F1701ZX5XCGS3>
+    当前 impl-track、workflow、dag-execution 和 tdd 文档均把普通任务硬编码为 fresh 子代理执行；本次 decision track 的过长执行暴露了该成本。
+    </?01M02EGV9M820F1701ZX5XCGS3>
+  )>
+)>
+
+<decision #track.make_subagent_delegation_autonomous.state_owner apiVersion="codument.tech/v1alpha1" { priority = "P0" status = "accepted" durable_candidate = true confidence = 0.98 } (
+  <question ?01M02EGV9M820F1701ZX5XCGS4>
+  委派任务时谁拥有 track 执行状态？
+  </?01M02EGV9M820F1701ZX5XCGS4>
+  <recommendation ?01M02EGV9M820F1701ZX5XCGS5>
+  track executor 是 track.xml、acceptance、findings 与 commit 的唯一写入者。
+  </?01M02EGV9M820F1701ZX5XCGS5>
+  <answer {  } (
+    <raw-answer ?01M02EGV9M820F1701ZX5XCGS6>
+    同意该 track id 和行为。
+    </?01M02EGV9M820F1701ZX5XCGS6>
+    <decision-text ?01M02EGV9M820F1701ZX5XCGS7>
+    Delegated workers SHALL return scoped outputs and evidence; the track executor SHALL exclusively verify and write completion state.
+    </?01M02EGV9M820F1701ZX5XCGS7>
+    <rationale ?01M02EGV9M820F1701ZX5XCGS8>
+    避免 worker 与 parent 重复回写 status、勾选 acceptance 或创建冲突 commit。
+    </?01M02EGV9M820F1701ZX5XCGS8>
+    <evidence ?01M02EGV9M820F1701ZX5XCGS9>
+    旧 impl-track 同时要求子代理和父层回写状态，存在双写语义。
+    </?01M02EGV9M820F1701ZX5XCGS9>
+  )>
+)>

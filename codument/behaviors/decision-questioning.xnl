@@ -1,0 +1,48 @@
+<Behavior #decision-questioning apiVersion="codument.tech/v1alpha1" version="1" (
+  <Requirements [
+    <Requirement #topological-batches (
+      <Statement ?01M02MPHMXA0M31TA8Y036CQ7S>
+      Planning SHALL ask all ready independent decision directions in one bounded batch before asking dependent refinements.
+      </?01M02MPHMXA0M31TA8Y036CQ7S>
+      <Suites [
+        <Suite #multiple-roots { name = "multiple roots" } (
+          <Cases [
+            <Case #asks-roots-together (
+              <Given ?01M02MPHMXA0M31TA8Y036CQ7T>
+              a decision forest has multiple unresolved roots
+              </?01M02MPHMXA0M31TA8Y036CQ7T>
+              <When ?01M02MPHMY792514WCM7AK33NY>
+              planning requires user input
+              </?01M02MPHMY792514WCM7AK33NY>
+              <Then ?01M02MPHMY792514WCM7AK33NZ>
+              the planner SHALL present the ready roots together within the severity budget
+              </?01M02MPHMY792514WCM7AK33NZ>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement #conditional-activation (
+      <Statement ?01M02MPHMY792514WCM7AK33P0>
+      Planning SHALL materialize a new decision only when its declared multi-decision activation condition is satisfied, then include it in the next topological question batch.
+      </?01M02MPHMY792514WCM7AK33P0>
+      <Suites [
+        <Suite #combined-roots { name = "combined roots" } (
+          <Cases [
+            <Case #creates-peer-decision (
+              <Given ?01M02MPHMY792514WCM7AK33P1>
+              two independent root decisions select a combination that activates a new concern
+              </?01M02MPHMY792514WCM7AK33P1>
+              <When ?01M02MPHMY792514WCM7AK33P2>
+              the planner evaluates the completed answer batch
+              </?01M02MPHMY792514WCM7AK33P2>
+              <Then ?01M02MPHMY792514WCM7AK33P3>
+              the new concern SHALL be recorded as a same-level pending decision with provenance and dependencies
+              </?01M02MPHMY792514WCM7AK33P3>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+  ]>
+)>

@@ -1,0 +1,103 @@
+<BehaviorPatch #track.r_2_0_2_6_-_0_6_-_2_8_-_1_1_5_2_-_a_d_d_-_d_e_c_i_s_i_o_n_-_t_r_e_e_-_q_u_e_s_t_i_o_n_i_n_g.behavior_patch.codument-core apiVersion="codument.tech/v1alpha1" version="1" { capability = "codument-core" } (
+  <Mutations [
+    <Upsert { selector = "behavior://codument-core/requirements/decision-tree-questioning" } (
+      <Requirement #decision-tree-questioning (
+        <Statement ?01M02NT0WETM181B2TZXCP3GMS>
+        系统 SHALL 支持有界决策树式提问，并通过 severity 控制自主度和问题预算。
+        </?01M02NT0WETM181B2TZXCP3GMS>
+        <Suites [
+          <Suite #severity { name = "提问强度" } (
+            <Cases [
+              <Case #default-light (
+                <Given ?01M02NT0WETM181B2TZXCP3GMT>
+                用户调用 plan-track 或 plan-mission 且未指定 severity
+                </?01M02NT0WETM181B2TZXCP3GMT>
+                <When ?01M02NT0WETM181B2TZXCP3GMV>
+                系统开始规划
+                </?01M02NT0WETM181B2TZXCP3GMV>
+                <Then ?01M02NT0WETM181B2TZXCP3GMW>
+                系统 SHALL 默认使用 light 模式
+                </?01M02NT0WETM181B2TZXCP3GMW>
+                <Ands [
+                  <And ?01M02NT0WETM181B2TZXCP3GMX>
+                  系统 SHALL 在 track.xml 或 mission.xml 的 Metadata 中记录 QuestionMode=decision-tree 与 QuestionSeverity=light
+                  </?01M02NT0WETM181B2TZXCP3GMX>
+                ]>
+              )>
+              <Case #auto-no-question (
+                <Given ?01M02NT0WETM181B2TZXCP3GMY>
+                用户指定 severity=auto 或明确要求无问答/高自主
+                </?01M02NT0WETM181B2TZXCP3GMY>
+                <When ?01M02NT0WETM181B2TZXCP3GMZ>
+                系统创建 track 或 mission
+                </?01M02NT0WETM181B2TZXCP3GMZ>
+                <Then ?01M02NT0WETM181B2TZXCP3GN0>
+                系统 MUST NOT 因名称确认、产物确认或默认规划选项向用户提问
+                </?01M02NT0WETM181B2TZXCP3GN0>
+                <Ands [
+                  <And ?01M02NT0WETM181B2TZXCP3GN1>
+                  系统 SHALL 将关键假设写入 track 或 mission 文件
+                  </?01M02NT0WETM181B2TZXCP3GN1>
+                  <And ?01M02NT0WETM181B2TZXCP3GN2>
+                  系统 SHALL 在 track.xml 或 mission.xml 的 Metadata 中记录 QuestionSeverity=auto
+                  </?01M02NT0WETM181B2TZXCP3GN2>
+                ]>
+              )>
+              <Case #bounded-frontier (
+                <Given ?01M02NT0WETM181B2TZXCP3GN3>
+                系统需要澄清多个相关决策
+                </?01M02NT0WETM181B2TZXCP3GN3>
+                <When ?01M02NT0WETM181B2TZXCP3GN4>
+                severity 不是 auto
+                </?01M02NT0WETM181B2TZXCP3GN4>
+                <Then ?01M02NT0WETM181B2TZXCP3GN5>
+                系统 SHALL 优先询问当前 decision frontier 中最阻塞下游产物的问题
+                </?01M02NT0WETM181B2TZXCP3GN5>
+                <Ands [
+                  <And ?01M02NT0WETM181B2TZXCP3GN6>
+                  系统 SHALL 遵守该 severity 的轮次和每轮问题上限
+                  </?01M02NT0WETM181B2TZXCP3GN6>
+                ]>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/decisions-validation" } (
+      <Requirement #decisions-validation (
+        <Statement ?01M02NT0WETM181B2TZXCP3GN7>
+        系统 SHALL 提供轻量 decisions.md 校验，避免未解决的阻塞决策进入 completed track。
+        </?01M02NT0WETM181B2TZXCP3GN7>
+        <Suites [
+          <Suite #validate-decisions { name = "决策校验" } (
+            <Cases [
+              <Case #pending-is-error (
+                <Given ?01M02NT0WETM181B2TZXCP3GN8>
+                decisions.md 中存在状态 pending 的决策
+                </?01M02NT0WETM181B2TZXCP3GN8>
+                <When ?01M02NT0WETM181B2TZXCP3GN9>
+                用户运行 codument decisions validate
+                </?01M02NT0WETM181B2TZXCP3GN9>
+                <Then ?01M02NT0WETM181B2TZXCP3GNA>
+                系统 SHALL 报告 error
+                </?01M02NT0WETM181B2TZXCP3GNA>
+              )>
+              <Case #durable-metadata-warning (
+                <Given ?01M02NT0WETM181B2TZXCP3GNB>
+                decisions.md 中存在 Durable candidate: yes 但缺少 Evidence、Confidence 或 Reversibility
+                </?01M02NT0WETM181B2TZXCP3GNB>
+                <When ?01M02NT0WETM181B2TZXCP3GNC>
+                用户运行 codument decisions validate
+                </?01M02NT0WETM181B2TZXCP3GNC>
+                <Then ?01M02NT0WETM181B2TZXCP3GND>
+                系统 SHALL 报告 warning
+                </?01M02NT0WETM181B2TZXCP3GND>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+  ]>
+)>

@@ -1,0 +1,251 @@
+<decision #track.fix_spec_validator_conflicts.cli_first apiVersion="codument.tech/v1alpha1" { kind = "planning-decision" priority = "P0" status = "accepted" blocks = ["proposal.md" "design.md" "track.xml"] frontier = false durable_candidate = true confidence = 0.97 reversibility = "moderate" evidence = "用户明确指示：确定性逻辑通过 codument CLI 实现，CLI 返回 AI 友好信息，不继续堆砌提示词" } (
+  <question ?01M0004E2HCGV6D5H4MA93N75B>
+  修复规范-示例-校验器冲突时，确定性规则应该落在哪里？
+  </?01M0004E2HCGV6D5H4MA93N75B>
+  <recommendation ?01M0004E2HCGV6D5H4MA93N75C>
+  确定性规则全部下沉到 CLI 校验器实现，输出 AI 友好 findings；提示词只保留路由与无法自动判定的内容性指导。
+  </?01M0004E2HCGV6D5H4MA93N75C>
+  <options {  } [
+    <option { key = "cli-first" recommended = true } (
+      <title ?01M0004E2HCGV6D5H4MA93N75D>
+      CLI 优先：确定性规则由命令实现
+      </?01M0004E2HCGV6D5H4MA93N75D>
+      <description ?01M0004E2HCGV6D5H4MA93N75E>
+      枚举、引用、必填表征等可判定规则写入 validate/decisions/modeling/mission 校验器，统一 rule-id + 文件/位置 + severity + 消息输出，支持 --json。
+      </?01M0004E2HCGV6D5H4MA93N75E>
+      <tradeoff ?01M0004E2HCGV6D5H4MA93N75F>
+      需要实现与测试成本；但规则可版本化、可回归，AI 直接消费结构化结果。
+      </?01M0004E2HCGV6D5H4MA93N75F>
+    )>
+    <option { key = "prompt-only" } (
+      <title ?01M0004E2HCGV6D5H4MA93N75G>
+      继续以提示词自检清单承载规则
+      </?01M0004E2HCGV6D5H4MA93N75G>
+      <description ?01M0004E2HCGV6D5H4MA93N75H>
+      在 validate.md 等提示词中维护规则清单，由 AI 阅读后自行判断。
+      </?01M0004E2HCGV6D5H4MA93N75H>
+      <tradeoff ?01M0004E2HCGV6D5H4MA93N75J>
+      无实现成本，但规则漂移（如冲突 1~8）无法被机器检测，且每次模型变更都可能回归。
+      </?01M0004E2HCGV6D5H4MA93N75J>
+    )>
+  ]>
+  <answer ?01M0004E2HCGV6D5H4MA93N75K>
+  采用 CLI 优先。
+  </?01M0004E2HCGV6D5H4MA93N75K>
+  <rationale ?01M0004E2HCGV6D5H4MA93N75M>
+  冲突 1~8 的根源正是「规则散落在提示词与示例中、校验器不一致」；把确定性规则下沉 CLI 并用测试固化，才能从机制上消除漂移。
+  </?01M0004E2HCGV6D5H4MA93N75M>
+  <evidence ?01M0004E2HCGV6D5H4MA93N75N>
+  审查发现 8 处冲突全部可由确定性判定（枚举成员、引用存在性、表征存在性）；用户明确确认该原则。
+  </?01M0004E2HCGV6D5H4MA93N75N>
+)>
+
+<decision #track.fix_spec_validator_conflicts.mission_validation apiVersion="codument.tech/v1alpha1" { kind = "planning-decision" priority = "P0" status = "accepted" blocks = ["src/cli/mission/validate.ts" "codument/std/spec/mission-xml-spec.md"] frontier = false durable_candidate = false confidence = 0.93 reversibility = "reversible" } (
+  <question ?01M0004E2HCGV6D5H4MA93N75P>
+  mission.xml 的结构规则如何获得确定性校验？
+  </?01M0004E2HCGV6D5H4MA93N75P>
+  <recommendation ?01M0004E2HCGV6D5H4MA93N75Q>
+  扩展 mission/validate.ts：校验 Metadata.Status 与节点状态枚举（mission §6 词表）、Hook on 取值（含 mission:after-node）、Schedule Dag 直接下层引用、TrackLink 仅挂叶子 Task、MissionReconcile 属性合法性；并入 codument validate 校验面。
+  </?01M0004E2HCGV6D5H4MA93N75Q>
+  <options {  } [
+    <option { key = "extend-validator" recommended = true } (
+      <title ?01M0004E2HCGV6D5H4MA93N75R>
+      扩展 CLI 校验器
+      </?01M0004E2HCGV6D5H4MA93N75R>
+      <description ?01M0004E2HCGV6D5H4MA93N75S>
+      在 mission/validate.ts 实现全部确定性规则，与 track 校验器同风格，输出统一 findings。
+      </?01M0004E2HCGV6D5H4MA93N75S>
+      <tradeoff ?01M0004E2HCGV6D5H4MA93N75T>
+      实现量最大，但 mission 状态/调度/行为三轴从此被机器守护。
+      </?01M0004E2HCGV6D5H4MA93N75T>
+    )>
+    <option { key = "doc-only" } (
+      <title ?01M0004E2HCGV6D5H4MA93N75V>
+      仅修正规范措辞
+      </?01M0004E2HCGV6D5H4MA93N75V>
+      <description ?01M0004E2HCGV6D5H4MA93N75W>
+      把 mission 枚举差异写清楚，校验仍缺位。
+      </?01M0004E2HCGV6D5H4MA93N75W>
+      <tradeoff ?01M0004E2HCGV6D5H4MA93N75X>
+      无实现成本，但 BLOCKED/SUPERSED 等状态继续无校验兜底，冲突 3/4 未真正关闭。
+      </?01M0004E2HCGV6D5H4MA93N75X>
+    )>
+  ]>
+  <answer ?01M0004E2HCGV6D5H4MA93N75Y>
+  扩展 mission 校验器并接线到 validate。
+  </?01M0004E2HCGV6D5H4MA93N75Y>
+  <rationale ?01M0004E2HCGV6D5H4MA93N75Z>
+  冲突 3/4 的本质是规则缺失；规范措辞修正是必要伴随项（消除「复用 track 枚举」的自相矛盾），但必须配合 CLI 实现才算关闭。
+  </?01M0004E2HCGV6D5H4MA93N75Z>
+  <evidence ?01M0004E2HCGV6D5H4MA93N760>
+  现有 mission.xml（evolve-codument-action-system）已满足拟新增规则，可作回归样例；track 校验器已有同构实现可复用。
+  </?01M0004E2HCGV6D5H4MA93N760>
+)>
+
+<decision #track.fix_spec_validator_conflicts.decision_pending apiVersion="codument.tech/v1alpha1" { kind = "planning-decision" priority = "P0" status = "accepted" blocks = ["src/cli/commands/decisions.ts" "codument/std/protocols/decision-tree.md"] frontier = false durable_candidate = false confidence = 0.94 reversibility = "reversible" } (
+  <question ?01M0004E2JDTJDNHB4DD2ERZWS>
+  decisions.xnl 的 pending 作者态应如何处理？
+  </?01M0004E2JDTJDNHB4DD2ERZWS>
+  <recommendation ?01M0004E2JDTJDNHB4DD2ERZWT>
+  pending 是规划期作者态：decisions validate 降为 warning（不置非零退出码）；durable_candidate=true 且未 resolve 仅在归档 gate 报 error，阻止提升。
+  </?01M0004E2JDTJDNHB4DD2ERZWT>
+  <options {  } [
+    <option { key = "authoring-ok" recommended = true } (
+      <title ?01M0004E2JDTJDNHB4DD2ERZWV>
+      作者态允许，归档 gate 拦截
+      </?01M0004E2JDTJDNHB4DD2ERZWV>
+      <description ?01M0004E2JDTJDNHB4DD2ERZWW>
+      pending 在 validate 为 warning；durable 未决在 archive/promotion 阶段为 error。
+      </?01M0004E2JDTJDNHB4DD2ERZWW>
+      <tradeoff ?01M0004E2JDTJDNHB4DD2ERZWX>
+      需要区分 validate 与 archive 两个 gate；行为更贴合决策生命周期。
+      </?01M0004E2JDTJDNHB4DD2ERZWX>
+    )>
+    <option { key = "keep-error" } (
+      <title ?01M0004E2JDTJDNHB4DD2ERZWY>
+      维持 pending 即 error
+      </?01M0004E2JDTJDNHB4DD2ERZWY>
+      <description ?01M0004E2JDTJDNHB4DD2ERZWZ>
+      现状：任何 pending 决策校验失败。
+      </?01M0004E2JDTJDNHB4DD2ERZWZ>
+      <tradeoff ?01M0004E2JDTJDNHB4DD2ERZX0>
+      与 decision-tree 协议、xnl-format 示例正面冲突，规划流程必然失败。
+      </?01M0004E2JDTJDNHB4DD2ERZX0>
+    )>
+  ]>
+  <answer ?01M0004E2JDTJDNHB4DD2ERZX1>
+  pending 降 warning，归档 gate 对 durable 未决报 error。
+  </?01M0004E2JDTJDNHB4DD2ERZX1>
+  <rationale ?01M0004E2JDTJDNHB4DD2ERZX2>
+  决策树协议以 pending 为正常作者态（先记录、后回答、再 resolve）；校验器应守护终态与提升资格，而非阻断规划过程。
+  </?01M0004E2JDTJDNHB4DD2ERZX2>
+  <evidence ?01M0004E2JDTJDNHB4DD2ERZX3>
+  decision-tree.md L36/L107 明确要求以 pending 记录未决选择；decisions.test.ts 当前断言 pending 失败即冲突本身。
+  </?01M0004E2JDTJDNHB4DD2ERZX3>
+)>
+
+<decision #track.fix_spec_validator_conflicts.modeling_minimal_repr apiVersion="codument.tech/v1alpha1" { kind = "planning-decision" priority = "P1" status = "accepted" blocks = ["src/cli/modeling/schema.ts" "codument/std/spec/modeling-node-schema.md" "codument/std/spec/modeling-registry.md"] frontier = false durable_candidate = false confidence = 0.88 reversibility = "reversible" } (
+  <question ?01M0004E2JDTJDNHB4DD2ERZX4>
+  modeling 节点的「最小必备表征」哪些由 CLI 强制？
+  </?01M0004E2JDTJDNHB4DD2ERZX4>
+  <recommendation ?01M0004E2JDTJDNHB4DD2ERZX5>
+  确定性可判定的项由 CLI 强制（state-machine 状态枚举存在、component pseudo 槽位、port command|message 标注、policy rule 或 behavior:// 引用）；内容质量项（entity invariants、actor 偏重/解环论述）在规范标注为「评审项（非 CLI 强制）」，统一 modeling-registry.md 措辞。
+  </?01M0004E2JDTJDNHB4DD2ERZX5>
+  <options {  } [
+    <option { key = "split-enforce-doc" recommended = true } (
+      <title ?01M0004E2JDTJDNHB4DD2ERZX6>
+      确定性项强制 + 内容性项标注评审
+      </?01M0004E2JDTJDNHB4DD2ERZX6>
+      <description ?01M0004E2JDTJDNHB4DD2ERZX7>
+      CLI 守护可判定结构，文档明确不可判定项为评审职责。
+      </?01M0004E2JDTJDNHB4DD2ERZX7>
+      <tradeoff ?01M0004E2JDTJDNHB4DD2ERZX8>
+      需要更新两份 modeling 规范并补测试；评审项依赖 review 流程而非机器。
+      </?01M0004E2JDTJDNHB4DD2ERZX8>
+    )>
+    <option { key = "enforce-all" } (
+      <title ?01M0004E2JDTJDNHB4DD2ERZX9>
+      全部按 node-schema 声明强制
+      </?01M0004E2JDTJDNHB4DD2ERZX9>
+      <description ?01M0004E2JDTJDNHB4DD2ERZXA>
+      把 invariants 文本、actor 论述也纳入 CLI 校验。
+      </?01M0004E2JDTJDNHB4DD2ERZXA>
+      <tradeoff ?01M0004E2JDTJDNHB4DD2ERZXB>
+      需要启发式判定自然语言质量，规则不稳定且易误报，违背确定性原则。
+      </?01M0004E2JDTJDNHB4DD2ERZXB>
+    )>
+  ]>
+  <answer ?01M0004E2JDTJDNHB4DD2ERZXC>
+  确定性项 CLI 强制，内容性项标注为评审项。
+  </?01M0004E2JDTJDNHB4DD2ERZXC>
+  <rationale ?01M0004E2JDTJDNHB4DD2ERZXD>
+  符合「确定性逻辑走 CLI」原则；强制项都以 modeling-showcase 现有合规样例为基准，避免过度约束。
+  </?01M0004E2JDTJDNHB4DD2ERZXD>
+  <evidence ?01M0004E2JDTJDNHB4DD2ERZXE>
+  modeling/schema.ts 注释明确 port/actor/policy 现为 lenient；showcase 的 component 已含 pseudo、port 已含 port_kind。
+  </?01M0004E2JDTJDNHB4DD2ERZXE>
+)>
+
+<decision #track.fix_spec_validator_conflicts.spec_example_fixture apiVersion="codument.tech/v1alpha1" { kind = "planning-decision" priority = "P1" status = "accepted" blocks = ["codument/std/spec/track-xml-spec.md" "test/cli/commands/validate.test.ts"] frontier = false durable_candidate = false confidence = 0.95 reversibility = "reversible" } (
+  <question ?01M0004E2JDTJDNHB4DD2ERZXF>
+  如何防止规范示例再次与校验器漂移？
+  </?01M0004E2JDTJDNHB4DD2ERZXF>
+  <recommendation ?01M0004E2JDTJDNHB4DD2ERZXG>
+  修正 §4/§5 示例后，把组合示例固化为 test fixture，断言 codument validate 通过；未来任何修改若使示例不合法都会触发测试失败。
+  </?01M0004E2JDTJDNHB4DD2ERZXG>
+  <options {  } [
+    <option { key = "fixture-regression" recommended = true } (
+      <title ?01M0004E2JDTJDNHB4DD2ERZXH>
+      示例进防回归 fixture
+      </?01M0004E2JDTJDNHB4DD2ERZXH>
+      <description ?01M0004E2JDTJDNHB4DD2ERZXJ>
+      新增 test/resources/validate/track-spec-example.xml + validate.test.ts 断言。
+      </?01M0004E2JDTJDNHB4DD2ERZXJ>
+      <tradeoff ?01M0004E2JDTJDNHB4DD2ERZXK>
+      每次示例演进需同步 fixture；但示例合法性从此被机器守护。
+      </?01M0004E2JDTJDNHB4DD2ERZXK>
+    )>
+    <option { key = "manual-sync" } (
+      <title ?01M0004E2JDTJDNHB4DD2ERZXM>
+      仅人工同步示例
+      </?01M0004E2JDTJDNHB4DD2ERZXM>
+      <description ?01M0004E2JDTJDNHB4DD2ERZXN>
+      本次修正后靠 review 保持。
+      </?01M0004E2JDTJDNHB4DD2ERZXN>
+      <tradeoff ?01M0004E2JDTJDNHB4DD2ERZXP>
+      冲突 1/2 正是人工同步失败的结果，必然复发。
+      </?01M0004E2JDTJDNHB4DD2ERZXP>
+    )>
+  ]>
+  <answer ?01M0004E2JDTJDNHB4DD2ERZXQ>
+  示例修正并固化为防回归 fixture。
+  </?01M0004E2JDTJDNHB4DD2ERZXQ>
+  <rationale ?01M0004E2JDTJDNHB4DD2ERZXR>
+  示例是「提示词声明格式」的具象化；让它通过自身校验器并从测试兜底，是三方一致的最低成本机制。
+  </?01M0004E2JDTJDNHB4DD2ERZXR>
+  <evidence ?01M0004E2JDTJDNHB4DD2ERZXS>
+  冲突 1（TODO）与冲突 2（Dag 引用）均可在不跑 CLI 的情况下漏检，测试可稳定捕获。
+  </?01M0004E2JDTJDNHB4DD2ERZXS>
+)>
+
+<decision #track.fix_spec_validator_conflicts.strict_on_exhausted apiVersion="codument.tech/v1alpha1" { kind = "planning-decision" priority = "P2" status = "accepted" blocks = ["src/cli/commands/validate.ts" "codument/std/spec/track-xml-spec.md"] frontier = false durable_candidate = false confidence = 0.9 reversibility = "reversible" } (
+  <question ?01M0004E2JDTJDNHB4DD2ERZXT>
+  on-exhausted 非法值应如何处置？
+  </?01M0004E2JDTJDNHB4DD2ERZXT>
+  <recommendation ?01M0004E2JDTJDNHB4DD2ERZXV>
+  与 §9.5 strict 对齐：on-exhausted 非 block|continue|fail 提升为 error；AttractorCheck use 无法解析 profile 时输出 error 并附候选列表。
+  </?01M0004E2JDTJDNHB4DD2ERZXV>
+  <options {  } [
+    <option { key = "align-strict" recommended = true } (
+      <title ?01M0004E2JDTJDNHB4DD2ERZXW>
+      按规范声明严格化
+      </?01M0004E2JDTJDNHB4DD2ERZXW>
+      <description ?01M0004E2JDTJDNHB4DD2ERZXX>
+      warning 提升 error，规则语义与 §9.5 一致。
+      </?01M0004E2JDTJDNHB4DD2ERZXX>
+      <tradeoff ?01M0004E2JDTJDNHB4DD2ERZXY>
+      需先检索现有 track/示例确认无非法取值，避免误伤。
+      </?01M0004E2JDTJDNHB4DD2ERZXY>
+    )>
+    <option { key = "keep-warning" } (
+      <title ?01M0004E2JDTJDNHB4DD2ERZXZ>
+      保持 warning 并弱化规范
+      </?01M0004E2JDTJDNHB4DD2ERZXZ>
+      <description ?01M0004E2JDTJDNHB4DD2ERZY0>
+      把 §9.5 改为 warning 语义。
+      </?01M0004E2JDTJDNHB4DD2ERZY0>
+      <tradeoff ?01M0004E2JDTJDNHB4DD2ERZY1>
+      规范向实现妥协，strict 声明失去意义。
+      </?01M0004E2JDTJDNHB4DD2ERZY1>
+    )>
+  ]>
+  <answer ?01M0004E2JDTJDNHB4DD2ERZY2>
+  与 §9.5 strict 对齐，提升为 error。
+  </?01M0004E2JDTJDNHB4DD2ERZY2>
+  <rationale ?01M0004E2JDTJDNHB4DD2ERZY3>
+  规范明示 strict，实现却宽松属于规则不一致；统一为 error 并用测试固定。
+  </?01M0004E2JDTJDNHB4DD2ERZY3>
+  <evidence ?01M0004E2JDTJDNHB4DD2ERZY4>
+  validate.test.ts 已覆盖 verify-round 非法值失败；on-exhausted 属同类规则。
+  </?01M0004E2JDTJDNHB4DD2ERZY4>
+)>

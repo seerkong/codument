@@ -1,0 +1,145 @@
+<Mission #adopt-halfcode-kind-system apiVersion="codument.tech/v1alpha1" version="1" { status = "archived" goal = "以版本化 CLI 基座和 Halfcode KindDefinition 逐步统一 Codument 结构化产物。" description = "先工程化 Codument CLI，再补齐 Halfcode，最后正式接入并按真实反馈演进 compiler。" question_mode = "decision-tree" question_severity = "auto" revision = 21 created_at = "2026-08-15T09:30:00Z" updated_at = "2026-08-16T08:19:46.774Z" } (
+  <Ports { scope = "mission" } [
+    <MaterialBundle { role = "state" name = "reports" domain = "mission" path = "vfs://./reports/" }>
+    <MaterialBundle { role = "output" name = "tracks" domain = "codument" path = "vfs://@/codument/tracks/" }>
+  ]>
+  <ProjectRefs [
+    <ProjectRef #codument { kind = "host" }>
+    <ProjectRef #halfcode-compiler-xnl { kind = "external" }>
+  ]>
+  <ActorSets { default = "codument-loop" } [
+    <ActorSet #codument-loop [
+      <Actor { role = "MissionPlanner" project_ref = "codument" } (
+        <Description ?01M02K495QG3MAZB8XB1S1SG57>
+        按 Codument CLI、Kind 和迁移依赖切分并修订 host tracks。
+        </?01M02K495QG3MAZB8XB1S1SG57>
+      )>
+      <Actor { role = "MissionObserver" project_ref = "codument" } (
+        <Description ?01M02K495QG3MAZB8XB1S1SG58>
+        读取 CLI E2E、workspace 资产、Halfcode package contract 与 track 实际态。
+        </?01M02K495QG3MAZB8XB1S1SG58>
+      )>
+      <Actor { role = "MissionReconciler" project_ref = "codument" } (
+        <Description ?01M02K495QG3MAZB8XB1S1SG59>
+        比较版本化 authoring 目标与实际能力，选择下一条可验证 track。
+        </?01M02K495QG3MAZB8XB1S1SG59>
+      )>
+      <Actor { role = "MissionApplier" project_ref = "codument" } (
+        <Description ?01M02K495QG3MAZB8XB1S1SG5A>
+        连续规划、实现和验证 Codument track，并在明确通过后推进下一节点。
+        </?01M02K495QG3MAZB8XB1S1SG5A>
+      )>
+    ]>
+    <ActorSet #halfcode-loop [
+      <Actor { role = "MissionPlanner" project_ref = "halfcode-compiler-xnl" } (
+        <Description ?01M02K495QG3MAZB8XB1S1SG5B>
+        把 Codument 集成证据收敛为 Halfcode compiler 能力 tracks。
+        </?01M02K495QG3MAZB8XB1S1SG5B>
+      )>
+      <Actor { role = "MissionObserver" project_ref = "halfcode-compiler-xnl" } (
+        <Description ?01M02K495QG3MAZB8XB1S1SG5C>
+        观察 Halfcode KindDefinition、resource loader、package consumer 和发布状态。
+        </?01M02K495QG3MAZB8XB1S1SG5C>
+      )>
+      <Actor { role = "MissionReconciler" project_ref = "halfcode-compiler-xnl" } (
+        <Description ?01M02K495QG3MAZB8XB1S1SG5D>
+        判断版本化 Kind 与多根文档能力是否满足 Codument 的真实调用。
+        </?01M02K495QG3MAZB8XB1S1SG5D>
+      )>
+      <Actor { role = "MissionApplier" project_ref = "halfcode-compiler-xnl" } (
+        <Description ?01M02K495QG3MAZB8XB1S1SG5E>
+        执行 Halfcode 侧 track、发布验证版本并把证据返回 Codument。
+        </?01M02K495QG3MAZB8XB1S1SG5E>
+      )>
+    ]>
+  ]>
+  <TaskSpace #space_adopt-halfcode-kind-system { name = "adopt-halfcode-kind-system" child_mode = "dag" } (
+    <Description ?01M02K495QG3MAZB8XB1S1SG5F>
+    Codument CLI foundation, Halfcode capability completion, and formal integration.
+    </?01M02K495QG3MAZB8XB1S1SG5F>
+    <SubNodes [
+      <TaskGroup #G1 { name = "Codument CLI 基座" status = "DONE" order = 0 } (
+        <Description ?01M02K495QG3MAZB8XB1S1SG5G>
+        建立版本化创建与迁移所需的确定性 CLI authority。
+        </?01M02K495QG3MAZB8XB1S1SG5G>
+        <SubNodes [
+          <Task #G1-T1 { name = "建立版本化 CLI 与 scaffold 基座" status = "DONE" order = 0 } (
+            <TrackLink #build-versioned-cli-foundation { state = "bound" project_ref = "codument" }>
+          )>
+          <Task #G1-T2 { name = "建立结构化资源迁移基座" status = "DONE" order = 1 } (
+            <TrackLink #add-structured-resource-migrations { state = "bound" project_ref = "codument" }>
+          )>
+        ]>
+      )>
+      <TaskGroup #G2 { name = "Halfcode 能力补齐" status = "DONE" order = 1 actor_set = "halfcode-loop" } (
+        <Description ?01M02K495QG3MAZB8XB1S1SG5H>
+        根据 Codument 所需 schema version 与 XNL cardinality 补齐 compiler。
+        </?01M02K495QG3MAZB8XB1S1SG5H>
+        <SubNodes [
+          <Task #G2-T1 { name = "支持版本化 KindDefinition 与迁移注册" status = "DONE" order = 0 } (
+            <TrackLink #add-versioned-kind-definitions { state = "bound" project_ref = "halfcode-compiler-xnl" }>
+          )>
+          <Task #G2-T2 { name = "支持多根 XNL 文档与 forest cardinality" status = "DONE" order = 1 } (
+            <TrackLink #support-multi-root-xnl-documents { state = "bound" project_ref = "halfcode-compiler-xnl" }>
+          )>
+        ]>
+      )>
+      <TaskGroup #G3 { name = "Codument 正式接入" status = "DONE" order = 2 } (
+        <Description ?01M02K495QG3MAZB8XB1S1SG5J>
+        消费 Halfcode public package，定义 Codument Kinds，并按真实反馈继续补齐 compiler。
+        </?01M02K495QG3MAZB8XB1S1SG5J>
+        <SubNodes [
+          <Task #G3-T1 { name = "接入 Halfcode Kind compiler" status = "DONE" order = 0 } (
+            <TrackLink #integrate-halfcode-kind-compiler { state = "bound" project_ref = "codument" }>
+          )>
+          <Task #G3-T2 { name = "将 Track authority 从 XML 迁移到 XNL" status = "DONE" order = 1 } (
+            <TrackLink #migrate-track-kind-to-xnl { state = "bound" project_ref = "codument" }>
+          )>
+          <Task #G3-T3 { name = "根据集成证据补齐 Halfcode 并复验" status = "DONE" order = 2 } (
+            <TrackLink #expose-kind-definition-registry { state = "bound" project_ref = "halfcode-compiler-xnl" }>
+          )>
+          <Task #G3-T4 { name = "将 Mission authority 从 XML 迁移到 XNL" status = "DONE" order = 3 } (
+            <TrackLink #migrate-mission-kind-to-xnl { state = "bound" project_ref = "codument" }>
+          )>
+          <Task #G3-T5 { name = "盘点并规划剩余 XML Kind" status = "DONE" order = 4 }>
+          <Task #G3-T6 { name = "支持 single-file catalog 精确 entry" status = "DONE" order = 5 } (
+            <TrackLink #support-single-file-catalog-entry { state = "bound" project_ref = "halfcode-compiler-xnl" }>
+          )>
+          <Task #G3-T7 { name = "将配置 Kind 从 XML 迁移到 XNL" status = "DONE" order = 6 } (
+            <TrackLink #migrate-config-kinds-to-xnl { state = "bound" project_ref = "codument" }>
+          )>
+          <Task #G3-T8 { name = "将 Behavior registry authority 从 XML 迁移到 XNL" status = "DONE" order = 7 } (
+            <TrackLink #migrate-behavior-kind-to-xnl { state = "bound" project_ref = "codument" }>
+          )>
+          <Task #G3-T9 { name = "将 BehaviorPatch authority 从 XML 迁移到 XNL" status = "DONE" order = 8 } (
+            <TrackLink #migrate-behavior-patch-kind-to-xnl { state = "bound" project_ref = "codument" }>
+          )>
+          <Task #G3-T10 { name = "统一单资源升级并修复 Decision 业务目录迁移" status = "DONE" order = 9 } (
+            <TrackLink #add-unified-resource-upgrade { state = "bound" project_ref = "codument" }>
+          )>
+          <Task #G3-T11 { name = "让 BehaviorPatch 使用 XNL 原生 mutation 执行器" status = "DONE" order = 10 } (
+            <TrackLink #use-native-xnl-behavior-mutations { state = "bound" project_ref = "codument" }>
+          )>
+          <Task #G3-T12 { name = "将 operation 机械护栏迁入 CLI" status = "DONE" order = 11 } (
+            <TrackLink #move-operation-guardrails-to-cli { state = "bound" project_ref = "codument" }>
+          )>
+        ]>
+      )>
+    ]>
+  )>
+  <Schedule [
+    <Dag { for = "space_adopt-halfcode-kind-system" } [
+      <Node #G2 [
+        <After { ref = "G1" }>
+      ]>
+      <Node #G3 [
+        <After { ref = "G2" }>
+      ]>
+    ]>
+  ]>
+  <Hooks [
+    <Hook { on = "mission:after-node" } (
+      <MissionReconcile { max_tracks = 10 on_limit = "checkpoint" on_drift = "replan-or-block" }>
+    )>
+  ]>
+)>

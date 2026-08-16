@@ -1,0 +1,18 @@
+<BehaviorPatch #track.e2e-task-split.behavior_patch.e2e-optimize apiVersion="codument.tech/v1alpha1" version="1" { capability = "e2e-optimize" } (
+  <Mutations [
+    <Upsert { selector = "behavior://e2e-optimize/requirements/improve-xnl-authoring" } (
+      <Requirement #improve-xnl-authoring (
+        <Statement ?>系统 SHALL 通过 TTY 调用、validator 错误提示升级、staged validate、scaffold 辅助和 e2e 任务拆分五条 Track 系统性优化 XNL 编写体验。</?>
+        <Suites [
+          <Suite #validate-all (<Cases [
+            <Case #tty (<Given ?>run.sh 的 claude 分支获得伪 TTY</?> <When ?>agent 调用 codument</?> <Then ?>tool call 吞吐量恢复，_agent-plan.log 实时可见</?>)>
+            <Case #fix-hint (<Given ?>validator 输出包含 fix_hint</?> <When ?>agent 读取错误</?> <Then ?>一轮修复成功率 >= 90%</?>)>
+            <Case #staged (<Given ?>planning 阶段 staged validate</?> <When ?>agent 写完所有 deltas</?> <Then ?>一次性 validate 通过</?>)>
+            <Case #scaffold (<Given ?>agent 调用 scaffold 获得合法骨架</?> <When ?>填充业务内容</?> <Then ?>validate 0 error</?>)>
+            <Case #split (<Given ?>ecommerce 拆分为 core/payment</?> <When ?>单次 claude 会话运行</?> <Then ?>score >= 80</?>)>
+          ]>)>
+        ]>
+      )>
+    )>
+  ]>
+)>

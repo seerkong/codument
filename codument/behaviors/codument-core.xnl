@@ -1,0 +1,3581 @@
+<Behavior #codument-core apiVersion="codument.tech/v1alpha1" version="1" (
+  <Requirements [
+    <Requirement #attractor-profile-config (
+      <Statement ?01M02MT5NN5WSJ226G678CGCVP>
+      系统 SHALL support named attractor profiles that bundle one or more project-level attractor files for reusable validation contexts.
+      </?01M02MT5NN5WSJ226G678CGCVP>
+      <Suites [
+        <Suite #profile-config { name = "Attractor profile configuration" } (
+          <Cases [
+            <Case #default-profile (
+              <Given ?01M02MT5NN5WSJ226G678CGCVQ>
+              A workspace has `codument/attractors/project.md` and `codument/attractors/product.md`.
+              </?01M02MT5NN5WSJ226G678CGCVQ>
+              <When ?01M02MT5NN5WSJ226G678CGCVR>
+              No explicit attractor profile configuration exists.
+              </?01M02MT5NN5WSJ226G678CGCVR>
+              <Then ?01M02MT5NN5WSJ226G678CGCVS>
+              The effective `default` profile SHALL include `codument/attractors/project.md` and `codument/attractors/product.md`.
+              </?01M02MT5NN5WSJ226G678CGCVS>
+            )>
+            <Case #configured-profiles (
+              <Given ?01M02MT5NN5WSJ226G678CGCVT>
+              A workspace defines `codument/config/attractor-profiles.json`.
+              </?01M02MT5NN5WSJ226G678CGCVT>
+              <When ?01M02MT5NN5WSJ226G678CGCVV>
+              A plan hook references a profile by name.
+              </?01M02MT5NN5WSJ226G678CGCVV>
+              <Then ?01M02MT5NN5WSJ226G678CGCVW>
+              The system SHALL resolve that profile to its configured attractor file list.
+              </?01M02MT5NN5WSJ226G678CGCVW>
+              <Ands [
+                <And ?01M02MT5NN5WSJ226G678CGCVX>
+                The system SHALL report `BLOCKED` if the referenced profile or any required attractor file is missing.
+                </?01M02MT5NN5WSJ226G678CGCVX>
+              ]>
+            )>
+            <Case #custom-attractors (
+              <Given ?01M02MT5NN5WSJ226G678CGCVY>
+              A workspace contains custom files under `codument/attractors/`.
+              </?01M02MT5NN5WSJ226G678CGCVY>
+              <When ?01M02MT5NN5WSJ226G678CGCVZ>
+              Those files are referenced by an attractor profile.
+              </?01M02MT5NN5WSJ226G678CGCVZ>
+              <Then ?01M02MT5NN5WSJ226G678CGCW0>
+              The system SHALL treat them as valid attractors without assuming only `project.md` and `product.md` exist.
+              </?01M02MT5NN5WSJ226G678CGCW0>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement #attractor-check-hook (
+      <Statement ?01M02MT5NN5WSJ226G678CGCW1>
+      系统 SHALL support an explicit `plan.xml` attractor check hook that validates a track, phase, or task against a selected attractor profile.
+      </?01M02MT5NN5WSJ226G678CGCW1>
+      <Suites [
+        <Suite #plan-xml-hook { name = "Plan XML hook behavior" } (
+          <Cases [
+            <Case #hook-placement (
+              <Given ?01M02MT5NN5WSJ226G678CGCW2>
+              A `plan.xml` contains an `&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;attractor-check profile=&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;quot;...&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;quot; when=&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;quot;...&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;quot; status=&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;quot;...&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;quot; /&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;` node under the track, a phase, or a task.
+              </?01M02MT5NN5WSJ226G678CGCW2>
+              <When ?01M02MT5NN5WSJ226G678CGCW3>
+              The execution workflow reaches the hook's guarded scope.
+              </?01M02MT5NN5WSJ226G678CGCW3>
+              <Then ?01M02MT5NN5WSJ226G678CGCW4>
+              The system SHALL run attractor alignment validation for that scope using the selected profile.
+              </?01M02MT5NN5WSJ226G678CGCW4>
+            )>
+            <Case #when-semantics (
+              <Given ?01M02MT5NN5WSJ226G678CGCW5>
+              An `&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;attractor-check&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;` node has `when=&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;quot;before&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;quot;`, `when=&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;quot;after&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;quot;`, or `when=&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;quot;both&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;quot;`.
+              </?01M02MT5NN5WSJ226G678CGCW5>
+              <When ?01M02MT5NN5WSJ226G678CGCW6>
+              The guarded scope is executed.
+              </?01M02MT5NN5WSJ226G678CGCW6>
+              <Then ?01M02MT5NN5WSJ226G678CGCW7>
+              The system SHALL apply the same before, after, and both timing semantics used by `&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;confirm&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;`.
+              </?01M02MT5NN5WSJ226G678CGCW7>
+            )>
+            <Case #status-semantics (
+              <Given ?01M02MT5NN5WSJ226G678CGCW8>
+              An attractor check starts execution.
+              </?01M02MT5NN5WSJ226G678CGCW8>
+              <When ?01M02MT5NN5WSJ226G678CGCW9>
+              The check is running, passes, finds a fixable gap, or cannot proceed.
+              </?01M02MT5NN5WSJ226G678CGCW9>
+              <Then ?01M02MT5NN5WSJ226G678CGCWA>
+              The system SHALL update the hook status using `TODO`, `IN_PROGRESS`, `DONE`, `BLOCKED`, or `CANCELLED` consistently with existing confirmation status semantics.
+              </?01M02MT5NN5WSJ226G678CGCWA>
+            )>
+            <Case #explicit-profile-by-lifecycle (
+              <Given ?01M02MT5NN5WSJ226G678CGCWB>
+              A track uses one profile for implementation phases and another profile for archive readiness.
+              </?01M02MT5NN5WSJ226G678CGCWB>
+              <When ?01M02MT5NN5WSJ226G678CGCWC>
+              The corresponding hook executes.
+              </?01M02MT5NN5WSJ226G678CGCWC>
+              <Then ?01M02MT5NN5WSJ226G678CGCWD>
+              The system SHALL use the profile configured on that specific hook instead of a global one-size-fits-all attractor set.
+              </?01M02MT5NN5WSJ226G678CGCWD>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement #attractor-check-result-policy (
+      <Statement ?01M02MT5NN5WSJ226G678CGCWE>
+      系统 SHALL support configurable post-check policies so attractor gaps can be repaired immediately, routed through confirmation, or blocked for user input.
+      </?01M02MT5NN5WSJ226G678CGCWE>
+      <Suites [
+        <Suite #result-policy { name = "Attractor check result policy" } (
+          <Cases [
+            <Case #fix-immediately (
+              <Given ?01M02MT5NN5WSJ226G678CGCWF>
+              An attractor check contains `&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;result-policy on-gap=&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;quot;fix-immediately&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;quot; /&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;`.
+              </?01M02MT5NN5WSJ226G678CGCWF>
+              <When ?01M02MT5NN5WSJ226G678CGCWG>
+              The check returns a gap that the executor can safely repair.
+              </?01M02MT5NN5WSJ226G678CGCWG>
+              <Then ?01M02MT5NN5WSJ226G678CGCWH>
+              The system SHALL apply the repair and rerun the attractor check before marking the hook `DONE`.
+              </?01M02MT5NN5WSJ226G678CGCWH>
+            )>
+            <Case #confirm-before-fix (
+              <Given ?01M02MT5NN5WSJ226G678CGCWJ>
+              An attractor check contains `&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;result-policy on-gap=&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;quot;confirm-before-fix&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;quot;&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;` with a nested `&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;confirm protocol=&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;quot;yield-human-confirm&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;quot; when=&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;quot;after&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;quot; status=&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;quot;TODO&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;quot; /&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;`.
+              </?01M02MT5NN5WSJ226G678CGCWJ>
+              <When ?01M02MT5NN5WSJ226G678CGCWK>
+              The check returns a gap.
+              </?01M02MT5NN5WSJ226G678CGCWK>
+              <Then ?01M02MT5NN5WSJ226G678CGCWM>
+              The system SHALL run the nested confirmation before applying the proposed repair.
+              </?01M02MT5NN5WSJ226G678CGCWM>
+            )>
+            <Case #block-on-gap (
+              <Given ?01M02MT5NN5WSJ226G678CGCWN>
+              An attractor check contains `&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;result-policy on-gap=&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;quot;block&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;quot; /&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;`.
+              </?01M02MT5NN5WSJ226G678CGCWN>
+              <When ?01M02MT5NN5WSJ226G678CGCWP>
+              The check returns any gap.
+              </?01M02MT5NN5WSJ226G678CGCWP>
+              <Then ?01M02MT5NN5WSJ226G678CGCWQ>
+              The system SHALL mark the attractor check `BLOCKED` and wait for user input.
+              </?01M02MT5NN5WSJ226G678CGCWQ>
+            )>
+            <Case #structured-result (
+              <Given ?01M02MT5NN5WSJ226G678CGCWR>
+              An attractor check executor completes a validation pass.
+              </?01M02MT5NN5WSJ226G678CGCWR>
+              <When ?01M02MT5NN5WSJ226G678CGCWS>
+              It reports the result to the parent workflow.
+              </?01M02MT5NN5WSJ226G678CGCWS>
+              <Then ?01M02MT5NN5WSJ226G678CGCWT>
+              The result SHALL include a structured status of `PASS`, `GAP`, or `BLOCKED` plus the profile name, checked scope, summary, and gap details when present.
+              </?01M02MT5NN5WSJ226G678CGCWT>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement #attractor-check-workflow-integration (
+      <Statement ?01M02MT5NN5WSJ226G678CGCWV>
+      系统 SHALL integrate attractor check hooks into track creation, implementation, wave execution, gap-loop, and archive workflows.
+      </?01M02MT5NN5WSJ226G678CGCWV>
+      <Suites [
+        <Suite #workflow-integration { name = "Workflow integration" } (
+          <Cases [
+            <Case #track-design-check (
+              <Given ?01M02MT5NN5WSJ226G678CGCWW>
+              A new track has completed proposal, design, and plan drafting.
+              </?01M02MT5NN5WSJ226G678CGCWW>
+              <When ?01M02MT5NN5WSJ226G678CGCWX>
+              The track includes a design-level attractor check hook.
+              </?01M02MT5NN5WSJ226G678CGCWX>
+              <Then ?01M02MT5NN5WSJ226G678CGCWY>
+              The system SHALL validate the drafted track artifacts against the selected attractor profile before treating the design as confirmed.
+              </?01M02MT5NN5WSJ226G678CGCWY>
+            )>
+            <Case #phase-check (
+              <Given ?01M02MT5NN5WSJ226G678CGCWZ>
+              A phase contains an attractor check with `when=&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;quot;after&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;quot;`.
+              </?01M02MT5NN5WSJ226G678CGCWZ>
+              <When ?01M02MT5NN5WSJ226G678CGCX0>
+              All tasks in the phase are complete.
+              </?01M02MT5NN5WSJ226G678CGCX0>
+              <Then ?01M02MT5NN5WSJ226G678CGCX1>
+              The implementation workflow SHALL run the attractor check before moving past the phase.
+              </?01M02MT5NN5WSJ226G678CGCX1>
+            )>
+            <Case #archive-docs-check (
+              <Given ?01M02MT5NN5WSJ226G678CGCX2>
+              A track is ready to archive and an archive-readiness attractor profile includes documentation-related attractors.
+              </?01M02MT5NN5WSJ226G678CGCX2>
+              <When ?01M02MT5NN5WSJ226G678CGCX3>
+              The archive workflow reaches the configured attractor check.
+              </?01M02MT5NN5WSJ226G678CGCX3>
+              <Then ?01M02MT5NN5WSJ226G678CGCX4>
+              The system SHALL validate archive and documentation-sync readiness against that profile before completing archive steps.
+              </?01M02MT5NN5WSJ226G678CGCX4>
+            )>
+            <Case #no-hook-no-extra-wait (
+              <Given ?01M02MT5NN5WSJ226G678CGCX5>
+              A plan scope has no attractor check hook.
+              </?01M02MT5NN5WSJ226G678CGCX5>
+              <When ?01M02MT5NN5WSJ226G678CGCX6>
+              The workflow reaches that scope.
+              </?01M02MT5NN5WSJ226G678CGCX6>
+              <Then ?01M02MT5NN5WSJ226G678CGCX7>
+              The system SHALL NOT require an implicit attractor check only because attractors exist in the workspace.
+              </?01M02MT5NN5WSJ226G678CGCX7>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement #operation-hooks-config (
+      <Statement ?01M02MT5NN5WSJ226G678CGCX8>
+      系统 SHALL support `codument/config/operation-hooks.xml` as a sparse workspace-level XML hook overlay for Codument operations that do not have their own `plan.xml` execution plan.
+      </?01M02MT5NN5WSJ226G678CGCX8>
+      <Suites [
+        <Suite #sparse-overlay { name = "Sparse operation hook overlay" } (
+          <Cases [
+            <Case #only-configured-commands (
+              <Given ?01M02MT5NN5WSJ226G678CGCX9>
+              `codument/config/operation-hooks.xml` contains a `plan-track` operation entry but no `archive-track` operation entry.
+              </?01M02MT5NN5WSJ226G678CGCX9>
+              <When ?01M02MT5NN5WSJ226G678CGCXA>
+              The user runs `plan-track` and later runs `archive-track`.
+              </?01M02MT5NN5WSJ226G678CGCXA>
+              <Then ?01M02MT5NN5WSJ226G678CGCXB>
+              The system SHALL apply only the configured `plan-track` hooks.
+              </?01M02MT5NN5WSJ226G678CGCXB>
+              <Ands [
+                <And ?01M02MT5NN5WSJ226G678CGCXC>
+                The system SHALL run `archive-track` with its existing default behavior.
+                </?01M02MT5NN5WSJ226G678CGCXC>
+              ]>
+            )>
+            <Case #reuse-hook-dsl (
+              <Given ?01M02MT5NN5WSJ226G678CGCXD>
+              `codument/config/operation-hooks.xml` contains an operation hook with nested `&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;cdt:AttractorCheck&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;` and `&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;cdt:HumanConfirm&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;` nodes.
+              </?01M02MT5NN5WSJ226G678CGCXD>
+              <When ?01M02MT5NN5WSJ226G678CGCXE>
+              The operation reaches the configured hook point.
+              </?01M02MT5NN5WSJ226G678CGCXE>
+              <Then ?01M02MT5NN5WSJ226G678CGCXF>
+              The system SHALL execute those nodes using the same protocol semantics as plan-level hooks.
+              </?01M02MT5NN5WSJ226G678CGCXF>
+            )>
+            <Case #known-hook-points (
+              <Given ?01M02MT5NN5WSJ226G678CGCXG>
+              An operation defines stable hook points such as `plan-track:before`, `plan-mission:before`, `archive-track:after`, or `revise-track:before`.
+              </?01M02MT5NN5WSJ226G678CGCXG>
+              <When ?01M02MT5NN5WSJ226G678CGCXH>
+              `codument/config/operation-hooks.xml` references one of those points.
+              </?01M02MT5NN5WSJ226G678CGCXH>
+              <Then ?01M02MT5NN5WSJ226G678CGCXJ>
+              The system SHALL execute the hook at that point.
+              </?01M02MT5NN5WSJ226G678CGCXJ>
+              <Ands [
+                <And ?01M02MT5NN5WSJ226G678CGCXK>
+                The system SHALL report validation errors for unknown points when the operation's point list is known.
+                </?01M02MT5NN5WSJ226G678CGCXK>
+              ]>
+            )>
+            <Case #missing-overlay (
+              <Given ?01M02MT5NN5WSJ226G678CGCXM>
+              No `codument/config/operation-hooks.xml` file exists.
+              </?01M02MT5NN5WSJ226G678CGCXM>
+              <When ?01M02MT5NN5WSJ226G678CGCXN>
+              A Codument command or skill runs.
+              </?01M02MT5NN5WSJ226G678CGCXN>
+              <Then ?01M02MT5NN5WSJ226G678CGCXP>
+              The system SHALL NOT require extra hooks or waits solely because the overlay feature exists.
+              </?01M02MT5NN5WSJ226G678CGCXP>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement #revise-track-command (
+      <Statement ?01M02MT5NN5WSJ226G678CGCXQ>
+      系统 SHALL provide a `revise-track` command or skill for correcting or appending an existing track's artifacts during non-linear Codument work.
+      </?01M02MT5NN5WSJ226G678CGCXQ>
+      <Suites [
+        <Suite #revise-track { name = "Revise existing track artifacts" } (
+          <Cases [
+            <Case #revise-existing-track (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNF4>
+              A user is implementing, gap-looping, or preparing to archive an existing track.
+              </?01M02MT5NPFTH9N0M02H0WBNF4>
+              <When ?01M02MT5NPFTH9N0M02H0WBNF5>
+              The user invokes `revise-track` with a target track and revision request.
+              </?01M02MT5NPFTH9N0M02H0WBNF5>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNF6>
+              The system SHALL read the target track's proposal, design, spec deltas, plan, analysis, and decisions context.
+              </?01M02MT5NPFTH9N0M02H0WBNF6>
+              <Ands [
+                <And ?01M02MT5NPFTH9N0M02H0WBNF7>
+                The system SHALL update the minimal set of track-local artifacts needed to capture the revision.
+                </?01M02MT5NPFTH9N0M02H0WBNF7>
+              ]>
+            )>
+            <Case #revise-before-hook (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNF8>
+              `codument/config/operation-hooks.xml` configures `Operation name=&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;quot;revise-track&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;quot;` with a `revise-track:before` hook.
+              </?01M02MT5NPFTH9N0M02H0WBNF8>
+              <When ?01M02MT5NPFTH9N0M02H0WBNF9>
+              The user invokes `revise-track`.
+              </?01M02MT5NPFTH9N0M02H0WBNF9>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNFA>
+              The system SHALL execute the configured hook before modifying the track.
+              </?01M02MT5NPFTH9N0M02H0WBNFA>
+              <Ands [
+                <And ?01M02MT5NPFTH9N0M02H0WBNFB>
+                If the hook is `BLOCKED`, the system SHALL stop without changing track files.
+                </?01M02MT5NPFTH9N0M02H0WBNFB>
+              ]>
+            )>
+            <Case #track-local-revision (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNFC>
+              A revision requires new context, findings, decisions, spec changes, or plan tasks.
+              </?01M02MT5NPFTH9N0M02H0WBNFC>
+              <When ?01M02MT5NPFTH9N0M02H0WBNFD>
+              `revise-track` applies the revision.
+              </?01M02MT5NPFTH9N0M02H0WBNFD>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNFE>
+              The system SHALL keep required context inside the target track directory.
+              </?01M02MT5NPFTH9N0M02H0WBNFE>
+              <Ands [
+                <And ?01M02MT5NPFTH9N0M02H0WBNFF>
+                The system SHALL NOT require hidden-directory documents or external notes to understand the revised track.
+                </?01M02MT5NPFTH9N0M02H0WBNFF>
+              ]>
+            )>
+            <Case #revision-report (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNFG>
+              `revise-track` completes successfully.
+              </?01M02MT5NPFTH9N0M02H0WBNFG>
+              <When ?01M02MT5NPFTH9N0M02H0WBNFH>
+              The command or skill reports its result.
+              </?01M02MT5NPFTH9N0M02H0WBNFH>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNFJ>
+              The system SHALL list changed track files, summarize the revision reason, and recommend whether to continue implement, gap-loop, or archive.
+              </?01M02MT5NPFTH9N0M02H0WBNFJ>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement #artifacts-config (
+      <Statement ?01M02MT5NPFTH9N0M02H0WBNFK>
+      系统 SHALL support `codument/config/artifacts.xml` as an XML artifact sync registry for hook-triggered artifact generation and synchronization.
+      </?01M02MT5NPFTH9N0M02H0WBNFK>
+      <Suites [
+        <Suite #artifacts-xml-shape { name = "Artifacts XML shape" } (
+          <Cases [
+            <Case #root-shape (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNFM>
+              A workspace defines `codument/config/artifacts.xml`.
+              </?01M02MT5NPFTH9N0M02H0WBNFM>
+              <When ?01M02MT5NPFTH9N0M02H0WBNFN>
+              The system loads artifact sync configuration.
+              </?01M02MT5NPFTH9N0M02H0WBNFN>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNFP>
+              The root node SHALL be `artifact-config` with `version=&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;quot;1&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;quot;`.
+              </?01M02MT5NPFTH9N0M02H0WBNFP>
+              <Ands [
+                <And ?01M02MT5NPFTH9N0M02H0WBNFQ>
+                The root SHALL contain `resources` and `artifacts` sections.
+                </?01M02MT5NPFTH9N0M02H0WBNFQ>
+                <And ?01M02MT5NPFTH9N0M02H0WBNFR>
+                The root SHALL NOT require or define a `pipelines` section.
+                </?01M02MT5NPFTH9N0M02H0WBNFR>
+              ]>
+            )>
+            <Case #missing-config (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNFS>
+              No `codument/config/artifacts.xml` file exists.
+              </?01M02MT5NPFTH9N0M02H0WBNFS>
+              <When ?01M02MT5NPFTH9N0M02H0WBNFT>
+              A Codument command or skill runs.
+              </?01M02MT5NPFTH9N0M02H0WBNFT>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNFV>
+              The system SHALL continue the default workflow without artifact sync.
+              </?01M02MT5NPFTH9N0M02H0WBNFV>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement #artifact-resources (
+      <Statement ?01M02MT5NPFTH9N0M02H0WBNFW>
+      系统 SHALL restrict artifact sync resources to explicit workflow, skill, attractor-profile, and agent references.
+      </?01M02MT5NPFTH9N0M02H0WBNFW>
+      <Suites [
+        <Suite #resource-types { name = "Artifact resource types" } (
+          <Cases [
+            <Case #allowed-resource-types (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNFX>
+              `codument/config/artifacts.xml` contains a `resources` section.
+              </?01M02MT5NPFTH9N0M02H0WBNFX>
+              <When ?01M02MT5NPFTH9N0M02H0WBNFY>
+              The system validates the file.
+              </?01M02MT5NPFTH9N0M02H0WBNFY>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNFZ>
+              The only allowed child nodes under `resources` SHALL be `workflow`, `skill`, `attractor-profile`, and `agent`.
+              </?01M02MT5NPFTH9N0M02H0WBNFZ>
+            )>
+            <Case #skill-is-rule (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNG0>
+              A `skill` resource references a file such as `/Users/kongweixian/ai/ai-team/multica/terminal/skills/atm-cli/SKILL.md`.
+              </?01M02MT5NPFTH9N0M02H0WBNG0>
+              <When ?01M02MT5NPFTH9N0M02H0WBNG1>
+              An artifact uses that resource.
+              </?01M02MT5NPFTH9N0M02H0WBNG1>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNG2>
+              The system SHALL treat the skill file as a rule or instruction source.
+              </?01M02MT5NPFTH9N0M02H0WBNG2>
+              <Ands [
+                <And ?01M02MT5NPFTH9N0M02H0WBNG3>
+                The system SHALL NOT treat the skill file itself as the artifact output.
+                </?01M02MT5NPFTH9N0M02H0WBNG3>
+              ]>
+            )>
+            <Case #workflow-resource (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNG4>
+              A `workflow` resource references a file under `codument/workflows/`.
+              </?01M02MT5NPFTH9N0M02H0WBNG4>
+              <When ?01M02MT5NPFTH9N0M02H0WBNG5>
+              The artifact sync executor prepares an artifact.
+              </?01M02MT5NPFTH9N0M02H0WBNG5>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNG6>
+              The system SHALL read that workflow file as project-specific execution guidance.
+              </?01M02MT5NPFTH9N0M02H0WBNG6>
+            )>
+            <Case #missing-workflow-or-skill-ref (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNG7>
+              A `workflow` or `skill` resource references a file path.
+              </?01M02MT5NPFTH9N0M02H0WBNG7>
+              <When ?01M02MT5NPFTH9N0M02H0WBNG8>
+              The system validates artifact sync configuration.
+              </?01M02MT5NPFTH9N0M02H0WBNG8>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNG9>
+              The system SHALL report a validation error when the referenced file is missing.
+              </?01M02MT5NPFTH9N0M02H0WBNG9>
+            )>
+            <Case #attractor-profile-resource (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNGA>
+              An `attractor-profile` resource names a profile from `codument/config/attractor-profiles.json`.
+              </?01M02MT5NPFTH9N0M02H0WBNGA>
+              <When ?01M02MT5NPFTH9N0M02H0WBNGB>
+              The artifact sync executor prepares or validates an artifact.
+              </?01M02MT5NPFTH9N0M02H0WBNGB>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNGC>
+              The system SHALL resolve and use that attractor profile as artifact quality guidance.
+              </?01M02MT5NPFTH9N0M02H0WBNGC>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement #artifact-definition (
+      <Statement ?01M02MT5NPFTH9N0M02H0WBNGD>
+      系统 SHALL define each artifact with compact attributes plus explicit resource, target, and policy child nodes.
+      </?01M02MT5NPFTH9N0M02H0WBNGD>
+      <Suites [
+        <Suite #artifact-node-shape { name = "Artifact node shape" } (
+          <Cases [
+            <Case #allowed-children (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNGE>
+              An `artifact` node appears under `artifacts`.
+              </?01M02MT5NPFTH9N0M02H0WBNGE>
+              <When ?01M02MT5NPFTH9N0M02H0WBNGF>
+              The system validates the node.
+              </?01M02MT5NPFTH9N0M02H0WBNGF>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNGG>
+              The only allowed child nodes SHALL be `uses`, `targets`, and `policy`.
+              </?01M02MT5NPFTH9N0M02H0WBNGG>
+            )>
+            <Case #artifact-attributes (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNGH>
+              An artifact needs source information.
+              </?01M02MT5NPFTH9N0M02H0WBNGH>
+              <When ?01M02MT5NPFTH9N0M02H0WBNGJ>
+              The artifact is configured.
+              </?01M02MT5NPFTH9N0M02H0WBNGJ>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNGK>
+              The artifact SHALL express stable source information through attributes such as `source-kind` and `source-scope`.
+              </?01M02MT5NPFTH9N0M02H0WBNGK>
+              <Ands [
+                <And ?01M02MT5NPFTH9N0M02H0WBNGM>
+                The artifact MAY keep legacy single-target attributes for compatibility, but new multi-target configuration SHALL use `targets`.
+                </?01M02MT5NPFTH9N0M02H0WBNGM>
+              ]>
+            )>
+            <Case #uses-resources (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNGN>
+              An artifact has a `uses` child node.
+              </?01M02MT5NPFTH9N0M02H0WBNGN>
+              <When ?01M02MT5NPFTH9N0M02H0WBNGP>
+              The artifact sync executor resolves the artifact.
+              </?01M02MT5NPFTH9N0M02H0WBNGP>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNGQ>
+              Each `use` entry SHALL reference a resource id from the `resources` section.
+              </?01M02MT5NPFTH9N0M02H0WBNGQ>
+            )>
+            <Case #multiple-targets (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNGR>
+              An artifact has a `targets` child node.
+              </?01M02MT5NPFTH9N0M02H0WBNGR>
+              <When ?01M02MT5NPFTH9N0M02H0WBNGS>
+              The artifact sync executor generates the artifact content.
+              </?01M02MT5NPFTH9N0M02H0WBNGS>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNGT>
+              The system SHALL support one or more `target` entries under `targets`.
+              </?01M02MT5NPFTH9N0M02H0WBNGT>
+              <Ands [
+                <And ?01M02MT5NPFTH9N0M02H0WBNGV>
+                Each target SHALL define its destination kind and `base-dir` target root.
+                </?01M02MT5NPFTH9N0M02H0WBNGV>
+                <And ?01M02MT5NPFTH9N0M02H0WBNGW>
+                Each target SHALL define exactly one of `relative-dir` or `relative-file`.
+                </?01M02MT5NPFTH9N0M02H0WBNGW>
+                <And ?01M02MT5NPFTH9N0M02H0WBNGX>
+                `relative-dir` SHALL represent a directory inside the target root for artifacts that may write multiple files.
+                </?01M02MT5NPFTH9N0M02H0WBNGX>
+                <And ?01M02MT5NPFTH9N0M02H0WBNGY>
+                `relative-file` SHALL represent a single file path inside the target root for single-file artifacts.
+                </?01M02MT5NPFTH9N0M02H0WBNGY>
+                <And ?01M02MT5NPFTH9N0M02H0WBNGZ>
+                The system SHALL treat multiple targets as one generated artifact distributed to multiple destinations, not as multiple independent artifact generations.
+                </?01M02MT5NPFTH9N0M02H0WBNGZ>
+              ]>
+            )>
+            <Case #policy-behavior (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNH0>
+              An artifact has a `policy` child node.
+              </?01M02MT5NPFTH9N0M02H0WBNH0>
+              <When ?01M02MT5NPFTH9N0M02H0WBNH1>
+              The artifact sync executor applies the artifact.
+              </?01M02MT5NPFTH9N0M02H0WBNH1>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNH2>
+              The policy MAY define dry-run, conflict, and provenance behavior.
+              </?01M02MT5NPFTH9N0M02H0WBNH2>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement #feature-artifact-migration (
+      <Statement ?01M02MT5NPFTH9N0M02H0WBNH3>
+      系统 SHALL migrate enabled legacy feature sync targets into explicit artifact sync configuration during workspace upgrade.
+      </?01M02MT5NPFTH9N0M02H0WBNH3>
+      <Suites [
+        <Suite #feature-target-migration { name = "Feature target migration" } (
+          <Cases [
+            <Case #knowledge-targets-move-to-artifacts (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNH4>
+              `codument/config/feature.json` has `knowledgeSync.enabled=true` with one or more `targets`.
+              </?01M02MT5NPFTH9N0M02H0WBNH4>
+              <When ?01M02MT5NPFTH9N0M02H0WBNH5>
+              The user runs `codument upgrade-workspace`.
+              </?01M02MT5NPFTH9N0M02H0WBNH5>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNH6>
+              The system SHALL create `codument/config/artifacts.xml`.
+              </?01M02MT5NPFTH9N0M02H0WBNH6>
+              <Ands [
+                <And ?01M02MT5NPFTH9N0M02H0WBNH7>
+                `codument/config/artifacts.xml` does not exist.
+                </?01M02MT5NPFTH9N0M02H0WBNH7>
+                <And ?01M02MT5NPFTH9N0M02H0WBNH8>
+                The generated docs knowledge artifact SHALL use a `docs` attractor profile that includes `codument/attractors/docs-knowledge.md`.
+                </?01M02MT5NPFTH9N0M02H0WBNH8>
+                <And ?01M02MT5NPFTH9N0M02H0WBNH9>
+                The generated `attractor-profile` resource SHALL reference that profile by `name` and SHALL NOT depend on direct `attractor` or `ref` attributes.
+                </?01M02MT5NPFTH9N0M02H0WBNH9>
+                <And ?01M02MT5NPFTH9N0M02H0WBNHA>
+                Each legacy knowledge target SHALL become a directory target under the generated artifact's `targets` node using `base-dir` and `relative-dir`.
+                </?01M02MT5NPFTH9N0M02H0WBNHA>
+                <And ?01M02MT5NPFTH9N0M02H0WBNHB>
+                The system SHALL remove migrated `knowledgeSync.targets` from `feature.json` after writing them to artifacts.xml.
+                </?01M02MT5NPFTH9N0M02H0WBNHB>
+                <And ?01M02MT5NPFTH9N0M02H0WBNHC>
+                If `codument/config/operation-hooks.xml` does not exist, the system SHALL create a default `archive-track:after` hook that triggers the generated docs artifact.
+                </?01M02MT5NPFTH9N0M02H0WBNHC>
+              ]>
+            )>
+            <Case #legacy-target-location-migration (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNHD>
+              `codument/config/artifacts.xml` contains generated target locations using old `path` and `output-path` attributes.
+              </?01M02MT5NPFTH9N0M02H0WBNHD>
+              <When ?01M02MT5NPFTH9N0M02H0WBNHE>
+              The user runs `codument upgrade-workspace`.
+              </?01M02MT5NPFTH9N0M02H0WBNHE>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNHF>
+              The system SHALL migrate single-file targets to `base-dir` and `relative-file`.
+              </?01M02MT5NPFTH9N0M02H0WBNHF>
+              <Ands [
+                <And ?01M02MT5NPFTH9N0M02H0WBNHG>
+                The system SHALL migrate docs knowledge targets to `base-dir` and `relative-dir`.
+                </?01M02MT5NPFTH9N0M02H0WBNHG>
+              ]>
+            )>
+            <Case #preserve-existing-artifacts-config (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNHH>
+              `codument/config/artifacts.xml` already exists.
+              </?01M02MT5NPFTH9N0M02H0WBNHH>
+              <When ?01M02MT5NPFTH9N0M02H0WBNHJ>
+              The user runs `codument upgrade-workspace`.
+              </?01M02MT5NPFTH9N0M02H0WBNHJ>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNHK>
+              The system SHALL NOT overwrite the existing artifacts.xml.
+              </?01M02MT5NPFTH9N0M02H0WBNHK>
+              <Ands [
+                <And ?01M02MT5NPFTH9N0M02H0WBNHM>
+                The system SHALL NOT remove legacy targets from feature.json unless it has written an equivalent explicit artifact target.
+                </?01M02MT5NPFTH9N0M02H0WBNHM>
+              ]>
+            )>
+            <Case #empty-targets-removed (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNHN>
+              `codument/config/feature.json` has `knowledgeSync.targets=[]`.
+              </?01M02MT5NPFTH9N0M02H0WBNHN>
+              <When ?01M02MT5NPFTH9N0M02H0WBNHP>
+              The user runs `codument upgrade-workspace`.
+              </?01M02MT5NPFTH9N0M02H0WBNHP>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNHQ>
+              The system SHALL remove the empty `targets` field from feature.json.
+              </?01M02MT5NPFTH9N0M02H0WBNHQ>
+            )>
+            <Case #project-memory-feature-artifact (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNHR>
+              `projectMemory.enabled=true`.
+              </?01M02MT5NPFTH9N0M02H0WBNHR>
+              <When ?01M02MT5NPFTH9N0M02H0WBNHS>
+              The user runs `codument upgrade-workspace`.
+              </?01M02MT5NPFTH9N0M02H0WBNHS>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNHT>
+              The generated artifacts.xml SHALL include a project memory artifact that uses a `memory` attractor profile containing `codument/std/attractors/project-memory.md`.
+              </?01M02MT5NPFTH9N0M02H0WBNHT>
+              <Ands [
+                <And ?01M02MT5NPFTH9N0M02H0WBNHV>
+                `codument/config/artifacts.xml` does not exist.
+                </?01M02MT5NPFTH9N0M02H0WBNHV>
+                <And ?01M02MT5NPFTH9N0M02H0WBNHW>
+                If `codument/config/operation-hooks.xml` does not exist, the system SHALL create a default `archive-track:after` hook that triggers the generated memory artifact.
+                </?01M02MT5NPFTH9N0M02H0WBNHW>
+              ]>
+            )>
+            <Case #knowledge-fractal-standards (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNHX>
+              `knowledgeSync.enabled=true`.
+              </?01M02MT5NPFTH9N0M02H0WBNHX>
+              <When ?01M02MT5NPFTH9N0M02H0WBNHY>
+              The user runs `codument upgrade-workspace`.
+              </?01M02MT5NPFTH9N0M02H0WBNHY>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNHZ>
+              The system SHALL create `codument/std/attractors/model-driven-docs.md` when missing.
+              </?01M02MT5NPFTH9N0M02H0WBNHZ>
+              <Ands [
+                <And ?01M02MT5NPFTH9N0M02H0WBNJ0>
+                The system SHALL create `codument/std/skill/docs-modeling-fractal/index.md` when missing.
+                </?01M02MT5NPFTH9N0M02H0WBNJ0>
+                <And ?01M02MT5NPFTH9N0M02H0WBNJ1>
+                The system SHALL create `codument/std/skill/docs-engineering-fractal/index.md` when missing.
+                </?01M02MT5NPFTH9N0M02H0WBNJ1>
+              ]>
+            )>
+            <Case #default-only-profile-cleanup (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNJ2>
+              `codument/config/attractor-profiles.json` contains only the built-in default project/product profile.
+              </?01M02MT5NPFTH9N0M02H0WBNJ2>
+              <When ?01M02MT5NPFTH9N0M02H0WBNJ3>
+              The user runs `codument upgrade-workspace`.
+              </?01M02MT5NPFTH9N0M02H0WBNJ3>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNJ4>
+              The system SHALL remove that redundant config file and use the built-in default profile instead.
+              </?01M02MT5NPFTH9N0M02H0WBNJ4>
+              <Ands [
+                <And ?01M02MT5NPFTH9N0M02H0WBNJ5>
+                The system SHALL preserve the file when it contains custom, docs, memory, or otherwise non-default profile data.
+                </?01M02MT5NPFTH9N0M02H0WBNJ5>
+              ]>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement #artifact-sync-hook (
+      <Statement ?01M02MT5NPFTH9N0M02H0WBNJ6>
+      系统 SHALL allow `operation-hooks.xml` to trigger artifact synchronization through an `artifact-sync` node that references an artifact id.
+      </?01M02MT5NPFTH9N0M02H0WBNJ6>
+      <Suites [
+        <Suite #operation-hook-integration { name = "Artifact sync operation hook integration" } (
+          <Cases [
+            <Case #artifact-sync-node (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNJ7>
+              `codument/config/operation-hooks.xml` contains an `artifact-sync` node inside a hook.
+              </?01M02MT5NPFTH9N0M02H0WBNJ7>
+              <When ?01M02MT5NPFTH9N0M02H0WBNJ8>
+              The operation reaches that hook point.
+              </?01M02MT5NPFTH9N0M02H0WBNJ8>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNJ9>
+              The system SHALL resolve the referenced artifact from `codument/config/artifacts.xml`.
+              </?01M02MT5NPFTH9N0M02H0WBNJ9>
+              <Ands [
+                <And ?01M02MT5NPFTH9N0M02H0WBNJA>
+                The system SHALL execute artifact sync according to the artifact's resources and policy.
+                </?01M02MT5NPFTH9N0M02H0WBNJA>
+              ]>
+            )>
+            <Case #unknown-artifact (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNJB>
+              An `artifact-sync` hook references an unknown artifact id.
+              </?01M02MT5NPFTH9N0M02H0WBNJB>
+              <When ?01M02MT5NPFTH9N0M02H0WBNJC>
+              The hook is validated or executed.
+              </?01M02MT5NPFTH9N0M02H0WBNJC>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNJD>
+              The system SHALL report a validation error or `BLOCKED` result.
+              </?01M02MT5NPFTH9N0M02H0WBNJD>
+            )>
+            <Case #structured-result (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNJE>
+              An artifact sync executor completes.
+              </?01M02MT5NPFTH9N0M02H0WBNJE>
+              <When ?01M02MT5NPFTH9N0M02H0WBNJF>
+              It reports to the parent workflow.
+              </?01M02MT5NPFTH9N0M02H0WBNJF>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNJG>
+              The result SHALL include artifact id, status, summary, changed outputs, and manifest path when provenance is enabled.
+              </?01M02MT5NPFTH9N0M02H0WBNJG>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement #artifact-sync-command (
+      <Statement ?01M02MT5NPFTH9N0M02H0WBNJH>
+      系统 SHALL expose artifact synchronization through `codument-artifact-sync` rather than docs-specific sync commands.
+      </?01M02MT5NPFTH9N0M02H0WBNJH>
+      <Suites [
+        <Suite #artifact-sync-entrypoint { name = "Artifact sync entrypoint" } (
+          <Cases [
+            <Case #artifact-sync-skill (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNJJ>
+              Generated lifecycle skills are built for a supported target.
+              </?01M02MT5NPFTH9N0M02H0WBNJJ>
+              <When ?01M02MT5NPFTH9N0M02H0WBNJK>
+              The system emits standalone Codument skills.
+              </?01M02MT5NPFTH9N0M02H0WBNJK>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNJM>
+              The system SHALL include `codument-artifact-sync`.
+              </?01M02MT5NPFTH9N0M02H0WBNJM>
+              <Ands [
+                <And ?01M02MT5NPFTH9N0M02H0WBNJN>
+                The system SHALL NOT include `codument-docs-sync-track`.
+                </?01M02MT5NPFTH9N0M02H0WBNJN>
+              ]>
+            )>
+            <Case #artifact-sync-command-wrapper (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNJP>
+              The system generates assistant command wrappers for Claude, CodeFlicker, Eidolon, or OpenCode.
+              </?01M02MT5NPFTH9N0M02H0WBNJP>
+              <When ?01M02MT5NPFTH9N0M02H0WBNJQ>
+              The user inspects the generated command files.
+              </?01M02MT5NPFTH9N0M02H0WBNJQ>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNJR>
+              The system SHALL include an `artifact-sync` command wrapper pointing at `codument-artifact-sync`.
+              </?01M02MT5NPFTH9N0M02H0WBNJR>
+              <Ands [
+                <And ?01M02MT5NPFTH9N0M02H0WBNJS>
+                The system SHALL remove the old `docs-sync-track` command wrapper.
+                </?01M02MT5NPFTH9N0M02H0WBNJS>
+              ]>
+            )>
+            <Case #docs-rules-live-in-attractor (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNJT>
+              A docs class artifact needs content selection and codument/modeling versus codument/engineering routing rules.
+              </?01M02MT5NPFTH9N0M02H0WBNJT>
+              <When ?01M02MT5NPFTH9N0M02H0WBNJV>
+              The artifact sync executor prepares the artifact.
+              </?01M02MT5NPFTH9N0M02H0WBNJV>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNJW>
+              The system SHALL read those rules from `codument/attractors/docs-knowledge.md` through an attractor profile.
+              </?01M02MT5NPFTH9N0M02H0WBNJW>
+              <Ands [
+                <And ?01M02MT5NPFTH9N0M02H0WBNJX>
+                The artifact-sync skill SHALL handle artifact selection, resource resolution, targets, policy, and execution.
+                </?01M02MT5NPFTH9N0M02H0WBNJX>
+              ]>
+            )>
+            <Case #no-before-knowledge-sync (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNJY>
+              `codument/config/operation-hooks.xml` contains an archive hook with `point=&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;quot;before-knowledge-sync&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;quot;`.
+              </?01M02MT5NPFTH9N0M02H0WBNJY>
+              <When ?01M02MT5NPFTH9N0M02H0WBNJZ>
+              The system validates operation hooks.
+              </?01M02MT5NPFTH9N0M02H0WBNJZ>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNK0>
+              The system SHALL report the hook point as unknown.
+              </?01M02MT5NPFTH9N0M02H0WBNK0>
+              <Ands [
+                <And ?01M02MT5NPFTH9N0M02H0WBNK1>
+                The system SHALL use artifact-sync terminology such as `before-artifact-sync` instead.
+                </?01M02MT5NPFTH9N0M02H0WBNK1>
+              ]>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement #modeling-registry (
+      <Statement ?01M02MT5NPFTH9N0M02H0WBNK2>
+      系统 SHALL provide a domain modeling registry at `codument/modeling/` as an xnl-vfs working tree backed by an xnl-vcs repository and use it as the modeling source of truth.
+      </?01M02MT5NPFTH9N0M02H0WBNK2>
+      <Suites [
+        <Suite #modeling-registry-shape { name = "Modeling registry shape" } (
+          <Cases [
+            <Case #working-tree (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNK3>
+              A workspace enables the modeling profile.
+              </?01M02MT5NPFTH9N0M02H0WBNK3>
+              <When ?01M02MT5NPFTH9N0M02H0WBNK4>
+              The system materializes the modeling registry.
+              </?01M02MT5NPFTH9N0M02H0WBNK4>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNK5>
+              `codument/modeling/&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;plane&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;/&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;context&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;/*.xnl` SHALL be human-readable XNL files on disk.
+              </?01M02MT5NPFTH9N0M02H0WBNK5>
+              <Ands [
+                <And ?01M02MT5NPFTH9N0M02H0WBNK6>
+                Node identity SHALL be stable via XNL namespaced ids or `.node-meta` sidecars.
+                </?01M02MT5NPFTH9N0M02H0WBNK6>
+              ]>
+            )>
+            <Case #host-git-versioned (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNK7>
+              The modeling registry exists.
+              </?01M02MT5NPFTH9N0M02H0WBNK7>
+              <When ?01M02MT5NPFTH9N0M02H0WBNK8>
+              The system records modeling history and collaboration.
+              </?01M02MT5NPFTH9N0M02H0WBNK8>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNK9>
+              `codument/modeling/**.xnl` SHALL be versioned by the host project git, not a persisted parallel vcs repo.
+              </?01M02MT5NPFTH9N0M02H0WBNK9>
+              <Ands [
+                <And ?01M02MT5NPFTH9N0M02H0WBNKA>
+                Any xnl-vfs/xnl-vcs artifacts (e.g. `.xnl-vcs/`) used as an ephemeral merge engine SHALL live under `.tmp/` and be gitignored.
+                </?01M02MT5NPFTH9N0M02H0WBNKA>
+              ]>
+            )>
+            <Case #engineering-registry-retained (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNKB>
+              The modeling registry is introduced.
+              </?01M02MT5NPFTH9N0M02H0WBNKB>
+              <When ?01M02MT5NPFTH9N0M02H0WBNKC>
+              Implementation knowledge must be recorded.
+              </?01M02MT5NPFTH9N0M02H0WBNKC>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNKD>
+              `codument/engineering/` SHALL be the managed implementation/maintenance knowledge registry.
+              </?01M02MT5NPFTH9N0M02H0WBNKD>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement #modeling-node-schema (
+      <Statement ?01M02MT5NPFTH9N0M02H0WBNKE>
+      系统 SHALL define modeling nodes as XNL elements with a cross-domain kind spectrum, DEPA fact-source metadata, and minimal required representations per kind.
+      </?01M02MT5NPFTH9N0M02H0WBNKE>
+      <Suites [
+        <Suite #kind-spectrum { name = "Kind spectrum and representations" } (
+          <Cases [
+            <Case #kernel-kinds (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNKF>
+              A modeling node close to the modeling kernel.
+              </?01M02MT5NPFTH9N0M02H0WBNKF>
+              <When ?01M02MT5NPFTH9N0M02H0WBNKG>
+              An author declares its kind.
+              </?01M02MT5NPFTH9N0M02H0WBNKG>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNKH>
+              Kernel kinds SHALL use bare cross-domain tags: `entity`/`object`, `enum`, `state-machine`, `module`/`capsule`, `component`, `port`, `actor`, `policy`.
+              </?01M02MT5NPFTH9N0M02H0WBNKH>
+            )>
+            <Case #shell-kinds (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNKJ>
+              A modeling node close to shell/presentation/interoperation.
+              </?01M02MT5NPFTH9N0M02H0WBNKJ>
+              <When ?01M02MT5NPFTH9N0M02H0WBNKK>
+              An author declares its kind.
+              </?01M02MT5NPFTH9N0M02H0WBNKK>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNKM>
+              Shell kinds SHALL use namespaced domain tags such as `surface:route`, `backend:endpoint`, `cli:command`, `agent:tool`.
+              </?01M02MT5NPFTH9N0M02H0WBNKM>
+            )>
+            <Case #minimal-representations (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNKN>
+              A modeling node of a given kind.
+              </?01M02MT5NPFTH9N0M02H0WBNKN>
+              <When ?01M02MT5NPFTH9N0M02H0WBNKP>
+              The system validates the node.
+              </?01M02MT5NPFTH9N0M02H0WBNKP>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNKQ>
+              `entity` SHALL carry `types` + `fact_grade` + `single_writer`; `state-machine` SHALL carry `mermaid`; `module` SHALL carry `depends_on` + a capsule-tree; `component` SHALL carry runtime/input/config/output `types` blocks.
+              </?01M02MT5NPFTH9N0M02H0WBNKQ>
+              <Ands [
+                <And ?01M02MT5NPFTH9N0M02H0WBNKR>
+                A `module` capsule-tree SHALL reach file/symbol granularity (the files inside each capsule with their responsibility and the modeling node each realizes), not stop at the contract/logic/support layer names.
+                </?01M02MT5NPFTH9N0M02H0WBNKR>
+              ]>
+            )>
+            <Case #prose-no-escape (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNKS>
+              A node embeds TypeScript, mermaid, or pseudocode.
+              </?01M02MT5NPFTH9N0M02H0WBNKS>
+              <When ?01M02MT5NPFTH9N0M02H0WBNKT>
+              It is stored.
+              </?01M02MT5NPFTH9N0M02H0WBNKT>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNKV>
+              The content SHALL be an XNL `TextElement` with a marker, requiring no escaping.
+              </?01M02MT5NPFTH9N0M02H0WBNKV>
+            )>
+            <Case #namespaced-id (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNKW>
+              A modeling node needs a globally unique id.
+              </?01M02MT5NPFTH9N0M02H0WBNKW>
+              <When ?01M02MT5NPFTH9N0M02H0WBNKX>
+              The id is assigned.
+              </?01M02MT5NPFTH9N0M02H0WBNKX>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNKY>
+              The id SHALL use a multi-level XNL namespaced word: `#&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;context&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;.&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;name&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;`, or fully qualified across planes as `#&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;plane&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;.&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;context&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;.&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;name&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;`.
+              </?01M02MT5NPFTH9N0M02H0WBNKY>
+            )>
+            <Case #modeling-references-behavior (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNKZ>
+              A modeling node describes testable behavior.
+              </?01M02MT5NPFTH9N0M02H0WBNKZ>
+              <When ?01M02MT5NPFTH9N0M02H0WBNM0>
+              An author models it.
+              </?01M02MT5NPFTH9N0M02H0WBNM0>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNM1>
+              The node SHALL reference `behavior://…` rather than duplicating BDD cases.
+              </?01M02MT5NPFTH9N0M02H0WBNM1>
+            )>
+            <Case #vfs-uri-references (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNM2>
+              A modeling node references another node or a behavior.
+              </?01M02MT5NPFTH9N0M02H0WBNM2>
+              <When ?01M02MT5NPFTH9N0M02H0WBNM3>
+              The reference is written and resolved.
+              </?01M02MT5NPFTH9N0M02H0WBNM3>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNM4>
+              The canonical reference syntax SHALL be a VFS URI (`modeling://&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;plane&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;/&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;context&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;/&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;name&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;` or `behavior://…`).
+              </?01M02MT5NPFTH9N0M02H0WBNM4>
+              <Ands [
+                <And ?01M02MT5NPFTH9N0M02H0WBNM5>
+                The resolver SHALL treat any metadata/attribute value matching a known VFS scheme as a reference (scheme self-identifying), without a fixed key whitelist.
+                </?01M02MT5NPFTH9N0M02H0WBNM5>
+              ]>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement #modeling-delta-merge (
+      <Statement ?01M02MT5NPFTH9N0M02H0WBNM6>
+      系统 SHALL express a track's modeling change as target-state nodes and apply it at archive via an ephemeral node-level three-way merge (xnl-vfs as merge engine), with the base anchored on the host git commit, rather than a custom delta node type or a persisted parallel vcs repo.
+      </?01M02MT5NPFTH9N0M02H0WBNM6>
+      <Suites [
+        <Suite #delta-merge { name = "Modeling delta as three-way merge" } (
+          <Cases [
+            <Case #target-state-export (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNM7>
+              A track changes modeling.
+              </?01M02MT5NPFTH9N0M02H0WBNM7>
+              <When ?01M02MT5NPFTH9N0M02H0WBNM8>
+              The track is created and implemented.
+              </?01M02MT5NPFTH9N0M02H0WBNM8>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNM9>
+              The change SHALL be written as target-state nodes under `tracks/&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;id&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;/modeling_deltas/&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;plane&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;/&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;context&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;.xnl` (the merge `theirs` side), git-tracked and reviewable.
+              </?01M02MT5NPFTH9N0M02H0WBNM9>
+            )>
+            <Case #base-anchor (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNMA>
+              A track modeling change.
+              </?01M02MT5NPFTH9N0M02H0WBNMA>
+              <When ?01M02MT5NPFTH9N0M02H0WBNMB>
+              The track is created.
+              </?01M02MT5NPFTH9N0M02H0WBNMB>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNMC>
+              The system SHALL record the current host git commit id of `codument/modeling` as the three-way merge base.
+              </?01M02MT5NPFTH9N0M02H0WBNMC>
+            )>
+            <Case #archive-merge (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNMD>
+              An archived track with modeling changes.
+              </?01M02MT5NPFTH9N0M02H0WBNMD>
+              <When ?01M02MT5NPFTH9N0M02H0WBNME>
+              The system applies the modeling delta.
+              </?01M02MT5NPFTH9N0M02H0WBNME>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNMF>
+              The system SHALL materialize base (from host git), ours (working tree), and theirs (modeling_deltas), and run an ephemeral node-level three-way merge via xnl-vfs `xnlFileHandler.merge`.
+              </?01M02MT5NPFTH9N0M02H0WBNMF>
+              <Ands [
+                <And ?01M02MT5NPFTH9N0M02H0WBNMG>
+                Conflicts (`RENAME_RENAME`, `DELETE_MODIFY`, `BINARY_UNMERGEABLE`) SHALL be resolved via `{ metadataId, choice }` or reported issues-first, never silently overwritten.
+                </?01M02MT5NPFTH9N0M02H0WBNMG>
+                <And ?01M02MT5NPFTH9N0M02H0WBNMH>
+                The merged result SHALL be written back to the working tree and committed by host git; ephemeral merge artifacts SHALL NOT be persisted.
+                </?01M02MT5NPFTH9N0M02H0WBNMH>
+              ]>
+            )>
+            <Case #conflict-policy (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNMJ>
+              A three-way modeling merge produces conflicts.
+              </?01M02MT5NPFTH9N0M02H0WBNMJ>
+              <When ?01M02MT5NPFTH9N0M02H0WBNMK>
+              The system resolves them.
+              </?01M02MT5NPFTH9N0M02H0WBNMK>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNMM>
+              By default it SHALL auto-merge only unambiguous cases (disjoint nodes, disjoint sub-parts, pure adds, pure deletes) and report true conflicts (same-field, DELETE_MODIFY, RENAME_RENAME, ADD/ADD same id) issues-first, pausing rather than silently choosing a side.
+              </?01M02MT5NPFTH9N0M02H0WBNMM>
+              <Ands [
+                <And ?01M02MT5NPFTH9N0M02H0WBNMN>
+                Per-conflict-type policy SHALL be configurable in `codument/config/modeling.xml` `&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;merge-policy&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;` with `resolve` of `human|ours|theirs|base`, defaulting to `human`.
+                </?01M02MT5NPFTH9N0M02H0WBNMN>
+              ]>
+            )>
+            <Case #archive-cli-merge (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNMP>
+              modeling 已启用，track 包含有效 `modeling_deltas`，并记录可解析的 modeling base commit。
+              </?01M02MT5NPFTH9N0M02H0WBNMP>
+              <When ?01M02MT5NPFTH9N0M02H0WBNMQ>
+              用户运行 `codument archive &amp;amp;amp;amp;amp;amp;amp;lt;track-id&amp;amp;amp;amp;amp;amp;amp;gt;`。
+              </?01M02MT5NPFTH9N0M02H0WBNMQ>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNMR>
+              archive CLI SHALL 调用 modeling 的节点级三方合并并把合并结果提交到 `codument/modeling/`。
+              </?01M02MT5NPFTH9N0M02H0WBNMR>
+              <Ands [
+                <And ?01M02MT5NPFTH9N0M02H0WBNMS>
+                首次 delta 归档时，若 registry 尚不存在，系统 SHALL 在成功 commit 时创建 registry。
+                </?01M02MT5NPFTH9N0M02H0WBNMS>
+                <And ?01M02MT5NPFTH9N0M02H0WBNMT>
+                若 track 没有 modeling delta，系统 SHALL NOT 创建空 modeling registry。
+                </?01M02MT5NPFTH9N0M02H0WBNMT>
+              ]>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement #modeling-fractal-split (
+      <Statement ?01M02MT5NPFTH9N0M02H0WBNMV>
+      系统 SHALL provide a `codument modeling lint` check that flags oversized modeling XNL files for same-name-folder fractal split.
+      </?01M02MT5NPFTH9N0M02H0WBNMV>
+      <Suites [
+        <Suite #fractal-split { name = "Fractal split check" } (
+          <Cases [
+            <Case #oversize-flag (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNMW>
+              A modeling XNL file exceeds the configured line or node-count threshold.
+              </?01M02MT5NPFTH9N0M02H0WBNMW>
+              <When ?01M02MT5NPFTH9N0M02H0WBNMX>
+              `codument modeling lint` runs.
+              </?01M02MT5NPFTH9N0M02H0WBNMX>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNMY>
+              The system SHALL flag the file as a fractal-split candidate.
+              </?01M02MT5NPFTH9N0M02H0WBNMY>
+            )>
+            <Case #split-is-vcs-tracked (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNMZ>
+              A flagged file is split.
+              </?01M02MT5NPFTH9N0M02H0WBNMZ>
+              <When ?01M02MT5NPFTH9N0M02H0WBNN0>
+              The split is applied.
+              </?01M02MT5NPFTH9N0M02H0WBNN0>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNN1>
+              The split SHALL use `vfs.rename` so xnl-vcs tracks the move.
+              </?01M02MT5NPFTH9N0M02H0WBNN1>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement #modeling-config (
+      <Statement ?01M02MT5NPFTH9N0M02H0WBNN2>
+      系统 SHALL 默认启用 modeling，同时将启用状态与 modeling delta 的生成义务分离。
+      </?01M02MT5NPFTH9N0M02H0WBNN2>
+      <Suites [
+        <Suite #modeling-config-gate { name = "Modeling config gate" } (
+          <Cases [
+            <Case #default-on (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNN3>
+              fresh init 生成 modeling 配置，或 runtime 加载一个不存在的 modeling 配置文件。
+              </?01M02MT5NPFTH9N0M02H0WBNN3>
+              <When ?01M02MT5NPFTH9N0M02H0WBNN4>
+              系统解析 modeling enablement。
+              </?01M02MT5NPFTH9N0M02H0WBNN4>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNN5>
+              系统 SHALL 将 modeling 视为 enabled。
+              </?01M02MT5NPFTH9N0M02H0WBNN5>
+              <Ands [
+                <And ?01M02MT5NPFTH9N0M02H0WBNN6>
+                发布模板 SHALL 生成 `&amp;amp;amp;amp;amp;amp;amp;lt;Modeling enabled=&amp;amp;amp;amp;amp;amp;amp;quot;true&amp;amp;amp;amp;amp;amp;amp;quot;&amp;amp;amp;amp;amp;amp;amp;gt;`。
+                </?01M02MT5NPFTH9N0M02H0WBNN6>
+              ]>
+            )>
+            <Case #explicit-disable-wins (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNN7>
+              已有 workspace 明确配置 `&amp;amp;amp;amp;amp;amp;amp;lt;Modeling enabled=&amp;amp;amp;amp;amp;amp;amp;quot;false&amp;amp;amp;amp;amp;amp;amp;quot;&amp;amp;amp;amp;amp;amp;amp;gt;`。
+              </?01M02MT5NPFTH9N0M02H0WBNN7>
+              <When ?01M02MT5NPFTH9N0M02H0WBNN8>
+              runtime 加载配置或 `upgrade-workspace` 升级该项目。
+              </?01M02MT5NPFTH9N0M02H0WBNN8>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNN9>
+              系统 SHALL 保持 modeling disabled，不得用新默认覆盖用户的显式选择。
+              </?01M02MT5NPFTH9N0M02H0WBNN9>
+            )>
+            <Case #structural-delta-trigger (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNNA>
+              modeling 已启用。
+              </?01M02MT5NPFTH9N0M02H0WBNNA>
+              <When ?01M02MT5NPFTH9N0M02H0WBNNB>
+              track 改变对象、状态机、policy、模块边界、事实源或组件 IO 等结构知识。
+              </?01M02MT5NPFTH9N0M02H0WBNNB>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNNC>
+              系统 SHALL 生成对应 modeling delta。
+              </?01M02MT5NPFTH9N0M02H0WBNNC>
+              <Ands [
+                <And ?01M02MT5NPFTH9N0M02H0WBNND>
+                若 track 不改变结构知识，系统 SHALL NOT 强制生成 modeling delta。
+                </?01M02MT5NPFTH9N0M02H0WBNND>
+              ]>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement #modeling-docs-engineering-writeback (
+      <Statement ?01M02MT5NPFTH9N0M02H0WBNNE>
+      系统 SHALL, at archive when modeling is enabled, write the track's design rationale into `codument/engineering/` by category after merging modeling deltas.
+      </?01M02MT5NPFTH9N0M02H0WBNNE>
+      <Suites [
+        <Suite #docs-engineering-writeback { name = "codument/engineering writeback" } (
+          <Cases [
+            <Case #category-routing (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNNF>
+              An archived track whose design adds implementation knowledge.
+              </?01M02MT5NPFTH9N0M02H0WBNNF>
+              <When ?01M02MT5NPFTH9N0M02H0WBNNG>
+              The system writes back to codument/engineering.
+              </?01M02MT5NPFTH9N0M02H0WBNNG>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNNH>
+              Content SHALL be routed by category (overview/howto/rules/reference/troubleshooting) per the engineering fractal standard.
+              </?01M02MT5NPFTH9N0M02H0WBNNH>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement #knowledgesync-residue-removed (
+      <Statement ?01M02MT5NPFTH9N0M02H0WBNNJ>
+      系统 SHALL NOT retain `knowledgeSync` string residue; modeling enablement is governed only by `codument/config/modeling.xml`.
+      </?01M02MT5NPFTH9N0M02H0WBNNJ>
+      <Suites [
+        <Suite #knowledgesync-cleanup { name = "knowledgeSync cleanup" } (
+          <Cases [
+            <Case #no-residue (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNNK>
+              The codebase and templates after this change.
+              </?01M02MT5NPFTH9N0M02H0WBNNK>
+              <When ?01M02MT5NPFTH9N0M02H0WBNNM>
+              The project is searched for `knowledgeSync`.
+              </?01M02MT5NPFTH9N0M02H0WBNNM>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNNN>
+              No `knowledgeSync` references SHALL remain except intentional migration notes.
+              </?01M02MT5NPFTH9N0M02H0WBNNN>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement #modeling-validate (
+      <Statement ?01M02MT5NPFTH9N0M02H0WBNNP>
+      系统 SHALL provide an explicit `codument modeling validate` command that checks every modeling `.xnl` file across three layers — XNL syntax, node-schema semantics, and hierarchy/reference consistency — reporting issues author-friendly (file + line/position + reason) instead of throwing, gated behind `config/modeling.xml` (skipped when modeling is disabled).
+      </?01M02MT5NPFTH9N0M02H0WBNNP>
+      <Suites [
+        <Suite #syntax-layer { name = "Layer 1: XNL syntax" } (
+          <Cases [
+            <Case #parse-and-report (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNNQ>
+              A modeling `.xnl` file with an XNL syntax error (e.g. mismatched text marker, unclosed block).
+              </?01M02MT5NPFTH9N0M02H0WBNNQ>
+              <When ?01M02MT5NPFTH9N0M02H0WBNNR>
+              `codument modeling validate` runs.
+              </?01M02MT5NPFTH9N0M02H0WBNNR>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNNS>
+              The system SHALL parse via xnl-core `parseXnl(.., {textBlockStyle:true})` and report `{file, line/position, reason}`, rather than letting an uncaught `XnlParseError` propagate.
+              </?01M02MT5NPFTH9N0M02H0WBNNS>
+              <Ands [
+                <And ?01M02MT5NPFTH9N0M02H0WBNNT>
+                A syntactically valid file SHALL pass this layer with no finding.
+                </?01M02MT5NPFTH9N0M02H0WBNNT>
+              ]>
+            )>
+          ]>
+        )>
+        <Suite #schema-layer { name = "Layer 2: node-schema semantics" } (
+          <Cases [
+            <Case #reuse-validate-node (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNNV>
+              A modeling node missing a minimal-required representation (e.g. `entity` without `types`/`fact_grade`/`single_writer`, or an unknown bare kind).
+              </?01M02MT5NPFTH9N0M02H0WBNNV>
+              <When ?01M02MT5NPFTH9N0M02H0WBNNW>
+              validate runs.
+              </?01M02MT5NPFTH9N0M02H0WBNNW>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNNX>
+              The system SHALL reuse `validateModelingNode` (kind spectrum, minimal representations, `fact_grade` enum, namespaced id) and surface each violation as a finding.
+              </?01M02MT5NPFTH9N0M02H0WBNNX>
+            )>
+          ]>
+        )>
+        <Suite #hierarchy-layer { name = "Layer 3: hierarchy / definition consistency" } (
+          <Cases [
+            <Case #id-path-alignment (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNNY>
+              A node whose id namespace does not match its file path `&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;plane&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;/&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;context&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;` (e.g. `#inventory.stock` inside `domain/orders/index.xnl`).
+              </?01M02MT5NPFTH9N0M02H0WBNNY>
+              <When ?01M02MT5NPFTH9N0M02H0WBNNZ>
+              validate runs.
+              </?01M02MT5NPFTH9N0M02H0WBNNZ>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNP0>
+              The system SHALL flag a hierarchy violation: the id's context segment MUST equal the path context, and if the id carries a plane prefix it MUST equal the path plane.
+              </?01M02MT5NPFTH9N0M02H0WBNP0>
+            )>
+            <Case #plane-legality (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNP1>
+              modeling registry 尚不存在或不包含任何 XNL 节点。
+              </?01M02MT5NPFTH9N0M02H0WBNP1>
+              <When ?01M02MT5NPFTH9N0M02H0WBNP2>
+              `codument modeling validate` 检查 registry。
+              </?01M02MT5NPFTH9N0M02H0WBNP2>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNP3>
+              系统 SHALL 报告 warning 而不是 error。
+              </?01M02MT5NPFTH9N0M02H0WBNP3>
+              <Ands [
+                <And ?01M02MT5NPFTH9N0M02H0WBNP4>
+                当 registry 已有内容时，系统 SHALL 继续要求存在 `domain` plane，并对未知 derived plane 使用 warning。
+                </?01M02MT5NPFTH9N0M02H0WBNP4>
+              ]>
+            )>
+            <Case #reference-resolvable (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNP5>
+              A node with a `modeling://` reference (`single_writer`/`depends_on`/`derived_from`/`uses`) pointing to a node absent from the registry index.
+              </?01M02MT5NPFTH9N0M02H0WBNP5>
+              <When ?01M02MT5NPFTH9N0M02H0WBNP6>
+              validate runs over the full registry.
+              </?01M02MT5NPFTH9N0M02H0WBNP6>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNP7>
+              The system SHALL resolve `modeling://` references (scheme self-identifying) against the registry index and report dangling references.
+              </?01M02MT5NPFTH9N0M02H0WBNP7>
+              <Ands [
+                <And ?01M02MT5NPFTH9N0M02H0WBNP8>
+                `behavior://` references SHALL be syntax-checked but their existence MAY be left unverified (no hard dependency on the behaviors registry).
+                </?01M02MT5NPFTH9N0M02H0WBNP8>
+              ]>
+            )>
+            <Case #unique-id (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNP9>
+              Two nodes sharing the same id across files.
+              </?01M02MT5NPFTH9N0M02H0WBNP9>
+              <When ?01M02MT5NPFTH9N0M02H0WBNPA>
+              validate runs.
+              </?01M02MT5NPFTH9N0M02H0WBNPA>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNPB>
+              The system SHALL report the duplicate id with both file locations (as a finding, not an uncaught throw).
+              </?01M02MT5NPFTH9N0M02H0WBNPB>
+            )>
+            <Case #delta-files-same-rules (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNPC>
+              A track's `modeling_deltas/&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;plane&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;/&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;context&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;.xnl` target-state file.
+              </?01M02MT5NPFTH9N0M02H0WBNPC>
+              <When ?01M02MT5NPFTH9N0M02H0WBNPD>
+              validate runs against deltas (e.g. `modeling validate --deltas &amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;track&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;`).
+              </?01M02MT5NPFTH9N0M02H0WBNPD>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNPE>
+              The same syntax + schema + hierarchy rules SHALL apply, with the id namespace aligned to the delta file's `&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;plane&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;/&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;context&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;`.
+              </?01M02MT5NPFTH9N0M02H0WBNPE>
+            )>
+          ]>
+        )>
+        <Suite #gating-and-report { name = "Gating and reporting" } (
+          <Cases [
+            <Case #config-gate (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNPF>
+              `config/modeling.xml` with modeling disabled (default).
+              </?01M02MT5NPFTH9N0M02H0WBNPF>
+              <When ?01M02MT5NPFTH9N0M02H0WBNPG>
+              `codument modeling validate` runs.
+              </?01M02MT5NPFTH9N0M02H0WBNPG>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNPH>
+              The system SHALL skip and state modeling is disabled, consistent with `lint`/`track`/`archive` gating.
+              </?01M02MT5NPFTH9N0M02H0WBNPH>
+            )>
+            <Case #issues-first-exit (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNPJ>
+              One or more findings across layers.
+              </?01M02MT5NPFTH9N0M02H0WBNPJ>
+              <When ?01M02MT5NPFTH9N0M02H0WBNPK>
+              validate completes.
+              </?01M02MT5NPFTH9N0M02H0WBNPK>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNPM>
+              The system SHALL print findings grouped by file with a non-zero summary count (issues-first), and a clean run SHALL report success.
+              </?01M02MT5NPFTH9N0M02H0WBNPM>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement #xnl-format-guide (
+      <Statement ?01M02MT5NPFTH9N0M02H0WBNPN>
+      系统 SHALL vendor the xnl-core for-AI format guide into codument std as the authoritative XNL syntax reference for authoring modeling nodes, because the published npm package ships only `dist/` (its `doc/ai-guide/` is not packaged).
+      </?01M02MT5NPFTH9N0M02H0WBNPN>
+      <Suites [
+        <Suite #vendored-guide { name = "Vendored XNL format guide" } (
+          <Cases [
+            <Case #guide-present (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNPP>
+              An AI author generating modeling XNL needs syntax rules (markers, zero-escape, EBNF, common errors).
+              </?01M02MT5NPFTH9N0M02H0WBNPP>
+              <When ?01M02MT5NPFTH9N0M02H0WBNPQ>
+              It consults codument std.
+              </?01M02MT5NPFTH9N0M02H0WBNPQ>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNPR>
+              codument SHALL provide `std/spec/xnl-format.md` vendored from `xnl-core` `doc/ai-guide/XnlDataFormatForAi.md`, with a provenance note (source + version).
+              </?01M02MT5NPFTH9N0M02H0WBNPR>
+            )>
+            <Case #modeling-specs-reference (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNPS>
+              The modeling specs (`modeling-registry.md` / `modeling-node-schema.md` / `modeling-delta.md`).
+              </?01M02MT5NPFTH9N0M02H0WBNPS>
+              <When ?01M02MT5NPFTH9N0M02H0WBNPT>
+              They describe XNL writing.
+              </?01M02MT5NPFTH9N0M02H0WBNPT>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNPV>
+              They SHALL reference `std/spec/xnl-format.md` as the authoritative syntax source instead of re-deriving syntax inline.
+              </?01M02MT5NPFTH9N0M02H0WBNPV>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement #modeling-authoring-form (
+      <Statement ?01M02MT5NPFTH9N0M02H0WBNPW>
+      系统 SHALL guide and validate the XNL *form* of modeling nodes so that LLM authors produce spec-conformant nodes — component IO blocks as bare tags, shell-kind nodes as plain element tags plus a `kind` attribute — while the validate engine accepts the common role-tagged IO variant for compatibility. Derived from E2E dogfood where a real agent wrote conceptually-correct modeling but tripped on these two XNL-form ambiguities across 3/3 and 1/3 topics.
+      </?01M02MT5NPFTH9N0M02H0WBNPW>
+      <Suites [
+        <Suite #component-io-form { name = "Component IO block form" } (
+          <Cases [
+            <Case #bare-io-tags-canonical (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNPX>
+              A modeling `component` node needing runtime/input/config/output blocks.
+              </?01M02MT5NPFTH9N0M02H0WBNPX>
+              <When ?01M02MT5NPFTH9N0M02H0WBNPY>
+              An author writes it per spec.
+              </?01M02MT5NPFTH9N0M02H0WBNPY>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNPZ>
+              The canonical form SHALL be bare tags `&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;runtime&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;` / `&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;input&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;` / `&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;config&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;` / `&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;output&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;`, and `modeling-node-schema.md` + `xnl-format.md` SHALL state this explicitly with Good/Bad examples.
+              </?01M02MT5NPFTH9N0M02H0WBNPZ>
+            )>
+            <Case #role-tagged-io-accepted (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNQ0>
+              A `component` whose IO blocks are written as `&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;types role=&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;quot;runtime&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;quot;&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;` (and input/config/output) instead of bare tags.
+              </?01M02MT5NPFTH9N0M02H0WBNQ0>
+              <When ?01M02MT5NPFTH9N0M02H0WBNQ1>
+              `modeling validate` runs.
+              </?01M02MT5NPFTH9N0M02H0WBNQ1>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNQ2>
+              The schema layer SHALL accept a role-tagged block as satisfying the corresponding runtime/input/config/output requirement (compatibility), without raising the &amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;quot;requires a &amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;slot&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt; block&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;quot; error.
+              </?01M02MT5NPFTH9N0M02H0WBNQ2>
+              <Ands [
+                <And ?01M02MT5NPFTH9N0M02H0WBNQ3>
+                Bare tags remain the canonical, spec-recommended form; role-tagged is accepted-but-discouraged.
+                </?01M02MT5NPFTH9N0M02H0WBNQ3>
+              ]>
+            )>
+          ]>
+        )>
+        <Suite #shell-kind-form { name = "Shell-kind node form" } (
+          <Cases [
+            <Case #plain-tag-plus-kind-attr (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNQ4>
+              A shell-kind modeling node (e.g. a backend endpoint or a surface route).
+              </?01M02MT5NPFTH9N0M02H0WBNQ4>
+              <When ?01M02MT5NPFTH9N0M02H0WBNQ5>
+              An author writes its XNL element.
+              </?01M02MT5NPFTH9N0M02H0WBNQ5>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNQ6>
+              The element tag SHALL be a plain word (e.g. `&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;endpoint&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;`, `&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;route&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;`) carrying the namespaced kind in the `kind` attribute (`kind=&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;quot;backend:endpoint&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;quot;`); the element tag name MUST NOT contain a colon (XNL element tags cannot).
+              </?01M02MT5NPFTH9N0M02H0WBNQ6>
+              <Ands [
+                <And ?01M02MT5NPFTH9N0M02H0WBNQ7>
+                `modeling-node-schema.md` + `xnl-format.md` SHALL show Good (`&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;endpoint kind=&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;quot;backend:endpoint&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;quot;&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;`) vs Bad (`&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;backend:endpoint …&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;` → XNL syntax error) examples.
+                </?01M02MT5NPFTH9N0M02H0WBNQ7>
+              ]>
+            )>
+          ]>
+        )>
+        <Suite #selfcheck-in-flow { name = "Modeling self-check in track / implement" } (
+          <Cases [
+            <Case #validate-after-generate (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNQ8>
+              A track-creation or implement step that generates/edits `modeling_deltas` while modeling is enabled.
+              </?01M02MT5NPFTH9N0M02H0WBNQ8>
+              <When ?01M02MT5NPFTH9N0M02H0WBNQ9>
+              The deltas are written.
+              </?01M02MT5NPFTH9N0M02H0WBNQ9>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNQA>
+              The workflow SHALL run `codument modeling validate --deltas &amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;track&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;` and surface + repair findings before proceeding.
+              </?01M02MT5NPFTH9N0M02H0WBNQA>
+              <Ands [
+                <And ?01M02MT5NPFTH9N0M02H0WBNQB>
+                This step SHALL be gated on `config/modeling.xml` (skipped when modeling is disabled), consistent with other modeling behavior.
+                </?01M02MT5NPFTH9N0M02H0WBNQB>
+              ]>
+            )>
+          ]>
+        )>
+        <Suite #language-convention { name = "Descriptive content in Chinese, identifiers in English" } (
+          <Cases [
+            <Case #chinese-descriptions (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNQC>
+              An author writes a modeling node's descriptive content.
+              </?01M02MT5NPFTH9N0M02H0WBNQC>
+              <When ?01M02MT5NPFTH9N0M02H0WBNQD>
+              The node is authored.
+              </?01M02MT5NPFTH9N0M02H0WBNQD>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNQE>
+              Descriptive blocks (`desc` / `fact-source` / `not-owned-here` / `dependency-rule` / `invariants`), code comments inside `types` and IO blocks, `pseudo` natural-language steps, and `mermaid` node/transition labels SHALL be written in Chinese.
+              </?01M02MT5NPFTH9N0M02H0WBNQE>
+              <Ands [
+                <And ?01M02MT5NPFTH9N0M02H0WBNQF>
+                Code identifiers — TypeScript interface/type/field names, `enum` members and values, `kind`, `fact_grade`, metadata keys, `#id` namespaces, VFS schemes, and mermaid state names that mirror enum values — SHALL remain in English, so generated TypeScript stays compilable and machine contracts (schema/refs) stay consistent. See std/spec/modeling-node-schema.md §9.
+                </?01M02MT5NPFTH9N0M02H0WBNQF>
+              ]>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement #std-sop-no-operation-dup (
+      <Statement ?01M02MT5NPFTH9N0M02H0WBNQG>
+      系统 SHALL keep `codument/std/sop/` for cross-operation methodology only, with no file that duplicates a single operation's flow already owned by `codument/std/operations/`. Operation-specific procedure SHALL live in the operation prompt; sop SHALL hold shared methodology (questioning/tdd/validation/wave-exec/workflow).
+      </?01M02MT5NPFTH9N0M02H0WBNQG>
+      <Suites [
+        <Suite #dedup { name = "sop / operations de-duplication" } (
+          <Cases [
+            <Case #no-dup-files (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNQH>
+              The std prompt tree.
+              </?01M02MT5NPFTH9N0M02H0WBNQH>
+              <When ?01M02MT5NPFTH9N0M02H0WBNQJ>
+              An operation already has a complete prompt in `std/operations/&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;op&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;.md`.
+              </?01M02MT5NPFTH9N0M02H0WBNQJ>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNQK>
+              There SHALL NOT be a same-named `std/sop/&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;op&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;.md` re-stating that operation's flow; archive/artifact-sync/gap-loop SHALL be removed from sop and consolidated into their operations file.
+              </?01M02MT5NPFTH9N0M02H0WBNQK>
+            )>
+            <Case #unique-content-preserved (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNQM>
+              `sop/artifact-sync.md` carries unique docs-routing guidance not in `operations/artifact-sync.md`.
+              </?01M02MT5NPFTH9N0M02H0WBNQM>
+              <When ?01M02MT5NPFTH9N0M02H0WBNQN>
+              The sop file is removed.
+              </?01M02MT5NPFTH9N0M02H0WBNQN>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNQP>
+              Its unique content (docs routing / knowledge-tiers judgement / folder-manifest backfill) SHALL be merged into `operations/artifact-sync.md` first, losing nothing.
+              </?01M02MT5NPFTH9N0M02H0WBNQP>
+            )>
+            <Case #references-redirected (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNQQ>
+              Files reference `sop/{archive,artifact-sync,gap-loop}.md`.
+              </?01M02MT5NPFTH9N0M02H0WBNQQ>
+              <When ?01M02MT5NPFTH9N0M02H0WBNQR>
+              Those sop files are removed.
+              </?01M02MT5NPFTH9N0M02H0WBNQR>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNQS>
+              All references (operations/spec/memory/attractors/skill shells, src/templates + dogfood) SHALL be redirected to the operations file, and `manifest.ts` regenerated; no dangling `sop/{archive,artifact-sync,gap-loop}.md` reference remains.
+              </?01M02MT5NPFTH9N0M02H0WBNQS>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement #gap-loop-recheck-efficiency (
+      <Statement ?01M02MT5NPFTH9N0M02H0WBNQT>
+      系统 SHALL make the gap-loop first-round verification round a configurable, default-off option (global default overridable per-scope), asked at track creation; and SHALL make every re-check round lightweight/incremental — all to cut fresh-spawn cost without losing the FIX-must-recheck guarantee.
+      </?01M02MT5NPFTH9N0M02H0WBNQT>
+      <Suites [
+        <Suite #verify-round-config { name = "Verification round as a config switch" } (
+          <Cases [
+            <Case #global-default-off (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNQV>
+              The global gap-loop config and a scope with no per-scope override.
+              </?01M02MT5NPFTH9N0M02H0WBNQV>
+              <When ?01M02MT5NPFTH9N0M02H0WBNQW>
+              A first round returns `NO_GAP` with no history.
+              </?01M02MT5NPFTH9N0M02H0WBNQW>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNQX>
+              The first-round-suspicion verification round SHALL default to OFF — the parent closes out without an extra round — governed by a global gap-loop config switch (default off).
+              </?01M02MT5NPFTH9N0M02H0WBNQX>
+            )>
+            <Case #node-attr-override (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNQY>
+              A `&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;cdt:GapLoop&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;` hook node carrying `verify-round=&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;quot;true|false&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;quot;`.
+              </?01M02MT5NPFTH9N0M02H0WBNQY>
+              <When ?01M02MT5NPFTH9N0M02H0WBNQZ>
+              The parent decides whether to run the first-round verification round.
+              </?01M02MT5NPFTH9N0M02H0WBNQZ>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNR0>
+              The node attribute SHALL override the global default for that scope: `true` runs the verification round, `false` skips it (first-round `NO_GAP` closes out).
+              </?01M02MT5NPFTH9N0M02H0WBNR0>
+            )>
+            <Case #asked-at-track-creation (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNR1>
+              Track creation's same-round confirmation (commit mode + validation mode).
+              </?01M02MT5NPFTH9N0M02H0WBNR1>
+              <When ?01M02MT5NPFTH9N0M02H0WBNR2>
+              The user is prompted.
+              </?01M02MT5NPFTH9N0M02H0WBNR2>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNR3>
+              The system SHALL also ask whether to enable the gap-loop verification round, and write the chosen `verify-round` onto the GapLoop hook nodes; later-added phases SHALL follow the same setting.
+              </?01M02MT5NPFTH9N0M02H0WBNR3>
+            )>
+          ]>
+        )>
+        <Suite #lightweight-recheck { name = "Lightweight / incremental re-check" } (
+          <Cases [
+            <Case #verification-round-lightweight (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNR4>
+              verify-round is ON and the parent re-spawns the first-round verification round.
+              </?01M02MT5NPFTH9N0M02H0WBNR4>
+              <When ?01M02MT5NPFTH9N0M02H0WBNR5>
+              The fresh sub-agent runs it.
+              </?01M02MT5NPFTH9N0M02H0WBNR5>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNR6>
+              It SHALL only re-confirm the prior round's gap-report conclusion plus the current uncommitted diff, not re-derive the full target comparison.
+              </?01M02MT5NPFTH9N0M02H0WBNR6>
+            )>
+            <Case #fix-incremental-recheck (
+              <Given ?01M02MT5NPFTH9N0M02H0WBNR7>
+              A prior round returned `FIX_APPLIED`.
+              </?01M02MT5NPFTH9N0M02H0WBNR7>
+              <When ?01M02MT5NPFTH9N0M02H0WBNR8>
+              The parent re-spawns the mandatory re-check (ALWAYS required, independent of `verify-round`).
+              </?01M02MT5NPFTH9N0M02H0WBNR8>
+              <Then ?01M02MT5NPFTH9N0M02H0WBNR9>
+              That round SHALL focus on the FIX's changed scope (incremental), not re-review the whole scope from scratch.
+              </?01M02MT5NPFTH9N0M02H0WBNR9>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement #skill-operation-naming (
+      <Statement ?01M02MT5NPFTH9N0M02H0WBNRA>
+      系统 SHALL name track planning/implement operation prompts and their skill shells consistently in a `codument-plan-&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;noun&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;` / `codument-impl-track` family, with skill name = operation base name; high-traffic renamed names keep alias shells, low-traffic ones are dropped.
+      </?01M02MT5NPFTH9N0M02H0WBNRA>
+      <Suites [
+        <Suite #naming { name = "Skill / operation naming" } (
+          <Cases [
+            <Case #family-names (
+              <Given ?01M02MT5NQCGVVM8RVSAG142NC>
+              The track planning/implement skills and their operation files.
+              </?01M02MT5NQCGVVM8RVSAG142NC>
+              <When ?01M02MT5NQCGVVM8RVSAG142ND>
+              They are named.
+              </?01M02MT5NQCGVVM8RVSAG142ND>
+              <Then ?01M02MT5NQCGVVM8RVSAG142NE>
+              `codument-implement`→`codument-impl-track`, `codument-track`→`codument-plan-track`, `codument-plan-schedule`→`codument-plan-track-wave`; each skill shell SHALL `@`-reference an operation file of the same base name (`impl-track.md` / `plan-track.md` / `plan-track-wave.md`). Future `codument-plan-mission` (default-DAG) follows the same `codument-plan-&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;noun&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;` style.
+              </?01M02MT5NQCGVVM8RVSAG142NE>
+            )>
+            <Case #legacy-aliases (
+              <Given ?01M02MT5NQCGVVM8RVSAG142NF>
+              Renamed skills are invoked by an old name.
+              </?01M02MT5NQCGVVM8RVSAG142NF>
+              <When ?01M02MT5NQCGVVM8RVSAG142NG>
+              The old name is used.
+              </?01M02MT5NQCGVVM8RVSAG142NG>
+              <Then ?01M02MT5NQCGVVM8RVSAG142NH>
+              `codument-implement` and `codument-track` SHALL remain as alias shells routing to the new operation (back-compat); `codument-plan-schedule` SHALL be dropped with no alias.
+              </?01M02MT5NQCGVVM8RVSAG142NH>
+            )>
+            <Case #references-updated (
+              <Given ?01M02MT5NQCGVVM8RVSAG142NJ>
+              References to old skill/operation names.
+              </?01M02MT5NQCGVVM8RVSAG142NJ>
+              <When ?01M02MT5NQCGVVM8RVSAG142NK>
+              The rename is applied.
+              </?01M02MT5NQCGVVM8RVSAG142NK>
+              <Then ?01M02MT5NQCGVVM8RVSAG142NM>
+              All references (operations cross-refs, AGENTS.md, skills/README, src/cli init, std docs; src+dogfood) SHALL point to new names; `codument-plan-schedule` SHALL have zero residual references; `manifest.ts` regenerated to match disk.
+              </?01M02MT5NQCGVVM8RVSAG142NM>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement #mission-lifecycle-directories (
+      <Statement ?01M02MT5NQCGVVM8RVSAG142NN>
+      系统 SHALL manage missions as first-class long-running work items under `codument/missions/{pending,active,archived}/`, not directly under `codument/missions/&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;mission-id&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;/`.
+      </?01M02MT5NQCGVVM8RVSAG142NN>
+      <Suites [
+        <Suite #mission-lifecycle { name = "Mission lifecycle directories" } (
+          <Cases [
+            <Case #plan-mission-pending (
+              <Given ?01M02MT5NQCGVVM8RVSAG142NP>
+              用户使用 `codument-plan-mission` 创建 mission
+              </?01M02MT5NQCGVVM8RVSAG142NP>
+              <When ?01M02MT5NQCGVVM8RVSAG142NQ>
+              mission artifacts are written
+              </?01M02MT5NQCGVVM8RVSAG142NQ>
+              <Then ?01M02MT5NQCGVVM8RVSAG142NR>
+              系统 SHALL create `codument/missions/pending/&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;mission-id&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;/`
+              </?01M02MT5NQCGVVM8RVSAG142NR>
+              <Ands [
+                <And ?01M02MT5NQCGVVM8RVSAG142NS>
+                系统 SHALL write `mission.xml`, `proposal.md`, and `design.md` in that directory
+                </?01M02MT5NQCGVVM8RVSAG142NS>
+              ]>
+            )>
+            <Case #impl-mission-active (
+              <Given ?01M02MT5NQCGVVM8RVSAG142NT>
+              用户开始执行一个 pending mission
+              </?01M02MT5NQCGVVM8RVSAG142NT>
+              <When ?01M02MT5NQCGVVM8RVSAG142NV>
+              `codument-impl-mission` starts the mission
+              </?01M02MT5NQCGVVM8RVSAG142NV>
+              <Then ?01M02MT5NQCGVVM8RVSAG142NW>
+              系统 SHALL move or require the mission under `codument/missions/active/&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;mission-id&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;/`
+              </?01M02MT5NQCGVVM8RVSAG142NW>
+              <Ands [
+                <And ?01M02MT5NQCGVVM8RVSAG142NX>
+                后续执行 SHALL treat `active/&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;mission-id&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;/mission.xml` as the state source
+                </?01M02MT5NQCGVVM8RVSAG142NX>
+              ]>
+            )>
+            <Case #archive-mission-date-prefix (
+              <Given ?01M02MT5NQCGVVM8RVSAG142NY>
+              一个 mission 已完成、取消、废弃或被替代
+              </?01M02MT5NQCGVVM8RVSAG142NY>
+              <When ?01M02MT5NQCGVVM8RVSAG142NZ>
+              用户使用 `codument-archive-mission` 归档
+              </?01M02MT5NQCGVVM8RVSAG142NZ>
+              <Then ?01M02MT5NQCGVVM8RVSAG142P0>
+              系统 SHALL move it to `codument/missions/archived/YYYY-MM-DD-&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;mission-id&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;/`
+              </?01M02MT5NQCGVVM8RVSAG142P0>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement #mission-standard-artifacts (
+      <Statement ?01M02MT5NQCGVVM8RVSAG142P1>
+      系统 SHALL use `mission.xml`, `proposal.md`, and `design.md` as the standard mission artifacts, and SHALL NOT require `roadmap.md` for new missions.
+      </?01M02MT5NQCGVVM8RVSAG142P1>
+      <Suites [
+        <Suite #mission-artifacts { name = "Mission standard artifacts" } (
+          <Cases [
+            <Case #no-roadmap (
+              <Given ?01M02MT5NQCGVVM8RVSAG142P2>
+              系统创建一个新 mission
+              </?01M02MT5NQCGVVM8RVSAG142P2>
+              <When ?01M02MT5NQCGVVM8RVSAG142P3>
+              standard artifacts are generated
+              </?01M02MT5NQCGVVM8RVSAG142P3>
+              <Then ?01M02MT5NQCGVVM8RVSAG142P4>
+              系统 SHALL NOT create `roadmap.md` as a required artifact
+              </?01M02MT5NQCGVVM8RVSAG142P4>
+              <Ands [
+                <And ?01M02MT5NQCGVVM8RVSAG142P5>
+                路线目标、非目标、成功判据 SHALL be written to `proposal.md`
+                </?01M02MT5NQCGVVM8RVSAG142P5>
+                <And ?01M02MT5NQCGVVM8RVSAG142P6>
+                控制论 actor 模型、DEPA 边界、重规划规则 SHALL be written to `design.md`
+                </?01M02MT5NQCGVVM8RVSAG142P6>
+                <And ?01M02MT5NQCGVVM8RVSAG142P7>
+                阶段、节点、依赖、状态、候选 track SHALL be written to `mission.xml`
+                </?01M02MT5NQCGVVM8RVSAG142P7>
+              ]>
+            )>
+            <Case #analysis-reports-not-git-truth (
+              <Given ?01M02MT5NQCGVVM8RVSAG142P8>
+              一个 mission contains `analysis/` and `reports/` directories
+              </?01M02MT5NQCGVVM8RVSAG142P8>
+              <When ?01M02MT5NQCGVVM8RVSAG142P9>
+              mission execution records findings or run reports
+              </?01M02MT5NQCGVVM8RVSAG142P9>
+              <Then ?01M02MT5NQCGVVM8RVSAG142PA>
+              这些目录 SHALL be treated as execution-time external memory and default to not being committed to git
+              </?01M02MT5NQCGVVM8RVSAG142PA>
+              <Ands [
+                <And ?01M02MT5NQCGVVM8RVSAG142PB>
+                稳定知识 SHALL still be promoted to docs, behaviors, decisions, or memory according to knowledge tiers
+                </?01M02MT5NQCGVVM8RVSAG142PB>
+              ]>
+            )>
+            <Case #default-design-and-decisions (
+              <Given ?01M02MT5NQCGVVM8RVSAG142PC>
+              系统创建一个新的 track 或 mission 规划目录。
+              </?01M02MT5NQCGVVM8RVSAG142PC>
+              <When ?01M02MT5NQCGVVM8RVSAG142PD>
+              standard planning artifacts are generated。
+              </?01M02MT5NQCGVVM8RVSAG142PD>
+              <Then ?01M02MT5NQCGVVM8RVSAG142PE>
+              系统 SHALL create `design.md` and `decisions.xnl` unconditionally。
+              </?01M02MT5NQCGVVM8RVSAG142PE>
+              <Ands [
+                <And ?01M02MT5NQCGVVM8RVSAG142PF>
+                系统 SHALL create `decisions/` and `memory/` only when they have eligible content。
+                </?01M02MT5NQCGVVM8RVSAG142PF>
+              ]>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement #mission-xml-spec (
+      <Statement ?01M02MT5NQCGVVM8RVSAG142PG>
+      系统 SHALL define `mission.xml` as a Track-like XML state source with a `&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;Mission&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;` root, default DAG execution, and explicit support for controlled replanning.
+      </?01M02MT5NQCGVVM8RVSAG142PG>
+      <Suites [
+        <Suite #mission-xml { name = "Mission XML" } (
+          <Cases [
+            <Case #track-like-shape (
+              <Given ?01M02MT5NQCGVVM8RVSAG142PH>
+              一个 mission has a `mission.xml` file
+              </?01M02MT5NQCGVVM8RVSAG142PH>
+              <When ?01M02MT5NQCGVVM8RVSAG142PJ>
+              the file is authored or validated
+              </?01M02MT5NQCGVVM8RVSAG142PJ>
+              <Then ?01M02MT5NQCGVVM8RVSAG142PK>
+              the root SHALL be `&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;Mission id=&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;quot;...&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;quot; version=&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;quot;1&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;quot; xmlns:cdt=&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;quot;urn:codument:v1&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;quot;&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;`
+              </?01M02MT5NQCGVVM8RVSAG142PK>
+              <Ands [
+                <And ?01M02MT5NQCGVVM8RVSAG142PM>
+                the file SHALL use Track-like `Metadata`, `Ports`, `TaskSpace`, `Schedule`, and `Hooks` sections
+                </?01M02MT5NQCGVVM8RVSAG142PM>
+              ]>
+            )>
+            <Case #default-dag (
+              <Given ?01M02MT5NQCGVVM8RVSAG142PN>
+              一个 mission TaskSpace contains top-level mission nodes
+              </?01M02MT5NQCGVVM8RVSAG142PN>
+              <When ?01M02MT5NQCGVVM8RVSAG142PP>
+              execution order is planned
+              </?01M02MT5NQCGVVM8RVSAG142PP>
+              <Then ?01M02MT5NQCGVVM8RVSAG142PQ>
+              the top-level mission TaskSpace SHALL default to DAG execution
+              </?01M02MT5NQCGVVM8RVSAG142PQ>
+              <Ands [
+                <And ?01M02MT5NQCGVVM8RVSAG142PR>
+                dependencies SHALL be represented with `Schedule/Dag/Node/After` using the same direct-child dependency rule as track.xml
+                </?01M02MT5NQCGVVM8RVSAG142PR>
+              ]>
+            )>
+            <Case #revision-on-replan (
+              <Given ?01M02MT5NQCGVVM8RVSAG142PS>
+              an active mission needs nodes or dependencies changed during execution
+              </?01M02MT5NQCGVVM8RVSAG142PS>
+              <When ?01M02MT5NQCGVVM8RVSAG142PT>
+              the mission is replanned
+              </?01M02MT5NQCGVVM8RVSAG142PT>
+              <Then ?01M02MT5NQCGVVM8RVSAG142PV>
+              系统 SHALL update `mission.xml` and increment mission revision metadata
+              </?01M02MT5NQCGVVM8RVSAG142PV>
+              <Ands [
+                <And ?01M02MT5NQCGVVM8RVSAG142PW>
+                系统 SHALL write a report explaining the evidence or human decision behind the replan
+                </?01M02MT5NQCGVVM8RVSAG142PW>
+              ]>
+            )>
+            <Case #actor-sets-and-project-refs (
+              <Given ?01M02MT5NQCGVVM8RVSAG142PX>
+              一个 mission requires concrete control work for one or more project contexts。
+              </?01M02MT5NQCGVVM8RVSAG142PX>
+              <When ?01M02MT5NQCGVVM8RVSAG142PY>
+              its mission.xml is authored or validated。
+              </?01M02MT5NQCGVVM8RVSAG142PY>
+              <Then ?01M02MT5NQCGVVM8RVSAG142PZ>
+              系统 SHALL persist one complete default ActorSet with exactly MissionPlanner, MissionObserver, MissionReconciler, and MissionApplier。
+              </?01M02MT5NQCGVVM8RVSAG142PZ>
+              <Ands [
+                <And ?01M02MT5NQCGVVM8RVSAG142Q0>
+                每个 TaskGroup SHALL inherit that set or reference a complete local override。
+                </?01M02MT5NQCGVVM8RVSAG142Q0>
+                <And ?01M02MT5NQCGVVM8RVSAG142Q1>
+                系统 SHALL persist only path-free unique ProjectRef identities and reject unknown or duplicate references。
+                </?01M02MT5NQCGVVM8RVSAG142Q1>
+              ]>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement #mission-cybernetic-actors (
+      <Statement ?01M02MT5NQCGVVM8RVSAG142Q2>
+      系统 SHALL execute a mission as a continuous cybernetic DEPA actor loop over a DAG-shaped desired state.
+      </?01M02MT5NQCGVVM8RVSAG142Q2>
+      <Suites [
+        <Suite #mission-actors { name = "Mission cybernetic actors" } (
+          <Cases [
+            <Case #four-actors (
+              <Given ?01M02MT5NQCGVVM8RVSAG142Q3>
+              mission execution prompt describes roles
+              </?01M02MT5NQCGVVM8RVSAG142Q3>
+              <When ?01M02MT5NQCGVVM8RVSAG142Q4>
+              the prompt explains how execution proceeds
+              </?01M02MT5NQCGVVM8RVSAG142Q4>
+              <Then ?01M02MT5NQCGVVM8RVSAG142Q5>
+              系统 SHALL name and use `MissionPlanner`, `MissionObserver`, `MissionReconciler`, and `MissionApplier` actor concepts
+              </?01M02MT5NQCGVVM8RVSAG142Q5>
+              <Ands [
+                <And ?01M02MT5NQCGVVM8RVSAG142Q6>
+                `MissionPlanner` SHALL produce or revise desired mission graph
+                </?01M02MT5NQCGVVM8RVSAG142Q6>
+                <And ?01M02MT5NQCGVVM8RVSAG142Q7>
+                `MissionObserver` SHALL observe actual state without mutating it
+                </?01M02MT5NQCGVVM8RVSAG142Q7>
+                <And ?01M02MT5NQCGVVM8RVSAG142Q8>
+                `MissionReconciler` SHALL compare desired and actual state and decide the next execution step
+                </?01M02MT5NQCGVVM8RVSAG142Q8>
+                <And ?01M02MT5NQCGVVM8RVSAG142Q9>
+                `MissionApplier` SHALL be the write actor for mission logical operations and SHALL resume the mission loop after child operation returns
+                </?01M02MT5NQCGVVM8RVSAG142Q9>
+              ]>
+            )>
+            <Case #level-triggered (
+              <Given ?01M02MT5NQCGVVM8RVSAG142QA>
+              a mission execution turn resumes after interruption
+              </?01M02MT5NQCGVVM8RVSAG142QA>
+              <When ?01M02MT5NQCGVVM8RVSAG142QB>
+              the next operation is chosen
+              </?01M02MT5NQCGVVM8RVSAG142QB>
+              <Then ?01M02MT5NQCGVVM8RVSAG142QC>
+              系统 SHALL read current mission.xml, track states, archive state, reports, and relevant evidence instead of relying on chat history
+              </?01M02MT5NQCGVVM8RVSAG142QC>
+            )>
+            <Case #continuous-implementation (
+              <Given ?01M02MT5NQCGVVM8RVSAG142QD>
+              用户 invokes `codument-impl-mission` for a pending or active mission
+              </?01M02MT5NQCGVVM8RVSAG142QD>
+              <When ?01M02MT5NQCGVVM8RVSAG142QE>
+              the mission is not terminal or blocked
+              </?01M02MT5NQCGVVM8RVSAG142QE>
+              <Then ?01M02MT5NQCGVVM8RVSAG142QF>
+              系统 SHALL activate a pending mission and immediately continue execution from active mission.xml
+              </?01M02MT5NQCGVVM8RVSAG142QF>
+              <Ands [
+                <And ?01M02MT5NQCGVVM8RVSAG142QG>
+                系统 SHALL require each mission step to verify completion in proportion to its effect, using its existing tests, state, resource reads, or evidence rather than a common receipt format
+                </?01M02MT5NQCGVVM8RVSAG142QG>
+                <And ?01M02MT5NQCGVVM8RVSAG142QH>
+                系统 SHALL continue to the next planned ready step without a mandatory full re-observe/reconcile pass when verification is conclusive and reveals no invalidation signal
+                </?01M02MT5NQCGVVM8RVSAG142QH>
+                <And ?01M02MT5NQCGVVM8RVSAG142QJ>
+                系统 SHALL observe the affected scope and reconcile only when verification is uncertain or signals that a prerequisite, dependency, scope, or goal has changed
+                </?01M02MT5NQCGVVM8RVSAG142QJ>
+                <And ?01M02MT5NQCGVVM8RVSAG142QK>
+                系统 SHALL NOT treat activation or completion of one track as a default stopping point
+                </?01M02MT5NQCGVVM8RVSAG142QK>
+                <And ?01M02MT5NQCGVVM8RVSAG142QM>
+                系统 SHALL treat child command returns from impl-track, archive-track, verify, gap-loop, or fresh subagents as local results for MissionApplier rather than mission invocation returns
+                </?01M02MT5NQCGVVM8RVSAG142QM>
+              ]>
+            )>
+            <Case #candidate-track-auto-activation (
+              <Given ?01M02MT5NQCGVVM8RVSAG142QN>
+              a mission ready operation is a `cdt:TrackLink state=&amp;quot;candidate&amp;quot;` and the mission runs under `QuestionSeverity=auto` or continuous-execution mode
+              </?01M02MT5NQCGVVM8RVSAG142QN>
+              <When ?01M02MT5NQCGVVM8RVSAG142QP>
+              plan-track creates the real track for the candidate
+              </?01M02MT5NQCGVVM8RVSAG142QP>
+              <Then ?01M02MT5NQCGVVM8RVSAG142QQ>
+              系统 SHALL activate the created track to `tracks/active/`, write back `TrackLink state=&amp;quot;bound&amp;quot;` and a bind report, and continue the mission loop without waiting for user approval
+              </?01M02MT5NQCGVVM8RVSAG142QQ>
+              <Ands [
+                <And ?01M02MT5NQCGVVM8RVSAG142QR>
+                plan-track 的&amp;quot;提案获批前不开始实现&amp;quot;门禁在 mission auto 语境 SHALL 视为已由 mission 层批准
+                </?01M02MT5NQCGVVM8RVSAG142QR>
+                <And ?01M02MT5NQCGVVM8RVSAG142QS>
+                系统 SHALL stop at the activation point only when an explicit confirmation gate is configured (`cdt:HumanConfirm`, or an explicit higher severity decision with no conservative default)
+                </?01M02MT5NQCGVVM8RVSAG142QS>
+              ]>
+            )>
+            <Case #execution-severity-inheritance (
+              <Given ?01M02MT5NQCGVVM8RVSAG142QT>
+              a mission or track enters continuous implementation after planning
+              </?01M02MT5NQCGVVM8RVSAG142QT>
+              <When ?01M02MT5NQCGVVM8RVSAG142QV>
+              the ready frontier contains unresolved decisions and no explicit confirmation gate is configured
+              </?01M02MT5NQCGVVM8RVSAG142QV>
+              <Then ?01M02MT5NQCGVVM8RVSAG142QW>
+              系统 SHALL treat plan-time question budgets (light/normal/deep) as non-blocking during execution, record assumptions with conservative defaults, and continue without a user question
+              </?01M02MT5NQCGVVM8RVSAG142QW>
+              <Ands [
+                <And ?01M02MT5NQCGVVM8RVSAG142QX>
+                只有显式配置的 `cdt:HumanConfirm` 或显式更高 severity 且无保守默认可替代的决策 SHALL 才构成执行期停点
+                </?01M02MT5NQCGVVM8RVSAG142QX>
+              ]>
+            )>
+            <Case #sub-track-failure-returns-to-applier (
+              <Given ?01M02MT5NQCGVVM8RVSAG142QY>
+              `codument-impl-track` runs as a mission sub-track
+              </?01M02MT5NQCGVVM8RVSAG142QY>
+              <When ?01M02MT5NQCGVVM8RVSAG142QZ>
+              a task, gate, or DAG failure cannot be fixed within task bounds, or an ACTIVE task is detected on resume
+              </?01M02MT5NQCGVVM8RVSAG142QZ>
+              <Then ?01M02MT5NQCGVVM8RVSAG142R0>
+              系统 SHALL record the failure and recommendation in `analysis/findings.md` and return a structured BLOCKED result to `MissionApplier` for replanning, rather than defaulting to an interactive user question
+              </?01M02MT5NQCGVVM8RVSAG142R0>
+              <Ands [
+                <And ?01M02MT5NQCGVVM8RVSAG142R1>
+                续跑检测在 auto/mission 语境 SHALL 默认继续 ACTIVE 任务，不默认提问
+                </?01M02MT5NQCGVVM8RVSAG142R1>
+                <And ?01M02MT5NQCGVVM8RVSAG142R2>
+                delegated prompt SHALL 以&amp;quot;完成即返回产物与证据（stop 仅限子流程边界，调用方决定是否继续）&amp;quot;代替&amp;quot;完成即停&amp;quot;
+                </?01M02MT5NQCGVVM8RVSAG142R2>
+              ]>
+            )>
+            <Case #decision-and-terminal-pauses (
+              <Given ?01M02MT5NQCGVVM8RVSAG142R3>
+              a continuous mission execution loop is running
+              </?01M02MT5NQCGVVM8RVSAG142R3>
+              <When ?01M02MT5NQCGVVM8RVSAG142R4>
+              a ready decision requires user confirmation, actual state is blocked, or mission becomes completed, cancelled, or superseded
+              </?01M02MT5NQCGVVM8RVSAG142R4>
+              <Then ?01M02MT5NQCGVVM8RVSAG142R5>
+              系统 SHALL return with the required questions, blocker, or terminal result
+              </?01M02MT5NQCGVVM8RVSAG142R5>
+              <Ands [
+                <And ?01M02MT5NQCGVVM8RVSAG142R6>
+                系统 SHALL let `QuestionSeverity=auto` record assumptions and continue without a user question
+                </?01M02MT5NQCGVVM8RVSAG142R6>
+              ]>
+            )>
+            <Case #max-tracks-checkpoint (
+              <Given ?01M02MT5NQCGVVM8RVSAG142R7>
+              one `codument-impl-mission` invocation continuously executes linked tracks
+              </?01M02MT5NQCGVVM8RVSAG142R7>
+              <When ?01M02MT5NQCGVVM8RVSAG142R8>
+              ten track lifecycles have completed and been written back as DONE
+              </?01M02MT5NQCGVVM8RVSAG142R8>
+              <Then ?01M02MT5NQCGVVM8RVSAG142R9>
+              系统 SHALL write a resumable continuation checkpoint and return with the mission still active
+              </?01M02MT5NQCGVVM8RVSAG142R9>
+              <Ands [
+                <And ?01M02MT5NQCGVVM8RVSAG142RA>
+                系统 SHALL NOT use a general max-operations limit
+                </?01M02MT5NQCGVVM8RVSAG142RA>
+              ]>
+            )>
+            <Case #actor-set-runtime-boundary (
+              <Given ?01M02MT5NQCGVVM8RVSAG142RB>
+              一个 mission references an external ProjectRef or TrackLink。
+              </?01M02MT5NQCGVVM8RVSAG142RB>
+              <When ?01M02MT5NQCGVVM8RVSAG142RC>
+              impl-mission observes and reconciles actual state。
+              </?01M02MT5NQCGVVM8RVSAG142RC>
+              <Then ?01M02MT5NQCGVVM8RVSAG142RD>
+              系统 SHALL resolve workspace paths only through session-local WorkspaceBinding and SHALL NOT persist those paths。
+              </?01M02MT5NQCGVVM8RVSAG142RD>
+              <Ands [
+                <And ?01M02MT5NQCGVVM8RVSAG142RE>
+                缺少 binding SHALL project UNBOUND rather than candidate, missing, or persistent Mission state。
+                </?01M02MT5NQCGVVM8RVSAG142RE>
+                <And ?01M02MT5NQCGVVM8RVSAG142RF>
+                binding exists but an external track is absent SHALL project MISSING from the target project actual state。
+                </?01M02MT5NQCGVVM8RVSAG142RF>
+                <And ?01M02MT5NQCGVVM8RVSAG142RG>
+                无关 DAG branches SHALL remain eligible when they do not depend on an UNBOUND ProjectRef。
+                </?01M02MT5NQCGVVM8RVSAG142RG>
+              ]>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement #mission-operations (
+      <Statement ?01M02MT5NQCGVVM8RVSAG142RH>
+      系统 SHALL provide `codument-plan-mission`, `codument-impl-mission`, and `codument-archive-mission` operation prompts and skill shells that reuse track operation experience while preserving mission-specific replanning semantics.
+      </?01M02MT5NQCGVVM8RVSAG142RH>
+      <Suites [
+        <Suite #mission-ops { name = "Mission operations" } (
+          <Cases [
+            <Case #plan-mission-examples (
+              <Given ?01M02MT5NQCGVVM8RVSAG142RJ>
+              用户使用 `codument-plan-mission`
+              </?01M02MT5NQCGVVM8RVSAG142RJ>
+              <When ?01M02MT5NQCGVVM8RVSAG142RK>
+              the operation prompt describes output shape
+              </?01M02MT5NQCGVVM8RVSAG142RK>
+              <Then ?01M02MT5NQCGVVM8RVSAG142RM>
+              the prompt SHALL include examples for `mission.xml`, `proposal.md`, and `design.md`
+              </?01M02MT5NQCGVVM8RVSAG142RM>
+            )>
+            <Case #impl-mission-replan (
+              <Given ?01M02MT5NQCGVVM8RVSAG142RN>
+              an active mission is being executed
+              </?01M02MT5NQCGVVM8RVSAG142RN>
+              <When ?01M02MT5NQCGVVM8RVSAG142RP>
+              new evidence invalidates the current mission DAG or a human changes the goal
+              </?01M02MT5NQCGVVM8RVSAG142RP>
+              <Then ?01M02MT5NQCGVVM8RVSAG142RQ>
+              `codument-impl-mission` SHALL allow controlled replanning: adding, deleting, modifying nodes or dependencies
+              </?01M02MT5NQCGVVM8RVSAG142RQ>
+              <Ands [
+                <And ?01M02MT5NQCGVVM8RVSAG142RR>
+                the operation SHALL require evidence or human decision and write a report
+                </?01M02MT5NQCGVVM8RVSAG142RR>
+              ]>
+            )>
+            <Case #archive-mission (
+              <Given ?01M02MT5NQCGVVM8RVSAG142RS>
+              a mission is completed, cancelled, abandoned, or superseded
+              </?01M02MT5NQCGVVM8RVSAG142RS>
+              <When ?01M02MT5NQCGVVM8RVSAG142RT>
+              用户使用 `codument-archive-mission`
+              </?01M02MT5NQCGVVM8RVSAG142RT>
+              <Then ?01M02MT5NQCGVVM8RVSAG142RV>
+              the operation SHALL move the mission into `archived/YYYY-MM-DD-&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;mission-id&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;/`
+              </?01M02MT5NQCGVVM8RVSAG142RV>
+              <Ands [
+                <And ?01M02MT5NQCGVVM8RVSAG142RW>
+                the operation SHALL promote durable decisions or memory candidates when configured, following archive-track experience
+                </?01M02MT5NQCGVVM8RVSAG142RW>
+              ]>
+            )>
+            <Case #actor-set-and-feedback-examples (
+              <Given ?01M02MT5NQCGVVM8RVSAG142RX>
+              用户创建或执行一个 mission with ActorSets and external ProjectRefs。
+              </?01M02MT5NQCGVVM8RVSAG142RX>
+              <When ?01M02MT5NQCGVVM8RVSAG142RY>
+              plan-mission, impl-mission, and the Mission XML spec describe the workflow。
+              </?01M02MT5NQCGVVM8RVSAG142RY>
+              <Then ?01M02MT5NQCGVVM8RVSAG142RZ>
+              系统 SHALL describe session WorkspaceBinding, external TrackLink observation, UNBOUND recovery, and complete ActorSet override semantics。
+              </?01M02MT5NQCGVVM8RVSAG142RZ>
+              <Ands [
+                <And ?01M02MT5NQCGVVM8RVSAG142S0>
+                系统 SHALL provide one single-project feedback loop and one bottom-library/top-application two-project feedback loop example without absolute paths。
+                </?01M02MT5NQCGVVM8RVSAG142S0>
+              ]>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement #flow-notation-spec (
+      <Statement ?01M02MT5NQCGVVM8RVSAG142S1>
+      系统 SHALL maintain flow notation as a reusable standard spec under `codument/std/spec/flow-notation.md`, and operation prompt guidance SHALL reference that spec instead of duplicating the full notation.
+      </?01M02MT5NQCGVVM8RVSAG142S1>
+      <Suites [
+        <Suite #flow-notation { name = "Flow notation spec" } (
+          <Cases [
+            <Case #spec-location (
+              <Given ?01M02MT5NQCGVVM8RVSAG142S2>
+              Codument templates are deployed
+              </?01M02MT5NQCGVVM8RVSAG142S2>
+              <When ?01M02MT5NQCGVVM8RVSAG142S3>
+              standard specs are inspected
+              </?01M02MT5NQCGVVM8RVSAG142S3>
+              <Then ?01M02MT5NQCGVVM8RVSAG142S4>
+              `codument/std/spec/flow-notation.md` SHALL exist
+              </?01M02MT5NQCGVVM8RVSAG142S4>
+            )>
+            <Case #operation-spec-reference (
+              <Given ?01M02MT5NQCGVVM8RVSAG142S5>
+              `codument/std/operations/_operation-spec.md` exists
+              </?01M02MT5NQCGVVM8RVSAG142S5>
+              <When ?01M02MT5NQCGVVM8RVSAG142S6>
+              an operation prompt author reads it
+              </?01M02MT5NQCGVVM8RVSAG142S6>
+              <Then ?01M02MT5NQCGVVM8RVSAG142S7>
+              the file SHALL point to `codument/std/spec/flow-notation.md` as the authoritative flow notation reference
+              </?01M02MT5NQCGVVM8RVSAG142S7>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement #codument-must-support-xml-spec-registry (
+      <Statement ?01M02MT5NQCGVVM8RVSAG142S8>
+      系统应当（SHALL）支持以 XML 文件表达 `codument/specs/` 下的 capability contract registry，并保留从 Markdown spec 迁移的兼容路径。
+      </?01M02MT5NQCGVVM8RVSAG142S8>
+      <Suites [
+        <Suite { name = "codument-must-support-xml-spec-registry" } (
+          <Cases [
+            <Case #xml-spec-contains-bdd-cases { name = "XML spec contains BDD cases" } (
+              <Given ?01M02MT5NQCGVVM8RVSAG142S9>
+              一个 capability 需要表达可测试行为
+              </?01M02MT5NQCGVVM8RVSAG142S9>
+              <When ?01M02MT5NQCGVVM8RVSAG142SA>
+              维护者创建 XML spec
+              </?01M02MT5NQCGVVM8RVSAG142SA>
+              <Then ?01M02MT5NQCGVVM8RVSAG142SB>
+              spec 可以包含 `capability`、`requirement`、`statement`、`suite`、`case` 节点
+              `case` 节点可以包含 `given`、`when`、`then`
+              这些 case 可用于指导测试 case 组织
+              </?01M02MT5NQCGVVM8RVSAG142SB>
+            )>
+            <Case #xml-spec-supports-nested-suites { name = "XML spec supports nested suites" } (
+              <Given ?01M02MT5NQCGVVM8RVSAG142SC>
+              一个 requirement 下存在多层测试语境
+              </?01M02MT5NQCGVVM8RVSAG142SC>
+              <When ?01M02MT5NQCGVVM8RVSAG142SD>
+              维护者组织 XML spec
+              </?01M02MT5NQCGVVM8RVSAG142SD>
+              <Then ?01M02MT5NQCGVVM8RVSAG142SE>
+              可以在 `requirement` 下创建嵌套 `suite`
+              叶子行为场景使用 `case`
+              不需要用 Markdown 标题层级表达测试语境
+              </?01M02MT5NQCGVVM8RVSAG142SE>
+            )>
+            <Case #large-xml-spec-upgrades-to-same-name-folder { name = "Large XML spec upgrades to same-name folder" } (
+              <Given ?01M02MT5NQCGVVM8RVSAG142SF>
+              一个 XML spec 文件内容过长
+              </?01M02MT5NQCGVVM8RVSAG142SF>
+              <When ?01M02MT5NQCGVVM8RVSAG142SG>
+              维护者或 AI 拆分该 spec
+              </?01M02MT5NQCGVVM8RVSAG142SG>
+              <Then ?01M02MT5NQCGVVM8RVSAG142SH>
+              可以将 `codument/specs/&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;capability&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;.xml` 升级为 `codument/specs/&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;capability&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;/index.xml`
+              通过 `include` 引用拆分出的 requirement 或 suite 文件
+              逻辑 selector 不因物理拆分而改变
+              </?01M02MT5NQCGVVM8RVSAG142SH>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement #codument-must-provide-vfs-uri-selectors (
+      <Statement ?01M02MT5NQCGVVM8RVSAG142SJ>
+      系统应当（SHALL）提供统一 VFS URI namespace，用于 spec、decision、memory、attractor、track、archive、knowledge 和 test 的逻辑引用。
+      </?01M02MT5NQCGVVM8RVSAG142SJ>
+      <Suites [
+        <Suite { name = "codument-must-provide-vfs-uri-selectors" } (
+          <Cases [
+            <Case #spec-selector-uses-spec-uri { name = "Spec selector uses spec URI" } (
+              <Given ?01M02MT5NQCGVVM8RVSAG142SK>
+              一个 spec patch 需要定位某个 case
+              </?01M02MT5NQCGVVM8RVSAG142SK>
+              <When ?01M02MT5NQCGVVM8RVSAG142SM>
+              patch 声明 selector
+              </?01M02MT5NQCGVVM8RVSAG142SM>
+              <Then ?01M02MT5NQCGVVM8RVSAG142SN>
+              selector 使用 `spec://...`
+              selector 不使用真实文件路径
+              </?01M02MT5NQCGVVM8RVSAG142SN>
+            )>
+            <Case #decision-selector-uses-decision-uri { name = "Decision selector uses decision URI" } (
+              <Given ?01M02MT5NQCGVVM8RVSAG142SP>
+              一个长期决策需要被引用
+              </?01M02MT5NQCGVVM8RVSAG142SP>
+              <When ?01M02MT5NQCGVVM8RVSAG142SQ>
+              track、spec 或 memory 关联该决策
+              </?01M02MT5NQCGVVM8RVSAG142SQ>
+              <Then ?01M02MT5NQCGVVM8RVSAG142SR>
+              使用 `decision://...` 作为逻辑引用
+              </?01M02MT5NQCGVVM8RVSAG142SR>
+            )>
+            <Case #knowledge-target-uses-knowledge-uri-only-when-enabled { name = "Knowledge target uses knowledge URI only when enabled" } (
+              <Given ?01M02MT5NQCGVVM8RVSAG142SS>
+              `knowledgeSync.enabled=true`
+              </?01M02MT5NQCGVVM8RVSAG142SS>
+              <When ?01M02MT5NQCGVVM8RVSAG142ST>
+              spec 或 plan 需要提示 docs 同步位置
+              </?01M02MT5NQCGVVM8RVSAG142ST>
+              <Then ?01M02MT5NQCGVVM8RVSAG142SV>
+              可以使用 `knowledge://&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;target-name&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;/...`
+              未启用 knowledge sync 时不应生成 knowledge hint
+              </?01M02MT5NQCGVVM8RVSAG142SV>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement #codument-must-support-generic-xml-mutation-protocol (
+      <Statement ?01M02MT5NQCGVVM8RVSAG142SW>
+      系统应当（SHALL）使用通用 XML node mutation protocol 表达 spec delta，而不是为每类领域节点创建独立操作类型。
+      </?01M02MT5NQCGVVM8RVSAG142SW>
+      <Suites [
+        <Suite { name = "codument-must-support-generic-xml-mutation-protocol" } (
+          <Cases [
+            <Case #upsert-xml-node { name = "Upsert XML node" } (
+              <Given ?01M02MT5NQCGVVM8RVSAG142SX>
+              track 需要新增或替换 spec case
+              </?01M02MT5NQCGVVM8RVSAG142SX>
+              <When ?01M02MT5NQCGVVM8RVSAG142SY>
+              spec patch 包含 `op=&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;quot;upsert&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;quot;` 和 `selector=&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;quot;spec://...&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;quot;`
+              </?01M02MT5NQCGVVM8RVSAG142SY>
+              <Then ?01M02MT5NQCGVVM8RVSAG142SZ>
+              系统将该 XML 节点写入 selector 对应逻辑位置
+              </?01M02MT5NQCGVVM8RVSAG142SZ>
+            )>
+            <Case #delete-xml-node { name = "Delete XML node" } (
+              <Given ?01M02MT5NQCGVVM8RVSAG142T0>
+              track 需要移除 spec case
+              </?01M02MT5NQCGVVM8RVSAG142T0>
+              <When ?01M02MT5NQCGVVM8RVSAG142T1>
+              spec patch 包含 `op=&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;quot;delete&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;quot;` 和 `selector=&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;quot;spec://...&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;quot;`
+              </?01M02MT5NQCGVVM8RVSAG142T1>
+              <Then ?01M02MT5NQCGVVM8RVSAG142T2>
+              系统删除 selector 对应节点
+              </?01M02MT5NQCGVVM8RVSAG142T2>
+            )>
+            <Case #move-xml-node { name = "Move XML node" } (
+              <Given ?01M02MT5NQCGVVM8RVSAG142T3>
+              track 需要移动 requirement 或 suite
+              </?01M02MT5NQCGVVM8RVSAG142T3>
+              <When ?01M02MT5NQCGVVM8RVSAG142T4>
+              spec patch 包含 `op=&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;quot;move&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;quot;`、`selector=&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;quot;spec://...&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;quot;` 和 `to=&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;quot;spec://...&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;quot;`
+              </?01M02MT5NQCGVVM8RVSAG142T4>
+              <Then ?01M02MT5NQCGVVM8RVSAG142T5>
+              系统移动该逻辑节点
+              </?01M02MT5NQCGVVM8RVSAG142T5>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement #codument-must-create-project-attractors-directory-for-new-projects (
+      <Statement ?01M02MT5NQCGVVM8RVSAG142T6>
+      系统应当（SHALL）在新项目初始化时创建 `codument/attractors/`，并将项目级 product/project 类上下文放入该目录。
+      </?01M02MT5NQCGVVM8RVSAG142T6>
+      <Suites [
+        <Suite { name = "codument-must-create-project-attractors-directory-for-new-projects" } (
+          <Cases [
+            <Case #new-init-creates-attractors { name = "New init creates attractors" } (
+              <Given ?01M02MT5NQCGVVM8RVSAG142T7>
+              用户在新项目运行 `codument init`
+              </?01M02MT5NQCGVVM8RVSAG142T7>
+              <When ?01M02MT5NQCGVVM8RVSAG142T8>
+              初始化完成
+              </?01M02MT5NQCGVVM8RVSAG142T8>
+              <Then ?01M02MT5NQCGVVM8RVSAG142T9>
+              系统创建 `codument/attractors/product.md`
+              系统创建 `codument/attractors/project.md`
+              系统不再生成 `codument/tech-stack.md`
+              </?01M02MT5NQCGVVM8RVSAG142T9>
+            )>
+            <Case #std-agents-reads-attractors-directory { name = "std AGENTS reads attractors directory" } (
+              <Given ?01M02MT5NQCGVVM8RVSAG142TA>
+              AI 助手开始处理 Codument 项目
+              </?01M02MT5NQCGVVM8RVSAG142TA>
+              <When ?01M02MT5NQCGVVM8RVSAG142TB>
+              助手读取 `codument/std/AGENTS.md`
+              </?01M02MT5NQCGVVM8RVSAG142TB>
+              <Then ?01M02MT5NQCGVVM8RVSAG142TC>
+              指南要求根据任务读取 `codument/attractors/` 下相关文件
+              不假设 attractors 目录只有固定文件名
+              </?01M02MT5NQCGVVM8RVSAG142TC>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement #codument-must-upgrade-old-workspaces-to-the-new-format (
+      <Statement ?01M02MT5NQCGVVM8RVSAG142TD>
+      系统应当（SHALL）通过 `codument upgrade-workspace` 将旧项目补齐到新的 Codument 目录、配置和兼容读取格式。
+      </?01M02MT5NQCGVVM8RVSAG142TD>
+      <Suites [
+        <Suite { name = "codument-must-upgrade-old-workspaces-to-the-new-format" } (
+          <Cases [
+            <Case #upgrade-creates-missing-new-structure { name = "Upgrade creates missing new structure" } (
+              <Given ?01M02MT5NQCGVVM8RVSAG142TE>
+              一个旧项目只有旧版 `codument/project.md`、`codument/product.md`、`codument/specs/` 和标准文件
+              </?01M02MT5NQCGVVM8RVSAG142TE>
+              <When ?01M02MT5NQCGVVM8RVSAG142TF>
+              用户运行 `codument upgrade-workspace`
+              </?01M02MT5NQCGVVM8RVSAG142TF>
+              <Then ?01M02MT5NQCGVVM8RVSAG142TG>
+              系统创建缺失的 `codument/attractors/`
+              系统创建缺失的 `codument/config/feature.json`
+              默认关闭 `knowledgeSync` 和 `projectMemory`
+              系统不删除旧项目文件
+              </?01M02MT5NQCGVVM8RVSAG142TG>
+            )>
+            <Case #upgrade-preserves-existing-user-edits { name = "Upgrade preserves existing user edits" } (
+              <Given ?01M02MT5NQCGVVM8RVSAG142TH>
+              旧项目已经手动创建或编辑了 `codument/attractors/` 或 `codument/config/feature.json`
+              </?01M02MT5NQCGVVM8RVSAG142TH>
+              <When ?01M02MT5NQCGVVM8RVSAG142TJ>
+              用户运行 `codument upgrade-workspace`
+              </?01M02MT5NQCGVVM8RVSAG142TJ>
+              <Then ?01M02MT5NQCGVVM8RVSAG142TK>
+              系统不覆盖已有 attractor 内容
+              系统不改变已有 feature 配置值
+              仅补齐明确缺失且安全的默认项
+              </?01M02MT5NQCGVVM8RVSAG142TK>
+            )>
+            <Case #old-specs-are-preserved-when-conversion-is-unsafe { name = "Old specs are preserved when conversion is unsafe" } (
+              <Given ?01M02MT5NQCGVVM8RVSAG142TM>
+              旧项目存在 Markdown spec
+              </?01M02MT5NQCGVVM8RVSAG142TM>
+              <When ?01M02MT5NQCGVVM8RVSAG142TN>
+              用户运行 `codument upgrade-workspace`
+              </?01M02MT5NQCGVVM8RVSAG142TN>
+              <Then ?01M02MT5NQCGVVM8RVSAG142TP>
+              系统保留旧 spec 原路径以支持兼容读取
+              系统无法保证自动转换为 XML 后语义等价
+              系统将旧 spec 复制到 `codument/legacy/specs/...`
+              如果实现存在临时备份机制，系统也可以写入临时备份
+              临时备份不能替代 `codument/legacy/`
+              </?01M02MT5NQCGVVM8RVSAG142TP>
+            )>
+            <Case #legacy-directory-stores-migration-evidence { name = "Legacy directory stores migration evidence" } (
+              <Given ?01M02MT5NQCGVVM8RVSAG142TQ>
+              旧项目包含不再作为新格式入口的文件
+              </?01M02MT5NQCGVVM8RVSAG142TQ>
+              <When ?01M02MT5NQCGVVM8RVSAG142TR>
+              upgrade 无法或不应自动迁移这些内容
+              </?01M02MT5NQCGVVM8RVSAG142TR>
+              <Then ?01M02MT5NQCGVVM8RVSAG142TS>
+              系统在 `codument/legacy/` 中保存可读副本
+              `codument/legacy/` 不作为新的事实真源
+              `codument/legacy/` 不生成中心 `index.md`
+              </?01M02MT5NQCGVVM8RVSAG142TS>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement #codument-must-provide-feature-config (
+      <Statement ?01M02MT5NQCGVVM8RVSAG142TT>
+      系统应当（SHALL）提供 `codument/config/feature.json` 控制可选能力，并在缺失时使用默认关闭语义。
+      </?01M02MT5NQCGVVM8RVSAG142TT>
+      <Suites [
+        <Suite { name = "codument-must-provide-feature-config" } (
+          <Cases [
+            <Case #missing-feature-config-defaults-to-disabled { name = "Missing feature config defaults to disabled" } (
+              <Given ?01M02MT5NQCGVVM8RVSAG142TV>
+              老项目没有 `codument/config/feature.json`
+              </?01M02MT5NQCGVVM8RVSAG142TV>
+              <When ?01M02MT5NQCGVVM8RVSAG142TW>
+              Codument 判断 knowledge sync 或 project memory 是否启用
+              </?01M02MT5NQCGVVM8RVSAG142TW>
+              <Then ?01M02MT5NQCGVVM8RVSAG142TX>
+              `knowledgeSync.enabled` 等价为 `false`
+              `projectMemory.enabled` 等价为 `false`
+              </?01M02MT5NQCGVVM8RVSAG142TX>
+            )>
+            <Case #upgrade-preserves-existing-feature-config { name = "Upgrade preserves existing feature config" } (
+              <Given ?01M02MT5NQCGVVM8RVSAG142TY>
+              项目已有 `codument/config/feature.json`
+              </?01M02MT5NQCGVVM8RVSAG142TY>
+              <When ?01M02MT5NQCGVVM8RVSAG142TZ>
+              用户运行 `codument upgrade-workspace`
+              </?01M02MT5NQCGVVM8RVSAG142TZ>
+              <Then ?01M02MT5NQCGVVM8RVSAG142V0>
+              系统不覆盖已有配置项
+              仅在安全缺省范围内补齐缺失配置
+              </?01M02MT5NQCGVVM8RVSAG142V0>
+            )>
+            <Case #knowledge-sync-target-may-be-outside-workspace { name = "Knowledge sync target may be outside workspace" } (
+              <Given ?01M02MT5NQCGVVM8RVSAG142V1>
+              `knowledgeSync.enabled=true`
+              </?01M02MT5NQCGVVM8RVSAG142V1>
+              <When ?01M02MT5NQCGVVM8RVSAG142V2>
+              系统执行知识同步任务
+              </?01M02MT5NQCGVVM8RVSAG142V2>
+              <Then ?01M02MT5NQCGVVM8RVSAG142V3>
+              仅使用配置中显式声明的绝对路径
+              target root 是绝对路径
+              不自行猜测 workspace 外目录
+              </?01M02MT5NQCGVVM8RVSAG142V3>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement #codument-must-archive-tracks-using-minute-level-updated-time (
+      <Statement ?01M02MT5NQCGVVM8RVSAG142V4>
+      系统应当（SHALL）使用 track 最后更新时间生成 archive 路径，而不是使用归档命令执行日期。
+      </?01M02MT5NQCGVVM8RVSAG142V4>
+      <Suites [
+        <Suite { name = "codument-must-archive-tracks-using-minute-level-updated-time" } (
+          <Cases [
+            <Case #archive-path-uses-yyyy-mm-bucket { name = "Archive path uses YYYY-MM bucket" } (
+              <Given ?01M02MT5NQCGVVM8RVSAG142V5>
+              track 最后更新时间是 `2026-05-30T14:32:00+08:00`
+              </?01M02MT5NQCGVVM8RVSAG142V5>
+              <When ?01M02MT5NQCGVVM8RVSAG142V6>
+              用户归档 track `refactor-spec-xml-vfs`
+              </?01M02MT5NQCGVVM8RVSAG142V6>
+              <Then ?01M02MT5NQCGVVM8RVSAG142V7>
+              归档路径为 `codument/archive/2026-05/2026-05-30-1432-refactor-spec-xml-vfs/`
+              </?01M02MT5NQCGVVM8RVSAG142V7>
+            )>
+            <Case #late-archive-preserves-iteration-order { name = "Late archive preserves iteration order" } (
+              <Given ?01M02MT5NQCGVVM8RVSAG142V8>
+              track 在 2026-05-30 最后更新
+              </?01M02MT5NQCGVVM8RVSAG142V8>
+              <When ?01M02MT5NQCGVVM8RVSAG142V9>
+              系统生成 archive 目录
+              </?01M02MT5NQCGVVM8RVSAG142V9>
+              <Then ?01M02MT5NQCGVVM8RVSAG142VA>
+              目录时间前缀仍使用 2026-05-30 的 track 最后更新时间
+              用户在 2026-06-02 才执行归档
+              </?01M02MT5NQCGVVM8RVSAG142VA>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement #codument-must-support-long-term-decisions-registry (
+      <Statement ?01M02MT5NQCGVVM8RVSAG142VB>
+      系统应当（SHALL）支持 `codument/decisions/` 作为长期项目决策 registry。
+      </?01M02MT5NQCGVVM8RVSAG142VB>
+      <Suites [
+        <Suite { name = "codument-must-support-long-term-decisions-registry" } (
+          <Cases [
+            <Case #durable-track-decision-is-promoted { name = "Durable track decision is promoted" } (
+              <Given ?01M02MT5NQCGVVM8RVSAG142VC>
+              track 的 `decisions.md` 中存在对未来仍有约束力的决策
+              </?01M02MT5NQCGVVM8RVSAG142VC>
+              <When ?01M02MT5NQCGVVM8RVSAG142VD>
+              track 归档
+              </?01M02MT5NQCGVVM8RVSAG142VD>
+              <Then ?01M02MT5NQCGVVM8RVSAG142VE>
+              系统可将该决策提升到 `codument/decisions/YYYY-MM/YYYY-MM-DD-HHmm-slug/decision.md`
+              该决策可以通过 `decision://...` 引用
+              </?01M02MT5NQCGVVM8RVSAG142VE>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement #codument-must-support-optional-project-memory (
+      <Statement ?01M02MT5NQCGVVM8RVSAG142VF>
+      系统应当（SHALL）在 `projectMemory.enabled=true` 时支持 `codument/memory/` 长期项目记忆。
+      </?01M02MT5NQCGVVM8RVSAG142VF>
+      <Suites [
+        <Suite { name = "codument-must-support-optional-project-memory" } (
+          <Cases [
+            <Case #memory-is-not-created-by-default { name = "Memory is not created by default" } (
+              <Given ?01M02MT5NQCGVVM8RVSAG142VG>
+              `projectMemory.enabled=false`
+              </?01M02MT5NQCGVVM8RVSAG142VG>
+              <When ?01M02MT5NQCGVVM8RVSAG142VH>
+              track 归档
+              </?01M02MT5NQCGVVM8RVSAG142VH>
+              <Then ?01M02MT5NQCGVVM8RVSAG142VJ>
+              系统不创建 `codument/memory/`
+              不提升 memory
+              </?01M02MT5NQCGVVM8RVSAG142VJ>
+            )>
+            <Case #lesson-memory-is-promoted { name = "Lesson memory is promoted" } (
+              <Given ?01M02MT5NQCGVVM8RVSAG142VK>
+              `projectMemory.enabled=true`
+              </?01M02MT5NQCGVVM8RVSAG142VK>
+              <When ?01M02MT5NQCGVVM8RVSAG142VM>
+              track 归档
+              </?01M02MT5NQCGVVM8RVSAG142VM>
+              <Then ?01M02MT5NQCGVVM8RVSAG142VN>
+              系统可创建 `codument/memory/lessons/YYYY-MM/YYYY-MM-DD-HHmm-slug/lesson.md`
+              track 暴露了未来应避免的规则
+              不创建 `codument/memory/index.md`
+              </?01M02MT5NQCGVVM8RVSAG142VN>
+            )>
+            <Case #incident-memory-is-promoted { name = "Incident memory is promoted" } (
+              <Given ?01M02MT5NQCGVVM8RVSAG142VP>
+              `projectMemory.enabled=true`
+              </?01M02MT5NQCGVVM8RVSAG142VP>
+              <When ?01M02MT5NQCGVVM8RVSAG142VQ>
+              track 归档
+              </?01M02MT5NQCGVVM8RVSAG142VQ>
+              <Then ?01M02MT5NQCGVVM8RVSAG142VR>
+              系统可创建 `codument/memory/incidents/YYYY-MM/YYYY-MM-DD-HHmm-slug/incident.md`
+              track 记录了一次具体错误、根因和修复
+              </?01M02MT5NQCGVVM8RVSAG142VR>
+            )>
+            <Case #pattern-memory-is-promoted { name = "Pattern memory is promoted" } (
+              <Given ?01M02MT5NQCGVVM8RVSAG142VS>
+              `projectMemory.enabled=true`
+              </?01M02MT5NQCGVVM8RVSAG142VS>
+              <When ?01M02MT5NQCGVVM8RVSAG142VT>
+              track 归档
+              </?01M02MT5NQCGVVM8RVSAG142VT>
+              <Then ?01M02MT5NQCGVVM8RVSAG142VV>
+              系统可创建 `codument/memory/patterns/YYYY-MM/YYYY-MM-DD-HHmm-slug/pattern.md`
+              track 产生了可复用工作模式
+              </?01M02MT5NQCGVVM8RVSAG142VV>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement #codument-must-support-configurable-knowledge-sync (
+      <Statement ?01M02MT5NQCGVVM8RVSAG142VW>
+      系统应当（SHALL）在 `knowledgeSync.enabled=true` 时，根据配置 target 和对应 attractor 同步 docs 或其他知识目录。
+      </?01M02MT5NQCGVVM8RVSAG142VW>
+      <Suites [
+        <Suite { name = "codument-must-support-configurable-knowledge-sync" } (
+          <Cases [
+            <Case #plan-includes-docs-sync-task-when-enabled { name = "Plan includes docs sync task when enabled" } (
+              <Given ?01M02MT5NQCGVVM8RVSAG142VX>
+              `knowledgeSync.enabled=true`
+              </?01M02MT5NQCGVVM8RVSAG142VX>
+              <When ?01M02MT5NQCGVVM8RVSAG142VY>
+              系统生成大型 track 的 `plan.xml`
+              </?01M02MT5NQCGVVM8RVSAG142VY>
+              <Then ?01M02MT5NQCGVVM8RVSAG142VZ>
+              计划包含知识同步任务
+              任务要求读取 target 对应 attractor
+              </?01M02MT5NQCGVVM8RVSAG142VZ>
+            )>
+            <Case #no-docs-link-when-disabled { name = "No docs link when disabled" } (
+              <Given ?01M02MT5NQCGVVM8RVSAG142W0>
+              `knowledgeSync.enabled=false`
+              </?01M02MT5NQCGVVM8RVSAG142W0>
+              <When ?01M02MT5NQCGVVM8RVSAG142W1>
+              系统生成 spec XML 或 plan
+              </?01M02MT5NQCGVVM8RVSAG142W1>
+              <Then ?01M02MT5NQCGVVM8RVSAG142W2>
+              不生成 `knowledge://` hint
+              不要求更新 docs
+              </?01M02MT5NQCGVVM8RVSAG142W2>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement #codument-must-provide-manual-docs-lifecycle-skills (
+      <Statement ?01M02MT5NQCGVVM8RVSAG142W3>
+      系统应当（SHALL）提供手动触发的 docs lifecycle skills，将项目知识同步到 `codument/modeling` 与 `codument/engineering`，且不依赖 archive 自动流程。
+      </?01M02MT5NQCGVVM8RVSAG142W3>
+      <Suites [
+        <Suite { name = "codument-must-provide-manual-docs-lifecycle-skills" } (
+          <Cases [
+            <Case #bootstrap-existing-project-docs { name = "Bootstrap existing project docs" } (
+              <Given ?01M02MT5NQCGVVM8RVSAG142W4>
+              一个现存项目缺少符合 Codument docs fractal 规范的 `codument/modeling` 或 `codument/engineering`
+              </?01M02MT5NQCGVVM8RVSAG142W4>
+              <When ?01M02MT5NQCGVVM8RVSAG142W5>
+              用户触发 `codument-docs-bootstrap`
+              </?01M02MT5NQCGVVM8RVSAG142W5>
+              <Then ?01M02MT5NQCGVVM8RVSAG142W6>
+              skill 指导 AI 读取项目结构、attractors、specs、README、代码与测试
+              skill 指导 AI 创建或更新 `codument/modeling` 的领域/能力/行为模型文档
+              skill 指导 AI 创建或更新 `codument/engineering` 的实现结构、入口、数据流、运行和测试文档
+              skill 要求保留不确定项为待确认事项，不把猜测写成事实
+              </?01M02MT5NQCGVVM8RVSAG142W6>
+            )>
+            <Case #sync-a-specific-track-to-docs { name = "Sync a specific track to docs" } (
+              <Given ?01M02MT5NQCGVVM8RVSAG142W7>
+              用户指定一个 active 或 archived track
+              </?01M02MT5NQCGVVM8RVSAG142W7>
+              <When ?01M02MT5NQCGVVM8RVSAG142W8>
+              用户触发 `codument-docs-sync-track`
+              </?01M02MT5NQCGVVM8RVSAG142W8>
+              <Then ?01M02MT5NQCGVVM8RVSAG142W9>
+              skill 指导 AI 读取该 track 的 proposal、spec delta、design、plan、archive summary 与相关 diff
+              skill 指导 AI 仅同步该 track 造成的建模与实现变化到 `codument/modeling` 与 `codument/engineering`
+              skill 要求记录未同步原因或待确认事项
+              </?01M02MT5NQCGVVM8RVSAG142W9>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement #codument-must-provide-manual-legacy-migration-lifecycle-skills (
+      <Statement ?01M02MT5NQCGVVM8RVSAG142WA>
+      系统应当（SHALL）提供手动触发的旧项目迁移 lifecycle skills，将旧 Codument archive 与 specs 逐步转换为新目录和文件规范。
+      </?01M02MT5NQCGVVM8RVSAG142WA>
+      <Suites [
+        <Suite { name = "codument-must-provide-manual-legacy-migration-lifecycle-skills" } (
+          <Cases [
+            <Case #migrate-old-archive-layout { name = "Migrate old archive layout" } (
+              <Given ?01M02MT5NQCGVVM8RVSAG142WB>
+              旧项目存在 `codument/archive/YYYY-MM-DD-track-id/` 或缺少 `plan.xml` 的归档目录
+              </?01M02MT5NQCGVVM8RVSAG142WB>
+              <When ?01M02MT5NQCGVVM8RVSAG142WC>
+              用户触发 `codument-migrate-archive`
+              </?01M02MT5NQCGVVM8RVSAG142WC>
+              <Then ?01M02MT5NQCGVVM8RVSAG142WD>
+              skill 指导 AI 建立备份或迁移记录
+              skill 指导 AI 将归档目录转换为 `codument/archive/YYYY-MM/YYYY-MM-DD-HHmm-track-id/`
+              skill 指导 AI 补齐可验证的 `plan.xml`、summary 与 legacy preservation 信息
+              skill 不删除无法安全解释的旧内容
+              </?01M02MT5NQCGVVM8RVSAG142WD>
+            )>
+            <Case #migrate-old-markdown-specs { name = "Migrate old Markdown specs" } (
+              <Given ?01M02MT5NQCGVVM8RVSAG142WE>
+              旧项目存在 Markdown specs 或旧 `spec.md` delta
+              </?01M02MT5NQCGVVM8RVSAG142WE>
+              <When ?01M02MT5NQCGVVM8RVSAG142WF>
+              用户触发 `codument-migrate-specs`
+              </?01M02MT5NQCGVVM8RVSAG142WF>
+              <Then ?01M02MT5NQCGVVM8RVSAG142WG>
+              skill 指导 AI 将可安全迁移的 capability specs 转换为 XML spec registry
+              skill 指导 AI 对大 capability 使用同名目录和 `index.xml`/`include`
+              skill 指导 AI 将不安全转换的原文保留到 `codument/legacy/specs`
+              skill 要求迁移后运行 validate/list/show 相关验证
+              </?01M02MT5NQCGVVM8RVSAG142WG>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement #codument-track-must-support-proposal-and-design-subdirectories-for-large-tracks (
+      <Statement ?01M02MT5NQCGVVM8RVSAG142WH>
+      系统应当（SHALL）在创建设计点多、内容大的 track 时，允许并鼓励创建 `proposal/` 和 `design/` 子目录，根级 `proposal.md` 与 `design.md` 作为总览引用子文件。
+      </?01M02MT5NQCGVVM8RVSAG142WH>
+      <Suites [
+        <Suite { name = "codument-track-must-support-proposal-and-design-subdirectories-for-large-tracks" } (
+          <Cases [
+            <Case #large-proposal-uses-proposal-directory { name = "Large proposal uses proposal directory" } (
+              <Given ?01M02MT5NQCGVVM8RVSAG142WJ>
+              track 背景、范围、兼容性或 rollout 内容较多
+              </?01M02MT5NQCGVVM8RVSAG142WJ>
+              <When ?01M02MT5NQCGVVM8RVSAG142WK>
+              AI 助手创建 proposal
+              </?01M02MT5NQCGVVM8RVSAG142WK>
+              <Then ?01M02MT5NQCGVVM8RVSAG142WM>
+              可以创建 `proposal/` 子目录
+              `proposal.md` 引用子文件
+              子文件位于当前 track 目录内
+              </?01M02MT5NQCGVVM8RVSAG142WM>
+            )>
+            <Case #large-design-uses-design-directory { name = "Large design uses design directory" } (
+              <Given ?01M02MT5NQCGVVM8RVSAG142WN>
+              track 有多个子方向详细设计
+              </?01M02MT5NQCGVVM8RVSAG142WN>
+              <When ?01M02MT5NQCGVVM8RVSAG142WP>
+              AI 助手创建 design
+              </?01M02MT5NQCGVVM8RVSAG142WP>
+              <Then ?01M02MT5NQCGVVM8RVSAG142WQ>
+              可以创建 `design/` 子目录
+              `design.md` 引用子设计文件
+              子文件位于当前 track 目录内
+              </?01M02MT5NQCGVVM8RVSAG142WQ>
+            )>
+            <Case #track-prompt-provides-good-bad-examples { name = "Track prompt provides good bad examples" } (
+              <Given ?01M02MT5NQCGVVM8RVSAG142WR>
+              AI 助手使用 codument-track 创建大型 track
+              </?01M02MT5NQCGVVM8RVSAG142WR>
+              <When ?01M02MT5NQCGVVM8RVSAG142WS>
+              提示词说明 proposal/design 子目录规则
+              </?01M02MT5NQCGVVM8RVSAG142WS>
+              <Then ?01M02MT5NQCGVVM8RVSAG142WT>
+              提示词包含 good examples
+              提示词包含 bad examples
+              </?01M02MT5NQCGVVM8RVSAG142WT>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement { id = "项目初始化命令" } (
+      <Statement ?01M02MT5NQCGVVM8RVSAG142WV>
+      系统应当（SHALL）继续提供 `codument init` 命令，并调整新项目初始化的项目级上下文输出。
+      </?01M02MT5NQCGVVM8RVSAG142WV>
+      <Suites [
+        <Suite { name = "项目初始化命令" } (
+          <Cases [
+            <Case { id = "初始化新项目生成-attractors" name = "初始化新项目生成 attractors" } (
+              <Given ?01M02MT5NQCGVVM8RVSAG142WW>
+              用户在新项目运行 `codument init`
+              </?01M02MT5NQCGVVM8RVSAG142WW>
+              <When ?01M02MT5NQCGVVM8RVSAG142WX>
+              初始化完成
+              </?01M02MT5NQCGVVM8RVSAG142WX>
+              <Then ?01M02MT5NQCGVVM8RVSAG142WY>
+              系统创建 `codument/attractors/`
+              系统在该目录下创建 project/product 类 attractor
+              系统不再为新项目生成 `codument/tech-stack.md`
+              </?01M02MT5NQCGVVM8RVSAG142WY>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement { id = "创建变更追踪命令" } (
+      <Statement ?01M02MT5NQCGVVM8RVSAG142WZ>
+      系统应当（SHALL）继续提供 `/codument:track` 命令，并支持大型需求的 proposal/design 子目录拆分。
+      </?01M02MT5NQCGVVM8RVSAG142WZ>
+      <Suites [
+        <Suite { name = "创建变更追踪命令" } (
+          <Cases [
+            <Case { id = "创建大型-track" name = "创建大型 track" } (
+              <Given ?01M02MT5NQCGVVM8RVSAG142X0>
+              用户提出的需求涉及多个设计方向
+              </?01M02MT5NQCGVVM8RVSAG142X0>
+              <When ?01M02MT5NQCGVVM8RVSAG142X1>
+              AI 助手创建 track
+              </?01M02MT5NQCGVVM8RVSAG142X1>
+              <Then ?01M02MT5NQCGVVM8RVSAG142X2>
+              track 可以包含 `proposal/` 和 `design/`
+              根级 `proposal.md`、`design.md` 作为导航和摘要
+              </?01M02MT5NQCGVVM8RVSAG142X2>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement { id = "归档命令" } (
+      <Statement ?01M02MT5NQCGVVM8RVSAG142X3>
+      系统应当（SHALL）继续提供 archive 命令，并扩展为 spec、decision、memory、knowledge 的归档收敛入口。
+      </?01M02MT5NQCGVVM8RVSAG142X3>
+      <Suites [
+        <Suite { name = "归档命令" } (
+          <Cases [
+            <Case #archive-promotes-durable-artifacts { name = "Archive promotes durable artifacts" } (
+              <Given ?01M02MT5NQCGVVM8RVSAG142X4>
+              track 已完成
+              </?01M02MT5NQCGVVM8RVSAG142X4>
+              <When ?01M02MT5NQCGVVM8RVSAG142X5>
+              用户归档 track
+              </?01M02MT5NQCGVVM8RVSAG142X5>
+              <Then ?01M02MT5NQCGVVM8RVSAG142X6>
+              系统按配置更新 `spec://`
+              系统提升 durable decisions 到 `decision://`
+              如 `projectMemory.enabled=true`，系统提升 durable memory 到 `memory://`
+              如 `knowledgeSync.enabled=true`，系统执行或提示 knowledge sync
+              </?01M02MT5NQCGVVM8RVSAG142X6>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement { id = "新结构必须对多分支协作友好" } (
+      <Statement ?01M02MT5NQCGVVM8RVSAG142X7>
+      系统应当（SHALL）避免为 archive 和 memory 维护中心 `index.md`，优先通过追加新目录和 CLI 扫描降低冲突。
+      </?01M02MT5NQCGVVM8RVSAG142X7>
+      <Suites [
+        <Suite { name = "新结构必须对多分支协作友好" } (
+          <Cases [
+            <Case { id = "多个分支同时产生-memory" name = "多个分支同时产生 memory" } (
+              <Given ?01M02MT5NQCGVVM8RVSAG142X8>
+              两个分支都启用了 project memory
+              </?01M02MT5NQCGVVM8RVSAG142X8>
+              <When ?01M02MT5NQCGVVM8RVSAG142X9>
+              两个分支分别归档 track
+              </?01M02MT5NQCGVVM8RVSAG142X9>
+              <Then ?01M02MT5NQCGVVM8RVSAG142XA>
+              各自创建独立时间前缀目录
+              不修改共享 `memory/index.md`
+              </?01M02MT5NQCGVVM8RVSAG142XA>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement { id = "新结构必须保持项目中立" } (
+      <Statement ?01M02MT5NQCGVVM8RVSAG142XB>
+      系统应当（SHALL）避免把某一类项目的 docs 目录结构写成 Codument 默认强制规范。
+      </?01M02MT5NQCGVVM8RVSAG142XB>
+      <Suites [
+        <Suite { name = "新结构必须保持项目中立" } (
+          <Cases [
+            <Case { id = "生成-docs-knowledge-attractor" name = "生成 docs knowledge attractor" } (
+              <Given ?01M02MT5NQCGVVM8RVSAG142XC>
+              用户启用 knowledge sync
+              </?01M02MT5NQCGVVM8RVSAG142XC>
+              <When ?01M02MT5NQCGVVM8RVSAG142XD>
+              系统生成默认 docs attractor
+              </?01M02MT5NQCGVVM8RVSAG142XD>
+              <Then ?01M02MT5NQCGVVM8RVSAG142XE>
+              attractor 描述 canonical/derived/implementation knowledge 的中立规则
+              只把 Web、CLI、数据平台、编译器等作为示例
+              </?01M02MT5NQCGVVM8RVSAG142XE>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement #engineering-registry (
+      <Statement ?01M02MT5NQCGVVM8RVSAG142XF>
+      系统 SHALL provide an engineering knowledge registry at `codument/engineering/` as an XNL working tree for long-lived implementation, maintenance, operations, reference, and troubleshooting knowledge as the managed source of truth when enabled.
+      </?01M02MT5NQCGVVM8RVSAG142XF>
+      <Suites [
+        <Suite #engineering-registry-shape { name = "Engineering registry shape" } (
+          <Cases [
+            <Case #registry-location (
+              <Given ?01M02MT5NQCGVVM8RVSAG142XG>
+              The engineering profile is enabled
+              </?01M02MT5NQCGVVM8RVSAG142XG>
+              <When ?01M02MT5NQCGVVM8RVSAG142XH>
+              The system materializes long-lived implementation knowledge
+              </?01M02MT5NQCGVVM8RVSAG142XH>
+              <Then ?01M02MT5NQCGVVM8RVSAG142XJ>
+              The knowledge SHALL be stored as XNL files under `codument/engineering/&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;plane&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;/&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;category&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;/...`
+              </?01M02MT5NQCGVVM8RVSAG142XJ>
+              <Ands [
+                <And ?01M02MT5NQCGVVM8RVSAG142XK>
+                The system SHALL preserve `engineering` as separate from `modeling`, `behaviors`, `decisions`, and `memory`
+                </?01M02MT5NQCGVVM8RVSAG142XK>
+              ]>
+            )>
+            <Case #host-git-versioned (
+              <Given ?01M02MT5NQCGVVM8RVSAG142XM>
+              The engineering registry exists
+              </?01M02MT5NQCGVVM8RVSAG142XM>
+              <When ?01M02MT5NQCGVVM8RVSAG142XN>
+              The system records history and collaboration
+              </?01M02MT5NQCGVVM8RVSAG142XN>
+              <Then ?01M02MT5NQCGVVM8RVSAG142XP>
+              `codument/engineering/**.xnl` SHALL be versioned by the host project git
+              </?01M02MT5NQCGVVM8RVSAG142XP>
+              <Ands [
+                <And ?01M02MT5NQCGVVM8RVSAG142XQ>
+                Ephemeral xnl-vfs/xnl-vcs artifacts SHALL NOT be persisted in the registry
+                </?01M02MT5NQCGVVM8RVSAG142XQ>
+              ]>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement #engineering-node-schema (
+      <Statement ?01M02MT5NQCGVVM8RVSAG142XR>
+      系统 SHALL define engineering knowledge nodes as XNL elements with stable ids, implementation-oriented kinds, and minimal required representations per kind.
+      </?01M02MT5NQCGVVM8RVSAG142XR>
+      <Suites [
+        <Suite #engineering-kinds { name = "Engineering kinds" } (
+          <Cases [
+            <Case #default-kinds (
+              <Given ?01M02MT5NQCGVVM8RVSAG142XS>
+              An author creates engineering knowledge
+              </?01M02MT5NQCGVVM8RVSAG142XS>
+              <When ?01M02MT5NQCGVVM8RVSAG142XT>
+              The node kind is selected
+              </?01M02MT5NQCGVVM8RVSAG142XT>
+              <Then ?01M02MT5NQCGVVM8RVSAG142XV>
+              The system SHALL support `overview`, `howto`, `rule`, `example`, `reference`, `troubleshooting`, `runbook`, and `code-map` kinds
+              </?01M02MT5NQCGVVM8RVSAG142XV>
+            )>
+            <Case #minimal-representations (
+              <Given ?01M02MT5NQCGVVM8RVSAG142XW>
+              An engineering node of a given kind
+              </?01M02MT5NQCGVVM8RVSAG142XW>
+              <When ?01M02MT5NQCGVVM8RVSAG142XX>
+              The system validates the node
+              </?01M02MT5NQCGVVM8RVSAG142XX>
+              <Then ?01M02MT5NQCGVVM8RVSAG142XY>
+              `howto` and `runbook` SHALL include steps and verification
+              </?01M02MT5NQCGVVM8RVSAG142XY>
+              <Ands [
+                <And ?01M02MT5NQCGVVM8RVSAG142XZ>
+                `rule` SHALL include rationale and enforcement
+                </?01M02MT5NQCGVVM8RVSAG142XZ>
+                <And ?01M02MT5NQCGVVM8RVSAG142Y0>
+                `troubleshooting` SHALL include symptoms, diagnosis, and fix
+                </?01M02MT5NQCGVVM8RVSAG142Y0>
+                <And ?01M02MT5NQCGVVM8RVSAG142Y1>
+                `reference` and `code-map` SHALL include source/update information
+                </?01M02MT5NQCGVVM8RVSAG142Y1>
+              ]>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement #engineering-delta-merge (
+      <Statement ?01M02MT5NQCGVVM8RVSAG142Y2>
+      系统 SHALL express a track's long-lived engineering knowledge changes as target-state nodes under `engineering_deltas/` and apply them through the same conservative node-level three-way merge model used by modeling.
+      </?01M02MT5NQCGVVM8RVSAG142Y2>
+      <Suites [
+        <Suite #engineering-delta { name = "Engineering deltas" } (
+          <Cases [
+            <Case #delta-location (
+              <Given ?01M02MT5NQCGVVM8RVSAG142Y3>
+              A track produces long-lived engineering knowledge
+              </?01M02MT5NQCGVVM8RVSAG142Y3>
+              <When ?01M02MT5NQCGVVM8RVSAG142Y4>
+              The track is authored or implemented
+              </?01M02MT5NQCGVVM8RVSAG142Y4>
+              <Then ?01M02MT5NQCGVVM8RVSAG142Y5>
+              The change SHALL be written under `tracks/&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;id&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;/engineering_deltas/&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;plane&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;/&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;category&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;/&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;lt;topic&amp;amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;.xnl`
+              </?01M02MT5NQCGVVM8RVSAG142Y5>
+            )>
+            <Case #archive-merge (
+              <Given ?01M02MT5NQCGVVM8RVSAG142Y6>
+              A completed track contains engineering deltas
+              </?01M02MT5NQCGVVM8RVSAG142Y6>
+              <When ?01M02MT5NQCGVVM8RVSAG142Y7>
+              The track is archived and engineering is enabled
+              </?01M02MT5NQCGVVM8RVSAG142Y7>
+              <Then ?01M02MT5NQCGVVM8RVSAG142Y8>
+              The system SHALL merge base, ours, and theirs with a node-level three-way merge keyed by node id
+              </?01M02MT5NQCGVVM8RVSAG142Y8>
+              <Ands [
+                <And ?01M02MT5NQCGVVM8RVSAG142Y9>
+                True conflicts SHALL be reported issues-first unless explicitly resolved by policy
+                </?01M02MT5NQCGVVM8RVSAG142Y9>
+              ]>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement #engineering-config-and-cli (
+      <Statement ?01M02MT5NRK3W5EMWY9967G3HM>
+      系统 SHALL gate engineering registry behavior behind `codument/config/engineering.xml`, disabled by default, and SHALL provide `codument engineering validate` and `codument engineering lint` commands.
+      </?01M02MT5NRK3W5EMWY9967G3HM>
+      <Suites [
+        <Suite #engineering-cli { name = "Engineering config and CLI" } (
+          <Cases [
+            <Case #default-off (
+              <Given ?01M02MT5NRK3W5EMWY9967G3HN>
+              A workspace has no enabled engineering config
+              </?01M02MT5NRK3W5EMWY9967G3HN>
+              <When ?01M02MT5NRK3W5EMWY9967G3HP>
+              track create, implement, archive, or default engineering validation runs
+              </?01M02MT5NRK3W5EMWY9967G3HP>
+              <Then ?01M02MT5NRK3W5EMWY9967G3HQ>
+              The system SHALL skip engineering behavior and leave existing behavior unchanged
+              </?01M02MT5NRK3W5EMWY9967G3HQ>
+            )>
+            <Case #validate (
+              <Given ?01M02MT5NRK3W5EMWY9967G3HR>
+              An engineering registry or engineering delta tree exists
+              </?01M02MT5NRK3W5EMWY9967G3HR>
+              <When ?01M02MT5NRK3W5EMWY9967G3HS>
+              `codument engineering validate` runs
+              </?01M02MT5NRK3W5EMWY9967G3HS>
+              <Then ?01M02MT5NRK3W5EMWY9967G3HT>
+              The system SHALL report syntax, schema, hierarchy, and reference findings in an author-friendly format
+              </?01M02MT5NRK3W5EMWY9967G3HT>
+            )>
+            <Case #lint (
+              <Given ?01M02MT5NRK3W5EMWY9967G3HV>
+              An engineering XNL file exceeds configured line or node thresholds
+              </?01M02MT5NRK3W5EMWY9967G3HV>
+              <When ?01M02MT5NRK3W5EMWY9967G3HW>
+              `codument engineering lint` runs
+              </?01M02MT5NRK3W5EMWY9967G3HW>
+              <Then ?01M02MT5NRK3W5EMWY9967G3HX>
+              The system SHALL flag it as a fractal-split candidate
+              </?01M02MT5NRK3W5EMWY9967G3HX>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement #modeling-engineering-e2e (
+      <Statement ?01M02MT5NRK3W5EMWY9967G3HY>
+      系统 SHALL provide a real-LLM end-to-end verification harness that initializes a clean workspace, enables both modeling and engineering registries, creates a track with both delta types, implements the track, and records code quality evidence.
+      </?01M02MT5NRK3W5EMWY9967G3HY>
+      <Suites [
+        <Suite #real-llm-e2e { name = "Modeling + engineering real LLM E2E" } (
+          <Cases [
+            <Case #create-track-with-both-deltas (
+              <Given ?01M02MT5NRK3W5EMWY9967G3HZ>
+              A clean temporary workspace initialized with codument
+              </?01M02MT5NRK3W5EMWY9967G3HZ>
+              <When ?01M02MT5NRK3W5EMWY9967G3J0>
+              The E2E harness enables modeling and engineering and asks a real agent to plan a business application track
+              </?01M02MT5NRK3W5EMWY9967G3J0>
+              <Then ?01M02MT5NRK3W5EMWY9967G3J1>
+              The generated track SHALL contain `modeling_deltas/**/*.xnl` and `engineering_deltas/**/*.xnl`
+              </?01M02MT5NRK3W5EMWY9967G3J1>
+              <Ands [
+                <And ?01M02MT5NRK3W5EMWY9967G3J2>
+                The harness SHALL run `codument validate`, `codument modeling validate --deltas`, and `codument engineering validate --deltas`
+                </?01M02MT5NRK3W5EMWY9967G3J2>
+              ]>
+            )>
+            <Case #implement-and-score-quality (
+              <Given ?01M02MT5NRK3W5EMWY9967G3J3>
+              The generated track and deltas pass validation
+              </?01M02MT5NRK3W5EMWY9967G3J3>
+              <When ?01M02MT5NRK3W5EMWY9967G3J4>
+              The E2E harness runs in full mode
+              </?01M02MT5NRK3W5EMWY9967G3J4>
+              <Then ?01M02MT5NRK3W5EMWY9967G3J5>
+              The real agent SHALL implement the application code using the track design and registry deltas as input
+              </?01M02MT5NRK3W5EMWY9967G3J5>
+              <Ands [
+                <And ?01M02MT5NRK3W5EMWY9967G3J6>
+                The harness SHALL produce machine-readable and human-readable code quality reports
+                </?01M02MT5NRK3W5EMWY9967G3J6>
+              ]>
+            )>
+            <Case #three-business-topics (
+              <Given ?01M02MT5NRK3W5EMWY9967G3J7>
+              The harness is invoked with a built-in topic
+              </?01M02MT5NRK3W5EMWY9967G3J7>
+              <When ?01M02MT5NRK3W5EMWY9967G3J8>
+              The topic is `todo`, `ecommerce`, or `blog`
+              </?01M02MT5NRK3W5EMWY9967G3J8>
+              <Then ?01M02MT5NRK3W5EMWY9967G3J9>
+              The harness SHALL use the corresponding business prompt and preserve logs for review
+              </?01M02MT5NRK3W5EMWY9967G3J9>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement #e2e-and-quality-skills (
+      <Statement ?01M02MT5NRK3W5EMWY9967G3JA>
+      系统 SHALL install reusable agent skills for running the modeling+engineering E2E harness and for scoring generated code quality.
+      </?01M02MT5NRK3W5EMWY9967G3JA>
+      <Suites [
+        <Suite #skills { name = "E2E and quality skills" } (
+          <Cases [
+            <Case #e2e-skill (
+              <Given ?01M02MT5NRK3W5EMWY9967G3JB>
+              codument skill templates are installed or upgraded
+              </?01M02MT5NRK3W5EMWY9967G3JB>
+              <When ?01M02MT5NRK3W5EMWY9967G3JC>
+              An agent needs to run the real modeling+engineering E2E suite
+              </?01M02MT5NRK3W5EMWY9967G3JC>
+              <Then ?01M02MT5NRK3W5EMWY9967G3JD>
+              The `codument-modeling-engineering-e2e` skill SHALL explain setup, commands, environment variables, outputs, and failure triage
+              </?01M02MT5NRK3W5EMWY9967G3JD>
+            )>
+            <Case #quality-skill (
+              <Given ?01M02MT5NRK3W5EMWY9967G3JE>
+              An agent needs to evaluate generated code quality after an E2E run or track implementation
+              </?01M02MT5NRK3W5EMWY9967G3JE>
+              <When ?01M02MT5NRK3W5EMWY9967G3JF>
+              The `codument-code-quality-score` skill is used
+              </?01M02MT5NRK3W5EMWY9967G3JF>
+              <Then ?01M02MT5NRK3W5EMWY9967G3JG>
+              The skill SHALL guide evidence-based scoring across runnable behavior, tests, architecture, codument alignment, maintainability, and safety
+              </?01M02MT5NRK3W5EMWY9967G3JG>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement #decision-tree-questioning (
+      <Statement ?01M02MT5NRK3W5EMWY9967G3JH>
+      系统 SHALL 支持有界决策树式提问，并通过 severity 控制自主度和问题预算。
+      </?01M02MT5NRK3W5EMWY9967G3JH>
+      <Suites [
+        <Suite #severity { name = "提问强度" } (
+          <Cases [
+            <Case #default-light (
+              <Given ?01M02MT5NRK3W5EMWY9967G3JJ>
+              用户调用 plan-track 或 plan-mission 且未指定 severity
+              </?01M02MT5NRK3W5EMWY9967G3JJ>
+              <When ?01M02MT5NRK3W5EMWY9967G3JK>
+              系统开始规划
+              </?01M02MT5NRK3W5EMWY9967G3JK>
+              <Then ?01M02MT5NRK3W5EMWY9967G3JM>
+              系统 SHALL 默认使用 light 模式
+              </?01M02MT5NRK3W5EMWY9967G3JM>
+              <Ands [
+                <And ?01M02MT5NRK3W5EMWY9967G3JN>
+                系统 SHALL 在 track.xml 或 mission.xml 的 Metadata 中记录 QuestionMode=decision-tree 与 QuestionSeverity=light
+                </?01M02MT5NRK3W5EMWY9967G3JN>
+              ]>
+            )>
+            <Case #auto-no-question (
+              <Given ?01M02MT5NRK3W5EMWY9967G3JP>
+              用户指定 severity=auto 或明确要求无问答/高自主
+              </?01M02MT5NRK3W5EMWY9967G3JP>
+              <When ?01M02MT5NRK3W5EMWY9967G3JQ>
+              系统创建 track 或 mission
+              </?01M02MT5NRK3W5EMWY9967G3JQ>
+              <Then ?01M02MT5NRK3W5EMWY9967G3JR>
+              系统 MUST NOT 因名称确认、产物确认或默认规划选项向用户提问
+              </?01M02MT5NRK3W5EMWY9967G3JR>
+              <Ands [
+                <And ?01M02MT5NRK3W5EMWY9967G3JS>
+                系统 SHALL 将关键假设写入 track 或 mission 文件
+                </?01M02MT5NRK3W5EMWY9967G3JS>
+                <And ?01M02MT5NRK3W5EMWY9967G3JT>
+                系统 SHALL 在 track.xml 或 mission.xml 的 Metadata 中记录 QuestionSeverity=auto
+                </?01M02MT5NRK3W5EMWY9967G3JT>
+              ]>
+            )>
+            <Case #bounded-frontier (
+              <Given ?01M02MT5NRK3W5EMWY9967G3JV>
+              系统需要澄清多个相关决策
+              </?01M02MT5NRK3W5EMWY9967G3JV>
+              <When ?01M02MT5NRK3W5EMWY9967G3JW>
+              severity 不是 auto
+              </?01M02MT5NRK3W5EMWY9967G3JW>
+              <Then ?01M02MT5NRK3W5EMWY9967G3JX>
+              系统 SHALL 优先询问当前 decision frontier 中最阻塞下游产物的问题
+              </?01M02MT5NRK3W5EMWY9967G3JX>
+              <Ands [
+                <And ?01M02MT5NRK3W5EMWY9967G3JY>
+                系统 SHALL 遵守该 severity 的轮次和每轮问题上限
+                </?01M02MT5NRK3W5EMWY9967G3JY>
+              ]>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement #decisions-validation (
+      <Statement ?01M02MT5NRK3W5EMWY9967G3JZ>
+      系统 SHALL 提供轻量 decisions.md 校验，避免未解决的阻塞决策进入 completed track。
+      </?01M02MT5NRK3W5EMWY9967G3JZ>
+      <Suites [
+        <Suite #validate-decisions { name = "决策校验" } (
+          <Cases [
+            <Case #pending-is-error (
+              <Given ?01M02MT5NRK3W5EMWY9967G3K0>
+              decisions.md 中存在状态 pending 的决策
+              </?01M02MT5NRK3W5EMWY9967G3K0>
+              <When ?01M02MT5NRK3W5EMWY9967G3K1>
+              用户运行 codument decisions validate
+              </?01M02MT5NRK3W5EMWY9967G3K1>
+              <Then ?01M02MT5NRK3W5EMWY9967G3K2>
+              系统 SHALL 报告 error
+              </?01M02MT5NRK3W5EMWY9967G3K2>
+            )>
+            <Case #durable-metadata-warning (
+              <Given ?01M02MT5NRK3W5EMWY9967G3K3>
+              decisions.md 中存在 Durable candidate: yes 但缺少 Evidence、Confidence 或 Reversibility
+              </?01M02MT5NRK3W5EMWY9967G3K3>
+              <When ?01M02MT5NRK3W5EMWY9967G3K4>
+              用户运行 codument decisions validate
+              </?01M02MT5NRK3W5EMWY9967G3K4>
+              <Then ?01M02MT5NRK3W5EMWY9967G3K5>
+              系统 SHALL 报告 warning
+              </?01M02MT5NRK3W5EMWY9967G3K5>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement #atomic-registry-archive (
+      <Statement ?01M02MT5NRK3W5EMWY9967G3K6>
+      系统 SHALL 在单一 prepare → validate/conflict-detect → stage → commit/rollback 边界内归档 behavior、modeling 与 engineering registry，并仅在成功后移动 track。
+      </?01M02MT5NRK3W5EMWY9967G3K6>
+      <Suites [
+        <Suite #transoperation { name = "Cross-registry archive transoperation" } (
+          <Cases [
+            <Case #prepare-before-write (
+              <Given ?01M02MT5NRK3W5EMWY9967G3K7>
+              一个 track 同时包含 behavior、modeling 与 engineering deltas。
+              </?01M02MT5NRK3W5EMWY9967G3K7>
+              <When ?01M02MT5NRK3W5EMWY9967G3K8>
+              archive 开始处理 registry 更新。
+              </?01M02MT5NRK3W5EMWY9967G3K8>
+              <Then ?01M02MT5NRK3W5EMWY9967G3K9>
+              系统 SHALL 在修改任何 live registry 前完成全部 patch 解析、三方合并、schema 校验与冲突检测。
+              </?01M02MT5NRK3W5EMWY9967G3K9>
+            )>
+            <Case #conflict-leaves-no-writes (
+              <Given ?01M02MT5NRK3W5EMWY9967G3KA>
+              任一 registry 的 prepare 或 conflict detection 失败。
+              </?01M02MT5NRK3W5EMWY9967G3KA>
+              <When ?01M02MT5NRK3W5EMWY9967G3KB>
+              archive 返回失败。
+              </?01M02MT5NRK3W5EMWY9967G3KB>
+              <Then ?01M02MT5NRK3W5EMWY9967G3KC>
+              behavior、modeling 与 engineering registry SHALL 与调用前逐字节等价。
+              </?01M02MT5NRK3W5EMWY9967G3KC>
+              <Ands [
+                <And ?01M02MT5NRK3W5EMWY9967G3KD>
+                active track SHALL 保持原路径且 archive destination SHALL NOT 存在。
+                </?01M02MT5NRK3W5EMWY9967G3KD>
+              ]>
+            )>
+            <Case #commit-failure-rolls-back (
+              <Given ?01M02MT5NRK3W5EMWY9967G3KE>
+              全部 prepare 成功，但 commit 在替换部分 registry 后发生写入或 rename 失败。
+              </?01M02MT5NRK3W5EMWY9967G3KE>
+              <When ?01M02MT5NRK3W5EMWY9967G3KF>
+              事务执行 rollback。
+              </?01M02MT5NRK3W5EMWY9967G3KF>
+              <Then ?01M02MT5NRK3W5EMWY9967G3KG>
+              系统 SHALL 恢复所有已经替换的 registry，并清理事务 staging。
+              </?01M02MT5NRK3W5EMWY9967G3KG>
+              <Ands [
+                <And ?01M02MT5NRK3W5EMWY9967G3KH>
+                track SHALL NOT 被移动。
+                </?01M02MT5NRK3W5EMWY9967G3KH>
+              ]>
+            )>
+            <Case #success-commits-all (
+              <Given ?01M02MT5NRK3W5EMWY9967G3KJ>
+              全部 deltas 有效且 commit 无失败。
+              </?01M02MT5NRK3W5EMWY9967G3KJ>
+              <When ?01M02MT5NRK3W5EMWY9967G3KK>
+              archive 完成。
+              </?01M02MT5NRK3W5EMWY9967G3KK>
+              <Then ?01M02MT5NRK3W5EMWY9967G3KM>
+              三个 registry 的适用更新 SHALL 一并可见。
+              </?01M02MT5NRK3W5EMWY9967G3KM>
+              <Ands [
+                <And ?01M02MT5NRK3W5EMWY9967G3KN>
+                track SHALL 在 registry commit 成功后移动到唯一 archive destination。
+                </?01M02MT5NRK3W5EMWY9967G3KN>
+              ]>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement #operation-taxonomy (
+      <Statement ?01M02MT5NRK3W5EMWY9967G3KP>
+      系统 SHALL expose operation as the current release terminology, while retaining legacy action names only in explicit compat and migration boundaries.
+      </?01M02MT5NRK3W5EMWY9967G3KP>
+      <Suites [
+        <Suite #taxonomy { name = "Operation taxonomy" } (
+          <Cases [
+            <Case #workspace-upgrade (
+              <Given ?01M02MT5NRK3W5EMWY9967G3KQ>
+              旧 workspace contains legacy action paths or hooks
+              </?01M02MT5NRK3W5EMWY9967G3KQ>
+              <When ?01M02MT5NRK3W5EMWY9967G3KR>
+              upgrade-workspace runs
+              </?01M02MT5NRK3W5EMWY9967G3KR>
+              <Then ?01M02MT5NRK3W5EMWY9967G3KS>
+              系统 SHALL migrate supported configuration and remove deprecated managed paths after backup
+              </?01M02MT5NRK3W5EMWY9967G3KS>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement #operation-defaults (
+      <Statement ?01M02MT5NRK3W5EMWY9967G3KT>
+      系统 SHALL create design.md for every newly planned track and mission, create decisions.xnl only when the first real decision exists, create decisions/ and memory/ only when eligible content exists, and run fresh attractor checks only when an explicit hook or a high-risk final scope requests one.
+      </?01M02MT5NRK3W5EMWY9967G3KT>
+      <Suites [
+        <Suite #planning-defaults { name = "Planning defaults" } (
+          <Cases [
+            <Case #ordinary-track (
+              <Given ?01M02MT5NRK3W5EMWY9967G3KV>
+              an ordinary track is planned
+              </?01M02MT5NRK3W5EMWY9967G3KV>
+              <When ?01M02MT5NRK3W5EMWY9967G3KW>
+              the planner writes its default artifacts and hooks
+              </?01M02MT5NRK3W5EMWY9967G3KW>
+              <Then ?01M02MT5NRK3W5EMWY9967G3KX>
+              the track SHALL contain design.md, omit an empty decisions.xnl, and avoid a routine phase attractor check
+              </?01M02MT5NRK3W5EMWY9967G3KX>
+            )>
+          ]>
+        )>
+        <Suite #archive-guard { name = "Archive decision guard" } (
+          <Cases [
+            <Case #invalid-xnl (
+              <Given ?01M02MT5NRK3W5EMWY9967G3KY>
+              an active completed track has invalid decisions.xnl
+              </?01M02MT5NRK3W5EMWY9967G3KY>
+              <When ?01M02MT5NRK3W5EMWY9967G3KZ>
+              archive starts
+              </?01M02MT5NRK3W5EMWY9967G3KZ>
+              <Then ?01M02MT5NRK3W5EMWY9967G3M0>
+              the system SHALL fail before registry mutation or track movement
+              </?01M02MT5NRK3W5EMWY9967G3M0>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement #distribution-cleanup (
+      <Statement ?01M02MT5NRK3W5EMWY9967G3M1>
+      系统 SHALL distribute only current Codument skill shells, and upgrade-workspace SHALL remove deprecated skill directories and legacy action taxonomy paths after backup.
+      </?01M02MT5NRK3W5EMWY9967G3M1>
+      <Suites [
+        <Suite #workspace-release { name = "Workspace release" } (
+          <Cases [
+            <Case #fresh-and-upgrade (
+              <Given ?01M02MT5NRK3W5EMWY9967G3M2>
+              a fresh or legacy workspace
+              </?01M02MT5NRK3W5EMWY9967G3M2>
+              <When ?01M02MT5NRK3W5EMWY9967G3M3>
+              init or upgrade-workspace runs
+              </?01M02MT5NRK3W5EMWY9967G3M3>
+              <Then ?01M02MT5NRK3W5EMWY9967G3M4>
+              the installed workspace SHALL expose the current operation taxonomy and no deprecated skill shell
+              </?01M02MT5NRK3W5EMWY9967G3M4>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement #validator-rules-consistency (
+      <Statement ?01M02MT5NRK3W5EMWY9967G3M5>
+      Codument SHALL keep spec-declared validation rules, canonical examples, and CLI validator behavior consistent, and SHALL implement deterministic rules in the CLI with AI-friendly findings output.
+      </?01M02MT5NRK3W5EMWY9967G3M5>
+      <Suites [
+        <Suite #mission-validation { name = "mission 校验" } (
+          <Cases [
+            <Case #mission-node-status-enum (
+              <Given ?01M02MT5NRK3W5EMWY9967G3M6>
+              一个 mission.xml 的 TaskGroup 或 Task 带有 status 属性
+              </?01M02MT5NRK3W5EMWY9967G3M6>
+              <When ?01M02MT5NRK3W5EMWY9967G3M7>
+              系统校验该 mission.xml
+              </?01M02MT5NRK3W5EMWY9967G3M7>
+              <Then ?01M02MT5NRK3W5EMWY9967G3M8>
+              系统 SHALL accept only NOT_STARTED, ACTIVE, DONE, BLOCKED, ABANDONED, SUPERSED
+              </?01M02MT5NRK3W5EMWY9967G3M8>
+              <Ands [
+                <And ?01M02MT5NRK3W5EMWY9967G3M9>
+                系统 SHALL report any other value as an error with a rule id, file, and position
+                </?01M02MT5NRK3W5EMWY9967G3M9>
+              ]>
+            )>
+            <Case #mission-hook-on (
+              <Given ?01M02MT5NRK3W5EMWY9967G3MA>
+              一个 mission.xml 的 Hook 带有 on 属性
+              </?01M02MT5NRK3W5EMWY9967G3MA>
+              <When ?01M02MT5NRK3W5EMWY9967G3MB>
+              系统校验该 mission.xml
+              </?01M02MT5NRK3W5EMWY9967G3MB>
+              <Then ?01M02MT5NRK3W5EMWY9967G3MC>
+              系统 SHALL accept track:before|after, phase:before|after, task:before|after, and mission:after-node
+              </?01M02MT5NRK3W5EMWY9967G3MC>
+            )>
+            <Case #mission-schedule-direct-children (
+              <Given ?01M02MT5NRK3W5EMWY9967G3MD>
+              一个 mission.xml 声明 &amp;amp;lt;Schedule&amp;amp;gt;&amp;amp;lt;Dag for&amp;amp;gt;
+              </?01M02MT5NRK3W5EMWY9967G3MD>
+              <When ?01M02MT5NRK3W5EMWY9967G3ME>
+              系统校验该 mission.xml
+              </?01M02MT5NRK3W5EMWY9967G3ME>
+              <Then ?01M02MT5NRK3W5EMWY9967G3MF>
+              系统 SHALL require the Dag target to declare cdt:child-mode=&amp;quot;dag&amp;quot;
+              </?01M02MT5NRK3W5EMWY9967G3MF>
+              <Ands [
+                <And ?01M02MT5NRK3W5EMWY9967G3MG>
+                系统 SHALL require Node id and After ref to reference direct children of that layer
+                </?01M02MT5NRK3W5EMWY9967G3MG>
+              ]>
+            )>
+            <Case #mission-tracklink-leaf-only (
+              <Given ?01M02MT5NRK3W5EMWY9967G3MH>
+              一个 mission.xml 的节点带 cdt:TrackLink
+              </?01M02MT5NRK3W5EMWY9967G3MH>
+              <When ?01M02MT5NRK3W5EMWY9967G3MJ>
+              系统校验该 mission.xml
+              </?01M02MT5NRK3W5EMWY9967G3MJ>
+              <Then ?01M02MT5NRK3W5EMWY9967G3MK>
+              系统 SHALL error when TrackLink is attached to a TaskGroup instead of a leaf Task
+              </?01M02MT5NRK3W5EMWY9967G3MK>
+            )>
+            <Case #mission-reconcile-attrs (
+              <Given ?01M02MT5NRK3W5EMWY9967G3MM>
+              一个 mission.xml 包含 cdt:MissionReconcile
+              </?01M02MT5NRK3W5EMWY9967G3MM>
+              <When ?01M02MT5NRK3W5EMWY9967G3MN>
+              系统校验该 mission.xml
+              </?01M02MT5NRK3W5EMWY9967G3MN>
+              <Then ?01M02MT5NRK3W5EMWY9967G3MP>
+              系统 SHALL validate max-tracks is a positive integer and on-limit/on-drift use documented values
+              </?01M02MT5NRK3W5EMWY9967G3MP>
+            )>
+          ]>
+        )>
+        <Suite #decision-pending { name = "decisions pending 语义" } (
+          <Cases [
+            <Case #pending-is-authoring-state (
+              <Given ?01M02MT5NRK3W5EMWY9967G3MQ>
+              decisions.xnl 中存在 status=&amp;quot;pending&amp;quot; 的决策记录
+              </?01M02MT5NRK3W5EMWY9967G3MQ>
+              <When ?01M02MT5NRK3W5EMWY9967G3MR>
+              用户运行 codument decisions validate
+              </?01M02MT5NRK3W5EMWY9967G3MR>
+              <Then ?01M02MT5NRK3W5EMWY9967G3MS>
+              系统 SHALL report a warning, not an error, and SHALL NOT fail the command
+              </?01M02MT5NRK3W5EMWY9967G3MS>
+            )>
+            <Case #durable-unresolved-blocks-archive (
+              <Given ?01M02MT5NRK3W5EMWY9967G3MT>
+              一个 durable_candidate=true 的决策在归档时仍未 resolve
+              </?01M02MT5NRK3W5EMWY9967G3MT>
+              <When ?01M02MT5NRK3W5EMWY9967G3MV>
+              系统执行归档 gate
+              </?01M02MT5NRK3W5EMWY9967G3MV>
+              <Then ?01M02MT5NRK3W5EMWY9967G3MW>
+              系统 SHALL report an error and block promotion
+              </?01M02MT5NRK3W5EMWY9967G3MW>
+            )>
+          ]>
+        )>
+        <Suite #modeling-minimal-repr { name = "modeling 最小表征" } (
+          <Cases [
+            <Case #state-machine-states (
+              <Given ?01M02MT5NRK3W5EMWY9967G3MX>
+              一个 kind=&amp;quot;state-machine&amp;quot; 的节点
+              </?01M02MT5NRK3W5EMWY9967G3MX>
+              <When ?01M02MT5NRK3W5EMWY9967G3MY>
+              系统校验该节点
+              </?01M02MT5NRK3W5EMWY9967G3MY>
+              <Then ?01M02MT5NRK3W5EMWY9967G3MZ>
+              系统 SHALL require a mermaid representation that declares state definitions
+              </?01M02MT5NRK3W5EMWY9967G3MZ>
+            )>
+            <Case #component-pseudo (
+              <Given ?01M02MT5NRK3W5EMWY9967G3N0>
+              一个 kind=&amp;quot;component&amp;quot; 的节点
+              </?01M02MT5NRK3W5EMWY9967G3N0>
+              <When ?01M02MT5NRK3W5EMWY9967G3N1>
+              系统校验该节点
+              </?01M02MT5NRK3W5EMWY9967G3N1>
+              <Then ?01M02MT5NRK3W5EMWY9967G3N2>
+              系统 SHALL require a ctrl|rule|dataflow pseudo slot in addition to the four IO types blocks
+              </?01M02MT5NRK3W5EMWY9967G3N2>
+            )>
+            <Case #port-command-message (
+              <Given ?01M02MT5NRK3W5EMWY9967G3N3>
+              一个 kind=&amp;quot;port&amp;quot; 的节点
+              </?01M02MT5NRK3W5EMWY9967G3N3>
+              <When ?01M02MT5NRK3W5EMWY9967G3N4>
+              系统校验该节点
+              </?01M02MT5NRK3W5EMWY9967G3N4>
+              <Then ?01M02MT5NRK3W5EMWY9967G3N5>
+              系统 SHALL require a command|message marker
+              </?01M02MT5NRK3W5EMWY9967G3N5>
+            )>
+            <Case #policy-rule-or-behavior-ref (
+              <Given ?01M02MT5NRK3W5EMWY9967G3N6>
+              一个 kind=&amp;quot;policy&amp;quot; 的节点
+              </?01M02MT5NRK3W5EMWY9967G3N6>
+              <When ?01M02MT5NRK3W5EMWY9967G3N7>
+              系统校验该节点
+              </?01M02MT5NRK3W5EMWY9967G3N7>
+              <Then ?01M02MT5NRK3W5EMWY9967G3N8>
+              系统 SHALL require a rule pseudo or a behavior:// reference
+              </?01M02MT5NRK3W5EMWY9967G3N8>
+            )>
+          ]>
+        )>
+        <Suite #gap-loop-strict { name = "GapLoop 严格化" } (
+          <Cases [
+            <Case #on-exhausted-illegal (
+              <Given ?01M02MT5NRK3W5EMWY9967G3N9>
+              一个 cdt:GapLoop 的 on-exhausted 不是 block|continue|fail
+              </?01M02MT5NRK3W5EMWY9967G3N9>
+              <When ?01M02MT5NRK3W5EMWY9967G3NA>
+              系统校验该 track.xml
+              </?01M02MT5NRK3W5EMWY9967G3NA>
+              <Then ?01M02MT5NRK3W5EMWY9967G3NB>
+              系统 SHALL report an error
+              </?01M02MT5NRK3W5EMWY9967G3NB>
+            )>
+            <Case #attractor-profile-unresolved (
+              <Given ?01M02MT5NRK3W5EMWY9967G3NC>
+              一个 cdt:AttractorCheck 的 use 引用不存在的 profile
+              </?01M02MT5NRK3W5EMWY9967G3NC>
+              <When ?01M02MT5NRK3W5EMWY9967G3ND>
+              系统校验该 track.xml
+              </?01M02MT5NRK3W5EMWY9967G3ND>
+              <Then ?01M02MT5NRK3W5EMWY9967G3NE>
+              系统 SHALL report an error that names the profile and lists available profiles
+              </?01M02MT5NRK3W5EMWY9967G3NE>
+            )>
+          ]>
+        )>
+        <Suite #ai-friendly-output { name = "AI 友好输出" } (
+          <Cases [
+            <Case #structured-findings (
+              <Given ?01M02MT5NRK3W5EMWY9967G3NF>
+              任何校验命令产生 findings
+              </?01M02MT5NRK3W5EMWY9967G3NF>
+              <When ?01M02MT5NRK3W5EMWY9967G3NG>
+              用户以 --json 调用
+              </?01M02MT5NRK3W5EMWY9967G3NG>
+              <Then ?01M02MT5NRK3W5EMWY9967G3NH>
+              系统 SHALL emit machine-readable findings with rule id, file, line/position, severity, and message
+              </?01M02MT5NRK3W5EMWY9967G3NH>
+            )>
+            <Case #human-summary (
+              <Given ?01M02MT5NRK3W5EMWY9967G3NJ>
+              任何校验命令产生 findings
+              </?01M02MT5NRK3W5EMWY9967G3NJ>
+              <When ?01M02MT5NRK3W5EMWY9967G3NK>
+              用户以默认 human 输出调用
+              </?01M02MT5NRK3W5EMWY9967G3NK>
+              <Then ?01M02MT5NRK3W5EMWY9967G3NM>
+              系统 SHALL print a readable summary with fix hints per error
+              </?01M02MT5NRK3W5EMWY9967G3NM>
+            )>
+          ]>
+        )>
+        <Suite #spec-example-regression { name = "示例防回归" } (
+          <Cases [
+            <Case #canonical-example-validates (
+              <Given ?01M02MT5NRK3W5EMWY9967G3NN>
+              track-xml-spec 的 canonical §4/§5 组合示例
+              </?01M02MT5NRK3W5EMWY9967G3NN>
+              <When ?01M02MT5NRK3W5EMWY9967G3NP>
+              系统运行 codument validate 于该示例 fixture
+              </?01M02MT5NRK3W5EMWY9967G3NP>
+              <Then ?01M02MT5NRK3W5EMWY9967G3NQ>
+              系统 SHALL pass with no errors
+              </?01M02MT5NRK3W5EMWY9967G3NQ>
+            )>
+            <Case #docs-current-format (
+              <Given ?01M02MT5NRK3W5EMWY9967G3NR>
+              README-cn.md 与 docs/codument-xml-configs.md 描述当前格式
+              </?01M02MT5NRK3W5EMWY9967G3NR>
+              <When ?01M02MT5NRK3W5EMWY9967G3NS>
+              审查者或回归测试检查这些文档
+              </?01M02MT5NRK3W5EMWY9967G3NS>
+              <Then ?01M02MT5NRK3W5EMWY9967G3NT>
+              系统 SHALL NOT reference plan.xml, spec_deltas, feature.json, or TODO/IN_PROGRESS/BLOCKED as current format
+              </?01M02MT5NRK3W5EMWY9967G3NT>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+    <Requirement #track-decisions-validation (
+      <Statement ?01M02MT5NRK3W5EMWY9967G3NV>
+      Codument SHALL validate a track's decisions.xnl (and its recursive decisions/** source set) as part of codument validate, so XNL authoring errors are caught at creation time instead of the archive gate.
+      </?01M02MT5NRK3W5EMWY9967G3NV>
+      <Suites [
+        <Suite #validate-covers-decisions { name = "validate 覆盖 decisions" } (
+          <Cases [
+            <Case #syntax-error-fails (
+              <Given ?01M02MT5NRK3W5EMWY9967G3NW>
+              一个 active/pending track 的 decisions.xnl 含 XNL 文本块闭合误写（如 `&amp;lt;/description&amp;gt;` 代替 `&amp;lt;/?&amp;gt;`）
+              </?01M02MT5NRK3W5EMWY9967G3NW>
+              <When ?01M02MT5NRK3W5EMWY9967G3NX>
+              用户运行 codument validate &amp;lt;track-id&amp;gt;
+              </?01M02MT5NRK3W5EMWY9967G3NX>
+              <Then ?01M02MT5NRK3W5EMWY9967G3NY>
+              系统 SHALL report an error that names the file and hints the correct `&amp;lt;/?&amp;gt;` closer
+              </?01M02MT5NRK3W5EMWY9967G3NY>
+            )>
+            <Case #valid-decisions-passes (
+              <Given ?01M02MT5NRK3W5EMWY9967G3NZ>
+              一个 track 的 decisions.xnl 语法合法
+              </?01M02MT5NRK3W5EMWY9967G3NZ>
+              <When ?01M02MT5NRK3W5EMWY9967G3P0>
+              用户运行 codument validate &amp;lt;track-id&amp;gt;
+              </?01M02MT5NRK3W5EMWY9967G3P0>
+              <Then ?01M02MT5NRK3W5EMWY9967G3P1>
+              系统 SHALL pass with no decisions-related errors
+              </?01M02MT5NRK3W5EMWY9967G3P1>
+            )>
+            <Case #missing-decisions-not-false-positive (
+              <Given ?01M02MT5NRK3W5EMWY9967G3P2>
+              一个 track 没有 decisions.xnl 也没有 decisions/ 目录
+              </?01M02MT5NRK3W5EMWY9967G3P2>
+              <When ?01M02MT5NRK3W5EMWY9967G3P3>
+              用户运行 codument validate &amp;lt;track-id&amp;gt;
+              </?01M02MT5NRK3W5EMWY9967G3P3>
+              <Then ?01M02MT5NRK3W5EMWY9967G3P4>
+              系统 SHALL NOT report a decisions error for that track
+              </?01M02MT5NRK3W5EMWY9967G3P4>
+            )>
+            <Case #recursive-source-set (
+              <Given ?01M02MT5NRK3W5EMWY9967G3P5>
+              一个 track 存在 decisions/**/*.xnl 递归 source set
+              </?01M02MT5NRK3W5EMWY9967G3P5>
+              <When ?01M02MT5NRK3W5EMWY9967G3P6>
+              用户运行 codument validate &amp;lt;track-id&amp;gt;
+              </?01M02MT5NRK3W5EMWY9967G3P6>
+              <Then ?01M02MT5NRK3W5EMWY9967G3P7>
+              系统 SHALL validate the recursive set the same way codument decisions validate does
+              </?01M02MT5NRK3W5EMWY9967G3P7>
+            )>
+          ]>
+        )>
+        <Suite #closer-spec { name = "XNL 闭合规范" } (
+          <Cases [
+            <Case #spec-bad-example (
+              <Given ?01M02MT5NRK3W5EMWY9967G3P8>
+              xnl-format.md 的文本块语法规则
+              </?01M02MT5NRK3W5EMWY9967G3P8>
+              <When ?01M02MT5NRK3W5EMWY9967G3P9>
+              审查者阅读该规范
+              </?01M02MT5NRK3W5EMWY9967G3P9>
+              <Then ?01M02MT5NRK3W5EMWY9967G3PA>
+              系统 SHALL document `&amp;lt;/description&amp;gt;` 等 XML 风格闭合为错误写法，闭合永远为 `&amp;lt;/?&amp;gt;`
+              </?01M02MT5NRK3W5EMWY9967G3PA>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+  ]>
+)>

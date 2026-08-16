@@ -1,0 +1,478 @@
+<Track #refactor-codument-vfs-attractors-memory apiVersion="codument.tech/v1alpha1" version="1" { status = "completed" goal = "Refactor Codument around XML specs, VFS URI selectors, project attractors, feature-gated knowledge sync, durable decisions, optional memory, minute-level archive paths, and large-track proposal/design subdirectories." description = "Refactor Codument around XML specs, VFS URI selectors, project attractors, feature-gated knowledge sync, durable decisions, optional memory, minute-level archive paths, and large-track proposal/design subdirectories." commit_mode = "manual" created_at = "2026-05-30T05:57:32Z" updated_at = "2026-06-01T00:36:35+08:00" "cdt:gap_round" = 16 } (
+  <Ports { scope = "track" } [
+    <MaterialBundle { role = "input" name = "behavior-deltas" domain = "behavior" path = "vfs://./behavior_deltas/" }>
+    <MaterialBundle { role = "output" name = "docs" domain = "doc" path = "vfs://@/docs/" }>
+    <MaterialBundle { role = "output" name = "behavior" domain = "codument" path = "vfs://@/codument/behaviors/" }>
+  ]>
+  <TaskSpace #space_refactor-codument-vfs-attractors-memory { name = "refactor-codument-vfs-attractors-memory" } (
+    <Description ?01M02JBRYN65CCXGQ8YB9W0X8D>
+    Refactor Codument around XML specs, VFS URI selectors, project attractors, feature-gated knowledge sync, durable decisions, optional memory, minute-level archive paths, and large-track proposal/design subdirectories.
+    </?01M02JBRYN65CCXGQ8YB9W0X8D>
+    <SubNodes [
+      <TaskGroup #P1 { name = "Foundation: VFS, feature config, and track metadata" status = "DONE" order = 0 } (
+        <SubNodes [
+          <Task #P1-T1 { name = "Add VFS URI model and parser" status = "DONE" order = 0 priority = "P0" } (
+            <Description ?01M02JBRYN65CCXGQ8YB9W0X8E>
+            Implement a small typed parser/resolver model for spec, decision, memory, attractor, track, archive, knowledge, and test URI schemes.
+            </?01M02JBRYN65CCXGQ8YB9W0X8E>
+            <Acceptance [
+              <Criterion #P1-T1-AC1 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0X8F>
+              Parser accepts valid URI examples from design/spec-vfs-and-xml.md
+              </?01M02JBRYN65CCXGQ8YB9W0X8F>
+              <Criterion #P1-T1-AC2 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0X8G>
+              Parser rejects malformed or unsupported schemes with diagnostic errors
+              </?01M02JBRYN65CCXGQ8YB9W0X8G>
+              <Criterion #P1-T1-AC3 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0X8H>
+              Unit tests cover all required URI schemes
+              </?01M02JBRYN65CCXGQ8YB9W0X8H>
+            ]>
+          )>
+          <Task #P1-T2 { name = "Add feature config loader" status = "DONE" order = 1 priority = "P0" } (
+            <Description ?01M02JBRYN65CCXGQ8YB9W0X8J>
+            Load codument/config/feature.json with missing-file defaults for disabled knowledgeSync and projectMemory.
+            </?01M02JBRYN65CCXGQ8YB9W0X8J>
+            <Acceptance [
+              <Criterion #P1-T2-AC1 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0X8K>
+              Missing feature.json behaves as knowledgeSync=false and projectMemory=false
+              </?01M02JBRYN65CCXGQ8YB9W0X8K>
+              <Criterion #P1-T2-AC2 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0X8M>
+              Existing feature.json is parsed without mutating content
+              </?01M02JBRYN65CCXGQ8YB9W0X8M>
+              <Criterion #P1-T2-AC3 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0X8N>
+              Absolute knowledge target roots are represented but not guessed
+              </?01M02JBRYN65CCXGQ8YB9W0X8N>
+            ]>
+          )>
+          <Task #P1-T3 { name = "Add track updatedAt resolver" status = "DONE" order = 2 priority = "P0" } (
+            <Description ?01M02JBRYN65CCXGQ8YB9W0X8P>
+            Resolve track last update time from plan.xml metadata and fallback to max file mtime.
+            </?01M02JBRYN65CCXGQ8YB9W0X8P>
+            <Acceptance [
+              <Criterion #P1-T3-AC1 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0X8Q>
+              updated_at from plan.xml is used when present and current
+              </?01M02JBRYN65CCXGQ8YB9W0X8Q>
+              <Criterion #P1-T3-AC2 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0X8R>
+              Max file mtime fallback works for manually edited tracks
+              </?01M02JBRYN65CCXGQ8YB9W0X8R>
+              <Criterion #P1-T3-AC3 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0X8S>
+              Minute-level local prefix can be generated deterministically
+              </?01M02JBRYN65CCXGQ8YB9W0X8S>
+            ]>
+          )>
+        ]>
+      )>
+      <TaskGroup #P2 { name = "Spec XML registry and mutation protocol" status = "DONE" order = 1 } (
+        <SubNodes [
+          <Task #P2-T1 { name = "Define XML spec schema and parser" status = "DONE" order = 0 priority = "P0" } (
+            <Description ?01M02JBRYN65CCXGQ8YB9W0X8T>
+            Implement parsing for capability, requirement, statement, suite, case, given, when, then, include, and examples.
+            </?01M02JBRYN65CCXGQ8YB9W0X8T>
+            <Acceptance [
+              <Criterion #P2-T1-AC1 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0X8V>
+              Single-file XML capability parses successfully
+              </?01M02JBRYN65CCXGQ8YB9W0X8V>
+              <Criterion #P2-T1-AC2 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0X8W>
+              Folder-based capability with index.xml and include nodes parses successfully
+              </?01M02JBRYN65CCXGQ8YB9W0X8W>
+              <Criterion #P2-T1-AC3 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0X8X>
+              Nested suite/case structure is preserved in logical AST
+              </?01M02JBRYN65CCXGQ8YB9W0X8X>
+            ]>
+          )>
+          <Task #P2-T2 { name = "Implement generic XML spec patch apply" status = "DONE" order = 1 priority = "P0" } (
+            <Description ?01M02JBRYN65CCXGQ8YB9W0X8Y>
+            Apply upsert, delete, and move operations using spec:// selectors.
+            </?01M02JBRYN65CCXGQ8YB9W0X8Y>
+            <Acceptance [
+              <Criterion #P2-T2-AC1 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0X8Z>
+              upsert can add or replace a case node
+              </?01M02JBRYN65CCXGQ8YB9W0X8Z>
+              <Criterion #P2-T2-AC2 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0X90>
+              delete can remove a selected node
+              </?01M02JBRYN65CCXGQ8YB9W0X90>
+              <Criterion #P2-T2-AC3 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0X91>
+              move can move a selected node to another spec URI
+              </?01M02JBRYN65CCXGQ8YB9W0X91>
+              <Criterion #P2-T2-AC4 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0X92>
+              Operations do not depend on physical file paths
+              </?01M02JBRYN65CCXGQ8YB9W0X92>
+            ]>
+          )>
+          <Task #P2-T3 { name = "Keep Markdown spec compatibility" status = "DONE" order = 2 priority = "P1" } (
+            <Description ?01M02JBRYN65CCXGQ8YB9W0X93>
+            Keep existing Markdown specs readable during migration and avoid breaking list/show/validate behavior.
+            </?01M02JBRYN65CCXGQ8YB9W0X93>
+            <Acceptance [
+              <Criterion #P2-T3-AC1 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0X94>
+              Existing codument/specs/codument-core/spec.md remains listable
+              </?01M02JBRYN65CCXGQ8YB9W0X94>
+              <Criterion #P2-T3-AC2 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0X95>
+              XML specs and Markdown specs can coexist
+              </?01M02JBRYN65CCXGQ8YB9W0X95>
+            ]>
+          )>
+        ]>
+      )>
+      <TaskGroup #P3 { name = "Attractors, init, upgrade, and standard guidance" status = "DONE" order = 2 } (
+        <SubNodes [
+          <Task #P3-T1 { name = "Update init directory generation" status = "DONE" order = 0 priority = "P0" } (
+            <Description ?01M02JBRYN65CCXGQ8YB9W0X96>
+            Create codument/attractors and codument/config for new projects, generate product/project attractors, and stop generating tech-stack.md for new projects.
+            </?01M02JBRYN65CCXGQ8YB9W0X96>
+            <Acceptance [
+              <Criterion #P3-T1-AC1 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0X97>
+              New init creates codument/attractors/product.md
+              </?01M02JBRYN65CCXGQ8YB9W0X97>
+              <Criterion #P3-T1-AC2 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0X98>
+              New init creates codument/attractors/project.md
+              </?01M02JBRYN65CCXGQ8YB9W0X98>
+              <Criterion #P3-T1-AC3 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0X99>
+              New init creates codument/config/feature.json with defaults
+              </?01M02JBRYN65CCXGQ8YB9W0X99>
+              <Criterion #P3-T1-AC4 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0X9A>
+              New init does not create codument/tech-stack.md
+              </?01M02JBRYN65CCXGQ8YB9W0X9A>
+            ]>
+          )>
+          <Task #P3-T2 { name = "Update upgrade-workspace compatibility" status = "DONE" order = 1 priority = "P0" } (
+            <Description ?01M02JBRYN65CCXGQ8YB9W0X9B>
+            Ensure upgrade-workspace upgrades old workspaces to the new format, creates missing attractors/config safely, and preserves legacy content that cannot be safely converted.
+            </?01M02JBRYN65CCXGQ8YB9W0X9B>
+            <Acceptance [
+              <Criterion #P3-T2-AC1 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0X9C>
+              Old workspaces are upgraded with missing codument/attractors and codument/config/feature.json
+              </?01M02JBRYN65CCXGQ8YB9W0X9C>
+              <Criterion #P3-T2-AC2 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0X9D>
+              Existing feature.json config values are preserved
+              </?01M02JBRYN65CCXGQ8YB9W0X9D>
+              <Criterion #P3-T2-AC3 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0X9E>
+              Existing attractor files are not overwritten
+              </?01M02JBRYN65CCXGQ8YB9W0X9E>
+              <Criterion #P3-T2-AC4 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0X9F>
+              Legacy product/project/tech-stack files are not destructively removed
+              </?01M02JBRYN65CCXGQ8YB9W0X9F>
+              <Criterion #P3-T2-AC5 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0X9G>
+              Unsafe-to-convert Markdown specs remain readable in codument/specs
+              </?01M02JBRYN65CCXGQ8YB9W0X9G>
+              <Criterion #P3-T2-AC6 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0X9H>
+              Unsafe-to-convert Markdown specs are copied to codument/legacy/specs
+              </?01M02JBRYN65CCXGQ8YB9W0X9H>
+              <Criterion #P3-T2-AC7 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0X9J>
+              Temporary upgrade backups do not replace codument/legacy preservation
+              </?01M02JBRYN65CCXGQ8YB9W0X9J>
+            ]>
+          )>
+          <Task #P3-T3 { name = "Update std AGENTS and prompt templates" status = "DONE" order = 2 priority = "P0" } (
+            <Description ?01M02JBRYN65CCXGQ8YB9W0X9K>
+            Update standard guidance to read codument/attractors/ as a directory and avoid fixed attractor file assumptions.
+            </?01M02JBRYN65CCXGQ8YB9W0X9K>
+            <Acceptance [
+              <Criterion #P3-T3-AC1 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0X9M>
+              std AGENTS references codument/attractors/ directory
+              </?01M02JBRYN65CCXGQ8YB9W0X9M>
+              <Criterion #P3-T3-AC2 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0X9N>
+              std AGENTS allows user-defined attractor files
+              </?01M02JBRYN65CCXGQ8YB9W0X9N>
+              <Criterion #P3-T3-AC3 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0X9P>
+              tech-stack is no longer presented as a required new-project truth source
+              </?01M02JBRYN65CCXGQ8YB9W0X9P>
+            ]>
+          )>
+        ]>
+      )>
+      <TaskGroup #P4 { name = "Archive, decisions, and memory" status = "DONE" order = 3 } (
+        <SubNodes [
+          <Task #P4-T1 { name = "Update archive path generation" status = "DONE" order = 0 priority = "P0" } (
+            <Description ?01M02JBRYN65CCXGQ8YB9W0X9Q>
+            Write new archive directories under codument/archive/YYYY-MM/YYYY-MM-DD-HHmm-track-id using track last update time.
+            </?01M02JBRYN65CCXGQ8YB9W0X9Q>
+            <Acceptance [
+              <Criterion #P4-T1-AC1 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0X9R>
+              Archive uses track updated_at instead of command execution date
+              </?01M02JBRYN65CCXGQ8YB9W0X9R>
+              <Criterion #P4-T1-AC2 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0X9S>
+              Archive path includes YYYY-MM bucket
+              </?01M02JBRYN65CCXGQ8YB9W0X9S>
+              <Criterion #P4-T1-AC3 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0X9T>
+              Late archive preserves original iteration ordering
+              </?01M02JBRYN65CCXGQ8YB9W0X9T>
+              <Criterion #P4-T1-AC4 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0X9V>
+              Old archive directories remain readable
+              </?01M02JBRYN65CCXGQ8YB9W0X9V>
+            ]>
+          )>
+          <Task #P4-T2 { name = "Add durable decisions registry" status = "DONE" order = 1 priority = "P0" } (
+            <Description ?01M02JBRYN65CCXGQ8YB9W0X9W>
+            Add codument/decisions storage conventions and archive-time promotion support for durable decisions.
+            </?01M02JBRYN65CCXGQ8YB9W0X9W>
+            <Acceptance [
+              <Criterion #P4-T2-AC1 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0X9X>
+              codument/decisions can be created when durable decisions are promoted
+              </?01M02JBRYN65CCXGQ8YB9W0X9X>
+              <Criterion #P4-T2-AC2 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0X9Y>
+              Decision paths use YYYY-MM bucket and minute-level prefix
+              </?01M02JBRYN65CCXGQ8YB9W0X9Y>
+              <Criterion #P4-T2-AC3 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0X9Z>
+              decision:// references are represented in promoted decision files
+              </?01M02JBRYN65CCXGQ8YB9W0X9Z>
+            ]>
+          )>
+          <Task #P4-T3 { name = "Add optional project memory registry" status = "DONE" order = 2 priority = "P1" } (
+            <Description ?01M02JBRYN65CCXGQ8YB9W0XA0>
+            Add projectMemory-gated promotion of lessons, incidents, patterns, and summaries without central index files.
+            </?01M02JBRYN65CCXGQ8YB9W0XA0>
+            <Acceptance [
+              <Criterion #P4-T3-AC1 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0XA1>
+              projectMemory disabled means no memory directory is created
+              </?01M02JBRYN65CCXGQ8YB9W0XA1>
+              <Criterion #P4-T3-AC2 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0XA2>
+              Enabled memory writes to lessons/incidents/patterns/summaries/YYYY-MM/YYYY-MM-DD-HHmm-slug/
+              </?01M02JBRYN65CCXGQ8YB9W0XA2>
+              <Criterion #P4-T3-AC3 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0XA3>
+              No codument/memory/index.md is generated
+              </?01M02JBRYN65CCXGQ8YB9W0XA3>
+            ]>
+          )>
+        ]>
+      )>
+      <TaskGroup #P5 { name = "Knowledge sync and prompt workflow updates" status = "DONE" order = 4 } (
+        <SubNodes [
+          <Task #P5-T1 { name = "Implement knowledge sync feature gating" status = "DONE" order = 0 priority = "P0" } (
+            <Description ?01M02JBRYN65CCXGQ8YB9W0XA4>
+            Respect knowledgeSync.enabled and configured targets when generating plans and archive-time knowledge hints.
+            </?01M02JBRYN65CCXGQ8YB9W0XA4>
+            <Acceptance [
+              <Criterion #P5-T1-AC1 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0XA5>
+              Disabled knowledgeSync creates no knowledge hints
+              </?01M02JBRYN65CCXGQ8YB9W0XA5>
+              <Criterion #P5-T1-AC2 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0XA6>
+              Enabled knowledgeSync reads configured targets
+              </?01M02JBRYN65CCXGQ8YB9W0XA6>
+              <Criterion #P5-T1-AC3 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0XA7>
+              Absolute target roots are allowed only when explicitly configured
+              </?01M02JBRYN65CCXGQ8YB9W0XA7>
+            ]>
+          )>
+          <Task #P5-T2 { name = "Add docs knowledge attractor template" status = "DONE" order = 1 priority = "P1" } (
+            <Description ?01M02JBRYN65CCXGQ8YB9W0XA8>
+            Create a neutral docs knowledge attractor template that explains canonical, derived, implementation, operational, and reference knowledge without hard-coding a project type.
+            </?01M02JBRYN65CCXGQ8YB9W0XA8>
+            <Acceptance [
+              <Criterion #P5-T2-AC1 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0XA9>
+              Template is project-neutral
+              </?01M02JBRYN65CCXGQ8YB9W0XA9>
+              <Criterion #P5-T2-AC2 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0XAA>
+              Template includes multiple project type examples
+              </?01M02JBRYN65CCXGQ8YB9W0XAA>
+              <Criterion #P5-T2-AC3 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0XAB>
+              Template includes good/bad examples for same-name folder upgrades
+              </?01M02JBRYN65CCXGQ8YB9W0XAB>
+            ]>
+          )>
+          <Task #P5-T3 { name = "Update codument-track prompt for large tracks" status = "DONE" order = 2 priority = "P0" } (
+            <Description ?01M02JBRYN65CCXGQ8YB9W0XAC>
+            Teach codument-track to create proposal/ and design/ subdirectories for large tracks, with proposal.md and design.md as overview files.
+            </?01M02JBRYN65CCXGQ8YB9W0XAC>
+            <Acceptance [
+              <Criterion #P5-T3-AC1 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0XAD>
+              Prompt identifies when a track is large enough to need proposal/ or design/
+              </?01M02JBRYN65CCXGQ8YB9W0XAD>
+              <Criterion #P5-T3-AC2 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0XAE>
+              Prompt requires root files to reference subfiles
+              </?01M02JBRYN65CCXGQ8YB9W0XAE>
+              <Criterion #P5-T3-AC3 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0XAF>
+              Prompt includes good/bad examples
+              </?01M02JBRYN65CCXGQ8YB9W0XAF>
+            ]>
+          )>
+          <Task #P5-T4 { name = "Update archive and implement prompts" status = "DONE" order = 3 priority = "P1" } (
+            <Description ?01M02JBRYN65CCXGQ8YB9W0XAG>
+            Update archive and implement prompts for VFS registry, decisions, memory, feature-gated knowledge sync, and minute-level archive paths.
+            </?01M02JBRYN65CCXGQ8YB9W0XAG>
+            <Acceptance [
+              <Criterion #P5-T4-AC1 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0XAH>
+              Archive prompt describes new archive path and track updated time source
+              </?01M02JBRYN65CCXGQ8YB9W0XAH>
+              <Criterion #P5-T4-AC2 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0XAJ>
+              Archive prompt describes decision and memory promotion gates
+              </?01M02JBRYN65CCXGQ8YB9W0XAJ>
+              <Criterion #P5-T4-AC3 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0XAK>
+              Implement prompt adds docs sync tasks only when feature config enables knowledgeSync
+              </?01M02JBRYN65CCXGQ8YB9W0XAK>
+            ]>
+          )>
+        ]>
+      )>
+      <TaskGroup #P6 { name = "Validation, tests, and migration proof" status = "DONE" order = 5 } (
+        <SubNodes [
+          <Task #P6-T1 { name = "Add unit and integration tests" status = "DONE" order = 0 priority = "P0" } (
+            <Description ?01M02JBRYN65CCXGQ8YB9W0XAM>
+            Add focused tests for VFS parsing, feature config loading, XML spec parsing/patching, archive path generation, init, and upgrade-workspace compatibility.
+            </?01M02JBRYN65CCXGQ8YB9W0XAM>
+            <Acceptance [
+              <Criterion #P6-T1-AC1 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0XAN>
+              VFS parser tests pass
+              </?01M02JBRYN65CCXGQ8YB9W0XAN>
+              <Criterion #P6-T1-AC2 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0XAP>
+              Feature config tests pass
+              </?01M02JBRYN65CCXGQ8YB9W0XAP>
+              <Criterion #P6-T1-AC3 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0XAQ>
+              Archive path tests pass
+              </?01M02JBRYN65CCXGQ8YB9W0XAQ>
+              <Criterion #P6-T1-AC4 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0XAR>
+              Init and upgrade-workspace tests pass
+              </?01M02JBRYN65CCXGQ8YB9W0XAR>
+              <Criterion #P6-T1-AC5 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0XAS>
+              Upgrade tests cover legacy preservation for unsafe spec conversion
+              </?01M02JBRYN65CCXGQ8YB9W0XAS>
+            ]>
+          )>
+          <Task #P6-T2 { name = "Update validate/list/show behavior" status = "DONE" order = 1 priority = "P1" } (
+            <Description ?01M02JBRYN65CCXGQ8YB9W0XAT>
+            Ensure validate/list/show can handle XML specs, Markdown specs during compatibility, new archive layout, and optional registries.
+            </?01M02JBRYN65CCXGQ8YB9W0XAT>
+            <Acceptance [
+              <Criterion #P6-T2-AC1 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0XAV>
+              validate handles XML specs
+              </?01M02JBRYN65CCXGQ8YB9W0XAV>
+              <Criterion #P6-T2-AC2 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0XAW>
+              list/show remain compatible with existing Markdown specs
+              </?01M02JBRYN65CCXGQ8YB9W0XAW>
+              <Criterion #P6-T2-AC3 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0XAX>
+              archive listing handles old and new archive layouts
+              </?01M02JBRYN65CCXGQ8YB9W0XAX>
+            ]>
+          )>
+          <Task #P6-T3 { name = "Run final verification" status = "DONE" order = 2 priority = "P0" } (
+            <Description ?01M02JBRYN65CCXGQ8YB9W0XAY>
+            Run the project&apos;s test and typecheck commands and confirm generated prompts are internally consistent.
+            </?01M02JBRYN65CCXGQ8YB9W0XAY>
+            <Acceptance [
+              <Criterion #P6-T3-AC1 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0XAZ>
+              Automated tests pass
+              </?01M02JBRYN65CCXGQ8YB9W0XAZ>
+              <Criterion #P6-T3-AC2 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0XB0>
+              TypeScript typecheck passes if available
+              </?01M02JBRYN65CCXGQ8YB9W0XB0>
+              <Criterion #P6-T3-AC3 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0XB1>
+              Generated Codument workflow skills include updated prompt behavior
+              </?01M02JBRYN65CCXGQ8YB9W0XB1>
+            ]>
+          )>
+        ]>
+      )>
+      <TaskGroup #P7 { name = "Manual docs and legacy migration lifecycle skills" status = "DONE" order = 6 } (
+        <SubNodes [
+          <Task #P7-T1 { name = "Add docs bootstrap skill prompt" status = "DONE" order = 0 priority = "P0" } (
+            <Description ?01M02JBRYN65CCXGQ8YB9W0XB2>
+            Add a standalone lifecycle skill that summarizes an existing project into docs/modeling and docs/impl.
+            </?01M02JBRYN65CCXGQ8YB9W0XB2>
+            <Acceptance [
+              <Criterion #P7-T1-AC1 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0XB3>
+              Generated skills include codument-docs-bootstrap
+              </?01M02JBRYN65CCXGQ8YB9W0XB3>
+              <Criterion #P7-T1-AC2 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0XB4>
+              Prompt separates docs/modeling from docs/impl responsibilities
+              </?01M02JBRYN65CCXGQ8YB9W0XB4>
+              <Criterion #P7-T1-AC3 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0XB5>
+              Prompt requires uncertainty tracking instead of inventing facts
+              </?01M02JBRYN65CCXGQ8YB9W0XB5>
+            ]>
+          )>
+          <Task #P7-T2 { name = "Add track docs sync skill prompt" status = "DONE" order = 1 priority = "P0" } (
+            <Description ?01M02JBRYN65CCXGQ8YB9W0XB6>
+            Add a standalone lifecycle skill that syncs a specified active or archived track into docs/modeling and docs/impl.
+            </?01M02JBRYN65CCXGQ8YB9W0XB6>
+            <Acceptance [
+              <Criterion #P7-T2-AC1 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0XB7>
+              Generated skills include codument-docs-sync-track
+              </?01M02JBRYN65CCXGQ8YB9W0XB7>
+              <Criterion #P7-T2-AC2 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0XB8>
+              Prompt reads track proposal/design/spec/plan/reports/archive context
+              </?01M02JBRYN65CCXGQ8YB9W0XB8>
+              <Criterion #P7-T2-AC3 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0XB9>
+              Prompt limits updates to the specified track&apos;s actual changes
+              </?01M02JBRYN65CCXGQ8YB9W0XB9>
+            ]>
+          )>
+          <Task #P7-T3 { name = "Add legacy archive migration skill prompt" status = "DONE" order = 2 priority = "P1" } (
+            <Description ?01M02JBRYN65CCXGQ8YB9W0XBA>
+            Add a standalone lifecycle skill for migrating old archive layouts into the new YYYY-MM/YYYY-MM-DD-HHmm-track-id format.
+            </?01M02JBRYN65CCXGQ8YB9W0XBA>
+            <Acceptance [
+              <Criterion #P7-T3-AC1 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0XBB>
+              Generated skills include codument-migrate-archive
+              </?01M02JBRYN65CCXGQ8YB9W0XBB>
+              <Criterion #P7-T3-AC2 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0XBC>
+              Prompt requires backup or migration record before moving content
+              </?01M02JBRYN65CCXGQ8YB9W0XBC>
+              <Criterion #P7-T3-AC3 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0XBD>
+              Prompt preserves unsafe legacy content instead of deleting it
+              </?01M02JBRYN65CCXGQ8YB9W0XBD>
+            ]>
+          )>
+          <Task #P7-T4 { name = "Add legacy specs migration skill prompt" status = "DONE" order = 3 priority = "P1" } (
+            <Description ?01M02JBRYN65CCXGQ8YB9W0XBE>
+            Add a standalone lifecycle skill for migrating old Markdown specs into XML registry files or folders.
+            </?01M02JBRYN65CCXGQ8YB9W0XBE>
+            <Acceptance [
+              <Criterion #P7-T4-AC1 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0XBF>
+              Generated skills include codument-migrate-specs
+              </?01M02JBRYN65CCXGQ8YB9W0XBF>
+              <Criterion #P7-T4-AC2 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0XBG>
+              Prompt describes single-file XML and folder/index.xml include layouts
+              </?01M02JBRYN65CCXGQ8YB9W0XBG>
+              <Criterion #P7-T4-AC3 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0XBH>
+              Prompt preserves unsafe conversions in codument/legacy/specs
+              </?01M02JBRYN65CCXGQ8YB9W0XBH>
+            ]>
+          )>
+          <Task #P7-T5 { name = "Verify generated lifecycle skills" status = "DONE" order = 4 priority = "P0" } (
+            <Description ?01M02JBRYN65CCXGQ8YB9W0XBJ>
+            Update lifecycle skill generation tests and run typecheck/test validation for the new standalone skills.
+            </?01M02JBRYN65CCXGQ8YB9W0XBJ>
+            <Acceptance [
+              <Criterion #P7-T5-AC1 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0XBK>
+              Lifecycle generation tests cover all four new skill names
+              </?01M02JBRYN65CCXGQ8YB9W0XBK>
+              <Criterion #P7-T5-AC2 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0XBM>
+              TypeScript typecheck passes
+              </?01M02JBRYN65CCXGQ8YB9W0XBM>
+              <Criterion #P7-T5-AC3 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0XBN>
+              Relevant tests pass
+              </?01M02JBRYN65CCXGQ8YB9W0XBN>
+            ]>
+          )>
+          <Task #P7-T6 { name = "Incorporate field-test findings for manual skills" status = "DONE" order = 5 priority = "P0" } (
+            <Description ?01M02JBRYN65CCXGQ8YB9W0XBP>
+            Update the four manual lifecycle skill prompts based on live testing in an upgraded legacy project.
+            </?01M02JBRYN65CCXGQ8YB9W0XBP>
+            <Acceptance [
+              <Criterion #P7-T6-AC1 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0XBQ>
+              docs-bootstrap clarifies minimal index bootstrap and no fresh-child requirement
+              </?01M02JBRYN65CCXGQ8YB9W0XBQ>
+              <Criterion #P7-T6-AC2 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0XBR>
+              docs-sync-track clarifies local docs creation and validation diff checks
+              </?01M02JBRYN65CCXGQ8YB9W0XBR>
+              <Criterion #P7-T6-AC3 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0XBS>
+              migrate-archive requires layout scanning and date-conflict risk recording
+              </?01M02JBRYN65CCXGQ8YB9W0XBS>
+              <Criterion #P7-T6-AC4 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0XBT>
+              migrate-specs supports old CLI fallback validation and folder index.xml migration
+              </?01M02JBRYN65CCXGQ8YB9W0XBT>
+              <Criterion #P7-T6-AC5 { checked = true } ?01M02JBRYN65CCXGQ8YB9W0XBV>
+              migrate-specs requires globally unique requirement, suite, and case ids in generated XML
+              </?01M02JBRYN65CCXGQ8YB9W0XBV>
+            ]>
+          )>
+        ]>
+        <Hooks [
+          <Hook { on = "phase:after" } (
+            <GapLoop { max_rounds = 5 on_exhausted = "block" }>
+          )>
+        ]>
+      )>
+    ]>
+  )>
+  <Schedule>
+)>

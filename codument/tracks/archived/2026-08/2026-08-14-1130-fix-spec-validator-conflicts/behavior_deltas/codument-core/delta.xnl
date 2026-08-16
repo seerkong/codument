@@ -1,0 +1,234 @@
+<BehaviorPatch #track.r_2_0_2_6_-_0_8_-_1_4_-_1_1_3_0_-_f_i_x_-_s_p_e_c_-_v_a_l_i_d_a_t_o_r_-_c_o_n_f_l_i_c_t_s.behavior_patch.codument-core apiVersion="codument.tech/v1alpha1" version="1" { capability = "codument-core" } (
+  <Mutations [
+    <Upsert { selector = "behavior://codument-core/requirements/validator-rules-consistency" } (
+      <Requirement #validator-rules-consistency (
+        <Statement ?01M02NT0WQHNNDTVQ41GQ34205>
+        Codument SHALL keep spec-declared validation rules, canonical examples, and CLI validator behavior consistent, and SHALL implement deterministic rules in the CLI with AI-friendly findings output.
+        </?01M02NT0WQHNNDTVQ41GQ34205>
+        <Suites [
+          <Suite #mission-validation { name = "mission 校验" } (
+            <Cases [
+              <Case #mission-node-status-enum (
+                <Given ?01M02NT0WQHNNDTVQ41GQ34206>
+                一个 mission.xml 的 TaskGroup 或 Task 带有 status 属性
+                </?01M02NT0WQHNNDTVQ41GQ34206>
+                <When ?01M02NT0WQHNNDTVQ41GQ34207>
+                系统校验该 mission.xml
+                </?01M02NT0WQHNNDTVQ41GQ34207>
+                <Then ?01M02NT0WQHNNDTVQ41GQ34208>
+                系统 SHALL accept only NOT_STARTED, ACTIVE, DONE, BLOCKED, ABANDONED, SUPERSED
+                </?01M02NT0WQHNNDTVQ41GQ34208>
+                <Ands [
+                  <And ?01M02NT0WQHNNDTVQ41GQ34209>
+                  系统 SHALL report any other value as an error with a rule id, file, and position
+                  </?01M02NT0WQHNNDTVQ41GQ34209>
+                ]>
+              )>
+              <Case #mission-hook-on (
+                <Given ?01M02NT0WQHNNDTVQ41GQ3420A>
+                一个 mission.xml 的 Hook 带有 on 属性
+                </?01M02NT0WQHNNDTVQ41GQ3420A>
+                <When ?01M02NT0WQHNNDTVQ41GQ3420B>
+                系统校验该 mission.xml
+                </?01M02NT0WQHNNDTVQ41GQ3420B>
+                <Then ?01M02NT0WQHNNDTVQ41GQ3420C>
+                系统 SHALL accept track:before|after, phase:before|after, task:before|after, and mission:after-node
+                </?01M02NT0WQHNNDTVQ41GQ3420C>
+              )>
+              <Case #mission-schedule-direct-children (
+                <Given ?01M02NT0WQHNNDTVQ41GQ3420D>
+                一个 mission.xml 声明 &lt;Schedule&gt;&lt;Dag for&gt;
+                </?01M02NT0WQHNNDTVQ41GQ3420D>
+                <When ?01M02NT0WQHNNDTVQ41GQ3420E>
+                系统校验该 mission.xml
+                </?01M02NT0WQHNNDTVQ41GQ3420E>
+                <Then ?01M02NT0WQHNNDTVQ41GQ3420F>
+                系统 SHALL require the Dag target to declare cdt:child-mode="dag"
+                </?01M02NT0WQHNNDTVQ41GQ3420F>
+                <Ands [
+                  <And ?01M02NT0WQHNNDTVQ41GQ3420G>
+                  系统 SHALL require Node id and After ref to reference direct children of that layer
+                  </?01M02NT0WQHNNDTVQ41GQ3420G>
+                ]>
+              )>
+              <Case #mission-tracklink-leaf-only (
+                <Given ?01M02NT0WQHNNDTVQ41GQ3420H>
+                一个 mission.xml 的节点带 cdt:TrackLink
+                </?01M02NT0WQHNNDTVQ41GQ3420H>
+                <When ?01M02NT0WQHNNDTVQ41GQ3420J>
+                系统校验该 mission.xml
+                </?01M02NT0WQHNNDTVQ41GQ3420J>
+                <Then ?01M02NT0WQHNNDTVQ41GQ3420K>
+                系统 SHALL error when TrackLink is attached to a TaskGroup instead of a leaf Task
+                </?01M02NT0WQHNNDTVQ41GQ3420K>
+              )>
+              <Case #mission-reconcile-attrs (
+                <Given ?01M02NT0WQHNNDTVQ41GQ3420M>
+                一个 mission.xml 包含 cdt:MissionReconcile
+                </?01M02NT0WQHNNDTVQ41GQ3420M>
+                <When ?01M02NT0WQHNNDTVQ41GQ3420N>
+                系统校验该 mission.xml
+                </?01M02NT0WQHNNDTVQ41GQ3420N>
+                <Then ?01M02NT0WQHNNDTVQ41GQ3420P>
+                系统 SHALL validate max-tracks is a positive integer and on-limit/on-drift use documented values
+                </?01M02NT0WQHNNDTVQ41GQ3420P>
+              )>
+            ]>
+          )>
+          <Suite #decision-pending { name = "decisions pending 语义" } (
+            <Cases [
+              <Case #pending-is-authoring-state (
+                <Given ?01M02NT0WQHNNDTVQ41GQ3420Q>
+                decisions.xnl 中存在 status="pending" 的决策记录
+                </?01M02NT0WQHNNDTVQ41GQ3420Q>
+                <When ?01M02NT0WQHNNDTVQ41GQ3420R>
+                用户运行 codument decisions validate
+                </?01M02NT0WQHNNDTVQ41GQ3420R>
+                <Then ?01M02NT0WQHNNDTVQ41GQ3420S>
+                系统 SHALL report a warning, not an error, and SHALL NOT fail the command
+                </?01M02NT0WQHNNDTVQ41GQ3420S>
+              )>
+              <Case #durable-unresolved-blocks-archive (
+                <Given ?01M02NT0WQHNNDTVQ41GQ3420T>
+                一个 durable_candidate=true 的决策在归档时仍未 resolve
+                </?01M02NT0WQHNNDTVQ41GQ3420T>
+                <When ?01M02NT0WQHNNDTVQ41GQ3420V>
+                系统执行归档 gate
+                </?01M02NT0WQHNNDTVQ41GQ3420V>
+                <Then ?01M02NT0WQHNNDTVQ41GQ3420W>
+                系统 SHALL report an error and block promotion
+                </?01M02NT0WQHNNDTVQ41GQ3420W>
+              )>
+            ]>
+          )>
+          <Suite #modeling-minimal-repr { name = "modeling 最小表征" } (
+            <Cases [
+              <Case #state-machine-states (
+                <Given ?01M02NT0WQHNNDTVQ41GQ3420X>
+                一个 kind="state-machine" 的节点
+                </?01M02NT0WQHNNDTVQ41GQ3420X>
+                <When ?01M02NT0WQHNNDTVQ41GQ3420Y>
+                系统校验该节点
+                </?01M02NT0WQHNNDTVQ41GQ3420Y>
+                <Then ?01M02NT0WQHNNDTVQ41GQ3420Z>
+                系统 SHALL require a mermaid representation that declares state definitions
+                </?01M02NT0WQHNNDTVQ41GQ3420Z>
+              )>
+              <Case #component-pseudo (
+                <Given ?01M02NT0WQHNNDTVQ41GQ34210>
+                一个 kind="component" 的节点
+                </?01M02NT0WQHNNDTVQ41GQ34210>
+                <When ?01M02NT0WQHNNDTVQ41GQ34211>
+                系统校验该节点
+                </?01M02NT0WQHNNDTVQ41GQ34211>
+                <Then ?01M02NT0WQHNNDTVQ41GQ34212>
+                系统 SHALL require a ctrl|rule|dataflow pseudo slot in addition to the four IO types blocks
+                </?01M02NT0WQHNNDTVQ41GQ34212>
+              )>
+              <Case #port-command-message (
+                <Given ?01M02NT0WQHNNDTVQ41GQ34213>
+                一个 kind="port" 的节点
+                </?01M02NT0WQHNNDTVQ41GQ34213>
+                <When ?01M02NT0WQHNNDTVQ41GQ34214>
+                系统校验该节点
+                </?01M02NT0WQHNNDTVQ41GQ34214>
+                <Then ?01M02NT0WQHNNDTVQ41GQ34215>
+                系统 SHALL require a command|message marker
+                </?01M02NT0WQHNNDTVQ41GQ34215>
+              )>
+              <Case #policy-rule-or-behavior-ref (
+                <Given ?01M02NT0WQHNNDTVQ41GQ34216>
+                一个 kind="policy" 的节点
+                </?01M02NT0WQHNNDTVQ41GQ34216>
+                <When ?01M02NT0WQHNNDTVQ41GQ34217>
+                系统校验该节点
+                </?01M02NT0WQHNNDTVQ41GQ34217>
+                <Then ?01M02NT0WQHNNDTVQ41GQ34218>
+                系统 SHALL require a rule pseudo or a behavior:// reference
+                </?01M02NT0WQHNNDTVQ41GQ34218>
+              )>
+            ]>
+          )>
+          <Suite #gap-loop-strict { name = "GapLoop 严格化" } (
+            <Cases [
+              <Case #on-exhausted-illegal (
+                <Given ?01M02NT0WQHNNDTVQ41GQ34219>
+                一个 cdt:GapLoop 的 on-exhausted 不是 block|continue|fail
+                </?01M02NT0WQHNNDTVQ41GQ34219>
+                <When ?01M02NT0WQHNNDTVQ41GQ3421A>
+                系统校验该 track.xml
+                </?01M02NT0WQHNNDTVQ41GQ3421A>
+                <Then ?01M02NT0WQHNNDTVQ41GQ3421B>
+                系统 SHALL report an error
+                </?01M02NT0WQHNNDTVQ41GQ3421B>
+              )>
+              <Case #attractor-profile-unresolved (
+                <Given ?01M02NT0WQHNNDTVQ41GQ3421C>
+                一个 cdt:AttractorCheck 的 use 引用不存在的 profile
+                </?01M02NT0WQHNNDTVQ41GQ3421C>
+                <When ?01M02NT0WQHNNDTVQ41GQ3421D>
+                系统校验该 track.xml
+                </?01M02NT0WQHNNDTVQ41GQ3421D>
+                <Then ?01M02NT0WQHNNDTVQ41GQ3421E>
+                系统 SHALL report an error that names the profile and lists available profiles
+                </?01M02NT0WQHNNDTVQ41GQ3421E>
+              )>
+            ]>
+          )>
+          <Suite #ai-friendly-output { name = "AI 友好输出" } (
+            <Cases [
+              <Case #structured-findings (
+                <Given ?01M02NT0WQHNNDTVQ41GQ3421F>
+                任何校验命令产生 findings
+                </?01M02NT0WQHNNDTVQ41GQ3421F>
+                <When ?01M02NT0WQHNNDTVQ41GQ3421G>
+                用户以 --json 调用
+                </?01M02NT0WQHNNDTVQ41GQ3421G>
+                <Then ?01M02NT0WQHNNDTVQ41GQ3421H>
+                系统 SHALL emit machine-readable findings with rule id, file, line/position, severity, and message
+                </?01M02NT0WQHNNDTVQ41GQ3421H>
+              )>
+              <Case #human-summary (
+                <Given ?01M02NT0WQHNNDTVQ41GQ3421J>
+                任何校验命令产生 findings
+                </?01M02NT0WQHNNDTVQ41GQ3421J>
+                <When ?01M02NT0WQHNNDTVQ41GQ3421K>
+                用户以默认 human 输出调用
+                </?01M02NT0WQHNNDTVQ41GQ3421K>
+                <Then ?01M02NT0WQHNNDTVQ41GQ3421M>
+                系统 SHALL print a readable summary with fix hints per error
+                </?01M02NT0WQHNNDTVQ41GQ3421M>
+              )>
+            ]>
+          )>
+          <Suite #spec-example-regression { name = "示例防回归" } (
+            <Cases [
+              <Case #canonical-example-validates (
+                <Given ?01M02NT0WQHNNDTVQ41GQ3421N>
+                track-xml-spec 的 canonical §4/§5 组合示例
+                </?01M02NT0WQHNNDTVQ41GQ3421N>
+                <When ?01M02NT0WQHNNDTVQ41GQ3421P>
+                系统运行 codument validate 于该示例 fixture
+                </?01M02NT0WQHNNDTVQ41GQ3421P>
+                <Then ?01M02NT0WQHNNDTVQ41GQ3421Q>
+                系统 SHALL pass with no errors
+                </?01M02NT0WQHNNDTVQ41GQ3421Q>
+              )>
+              <Case #docs-current-format (
+                <Given ?01M02NT0WQHNNDTVQ41GQ3421R>
+                README-cn.md 与 docs/codument-xml-configs.md 描述当前格式
+                </?01M02NT0WQHNNDTVQ41GQ3421R>
+                <When ?01M02NT0WQHNNDTVQ41GQ3421S>
+                审查者或回归测试检查这些文档
+                </?01M02NT0WQHNNDTVQ41GQ3421S>
+                <Then ?01M02NT0WQHNNDTVQ41GQ3421T>
+                系统 SHALL NOT reference plan.xml, spec_deltas, feature.json, or TODO/IN_PROGRESS/BLOCKED as current format
+                </?01M02NT0WQHNNDTVQ41GQ3421T>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+  ]>
+)>

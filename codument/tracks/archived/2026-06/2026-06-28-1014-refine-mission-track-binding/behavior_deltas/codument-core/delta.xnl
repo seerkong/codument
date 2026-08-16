@@ -1,0 +1,84 @@
+<BehaviorPatch #track.refine-mission-track-binding.behavior_patch.codument-core apiVersion="codument.tech/v1alpha1" version="1" { capability = "codument-core" } (
+  <Mutations [
+    <Upsert { selector = "behavior://codument-core/requirements/mission-track-binding" } (
+      <Requirement #mission-track-binding (
+        <Statement ?01M02NT0VEPSCXHNQQFJBP6RVE>
+        系统 SHALL represent mission-to-track binding with a single `cdt:TrackLink` node on leaf mission Tasks, using compact candidate/bound state and deriving track/archive location from the real track id.
+        </?01M02NT0VEPSCXHNQQFJBP6RVE>
+        <Suites [
+          <Suite #track-link { name = "Mission TrackLink binding" } (
+            <Cases [
+              <Case #leaf-task-only (
+                <Given ?01M02NT0VEPSCXHNQQFJBP6RVF>
+                A mission TaskSpace includes a work item that may create or operate a track
+                </?01M02NT0VEPSCXHNQQFJBP6RVF>
+                <When ?01M02NT0VEPSCXHNQQFJBP6RVG>
+                The mission expresses the track relationship
+                </?01M02NT0VEPSCXHNQQFJBP6RVG>
+                <Then ?01M02NT0VEPSCXHNQQFJBP6RVH>
+                The mission SHALL attach `cdt:TrackLink` to the leaf `Task`, not to a `TaskGroup`
+                </?01M02NT0VEPSCXHNQQFJBP6RVH>
+                <Ands [
+                  <And ?01M02NT0VEPSCXHNQQFJBP6RVJ>
+                  `TaskGroup` and `Task` SHALL remain the source of mission execution status
+                  </?01M02NT0VEPSCXHNQQFJBP6RVJ>
+                ]>
+              )>
+              <Case #candidate-to-bound (
+                <Given ?01M02NT0VEPSCXHNQQFJBP6RVK>
+                A leaf Task has `cdt:TrackLink state="candidate" id="suggested-track-id"`
+                </?01M02NT0VEPSCXHNQQFJBP6RVK>
+                <When ?01M02NT0VEPSCXHNQQFJBP6RVM>
+                `codument-impl-mission` creates the real track
+                </?01M02NT0VEPSCXHNQQFJBP6RVM>
+                <Then ?01M02NT0VEPSCXHNQQFJBP6RVN>
+                It SHALL update the same `cdt:TrackLink` to `state="bound"` with the real track id
+                </?01M02NT0VEPSCXHNQQFJBP6RVN>
+                <Ands [
+                  <And ?01M02NT0VEPSCXHNQQFJBP6RVP>
+                  It SHALL write a `reports/track-bind-XXX.md` report with candidate id, real id, task id, evidence, and timestamp
+                  </?01M02NT0VEPSCXHNQQFJBP6RVP>
+                ]>
+              )>
+              <Case #no-path-projection (
+                <Given ?01M02NT0VEPSCXHNQQFJBP6RVQ>
+                A `cdt:TrackLink` is bound to a real track id
+                </?01M02NT0VEPSCXHNQQFJBP6RVQ>
+                <When ?01M02NT0VEPSCXHNQQFJBP6RVR>
+                The track moves from active tracks to archive
+                </?01M02NT0VEPSCXHNQQFJBP6RVR>
+                <Then ?01M02NT0VEPSCXHNQQFJBP6RVS>
+                The mission SHALL NOT require a path or archive-path attribute update
+                </?01M02NT0VEPSCXHNQQFJBP6RVS>
+                <Ands [
+                  <And ?01M02NT0VEPSCXHNQQFJBP6RVT>
+                  Consumers SHALL derive active/archive location by resolving the id against `codument/tracks/` and `codument/archive/`
+                  </?01M02NT0VEPSCXHNQQFJBP6RVT>
+                ]>
+              )>
+              <Case #mission-archive-precheck (
+                <Given ?01M02NT0VEPSCXHNQQFJBP6RVV>
+                A mission has one or more `cdt:TrackLink state="bound"` nodes
+                </?01M02NT0VEPSCXHNQQFJBP6RVV>
+                <When ?01M02NT0VEPSCXHNQQFJBP6RVW>
+                `codument-archive-mission` runs
+                </?01M02NT0VEPSCXHNQQFJBP6RVW>
+                <Then ?01M02NT0VEPSCXHNQQFJBP6RVX>
+                It SHALL precheck whether each bound track id is archived, active, or missing
+                </?01M02NT0VEPSCXHNQQFJBP6RVX>
+                <Ands [
+                  <And ?01M02NT0VEPSCXHNQQFJBP6RVY>
+                  It SHALL NOT silently archive tracks in bulk
+                  </?01M02NT0VEPSCXHNQQFJBP6RVY>
+                  <And ?01M02NT0VEPSCXHNQQFJBP6RVZ>
+                  If bound tracks are active or missing, it SHALL report them and ask whether to run `codument-archive-track` for eligible active tracks or block
+                  </?01M02NT0VEPSCXHNQQFJBP6RVZ>
+                ]>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+  ]>
+)>

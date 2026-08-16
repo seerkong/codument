@@ -1,0 +1,169 @@
+<BehaviorPatch #track.r_2_0_2_6_-_0_4_-_0_4_-_2_0_0_0_-_a_d_d_-_g_a_p_-_l_o_o_p_-_o_r_c_h_e_s_t_r_a_t_i_o_n_-_h_a_r_d_e_n_i_n_g.behavior_patch.codument-core apiVersion="codument.tech/v1alpha1" version="1" { capability = "codument-core" } (
+  <Mutations [
+    <Upsert { selector = "behavior://codument-core/requirements/gap-loop-轮次元数据" } (
+      <Requirement { id = "gap-loop-轮次元数据" } (
+        <Statement ?01M02NT0VTKE2EJGAQDM76WRZ8>
+        系统应当（SHALL）在 `validation_mode=yield-gap-loop` 的 `plan.xml` metadata 中记录当前 gap-loop 轮次。
+        </?01M02NT0VTKE2EJGAQDM76WRZ8>
+        <Suites [
+          <Suite { name = "gap-loop-轮次元数据" } (
+            <Cases [
+              <Case { id = "创建-track-时初始化-gap-loop-轮次" name = "创建 track 时初始化 gap loop 轮次" } (
+                <Given ?01M02NT0VTKE2EJGAQDM76WRZ9>
+                用户创建新 track
+                </?01M02NT0VTKE2EJGAQDM76WRZ9>
+                <When ?01M02NT0VTKE2EJGAQDM76WRZA>
+                系统生成 `plan.xml`
+                </?01M02NT0VTKE2EJGAQDM76WRZA>
+                <Then ?01M02NT0VTKE2EJGAQDM76WRZB>
+                `&lt;metadata&gt;` 中包含 `&lt;gap_loop_round&gt;0&lt;/gap_loop_round&gt;`
+                用户选择 `validation_mode=yield-gap-loop`
+                </?01M02NT0VTKE2EJGAQDM76WRZB>
+              )>
+              <Case { id = "父层在每次启动-fresh-round-前更新轮次" name = "父层在每次启动 fresh round 前更新轮次" } (
+                <Given ?01M02NT0VTKE2EJGAQDM76WRZC>
+                某个事项正在执行 `yield-gap-loop`
+                </?01M02NT0VTKE2EJGAQDM76WRZC>
+                <When ?01M02NT0VTKE2EJGAQDM76WRZD>
+                父层编排者准备 fresh-spawn 新的 gap-loop 子代理
+                </?01M02NT0VTKE2EJGAQDM76WRZD>
+                <Then ?01M02NT0VTKE2EJGAQDM76WRZE>
+                系统先将 `gap_loop_round` 更新为本轮序号
+                再启动该 round 的 fresh 子代理
+                </?01M02NT0VTKE2EJGAQDM76WRZE>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/gap-loop-首轮无历史报告时的二次验证" } (
+      <Requirement { id = "gap-loop-首轮无历史报告时的二次验证" } (
+        <Statement ?01M02NT0VTKE2EJGAQDM76WRZF>
+        系统应当（SHALL）在当前事项从未执行过 gap-loop 且 `reports/` 为空时，对首轮 `NO_GAP` 结果保持怀疑，并强制再执行一轮 fresh 验证。
+        </?01M02NT0VTKE2EJGAQDM76WRZF>
+        <Suites [
+          <Suite { name = "gap-loop-首轮无历史报告时的二次验证" } (
+            <Cases [
+              <Case { id = "首轮无历史报告且返回-nogap" name = "首轮无历史报告且返回 NO_GAP" } (
+                <Given ?01M02NT0VTKE2EJGAQDM76WRZG>
+                当前事项此前没有执行过 gap-loop
+                </?01M02NT0VTKE2EJGAQDM76WRZG>
+                <When ?01M02NT0VTKE2EJGAQDM76WRZH>
+                fresh 子代理返回 `&lt;status&gt;NO_GAP&lt;/status&gt;`
+                </?01M02NT0VTKE2EJGAQDM76WRZH>
+                <Then ?01M02NT0VTKE2EJGAQDM76WRZJ>
+                父层编排者不得直接将 `&lt;confirm&gt;` 标记为 `DONE`
+                `reports/` 目录为空或不存在
+                当前 `gap_loop_round=1`
+                父层编排者必须再 fresh-spawn 一轮新的 gap-loop 子代理验证
+                </?01M02NT0VTKE2EJGAQDM76WRZJ>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/gap-loop-命令" } (
+      <Requirement { id = "gap-loop-命令" } (
+        <Statement ?01M02NT0VTKE2EJGAQDM76WRZK>
+        系统应当（SHALL）提供 `/codument:gap-loop` 命令，用于在 fresh agent 中完成当前 track 或 phase 的 gap 分析与修正闭环。
+        </?01M02NT0VTKE2EJGAQDM76WRZK>
+        <Suites [
+          <Suite { name = "gap-loop-命令" } (
+            <Cases [
+              <Case { id = "共享提示词按角色分节" name = "共享提示词按角色分节" } (
+                <Given ?01M02NT0VTKE2EJGAQDM76WRZM>
+                `codument:gap-loop` 由父层编排代理或 fresh 子代理阅读
+                </?01M02NT0VTKE2EJGAQDM76WRZM>
+                <When ?01M02NT0VTKE2EJGAQDM76WRZN>
+                代理读取该提示词
+                </?01M02NT0VTKE2EJGAQDM76WRZN>
+                <Then ?01M02NT0VTKE2EJGAQDM76WRZP>
+                提示词先说明总纲、角色判定与公共规则
+                再分别给出父层编排角色与 fresh 子代理角色各自必须遵守的要求
+                </?01M02NT0VTKE2EJGAQDM76WRZP>
+              )>
+              <Case { id = "父层收到-fixapplied-必须继续循环" name = "父层收到 FIX_APPLIED 必须继续循环" } (
+                <Given ?01M02NT0VTKE2EJGAQDM76WRZQ>
+                父层已触发某一轮 gap-loop 子代理
+                </?01M02NT0VTKE2EJGAQDM76WRZQ>
+                <When ?01M02NT0VTKE2EJGAQDM76WRZR>
+                子代理返回 `&lt;status&gt;FIX_APPLIED&lt;/status&gt;`
+                </?01M02NT0VTKE2EJGAQDM76WRZR>
+                <Then ?01M02NT0VTKE2EJGAQDM76WRZS>
+                父层编排者必须继续 fresh-spawn 新的 gap-loop 子代理复检
+                不得把 `FIX_APPLIED` 视为可直接收口的终态
+                </?01M02NT0VTKE2EJGAQDM76WRZS>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/阶段完成验证协议" } (
+      <Requirement { id = "阶段完成验证协议" } (
+        <Statement ?01M02NT0VTKE2EJGAQDM76WRZT>
+        系统应当（SHALL）在阶段结束时支持基于 `&lt;confirm&gt;` 的两种协议：
+        - `yield-human-confirm`
+        - `yield-gap-loop`
+        </?01M02NT0VTKE2EJGAQDM76WRZT>
+        <Suites [
+          <Suite { name = "阶段完成验证协议" } (
+            <Cases [
+              <Case { id = "gap-loop-父层按轮次与历史状态决定是否收口" name = "gap-loop 父层按轮次与历史状态决定是否收口" } (
+                <Given ?01M02NT0VTKE2EJGAQDM76WRZV>
+                某个 phase 的 `&lt;confirm&gt;` 使用 `yield-gap-loop`
+                </?01M02NT0VTKE2EJGAQDM76WRZV>
+                <When ?01M02NT0VTKE2EJGAQDM76WRZW>
+                父层编排者收到某一轮 gap-loop 结果
+                </?01M02NT0VTKE2EJGAQDM76WRZW>
+                <Then ?01M02NT0VTKE2EJGAQDM76WRZX>
+                若状态为 `FIX_APPLIED`，必须继续下一轮 fresh 验证
+                若状态为首轮无历史报告条件下的 `NO_GAP`，仍必须执行一次额外 fresh 验证
+                只有在满足收口条件时，父层才可将 `&lt;confirm&gt;` 标记为 `DONE`
+                </?01M02NT0VTKE2EJGAQDM76WRZX>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/plan-xml-格式" } (
+      <Requirement { id = "plan-xml-格式" } (
+        <Statement ?01M02NT0VTKE2EJGAQDM76WRZY>
+        系统应当（SHALL）定义结构化的 plan.xml 格式，包含：
+        - metadata 元数据（含 `commit_mode`、`execution_mode`）
+        - 可选的 `validation_mode`
+        - 当 `validation_mode=yield-gap-loop` 时可选的 `validation_granularity`
+        - 当 `validation_mode=yield-gap-loop` 时可选的 `gap_loop_round`
+        - phases 阶段
+        - tasks 任务
+        - acceptance_criteria 验收标准
+        - gate_criteria 阶段门控标准
+        - validations 验证
+        - risks 风险
+        - summary 统计
+        </?01M02NT0VTKE2EJGAQDM76WRZY>
+        <Suites [
+          <Suite { name = "plan-xml-格式" } (
+            <Cases [
+              <Case { id = "metadata-中记录-gap-loop-轮次" name = "metadata 中记录 gap loop 轮次" } (
+                <Given ?01M02NT0VTKE2EJGAQDM76WRZZ>
+                用户创建 track 并选择 gap loop
+                </?01M02NT0VTKE2EJGAQDM76WRZZ>
+                <When ?01M02NT0VTKE2EJGAQDM76WS00>
+                系统生成 `plan.xml`
+                </?01M02NT0VTKE2EJGAQDM76WS00>
+                <Then ?01M02NT0VTKE2EJGAQDM76WS01>
+                `&lt;metadata&gt;` 中包含 `&lt;gap_loop_round&gt;`
+                其初始值为 `0`
+                </?01M02NT0VTKE2EJGAQDM76WS01>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+  ]>
+)>

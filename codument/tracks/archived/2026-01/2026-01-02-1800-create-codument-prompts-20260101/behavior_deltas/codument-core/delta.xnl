@@ -1,0 +1,379 @@
+<BehaviorPatch #track.r_2_0_2_6_-_0_1_-_0_2_-_1_8_0_0_-_c_r_e_a_t_e_-_c_o_d_u_m_e_n_t_-_p_r_o_m_p_t_s_-_2_0_2_6_0_1_0_1.behavior_patch.codument-core apiVersion="codument.tech/v1alpha1" version="1" { capability = "codument-core" } (
+  <Mutations [
+    <Upsert { selector = "behavior://codument-core/requirements/ai-助手核心指令" } (
+      <Requirement { id = "ai-助手核心指令" } (
+        <Statement ?01M02NT0VMJKAXZRQPFSS1PCVQ>
+        系统应当（SHALL）提供完整的 AI 助手指令文档（agents.md），包含：
+        - 快速检查清单
+        - 三阶段工作流说明
+        - 目录结构说明
+        - CLI 命令参考
+        - 规范文件格式说明
+        - 最佳实践指南
+        - 中断恢复协议
+        - 多层确认协议
+        </?01M02NT0VMJKAXZRQPFSS1PCVQ>
+        <Suites [
+          <Suite { name = "ai-助手核心指令" } (
+            <Cases [
+              <Case { id = "ai-助手阅读-agents-md" name = "AI 助手阅读 agents.md" } (
+                <Given ?01M02NT0VMJKAXZRQPFSS1PCVR>
+                AI 助手开始处理项目
+                </?01M02NT0VMJKAXZRQPFSS1PCVR>
+                <When ?01M02NT0VMJKAXZRQPFSS1PCVS>
+                AI 助手阅读 codument/agents.md
+                </?01M02NT0VMJKAXZRQPFSS1PCVS>
+                <Then ?01M02NT0VMJKAXZRQPFSS1PCVT>
+                AI 助手能理解 Codument 的工作流和约定
+                项目根目录存在 AGENTS.md 入口文件
+                AI 助手能识别当前项目状态
+                </?01M02NT0VMJKAXZRQPFSS1PCVT>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/项目初始化命令" } (
+      <Requirement { id = "项目初始化命令" } (
+        <Statement ?01M02NT0VMJKAXZRQPFSS1PCVV>
+        系统应当（SHALL）提供 /codument:init 命令，支持：
+        - 检测项目类型（Brownfield/Greenfield）
+        - 交互式收集项目信息
+        - 生成 project.md、product.md、workflow.md、tech-stack.md
+        - 创建初始 track
+        - 支持恢复中断的初始化流程
+        </?01M02NT0VMJKAXZRQPFSS1PCVV>
+        <Suites [
+          <Suite { name = "项目初始化命令" } (
+            <Cases [
+              <Case { id = "初始化新项目" name = "初始化新项目" } (
+                <Given ?01M02NT0VMJKAXZRQPFSS1PCVW>
+                用户在空目录中
+                </?01M02NT0VMJKAXZRQPFSS1PCVW>
+                <When ?01M02NT0VMJKAXZRQPFSS1PCVX>
+                用户运行 /codument:init
+                </?01M02NT0VMJKAXZRQPFSS1PCVX>
+                <Then ?01M02NT0VMJKAXZRQPFSS1PCVY>
+                系统引导用户完成项目设置
+                目录不存在 codument/ 文件夹
+                系统生成初始 track
+                </?01M02NT0VMJKAXZRQPFSS1PCVY>
+              )>
+              <Case { id = "初始化现有项目" name = "初始化现有项目" } (
+                <Given ?01M02NT0VMJKAXZRQPFSS1PCVZ>
+                用户在现有代码库中
+                </?01M02NT0VMJKAXZRQPFSS1PCVZ>
+                <When ?01M02NT0VMJKAXZRQPFSS1PCW0>
+                用户运行 /codument:init
+                </?01M02NT0VMJKAXZRQPFSS1PCW0>
+                <Then ?01M02NT0VMJKAXZRQPFSS1PCW1>
+                系统分析项目结构
+                代码库包含源代码文件
+                系统基于分析结果引导设置
+                </?01M02NT0VMJKAXZRQPFSS1PCW1>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/创建变更追踪命令" } (
+      <Requirement { id = "创建变更追踪命令" } (
+        <Statement ?01M02NT0VMJKAXZRQPFSS1PCW2>
+        系统应当（SHALL）提供 /codument:track 命令，支持：
+        - 收集 track 描述
+        - 交互式生成 spec.md
+        - 交互式生成 plan.xml
+        - 选择提交模式（auto/manual）
+        - 创建 track 目录和元数据
+        </?01M02NT0VMJKAXZRQPFSS1PCW2>
+        <Suites [
+          <Suite { name = "创建变更追踪命令" } (
+            <Cases [
+              <Case { id = "创建新功能-track-auto-模式" name = "创建新功能 track（auto 模式）" } (
+                <Given ?01M02NT0VMJKAXZRQPFSS1PCW3>
+                用户已初始化 Codument
+                </?01M02NT0VMJKAXZRQPFSS1PCW3>
+                <When ?01M02NT0VMJKAXZRQPFSS1PCW4>
+                用户运行 /codument:track 并提供功能描述
+                </?01M02NT0VMJKAXZRQPFSS1PCW4>
+                <Then ?01M02NT0VMJKAXZRQPFSS1PCW5>
+                系统生成包含 spec.md 和 plan.xml 的 track 目录
+                用户有新功能需求
+                用户选择 auto 提交模式
+                plan.xml 中 commit_mode 设置为 auto
+                </?01M02NT0VMJKAXZRQPFSS1PCW5>
+              )>
+              <Case { id = "创建新功能-track-manual-模式" name = "创建新功能 track（manual 模式）" } (
+                <Given ?01M02NT0VMJKAXZRQPFSS1PCW6>
+                用户已初始化 Codument
+                </?01M02NT0VMJKAXZRQPFSS1PCW6>
+                <When ?01M02NT0VMJKAXZRQPFSS1PCW7>
+                用户运行 /codument:track 并提供功能描述
+                </?01M02NT0VMJKAXZRQPFSS1PCW7>
+                <Then ?01M02NT0VMJKAXZRQPFSS1PCW8>
+                系统生成包含 spec.md 和 plan.xml 的 track 目录
+                用户有新功能需求
+                用户选择 manual 提交模式
+                plan.xml 中 commit_mode 设置为 manual
+                </?01M02NT0VMJKAXZRQPFSS1PCW8>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/实现命令" } (
+      <Requirement { id = "实现命令" } (
+        <Statement ?01M02NT0VMJKAXZRQPFSS1PCW9>
+        系统应当（SHALL）提供 /codument:implement 命令，支持：
+        - 选择要实现的 track
+        - 中断恢复检查
+        - 按 workflow.md 执行任务
+        - 阶段门控验证
+        - 更新任务状态
+        - 同步项目文档
+        - 提供归档选项
+        </?01M02NT0VMJKAXZRQPFSS1PCW9>
+        <Suites [
+          <Suite { name = "实现命令" } (
+            <Cases [
+              <Case { id = "实现-track-任务" name = "实现 track 任务" } (
+                <Given ?01M02NT0VMJKAXZRQPFSS1PCWA>
+                用户已创建 track
+                </?01M02NT0VMJKAXZRQPFSS1PCWA>
+                <When ?01M02NT0VMJKAXZRQPFSS1PCWB>
+                用户运行 /codument:implement
+                </?01M02NT0VMJKAXZRQPFSS1PCWB>
+                <Then ?01M02NT0VMJKAXZRQPFSS1PCWC>
+                系统引导用户按顺序完成 plan.xml 中的任务
+                track 中有待完成任务
+                系统在每个阶段结束时执行门控验证
+                </?01M02NT0VMJKAXZRQPFSS1PCWC>
+              )>
+              <Case { id = "从中断恢复" name = "从中断恢复" } (
+                <Given ?01M02NT0VMJKAXZRQPFSS1PCWD>
+                用户之前的实现被中断
+                </?01M02NT0VMJKAXZRQPFSS1PCWD>
+                <When ?01M02NT0VMJKAXZRQPFSS1PCWE>
+                用户运行 /codument:implement
+                </?01M02NT0VMJKAXZRQPFSS1PCWE>
+                <Then ?01M02NT0VMJKAXZRQPFSS1PCWF>
+                系统检测到中断状态
+                存在 IN_PROGRESS 状态的任务
+                系统询问用户恢复选项
+                </?01M02NT0VMJKAXZRQPFSS1PCWF>
+              )>
+              <Case { id = "阶段门控验证" name = "阶段门控验证" } (
+                <Given ?01M02NT0VMJKAXZRQPFSS1PCWG>
+                用户完成某阶段所有任务
+                </?01M02NT0VMJKAXZRQPFSS1PCWG>
+                <When ?01M02NT0VMJKAXZRQPFSS1PCWH>
+                系统执行阶段门控验证
+                </?01M02NT0VMJKAXZRQPFSS1PCWH>
+                <Then ?01M02NT0VMJKAXZRQPFSS1PCWJ>
+                系统运行自动化测试
+                系统检查覆盖率
+                系统生成验证报告
+                系统等待用户确认
+                </?01M02NT0VMJKAXZRQPFSS1PCWJ>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/验证命令" } (
+      <Requirement { id = "验证命令" } (
+        <Statement ?01M02NT0VMJKAXZRQPFSS1PCWK>
+        系统应当（SHALL）提供 /codument:validate 命令，支持：
+        - 验证 track 结构
+        - 验证 spec.md 格式（GIVEN/WHEN/THEN/AND）
+        - 验证 plan.xml 格式
+        - 提供详细错误信息
+        </?01M02NT0VMJKAXZRQPFSS1PCWK>
+        <Suites [
+          <Suite { name = "验证命令" } (
+            <Cases [
+              <Case { id = "验证-track-格式" name = "验证 track 格式" } (
+                <Given ?01M02NT0VMJKAXZRQPFSS1PCWM>
+                用户已创建 track
+                </?01M02NT0VMJKAXZRQPFSS1PCWM>
+                <When ?01M02NT0VMJKAXZRQPFSS1PCWN>
+                用户运行 /codument:validate &lt;track-id&gt;
+                </?01M02NT0VMJKAXZRQPFSS1PCWN>
+                <Then ?01M02NT0VMJKAXZRQPFSS1PCWP>
+                系统检查 track 文件格式
+                系统报告发现的问题
+                </?01M02NT0VMJKAXZRQPFSS1PCWP>
+              )>
+              <Case { id = "严格模式验证" name = "严格模式验证" } (
+                <Given ?01M02NT0VMJKAXZRQPFSS1PCWQ>
+                用户需要全面验证
+                </?01M02NT0VMJKAXZRQPFSS1PCWQ>
+                <When ?01M02NT0VMJKAXZRQPFSS1PCWR>
+                用户运行 /codument:validate --strict
+                </?01M02NT0VMJKAXZRQPFSS1PCWR>
+                <Then ?01M02NT0VMJKAXZRQPFSS1PCWS>
+                系统执行所有验证规则
+                系统检查场景格式是否符合 GIVEN/WHEN/THEN/AND
+                </?01M02NT0VMJKAXZRQPFSS1PCWS>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/状态命令" } (
+      <Requirement { id = "状态命令" } (
+        <Statement ?01M02NT0VMJKAXZRQPFSS1PCWT>
+        系统应当（SHALL）提供 /codument:status 命令，显示：
+        - 项目整体进度
+        - 当前 track 和任务
+        - 统计信息
+        - 提交模式
+        </?01M02NT0VMJKAXZRQPFSS1PCWT>
+        <Suites [
+          <Suite { name = "状态命令" } (
+            <Cases [
+              <Case { id = "查看项目状态" name = "查看项目状态" } (
+                <Given ?01M02NT0VMJKAXZRQPFSS1PCWV>
+                用户已初始化 Codument
+                </?01M02NT0VMJKAXZRQPFSS1PCWV>
+                <When ?01M02NT0VMJKAXZRQPFSS1PCWW>
+                用户运行 /codument:status
+                </?01M02NT0VMJKAXZRQPFSS1PCWW>
+                <Then ?01M02NT0VMJKAXZRQPFSS1PCWX>
+                系统显示项目进度概览
+                存在活跃 track
+                系统显示当前任务状态
+                </?01M02NT0VMJKAXZRQPFSS1PCWX>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/归档命令" } (
+      <Requirement { id = "归档命令" } (
+        <Statement ?01M02NT0VMJKAXZRQPFSS1PCWY>
+        系统应当（SHALL）提供 /codument:archive 命令，支持：
+        - 移动 track 到 archive/
+        - 更新 specs/ 中的规范
+        - 清理 tracks.md
+        </?01M02NT0VMJKAXZRQPFSS1PCWY>
+        <Suites [
+          <Suite { name = "归档命令" } (
+            <Cases [
+              <Case { id = "归档已完成-track" name = "归档已完成 track" } (
+                <Given ?01M02NT0VMJKAXZRQPFSS1PCWZ>
+                用户已完成某个 track
+                </?01M02NT0VMJKAXZRQPFSS1PCWZ>
+                <When ?01M02NT0VMJKAXZRQPFSS1PCX0>
+                用户运行 /codument:archive &lt;track-id&gt;
+                </?01M02NT0VMJKAXZRQPFSS1PCX0>
+                <Then ?01M02NT0VMJKAXZRQPFSS1PCX1>
+                系统将 track 移动到 archive/
+                track 状态为 completed
+                系统更新相关规范
+                </?01M02NT0VMJKAXZRQPFSS1PCX1>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/plan-xml-格式" } (
+      <Requirement { id = "plan-xml-格式" } (
+        <Statement ?01M02NT0VMJKAXZRQPFSS1PCX2>
+        系统应当（SHALL）定义结构化的 plan.xml 格式，包含：
+        - metadata 元数据（含 commit_mode）
+        - milestones 里程碑
+        - phases 阶段
+        - tasks 任务（状态在属性中）
+        - subtasks 子任务
+        - acceptance_criteria 验收标准
+        - gate_criteria 阶段门控标准
+        - validations 验证
+        - risks 风险
+        - summary 统计
+        </?01M02NT0VMJKAXZRQPFSS1PCX2>
+        <Suites [
+          <Suite { name = "plan-xml-格式" } (
+            <Cases [
+              <Case { id = "解析-plan-xml" name = "解析 plan.xml" } (
+                <Given ?01M02NT0VMJKAXZRQPFSS1PCX3>
+                系统需要读取任务信息
+                </?01M02NT0VMJKAXZRQPFSS1PCX3>
+                <When ?01M02NT0VMJKAXZRQPFSS1PCX4>
+                系统读取 plan.xml 文件
+                </?01M02NT0VMJKAXZRQPFSS1PCX4>
+                <Then ?01M02NT0VMJKAXZRQPFSS1PCX5>
+                系统能正确解析所有元素和属性
+                系统能识别 commit_mode 设置
+                </?01M02NT0VMJKAXZRQPFSS1PCX5>
+              )>
+              <Case { id = "更新任务状态" name = "更新任务状态" } (
+                <Given ?01M02NT0VMJKAXZRQPFSS1PCX6>
+                任务已完成
+                </?01M02NT0VMJKAXZRQPFSS1PCX6>
+                <When ?01M02NT0VMJKAXZRQPFSS1PCX7>
+                系统更新 plan.xml
+                </?01M02NT0VMJKAXZRQPFSS1PCX7>
+                <Then ?01M02NT0VMJKAXZRQPFSS1PCX8>
+                系统更新任务的 status 属性
+                系统更新 acceptance_criteria 的 checked 属性
+                </?01M02NT0VMJKAXZRQPFSS1PCX8>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/cli-工具" } (
+      <Requirement { id = "cli-工具" } (
+        <Statement ?01M02NT0VMJKAXZRQPFSS1PCX9>
+        系统应当（SHALL）提供 CLI 工具，支持：
+        - list 命令列出 tracks 和 specs
+        - show 命令显示详情
+        - validate 命令验证格式
+        - archive 命令归档 track
+        - status 命令查看状态
+        - 构建为单文件可执行文件
+        </?01M02NT0VMJKAXZRQPFSS1PCX9>
+        <Suites [
+          <Suite { name = "cli-工具" } (
+            <Cases [
+              <Case { id = "使用-cli-列出-tracks" name = "使用 CLI 列出 tracks" } (
+                <Given ?01M02NT0VMJKAXZRQPFSS1PCXA>
+                用户已安装 CLI
+                </?01M02NT0VMJKAXZRQPFSS1PCXA>
+                <When ?01M02NT0VMJKAXZRQPFSS1PCXB>
+                用户运行 codument list
+                </?01M02NT0VMJKAXZRQPFSS1PCXB>
+                <Then ?01M02NT0VMJKAXZRQPFSS1PCXC>
+                CLI 显示所有活跃 tracks
+                存在活跃 tracks
+                显示每个 track 的状态和进度
+                </?01M02NT0VMJKAXZRQPFSS1PCXC>
+              )>
+              <Case { id = "构建单文件可执行文件" name = "构建单文件可执行文件" } (
+                <Given ?01M02NT0VMJKAXZRQPFSS1PCXD>
+                开发者需要分发 CLI
+                </?01M02NT0VMJKAXZRQPFSS1PCXD>
+                <When ?01M02NT0VMJKAXZRQPFSS1PCXE>
+                开发者运行 bun run build
+                </?01M02NT0VMJKAXZRQPFSS1PCXE>
+                <Then ?01M02NT0VMJKAXZRQPFSS1PCXF>
+                系统生成单文件可执行文件
+                提示词文件正确嵌入到 bunfs
+                </?01M02NT0VMJKAXZRQPFSS1PCXF>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+  ]>
+)>

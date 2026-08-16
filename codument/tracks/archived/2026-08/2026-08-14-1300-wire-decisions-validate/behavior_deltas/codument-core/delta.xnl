@@ -1,0 +1,76 @@
+<BehaviorPatch #track.r_2_0_2_6_-_0_8_-_1_4_-_1_3_0_0_-_w_i_r_e_-_d_e_c_i_s_i_o_n_s_-_v_a_l_i_d_a_t_e.behavior_patch.codument-core apiVersion="codument.tech/v1alpha1" version="1" { capability = "codument-core" } (
+  <Mutations [
+    <Upsert { selector = "behavior://codument-core/requirements/track-decisions-validation" } (
+      <Requirement #track-decisions-validation (
+        <Statement ?01M02NT0WRJ6Y05MFV2VN5W6ZG>
+        Codument SHALL validate a track's decisions.xnl (and its recursive decisions/** source set) as part of codument validate, so XNL authoring errors are caught at creation time instead of the archive gate.
+        </?01M02NT0WRJ6Y05MFV2VN5W6ZG>
+        <Suites [
+          <Suite #validate-covers-decisions { name = "validate 覆盖 decisions" } (
+            <Cases [
+              <Case #syntax-error-fails (
+                <Given ?01M02NT0WRJ6Y05MFV2VN5W6ZH>
+                一个 active/pending track 的 decisions.xnl 含 XNL 文本块闭合误写（如 `&lt;/description&gt;` 代替 `&lt;/?&gt;`）
+                </?01M02NT0WRJ6Y05MFV2VN5W6ZH>
+                <When ?01M02NT0WRJ6Y05MFV2VN5W6ZJ>
+                用户运行 codument validate &lt;track-id&gt;
+                </?01M02NT0WRJ6Y05MFV2VN5W6ZJ>
+                <Then ?01M02NT0WRJ6Y05MFV2VN5W6ZK>
+                系统 SHALL report an error that names the file and hints the correct `&lt;/?&gt;` closer
+                </?01M02NT0WRJ6Y05MFV2VN5W6ZK>
+              )>
+              <Case #valid-decisions-passes (
+                <Given ?01M02NT0WRJ6Y05MFV2VN5W6ZM>
+                一个 track 的 decisions.xnl 语法合法
+                </?01M02NT0WRJ6Y05MFV2VN5W6ZM>
+                <When ?01M02NT0WRJ6Y05MFV2VN5W6ZN>
+                用户运行 codument validate &lt;track-id&gt;
+                </?01M02NT0WRJ6Y05MFV2VN5W6ZN>
+                <Then ?01M02NT0WRJ6Y05MFV2VN5W6ZP>
+                系统 SHALL pass with no decisions-related errors
+                </?01M02NT0WRJ6Y05MFV2VN5W6ZP>
+              )>
+              <Case #missing-decisions-not-false-positive (
+                <Given ?01M02NT0WRJ6Y05MFV2VN5W6ZQ>
+                一个 track 没有 decisions.xnl 也没有 decisions/ 目录
+                </?01M02NT0WRJ6Y05MFV2VN5W6ZQ>
+                <When ?01M02NT0WRJ6Y05MFV2VN5W6ZR>
+                用户运行 codument validate &lt;track-id&gt;
+                </?01M02NT0WRJ6Y05MFV2VN5W6ZR>
+                <Then ?01M02NT0WRJ6Y05MFV2VN5W6ZS>
+                系统 SHALL NOT report a decisions error for that track
+                </?01M02NT0WRJ6Y05MFV2VN5W6ZS>
+              )>
+              <Case #recursive-source-set (
+                <Given ?01M02NT0WRJ6Y05MFV2VN5W6ZT>
+                一个 track 存在 decisions/**/*.xnl 递归 source set
+                </?01M02NT0WRJ6Y05MFV2VN5W6ZT>
+                <When ?01M02NT0WRJ6Y05MFV2VN5W6ZV>
+                用户运行 codument validate &lt;track-id&gt;
+                </?01M02NT0WRJ6Y05MFV2VN5W6ZV>
+                <Then ?01M02NT0WRJ6Y05MFV2VN5W6ZW>
+                系统 SHALL validate the recursive set the same way codument decisions validate does
+                </?01M02NT0WRJ6Y05MFV2VN5W6ZW>
+              )>
+            ]>
+          )>
+          <Suite #closer-spec { name = "XNL 闭合规范" } (
+            <Cases [
+              <Case #spec-bad-example (
+                <Given ?01M02NT0WRJ6Y05MFV2VN5W6ZX>
+                xnl-format.md 的文本块语法规则
+                </?01M02NT0WRJ6Y05MFV2VN5W6ZX>
+                <When ?01M02NT0WRJ6Y05MFV2VN5W6ZY>
+                审查者阅读该规范
+                </?01M02NT0WRJ6Y05MFV2VN5W6ZY>
+                <Then ?01M02NT0WRJ6Y05MFV2VN5W6ZZ>
+                系统 SHALL document `&lt;/description&gt;` 等 XML 风格闭合为错误写法，闭合永远为 `&lt;/?&gt;`
+                </?01M02NT0WRJ6Y05MFV2VN5W6ZZ>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+  ]>
+)>

@@ -3,6 +3,8 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import { applySpecXmlPatchContent, applySpecXmlPatchToRegistry, getSpecXmlStats, loadSpecXml, parseSpecXmlContent } from '../../../src/cli/utils/spec-xml';
+import { applyNativeBehaviorMutations } from '../../../src/cli/behavior/mutations';
+import { serializeBehaviorNode } from '../../../src/cli/behavior/resource';
 
 const singleFileSpec = `<capability id="resource.skill-tool" version="1">
   <requirement id="save-skill-tool">
@@ -20,6 +22,33 @@ const singleFileSpec = `<capability id="resource.skill-tool" version="1">
 </capability>`;
 
 describe('spec XML parser', () => {
+  it('compiles canonical Behavior changes into a native XNL mutation batch', () => {
+    const base = parseSpecXmlContent(`<behaviors capability="native-test">
+  <requirement id="existing"><statement>Before.</statement></requirement>
+</behaviors>`);
+    const expected = parseSpecXmlContent(`<behaviors capability="native-test">
+  <requirement id="existing"><statement>After.</statement></requirement>
+  <requirement id="added"><statement>Added.</statement></requirement>
+</behaviors>`);
+
+    const result = applyNativeBehaviorMutations(serializeBehaviorNode(base), expected);
+
+    expect(result.mutations.length).toBeGreaterThan(0);
+    expect(result.content).toContain('After.');
+    expect(result.content).toContain('#added');
+  });
+
+  it('rejects a native mutation result with duplicate Behavior identities', () => {
+    const base = parseSpecXmlContent('<behaviors capability="native-test" />');
+    const expected = parseSpecXmlContent(`<behaviors capability="native-test">
+  <requirement id="duplicate"><statement>First.</statement></requirement>
+  <requirement id="duplicate"><statement>Second.</statement></requirement>
+</behaviors>`);
+
+    expect(() => applyNativeBehaviorMutations(serializeBehaviorNode(base), expected))
+      .toThrow('Native Behavior mutation batch rejected');
+  });
+
   it('parses capability, requirement, nested suites and cases', () => {
     const root = parseSpecXmlContent(singleFileSpec);
     const stats = getSpecXmlStats(root);
@@ -98,6 +127,28 @@ describe('spec XML parser', () => {
     const newCapability = fs.readFileSync(path.join(dir, 'new-capability.xml'), 'utf-8');
     expect(newCapability).toContain('id="move-me"');
     expect(newCapability).toContain('Move this requirement.');
+  });
+
+  it('moves nodes across canonical Behavior XNL authorities through native batches', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'codument-behavior-xnl-cross-move-'));
+    const source = parseSpecXmlContent(`<behaviors capability="source-cap">
+  <requirement id="move-me"><statement>Move through native XNL mutations.</statement></requirement>
+</behaviors>`);
+    const target = parseSpecXmlContent(`<behaviors capability="target-cap">
+  <requirement id="keep-me"><statement>Keep this.</statement></requirement>
+</behaviors>`);
+    fs.writeFileSync(path.join(dir, 'source-cap.xnl'), serializeBehaviorNode(source));
+    fs.writeFileSync(path.join(dir, 'target-cap.xnl'), serializeBehaviorNode(target));
+
+    const updated = applySpecXmlPatchToRegistry(`<behavior-patch capability="source-cap">
+  <move selector="behavior://source-cap/requirements/move-me" to="behavior://target-cap/requirements/moved" />
+</behavior-patch>`, dir);
+
+    expect(updated.sort()).toEqual(['source-cap', 'target-cap']);
+    expect(fs.readFileSync(path.join(dir, 'source-cap.xnl'), 'utf8')).not.toContain('#move-me');
+    const targetContent = fs.readFileSync(path.join(dir, 'target-cap.xnl'), 'utf8');
+    expect(targetContent).toContain('#moved');
+    expect(targetContent).toContain('Move through native XNL mutations.');
   });
 
   it('preserves folder registry include structure when patching included nodes', () => {
@@ -230,7 +281,7 @@ describe('spec XML parser', () => {
     expect(requirement).toContain('updates are coalesced');
   });
 
-  it('creates a brand-new registry in the current <behaviors capability> format', () => {
+  it('creates a brand-new registry in the current Behavior XNL format', () => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'codument-behaviors-new-'));
 
     applySpecXmlPatchToRegistry(`<behavior-patch capability="fresh-cap" version="1">
@@ -241,10 +292,31 @@ describe('spec XML parser', () => {
   </upsert>
 </behavior-patch>`, dir);
 
-    const registry = fs.readFileSync(path.join(dir, 'fresh-cap.xml'), 'utf-8');
-    expect(registry).toContain('<behaviors capability="fresh-cap"');
-    expect(registry).not.toContain('<capability id=');
-    expect(registry).toContain('id="first"');
+    const registry = fs.readFileSync(path.join(dir, 'fresh-cap.xnl'), 'utf-8');
+    expect(registry).toContain('<Behavior #fresh-cap apiVersion="codument.tech/v1alpha1"');
+    expect(registry).toContain('<Requirement #first');
+  });
+
+  it('applies legacy XML patches to an existing Behavior XNL authority', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'codument-behaviors-xnl-'));
+    fs.writeFileSync(path.join(dir, 'web-perf.xnl'), `<Behavior #web-perf apiVersion="codument.tech/v1alpha1" version="1" (
+      <Requirements [
+        <Requirement #existing (<Statement ?>Existing requirement.</?>)>
+        <Requirement #drop-me (<Statement ?>Drop requirement.</?>)>
+      ]>
+    )>`);
+
+    applySpecXmlPatchToRegistry(`<behavior-patch capability="web-perf" version="1">
+      <upsert selector="behavior://web-perf/requirements/new-one"><requirement id="new-one"><statement>New requirement.</statement></requirement></upsert>
+      <delete selector="behavior://web-perf/requirements/drop-me" />
+      <move selector="behavior://web-perf/requirements/existing" to="behavior://web-perf/requirements/renamed" />
+    </behavior-patch>`, dir);
+
+    const registry = fs.readFileSync(path.join(dir, 'web-perf.xnl'), 'utf-8');
+    expect(registry).toContain('<Requirement #new-one');
+    expect(registry).toContain('<Requirement #renamed');
+    expect(registry).not.toContain('#drop-me');
+    expect(registry).not.toContain('#existing');
   });
 
   it('still accepts legacy <capability id> registry roots for backward compatibility', () => {

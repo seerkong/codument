@@ -1,0 +1,132 @@
+<BehaviorPatch #track.enable-continuous-mission-execution.behavior_patch.codument-core apiVersion="codument.tech/v1alpha1" version="1" { capability = "codument-core" } (
+  <Mutations [
+    <Upsert { selector = "behavior://codument-core/requirements/mission-cybernetic-actors" } (
+      <Requirement #mission-cybernetic-actors (
+        <Statement ?01M02NT0V5S93M28ZR704GS8C0>
+        系统 SHALL execute a mission as a continuous cybernetic DEPA actor loop over a DAG-shaped desired state.
+        </?01M02NT0V5S93M28ZR704GS8C0>
+        <Suites [
+          <Suite #mission-actors { name = "Mission cybernetic actors" } (
+            <Cases [
+              <Case #four-actors (
+                <Given ?01M02NT0V5S93M28ZR704GS8C1>
+                mission execution prompt describes roles
+                </?01M02NT0V5S93M28ZR704GS8C1>
+                <When ?01M02NT0V5S93M28ZR704GS8C2>
+                the prompt explains how execution proceeds
+                </?01M02NT0V5S93M28ZR704GS8C2>
+                <Then ?01M02NT0V5S93M28ZR704GS8C3>
+                系统 SHALL name and use `MissionPlanner`, `MissionObserver`, `MissionReconciler`, and `MissionApplier` actor concepts
+                </?01M02NT0V5S93M28ZR704GS8C3>
+                <Ands [
+                  <And ?01M02NT0V5S93M28ZR704GS8C4>
+                  `MissionPlanner` SHALL produce or revise desired mission graph
+                  </?01M02NT0V5S93M28ZR704GS8C4>
+                  <And ?01M02NT0V5S93M28ZR704GS8C5>
+                  `MissionObserver` SHALL observe actual state without mutating it
+                  </?01M02NT0V5S93M28ZR704GS8C5>
+                  <And ?01M02NT0V5S93M28ZR704GS8C6>
+                  `MissionReconciler` SHALL compare desired and actual state and decide the next execution step
+                  </?01M02NT0V5S93M28ZR704GS8C6>
+                  <And ?01M02NT0V5S93M28ZR704GS8C7>
+                  `MissionApplier` SHALL be the write actor for mission execution steps
+                  </?01M02NT0V5S93M28ZR704GS8C7>
+                ]>
+              )>
+              <Case #level-triggered (
+                <Given ?01M02NT0V5S93M28ZR704GS8C8>
+                a mission execution invocation resumes after interruption
+                </?01M02NT0V5S93M28ZR704GS8C8>
+                <When ?01M02NT0V5S93M28ZR704GS8C9>
+                the next step is chosen
+                </?01M02NT0V5S93M28ZR704GS8C9>
+                <Then ?01M02NT0V5S93M28ZR704GS8CA>
+                系统 SHALL read current mission.xml, track states, archive state, reports, and relevant evidence instead of relying on chat history
+                </?01M02NT0V5S93M28ZR704GS8CA>
+              )>
+              <Case #continuous-implementation (
+                <Given ?01M02NT0V5S93M28ZR704GS8CB>
+                用户 invokes `codument-impl-mission` for a pending or active mission
+                </?01M02NT0V5S93M28ZR704GS8CB>
+                <When ?01M02NT0V5S93M28ZR704GS8CC>
+                the mission is not terminal or blocked
+                </?01M02NT0V5S93M28ZR704GS8CC>
+                <Then ?01M02NT0V5S93M28ZR704GS8CD>
+                系统 SHALL activate a pending mission and immediately continue execution from active mission.xml
+                </?01M02NT0V5S93M28ZR704GS8CD>
+                <Ands [
+                  <And ?01M02NT0V5S93M28ZR704GS8CE>
+                  系统 SHALL require each mission step to verify completion in proportion to its effect, using its existing tests, state, resource reads, or evidence rather than a common receipt format
+                  </?01M02NT0V5S93M28ZR704GS8CE>
+                  <And ?01M02NT0V5S93M28ZR704GS8CF>
+                  系统 SHALL continue to the next planned ready step without a mandatory full re-observe/reconcile pass when verification is conclusive and reveals no invalidation signal
+                  </?01M02NT0V5S93M28ZR704GS8CF>
+                  <And ?01M02NT0V5S93M28ZR704GS8CG>
+                  系统 SHALL observe the affected scope and reconcile only when verification is uncertain or signals that a prerequisite, dependency, scope, or goal has changed
+                  </?01M02NT0V5S93M28ZR704GS8CG>
+                  <And ?01M02NT0V5S93M28ZR704GS8CH>
+                  系统 SHALL NOT treat activation or completion of one track as a default stopping point
+                  </?01M02NT0V5S93M28ZR704GS8CH>
+                ]>
+              )>
+              <Case #decision-and-terminal-pauses (
+                <Given ?01M02NT0V5S93M28ZR704GS8CJ>
+                a continuous mission execution loop is running
+                </?01M02NT0V5S93M28ZR704GS8CJ>
+                <When ?01M02NT0V5S93M28ZR704GS8CK>
+                a ready decision requires user confirmation, actual state is blocked, or mission becomes completed, cancelled, or superseded
+                </?01M02NT0V5S93M28ZR704GS8CK>
+                <Then ?01M02NT0V5S93M28ZR704GS8CM>
+                系统 SHALL return with the required questions, blocker, or terminal result
+                </?01M02NT0V5S93M28ZR704GS8CM>
+                <Ands [
+                  <And ?01M02NT0V5S93M28ZR704GS8CN>
+                  系统 SHALL let `QuestionSeverity=auto` record assumptions and continue without a user question
+                  </?01M02NT0V5S93M28ZR704GS8CN>
+                ]>
+              )>
+              <Case #max-tracks-checkpoint (
+                <Given ?01M02NT0V5S93M28ZR704GS8CP>
+                one `codument-impl-mission` invocation continuously executes linked tracks
+                </?01M02NT0V5S93M28ZR704GS8CP>
+                <When ?01M02NT0V5S93M28ZR704GS8CQ>
+                ten track lifecycles have completed and been written back as DONE
+                </?01M02NT0V5S93M28ZR704GS8CQ>
+                <Then ?01M02NT0V5S93M28ZR704GS8CR>
+                系统 SHALL write a resumable continuation checkpoint and return with the mission still active
+                </?01M02NT0V5S93M28ZR704GS8CR>
+                <Ands [
+                  <And ?01M02NT0V5S93M28ZR704GS8CS>
+                  系统 SHALL NOT use a general max-actions limit
+                  </?01M02NT0V5S93M28ZR704GS8CS>
+                ]>
+              )>
+              <Case #actor-set-runtime-boundary (
+                <Given ?01M02NT0V5S93M28ZR704GS8CT>
+                一个 mission references an external ProjectRef or TrackLink。
+                </?01M02NT0V5S93M28ZR704GS8CT>
+                <When ?01M02NT0V5S93M28ZR704GS8CV>
+                impl-mission observes and reconciles actual state。
+                </?01M02NT0V5S93M28ZR704GS8CV>
+                <Then ?01M02NT0V5S93M28ZR704GS8CW>
+                系统 SHALL resolve workspace paths only through session-local WorkspaceBinding and SHALL NOT persist those paths。
+                </?01M02NT0V5S93M28ZR704GS8CW>
+                <Ands [
+                  <And ?01M02NT0V5S93M28ZR704GS8CX>
+                  缺少 binding SHALL project UNBOUND rather than candidate, missing, or persistent Mission state。
+                  </?01M02NT0V5S93M28ZR704GS8CX>
+                  <And ?01M02NT0V5S93M28ZR704GS8CY>
+                  binding exists but an external track is absent SHALL project MISSING from the target project actual state。
+                  </?01M02NT0V5S93M28ZR704GS8CY>
+                  <And ?01M02NT0V5S93M28ZR704GS8CZ>
+                  无关 DAG branches SHALL remain eligible when they do not depend on an UNBOUND ProjectRef。
+                  </?01M02NT0V5S93M28ZR704GS8CZ>
+                ]>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+  ]>
+)>

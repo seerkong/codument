@@ -1,4 +1,4 @@
-<decision #track.fixture.conditional_activation {
+<decision #track.fixture.conditional_activation apiVersion="codument.tech/v1alpha1" {
   status = "accepted"
   priority = "P0"
   durable_candidate = true

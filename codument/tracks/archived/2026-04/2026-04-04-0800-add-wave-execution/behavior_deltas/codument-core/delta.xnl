@@ -1,0 +1,494 @@
+<BehaviorPatch #track.r_2_0_2_6_-_0_4_-_0_4_-_0_8_0_0_-_a_d_d_-_w_a_v_e_-_e_x_e_c_u_t_i_o_n.behavior_patch.codument-core apiVersion="codument.tech/v1alpha1" version="1" { capability = "codument-core" } (
+  <Mutations [
+    <Upsert { selector = "behavior://codument-core/requirements/波次执行模式" } (
+      <Requirement { id = "波次执行模式" } (
+        <Statement ?01M02NT0VSHP4X4MS3WEX30ZB8>
+        系统应当（SHALL）在 plan.xml 中支持 `wave` 执行模式，通过 `&lt;metadata&gt;` 中的 `&lt;execution_mode&gt;` 字段声明。当值为 `wave` 时，phase 内的 task 按 wave DAG 调度并行执行；当值为 `sequential` 或缺失时，保持原有顺序执行行为。
+        </?01M02NT0VSHP4X4MS3WEX30ZB8>
+        <Suites [
+          <Suite { name = "波次执行模式" } (
+            <Cases [
+              <Case { id = "声明波次执行模式" name = "声明波次执行模式" } (
+                <Given ?01M02NT0VSHP4X4MS3WEX30ZB9>
+                用户创建新 track
+                </?01M02NT0VSHP4X4MS3WEX30ZB9>
+                <When ?01M02NT0VSHP4X4MS3WEX30ZBA>
+                系统生成 plan.xml
+                </?01M02NT0VSHP4X4MS3WEX30ZBA>
+                <Then ?01M02NT0VSHP4X4MS3WEX30ZBB>
+                plan.xml 中的 phase 包含 `&lt;waves&gt;` 声明和 task 级别的 `wave` 属性
+                需求涉及可并行化的任务
+                `&lt;metadata&gt;` 中 `&lt;execution_mode&gt;` 设置为 `wave`
+                </?01M02NT0VSHP4X4MS3WEX30ZBB>
+              )>
+              <Case { id = "缺失-executionmode-时的默认行为" name = "缺失 execution_mode 时的默认行为" } (
+                <Given ?01M02NT0VSHP4X4MS3WEX30ZBC>
+                一个旧的或未声明 execution_mode 的 plan.xml
+                </?01M02NT0VSHP4X4MS3WEX30ZBC>
+                <When ?01M02NT0VSHP4X4MS3WEX30ZBD>
+                系统读取该 plan.xml
+                </?01M02NT0VSHP4X4MS3WEX30ZBD>
+                <Then ?01M02NT0VSHP4X4MS3WEX30ZBE>
+                系统将其视为 `sequential` 模式
+                保持原有顺序执行行为不变
+                </?01M02NT0VSHP4X4MS3WEX30ZBE>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/wave-dag-依赖声明" } (
+      <Requirement { id = "wave-dag-依赖声明" } (
+        <Statement ?01M02NT0VSHP4X4MS3WEX30ZBF>
+        系统应当（SHALL）在每个 `&lt;phase&gt;` 下支持 `&lt;waves&gt;` 容器，包含多个 `&lt;wave&gt;` 节点。每个 `&lt;wave&gt;` 通过 `id` 属性标识（格式 `WAVE-P{n}-{序号}`，如 `WAVE-P1-01`），通过可选的 `depends_on` 属性声明对其他 wave 的依赖（逗号分隔，支持多依赖），形成 DAG。
+        </?01M02NT0VSHP4X4MS3WEX30ZBF>
+        <Suites [
+          <Suite { name = "wave-dag-依赖声明" } (
+            <Cases [
+              <Case { id = "声明-wave-依赖关系" name = "声明 wave 依赖关系" } (
+                <Given ?01M02NT0VSHP4X4MS3WEX30ZBG>
+                一个 phase 包含多个可分组的 task
+                </?01M02NT0VSHP4X4MS3WEX30ZBG>
+                <When ?01M02NT0VSHP4X4MS3WEX30ZBH>
+                系统生成 plan.xml
+                </?01M02NT0VSHP4X4MS3WEX30ZBH>
+                <Then ?01M02NT0VSHP4X4MS3WEX30ZBJ>
+                phase 下包含 `&lt;waves&gt;` 节点
+                每个 `&lt;wave&gt;` 有唯一 `id`（格式 `WAVE-P{n}-{序号}`）
+                有依赖的 wave 通过 `depends_on` 属性引用前置 wave
+                </?01M02NT0VSHP4X4MS3WEX30ZBJ>
+              )>
+              <Case { id = "无依赖的-wave-立即可执行" name = "无依赖的 wave 立即可执行" } (
+                <Given ?01M02NT0VSHP4X4MS3WEX30ZBK>
+                一个 wave 节点没有 `depends_on` 属性
+                </?01M02NT0VSHP4X4MS3WEX30ZBK>
+                <When ?01M02NT0VSHP4X4MS3WEX30ZBM>
+                执行引擎构建 DAG
+                </?01M02NT0VSHP4X4MS3WEX30ZBM>
+                <Then ?01M02NT0VSHP4X4MS3WEX30ZBN>
+                该 wave 入度为 0，立即加入就绪队列
+                </?01M02NT0VSHP4X4MS3WEX30ZBN>
+              )>
+              <Case { id = "多依赖-wave" name = "多依赖 wave" } (
+                <Given ?01M02NT0VSHP4X4MS3WEX30ZBP>
+                一个 wave 的 `depends_on` 包含多个 wave ID（如 `WAVE-P1-01,WAVE-P1-02`）
+                </?01M02NT0VSHP4X4MS3WEX30ZBP>
+                <When ?01M02NT0VSHP4X4MS3WEX30ZBQ>
+                执行引擎评估该 wave 的就绪状态
+                </?01M02NT0VSHP4X4MS3WEX30ZBQ>
+                <Then ?01M02NT0VSHP4X4MS3WEX30ZBR>
+                仅当所有依赖的 wave 全部完成后，该 wave 才加入就绪队列
+                </?01M02NT0VSHP4X4MS3WEX30ZBR>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/task-级别-wave-分配" } (
+      <Requirement { id = "task-级别-wave-分配" } (
+        <Statement ?01M02NT0VSHP4X4MS3WEX30ZBS>
+        系统应当（SHALL）在 `&lt;task&gt;` 元素上支持 `wave` 属性，值为该 task 所属的 wave ID。同一 wave 内的 task 可并行执行。
+        </?01M02NT0VSHP4X4MS3WEX30ZBS>
+        <Suites [
+          <Suite { name = "task-级别-wave-分配" } (
+            <Cases [
+              <Case { id = "task-分配到-wave" name = "task 分配到 wave" } (
+                <Given ?01M02NT0VSHP4X4MS3WEX30ZBT>
+                一个 phase 声明了 `&lt;waves&gt;`
+                </?01M02NT0VSHP4X4MS3WEX30ZBT>
+                <When ?01M02NT0VSHP4X4MS3WEX30ZBV>
+                系统生成 task
+                </?01M02NT0VSHP4X4MS3WEX30ZBV>
+                <Then ?01M02NT0VSHP4X4MS3WEX30ZBW>
+                每个 task 的 `wave` 属性值必须是该 phase 的 `&lt;waves&gt;` 中已声明的 wave ID
+                </?01M02NT0VSHP4X4MS3WEX30ZBW>
+              )>
+              <Case { id = "未声明-wave-属性的-task" name = "未声明 wave 属性的 task" } (
+                <Given ?01M02NT0VSHP4X4MS3WEX30ZBX>
+                一个 wave 模式的 plan.xml 中某 task 缺少 `wave` 属性
+                </?01M02NT0VSHP4X4MS3WEX30ZBX>
+                <When ?01M02NT0VSHP4X4MS3WEX30ZBY>
+                系统解析该 task
+                </?01M02NT0VSHP4X4MS3WEX30ZBY>
+                <Then ?01M02NT0VSHP4X4MS3WEX30ZBZ>
+                系统报告验证错误
+                </?01M02NT0VSHP4X4MS3WEX30ZBZ>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/phase-顺序执行保证" } (
+      <Requirement { id = "phase-顺序执行保证" } (
+        <Statement ?01M02NT0VSHP4X4MS3WEX30ZC0>
+        系统应当（SHALL）保证 phase 之间严格顺序执行。前一个 phase 的所有 wave 和 task 全部完成后，才启动下一个 phase。
+        </?01M02NT0VSHP4X4MS3WEX30ZC0>
+        <Suites [
+          <Suite { name = "phase-顺序执行保证" } (
+            <Cases [
+              <Case { id = "phase-顺序执行" name = "phase 顺序执行" } (
+                <Given ?01M02NT0VSHP4X4MS3WEX30ZC1>
+                plan.xml 包含 P1 和 P2 两个 phase
+                </?01M02NT0VSHP4X4MS3WEX30ZC1>
+                <When ?01M02NT0VSHP4X4MS3WEX30ZC2>
+                执行引擎运行
+                </?01M02NT0VSHP4X4MS3WEX30ZC2>
+                <Then ?01M02NT0VSHP4X4MS3WEX30ZC3>
+                P1 的所有 wave 全部完成后才启动 P2
+                P1 包含 WAVE-P1-01 和 WAVE-P1-02
+                P2 的 wave 编号从 WAVE-P2-01 重新开始
+                </?01M02NT0VSHP4X4MS3WEX30ZC3>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/subtask-嵌套" } (
+      <Requirement { id = "subtask-嵌套" } (
+        <Statement ?01M02NT0VSHP4X4MS3WEX30ZC4>
+        系统应当（SHALL）支持 subtask 的递归嵌套。subtask 可以从自闭合标签扩展为开闭标签，内部包含 `&lt;subtasks&gt;` 子容器。嵌套层级无硬性限制，建议不超过 4 层。
+        </?01M02NT0VSHP4X4MS3WEX30ZC4>
+        <Suites [
+          <Suite { name = "subtask-嵌套" } (
+            <Cases [
+              <Case { id = "subtask-嵌套" name = "subtask 嵌套" } (
+                <Given ?01M02NT0VSHP4X4MS3WEX30ZC5>
+                一个 task 包含复杂的子任务结构
+                </?01M02NT0VSHP4X4MS3WEX30ZC5>
+                <When ?01M02NT0VSHP4X4MS3WEX30ZC6>
+                系统生成 plan.xml
+                </?01M02NT0VSHP4X4MS3WEX30ZC6>
+                <Then ?01M02NT0VSHP4X4MS3WEX30ZC7>
+                subtask 可以包含 `&lt;subtasks&gt;` 子容器
+                子 subtask 的 ID 格式为 `T{phase}.{task}.{sub}.{sub}...`
+                </?01M02NT0VSHP4X4MS3WEX30ZC7>
+              )>
+              <Case { id = "旧的自闭合-subtask-兼容" name = "旧的自闭合 subtask 兼容" } (
+                <Given ?01M02NT0VSHP4X4MS3WEX30ZC8>
+                一个旧 plan.xml 使用自闭合 `&lt;subtask ... /&gt;` 标签
+                </?01M02NT0VSHP4X4MS3WEX30ZC8>
+                <When ?01M02NT0VSHP4X4MS3WEX30ZC9>
+                系统解析该 plan.xml
+                </?01M02NT0VSHP4X4MS3WEX30ZC9>
+                <Then ?01M02NT0VSHP4X4MS3WEX30ZCA>
+                自闭合标签仍然合法，解析正常
+                </?01M02NT0VSHP4X4MS3WEX30ZCA>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/subtask-详情外链" } (
+      <Requirement { id = "subtask-详情外链" } (
+        <Statement ?01M02NT0VSHP4X4MS3WEX30ZCB>
+        系统应当（SHALL）支持在 subtask 内通过 `&lt;detail_ref&gt;` 标签引用外部文件，将复杂任务的详细描述存放在 track 目录下的独立文件中，避免 plan.xml 过度膨胀。
+        </?01M02NT0VSHP4X4MS3WEX30ZCB>
+        <Suites [
+          <Suite { name = "subtask-详情外链" } (
+            <Cases [
+              <Case { id = "subtask-外链详情文件" name = "subtask 外链详情文件" } (
+                <Given ?01M02NT0VSHP4X4MS3WEX30ZCC>
+                一个 subtask 的任务描述过于复杂
+                </?01M02NT0VSHP4X4MS3WEX30ZCC>
+                <When ?01M02NT0VSHP4X4MS3WEX30ZCD>
+                系统生成 plan.xml
+                </?01M02NT0VSHP4X4MS3WEX30ZCD>
+                <Then ?01M02NT0VSHP4X4MS3WEX30ZCE>
+                subtask 内包含 `&lt;detail_ref&gt;` 标签，值为相对于 track 目录的文件路径
+                对应的详情文件存放在 `phases/P{n}/` 目录下
+                </?01M02NT0VSHP4X4MS3WEX30ZCE>
+              )>
+              <Case { id = "detailref-文件不存在时的验证" name = "detail_ref 文件不存在时的验证" } (
+                <Given ?01M02NT0VSHP4X4MS3WEX30ZCF>
+                subtask 的 `&lt;detail_ref&gt;` 引用了一个不存在的文件
+                </?01M02NT0VSHP4X4MS3WEX30ZCF>
+                <When ?01M02NT0VSHP4X4MS3WEX30ZCG>
+                系统执行验证
+                </?01M02NT0VSHP4X4MS3WEX30ZCG>
+                <Then ?01M02NT0VSHP4X4MS3WEX30ZCH>
+                系统报告验证错误，指出缺失的文件路径
+                </?01M02NT0VSHP4X4MS3WEX30ZCH>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/context-files-上下文声明" } (
+      <Requirement { id = "context-files-上下文声明" } (
+        <Statement ?01M02NT0VSHP4X4MS3WEX30ZCJ>
+        系统应当（SHALL）在 `&lt;phase&gt;` 下支持 `&lt;context_files&gt;` 容器，包含多个 `&lt;file&gt;` 子元素，声明该 phase 执行时需要读取的上下文文件路径。此机制替代原有的 `&lt;references&gt;` 标签。
+        </?01M02NT0VSHP4X4MS3WEX30ZCJ>
+        <Suites [
+          <Suite { name = "context-files-上下文声明" } (
+            <Cases [
+              <Case { id = "声明-phase-上下文文件" name = "声明 phase 上下文文件" } (
+                <Given ?01M02NT0VSHP4X4MS3WEX30ZCK>
+                一个 phase 的执行需要特定文件作为上下文
+                </?01M02NT0VSHP4X4MS3WEX30ZCK>
+                <When ?01M02NT0VSHP4X4MS3WEX30ZCM>
+                系统生成 plan.xml
+                </?01M02NT0VSHP4X4MS3WEX30ZCM>
+                <Then ?01M02NT0VSHP4X4MS3WEX30ZCN>
+                phase 下包含 `&lt;context_files&gt;` 节点
+                每个 `&lt;file&gt;` 子元素包含相对于项目根目录的文件路径
+                </?01M02NT0VSHP4X4MS3WEX30ZCN>
+              )>
+              <Case { id = "子代理读取上下文文件" name = "子代理读取上下文文件" } (
+                <Given ?01M02NT0VSHP4X4MS3WEX30ZCP>
+                执行引擎启动子代理执行某 phase 的 task
+                </?01M02NT0VSHP4X4MS3WEX30ZCP>
+                <When ?01M02NT0VSHP4X4MS3WEX30ZCQ>
+                子代理初始化
+                </?01M02NT0VSHP4X4MS3WEX30ZCQ>
+                <Then ?01M02NT0VSHP4X4MS3WEX30ZCR>
+                子代理根据 `&lt;context_files&gt;` 声明的路径读取所需文件
+                编排器不传递文件内容，仅传递路径
+                </?01M02NT0VSHP4X4MS3WEX30ZCR>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/wave-配置" } (
+      <Requirement { id = "wave-配置" } (
+        <Statement ?01M02NT0VSHP4X4MS3WEX30ZCS>
+        系统应当（SHALL）在 plan.xml 根级别支持 `&lt;wave_config&gt;` 节点，配置波次执行的全局参数，包括是否并行（`&lt;parallel&gt;`）、最大并发数（`&lt;max_concurrent&gt;`）、波次间抽检（`&lt;spot_check&gt;`）。
+        </?01M02NT0VSHP4X4MS3WEX30ZCS>
+        <Suites [
+          <Suite { name = "wave-配置" } (
+            <Cases [
+              <Case { id = "配置波次执行参数" name = "配置波次执行参数" } (
+                <Given ?01M02NT0VSHP4X4MS3WEX30ZCT>
+                用户创建 wave 模式的 track
+                </?01M02NT0VSHP4X4MS3WEX30ZCT>
+                <When ?01M02NT0VSHP4X4MS3WEX30ZCV>
+                系统生成 plan.xml
+                </?01M02NT0VSHP4X4MS3WEX30ZCV>
+                <Then ?01M02NT0VSHP4X4MS3WEX30ZCW>
+                plan.xml 包含 `&lt;wave_config&gt;` 节点
+                包含 `&lt;parallel&gt;`、`&lt;max_concurrent&gt;`、`&lt;spot_check&gt;` 配置项
+                </?01M02NT0VSHP4X4MS3WEX30ZCW>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/track-目录结构扩展" } (
+      <Requirement { id = "track-目录结构扩展" } (
+        <Statement ?01M02NT0VSHP4X4MS3WEX30ZCX>
+        系统应当（SHALL）在 wave 模式的 track 目录下支持以下新增目录和文件，且不删除任何现有文件：
+        - `context.md`：用户决策记录
+        - `state.md`：活记忆，执行状态追踪
+        - `phases/P{n}/index.md`：phase 级别共享知识索引
+        - `waves/WAVE-P{n}-{序号}/index.md`：wave 级别共享知识索引
+        </?01M02NT0VSHP4X4MS3WEX30ZCX>
+        <Suites [
+          <Suite { name = "track-目录结构扩展" } (
+            <Cases [
+              <Case { id = "wave-模式-track-目录结构" name = "wave 模式 track 目录结构" } (
+                <Given ?01M02NT0VSHP4X4MS3WEX30ZCY>
+                用户创建 wave 模式的 track
+                </?01M02NT0VSHP4X4MS3WEX30ZCY>
+                <When ?01M02NT0VSHP4X4MS3WEX30ZCZ>
+                执行引擎开始执行
+                </?01M02NT0VSHP4X4MS3WEX30ZCZ>
+                <Then ?01M02NT0VSHP4X4MS3WEX30ZD0>
+                track 目录下创建 `phases/` 和 `waves/` 子目录
+                每个 phase 完成后生成 `phases/P{n}/index.md`
+                每个 wave 完成后生成 `waves/WAVE-P{n}-{序号}/index.md`
+                </?01M02NT0VSHP4X4MS3WEX30ZD0>
+              )>
+              <Case { id = "现有-track-文件不受影响" name = "现有 track 文件不受影响" } (
+                <Given ?01M02NT0VSHP4X4MS3WEX30ZD1>
+                一个现有的 sequential 模式 track
+                </?01M02NT0VSHP4X4MS3WEX30ZD1>
+                <When ?01M02NT0VSHP4X4MS3WEX30ZD2>
+                系统处理该 track
+                </?01M02NT0VSHP4X4MS3WEX30ZD2>
+                <Then ?01M02NT0VSHP4X4MS3WEX30ZD3>
+                不创建 phases/ 和 waves/ 目录
+                现有文件（metadata.json、spec.md、proposal.md、plan.xml、design.md）不被修改或删除
+                </?01M02NT0VSHP4X4MS3WEX30ZD3>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/新增命令" } (
+      <Requirement { id = "新增命令" } (
+        <Statement ?01M02NT0VSHP4X4MS3WEX30ZD4>
+        系统应当（SHALL）提供以下新命令，所有提示词使用中文编写，命令前缀为 `codument:`：
+        - `/codument:discuss`：Phase 级讨论，生成 context.md
+        - `/codument:plan-wave`：生成带 wave 标记的 plan.xml
+        - `/codument:execute-wave [phase]`：按波次并行执行，可选指定单个 phase
+        - `/codument:verify`：独立验证子代理
+        </?01M02NT0VSHP4X4MS3WEX30ZD4>
+        <Suites [
+          <Suite { name = "新增命令" } (
+            <Cases [
+              <Case { id = "execute-wave-执行全部-phase" name = "execute-wave 执行全部 phase" } (
+                <Given ?01M02NT0VSHP4X4MS3WEX30ZD5>
+                用户有一个 wave 模式的 track
+                </?01M02NT0VSHP4X4MS3WEX30ZD5>
+                <When ?01M02NT0VSHP4X4MS3WEX30ZD6>
+                用户运行 `/codument:execute-wave`
+                </?01M02NT0VSHP4X4MS3WEX30ZD6>
+                <Then ?01M02NT0VSHP4X4MS3WEX30ZD7>
+                系统按 phase 顺序遍历，每个 phase 内按 wave DAG 调度执行
+                </?01M02NT0VSHP4X4MS3WEX30ZD7>
+              )>
+              <Case { id = "execute-wave-执行指定-phase" name = "execute-wave 执行指定 phase" } (
+                <Given ?01M02NT0VSHP4X4MS3WEX30ZD8>
+                用户有一个 wave 模式的 track
+                </?01M02NT0VSHP4X4MS3WEX30ZD8>
+                <When ?01M02NT0VSHP4X4MS3WEX30ZD9>
+                用户运行 `/codument:execute-wave P2`
+                </?01M02NT0VSHP4X4MS3WEX30ZD9>
+                <Then ?01M02NT0VSHP4X4MS3WEX30ZDA>
+                系统仅执行 P2 的 wave 调度
+                P1 已完成
+                跳过已完成的 phase
+                </?01M02NT0VSHP4X4MS3WEX30ZDA>
+              )>
+              <Case { id = "discuss-生成-context-md" name = "discuss 生成 context.md" } (
+                <Given ?01M02NT0VSHP4X4MS3WEX30ZDB>
+                用户需要在执行前讨论某 phase 的实现方案
+                </?01M02NT0VSHP4X4MS3WEX30ZDB>
+                <When ?01M02NT0VSHP4X4MS3WEX30ZDC>
+                用户运行 `/codument:discuss`
+                </?01M02NT0VSHP4X4MS3WEX30ZDC>
+                <Then ?01M02NT0VSHP4X4MS3WEX30ZDD>
+                系统引导用户讨论并将决策记录到 track 目录的 `context.md`
+                </?01M02NT0VSHP4X4MS3WEX30ZDD>
+              )>
+              <Case { id = "verify-独立验证" name = "verify 独立验证" } (
+                <Given ?01M02NT0VSHP4X4MS3WEX30ZDE>
+                用户完成了 wave 执行
+                </?01M02NT0VSHP4X4MS3WEX30ZDE>
+                <When ?01M02NT0VSHP4X4MS3WEX30ZDF>
+                用户运行 `/codument:verify`
+                </?01M02NT0VSHP4X4MS3WEX30ZDF>
+                <Then ?01M02NT0VSHP4X4MS3WEX30ZDG>
+                系统启动独立验证子代理
+                验证 must_haves 与实际代码库的一致性
+                </?01M02NT0VSHP4X4MS3WEX30ZDG>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/plan-xml-格式" } (
+      <Requirement { id = "plan-xml-格式" } (
+        <Statement ?01M02NT0VSHP4X4MS3WEX30ZDH>
+        系统应当（SHALL）定义结构化的 plan.xml 格式，包含：
+        - metadata 元数据（含 commit_mode、execution_mode）
+        - milestones 里程碑
+        - phases 阶段（含 waves 声明、context_files）
+        - tasks 任务（状态在属性中，含 wave 属性）
+        - subtasks 子任务（支持递归嵌套、detail_ref 外链）
+        - acceptance_criteria 验收标准
+        - gate_criteria 阶段门控标准
+        - wave_config 波次配置
+        - validations 验证
+        - risks 风险
+        - summary 统计
+        </?01M02NT0VSHP4X4MS3WEX30ZDH>
+        <Suites [
+          <Suite { name = "plan-xml-格式" } (
+            <Cases [
+              <Case { id = "解析-plan-xml" name = "解析 plan.xml" } (
+                <Given ?01M02NT0VSHP4X4MS3WEX30ZDJ>
+                系统需要读取任务信息
+                </?01M02NT0VSHP4X4MS3WEX30ZDJ>
+                <When ?01M02NT0VSHP4X4MS3WEX30ZDK>
+                系统读取 plan.xml 文件
+                </?01M02NT0VSHP4X4MS3WEX30ZDK>
+                <Then ?01M02NT0VSHP4X4MS3WEX30ZDM>
+                系统能正确解析所有元素和属性
+                系统能识别 commit_mode 和 execution_mode 设置
+                </?01M02NT0VSHP4X4MS3WEX30ZDM>
+              )>
+              <Case { id = "更新任务状态" name = "更新任务状态" } (
+                <Given ?01M02NT0VSHP4X4MS3WEX30ZDN>
+                任务已完成
+                </?01M02NT0VSHP4X4MS3WEX30ZDN>
+                <When ?01M02NT0VSHP4X4MS3WEX30ZDP>
+                系统更新 plan.xml
+                </?01M02NT0VSHP4X4MS3WEX30ZDP>
+                <Then ?01M02NT0VSHP4X4MS3WEX30ZDQ>
+                系统更新任务的 status 属性
+                系统更新 acceptance_criteria 的 checked 属性
+                </?01M02NT0VSHP4X4MS3WEX30ZDQ>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/metadata-json-职责精简" } (
+      <Requirement { id = "metadata-json-职责精简" } (
+        <Statement ?01M02NT0VSHP4X4MS3WEX30ZDR>
+        系统应当（SHALL）将 metadata.json 的职责限定为项目级元数据，移除与 plan.xml 重复的字段：
+        - `commit_mode` 仅在 plan.xml 的 `&lt;metadata&gt;&lt;commit_mode&gt;` 中维护，从 metadata.json 中移除
+        - metadata.json 的 `status` 语义明确为项目级状态（如 codument init 所处阶段），track 执行状态仅在 plan.xml 的 `&lt;metadata&gt;&lt;status&gt;` 中维护
+        </?01M02NT0VSHP4X4MS3WEX30ZDR>
+        <Suites [
+          <Suite { name = "metadata-json-职责精简" } (
+            <Cases [
+              <Case { id = "metadata-json-不含-commitmode" name = "metadata.json 不含 commit_mode" } (
+                <Given ?01M02NT0VSHP4X4MS3WEX30ZDS>
+                用户创建新 track
+                </?01M02NT0VSHP4X4MS3WEX30ZDS>
+                <When ?01M02NT0VSHP4X4MS3WEX30ZDT>
+                系统生成 metadata.json
+                </?01M02NT0VSHP4X4MS3WEX30ZDT>
+                <Then ?01M02NT0VSHP4X4MS3WEX30ZDV>
+                metadata.json 不包含 `commit_mode` 字段
+                commit_mode 仅在 plan.xml 的 `&lt;metadata&gt;` 中声明
+                </?01M02NT0VSHP4X4MS3WEX30ZDV>
+              )>
+              <Case { id = "读取-commitmode" name = "读取 commit_mode" } (
+                <Given ?01M02NT0VSHP4X4MS3WEX30ZDW>
+                系统需要获取 track 的提交模式
+                </?01M02NT0VSHP4X4MS3WEX30ZDW>
+                <When ?01M02NT0VSHP4X4MS3WEX30ZDX>
+                系统读取配置
+                </?01M02NT0VSHP4X4MS3WEX30ZDX>
+                <Then ?01M02NT0VSHP4X4MS3WEX30ZDY>
+                系统从 plan.xml 的 `&lt;commit_mode&gt;` 读取
+                不从 metadata.json 读取
+                </?01M02NT0VSHP4X4MS3WEX30ZDY>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/task-级别-dependencies" } (
+      <Requirement { id = "task-级别-dependencies" } (
+        <Statement ?01M02NT0VSHP4X4MS3WEX30ZDZ>
+        **原因**：依赖关系由 wave DAG（`&lt;waves&gt;` 中的 `&lt;wave depends_on=&quot;...&quot;&gt;`) 统一表达，task 级别的 `&lt;dependencies&gt;` 标签成为冗余信息源，存在两套依赖互相矛盾的风险。
+        **迁移**：从 plan-xml-spec、提示词、解析器中移除 `&lt;dependencies&gt;` 相关描述和代码。旧归档 plan.xml 中的 `&lt;dependencies&gt;` 保留不动，但不再被解析器使用。
+        </?01M02NT0VSHP4X4MS3WEX30ZDZ>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/metadata-json-中的-commitmode-字段" } (
+      <Requirement { id = "metadata-json-中的-commitmode-字段" } (
+        <Statement ?01M02NT0VSHP4X4MS3WEX30ZE0>
+        **原因**：与 plan.xml 中的 `&lt;commit_mode&gt;` 重复，存在不一致风险。
+        **迁移**：从 metadata.json 模板和生成逻辑中移除 `commit_mode`。现有 track 的 metadata.json 中若包含该字段，解析器忽略即可。
+        </?01M02NT0VSHP4X4MS3WEX30ZE0>
+      )>
+    )>
+  ]>
+)>

@@ -18,7 +18,14 @@ function makeTempDir(prefix: string): string {
 
 function writeFile(filePath: string, content: string): void {
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
-  fs.writeFileSync(filePath, content, 'utf-8');
+  const normalized = path.extname(filePath) === '.xnl'
+    ? content.replace(/^<decision (#[^\s{>]+)([^\n]*)$/gm, (line, id, suffix) => (
+      suffix.includes('apiVersion=')
+        ? line
+        : `<decision ${id} apiVersion="codument.tech/v1alpha1"${suffix}`
+    ))
+    : content;
+  fs.writeFileSync(filePath, normalized, 'utf-8');
 }
 
 function writeTrackXml(trackDir: string, trackId: string, updatedAt = '2026-05-30T14:32:00+08:00'): void {
@@ -187,7 +194,7 @@ describe('codument archive', () => {
     }
   });
 
-  it('archives root decisions.xnl and recursively nested decisions/**/*.xnl as one source set', async () => {
+  it('archives recursively nested decisions/**/*.xnl as one business-owned source set', async () => {
     const repoRoot = path.resolve(__dirname, '../../..');
     const cliEntry = path.join(repoRoot, 'src/cli/index.ts');
     const ws = makeTempDir('codument-archive-decision-source-set-red-ws-');
@@ -197,9 +204,9 @@ describe('codument archive', () => {
     writeAttractorProfiles(ws, false);
     writeTrackXml(trackDir, trackId);
     writeFile(path.join(trackDir, 'proposal.md'), '# Proposal\n\nArchive every XNL decision source.\n');
-    fs.copyFileSync(
-      path.join(FULL_FIDELITY_DECISION_FIXTURE, 'decisions.xnl'),
-      path.join(trackDir, 'decisions.xnl'),
+    writeFile(
+      path.join(trackDir, 'decisions', 'platform', 'registry-format.xnl'),
+      fs.readFileSync(path.join(FULL_FIDELITY_DECISION_FIXTURE, 'decisions.xnl'), 'utf-8'),
     );
     fs.cpSync(
       path.join(FULL_FIDELITY_DECISION_FIXTURE, 'decisions'),
@@ -272,8 +279,8 @@ describe('codument archive', () => {
     writeAttractorProfiles(ws, false);
     writeTrackXml(trackDir, trackId);
     writeFile(path.join(trackDir, 'proposal.md'), '# Proposal\n\nKeep decision promotion idempotent.\n');
-    writeFile(path.join(trackDir, 'decisions.xnl'), decision);
-    writeFile(path.join(ws, 'codument', 'decisions', 'registry.xnl'), decision);
+    writeFile(path.join(trackDir, 'decisions', 'archive', 'idempotency.xnl'), decision);
+    writeFile(path.join(ws, 'codument', 'decisions', 'archive', 'idempotency.xnl'), decision);
 
     const proc = Bun.spawn([
       'bun',
@@ -299,7 +306,7 @@ describe('codument archive', () => {
 
     const decisionRoot = path.join(ws, 'codument', 'decisions');
     expect(recursiveFiles(decisionRoot, '.xnl')).toEqual([
-      path.join(decisionRoot, 'registry.xnl'),
+      path.join(decisionRoot, 'archive', 'idempotency.xnl'),
     ]);
     expect(recursiveFiles(decisionRoot, '.md')).toHaveLength(0);
     expect(stdout).not.toContain('Promoted decision record');
@@ -342,7 +349,7 @@ describe('codument archive', () => {
     ] as const) {
       writeTrackXml(trackDir, trackId, updatedAt);
       writeFile(path.join(trackDir, 'proposal.md'), '# Proposal\n\nRepeat the same decision safely.\n');
-      writeFile(path.join(trackDir, 'decisions.xnl'), decision);
+      writeFile(path.join(trackDir, 'decisions', 'archive', 'marker-idempotency.xnl'), decision);
     }
 
     const runArchive = async (trackId: string) => {
@@ -384,7 +391,7 @@ describe('codument archive', () => {
     ).toHaveLength(1);
   });
 
-  it('deduplicates equivalent stable ids discovered in root and recursive XNL sources', async () => {
+  it('deduplicates equivalent stable ids discovered across recursive XNL owner sources', async () => {
     const repoRoot = path.resolve(__dirname, '../../..');
     const cliEntry = path.join(repoRoot, 'src/cli/index.ts');
     const ws = makeTempDir('codument-archive-decision-source-dedup-ws-');
@@ -409,8 +416,8 @@ describe('codument archive', () => {
     writeAttractorProfiles(ws, false);
     writeTrackXml(trackDir, trackId);
     writeFile(path.join(trackDir, 'proposal.md'), '# Proposal\n\nDeduplicate equivalent sources.\n');
-    writeFile(path.join(trackDir, 'decisions.xnl'), decision);
-    writeFile(path.join(trackDir, 'decisions', 'nested', 'same.xnl'), decision);
+    writeFile(path.join(trackDir, 'decisions', 'platform', 'first.xnl'), decision);
+    writeFile(path.join(trackDir, 'decisions', 'platform', 'same.xnl'), decision);
 
     const proc = Bun.spawn([
       'bun',
@@ -454,7 +461,7 @@ describe('codument archive', () => {
     writeAttractorProfiles(ws, false);
     writeTrackXml(trackDir, trackId);
     writeFile(path.join(trackDir, 'proposal.md'), '# Proposal\n\nReject invalid references.\n');
-    writeFile(path.join(trackDir, 'decisions.xnl'), `<decision #track.archive_invalid_reference {
+    writeFile(path.join(trackDir, 'decisions', 'validation', 'invalid-reference.xnl'), `<decision #track.archive_invalid_reference {
   status = "accepted"
   durable_candidate = true
   depends_on = ["track.missing_dependency"]
@@ -488,9 +495,9 @@ describe('codument archive', () => {
     writeAttractorProfiles(ws, false);
     writeTrackXml(trackDir, trackId);
     writeFile(path.join(trackDir, 'proposal.md'), '# Proposal\n\nPreserve the complete decision forest.\n');
-    fs.copyFileSync(
-      path.join(FULL_FIDELITY_DECISION_FIXTURE, 'decisions.xnl'),
-      path.join(trackDir, 'decisions.xnl'),
+    writeFile(
+      path.join(trackDir, 'decisions', 'platform', 'registry-format.xnl'),
+      fs.readFileSync(path.join(FULL_FIDELITY_DECISION_FIXTURE, 'decisions.xnl'), 'utf-8'),
     );
 
     const proc = Bun.spawn([
@@ -517,8 +524,6 @@ describe('codument archive', () => {
     const registryRoot = path.join(ws, 'codument', 'decisions');
     const xnlFiles = recursiveFiles(registryRoot, '.xnl');
 
-    // RED: the legacy implementation writes flattened decision.md summaries, so
-    // no canonical XNL AST exists and every assertion below is currently violated.
     expect(xnlFiles.length).toBeGreaterThan(0);
     expect(recursiveFiles(registryRoot, '.md')).toHaveLength(0);
 
@@ -619,7 +624,7 @@ describe('codument archive', () => {
     writeTrackXml(firstTrackDir, firstTrackId, '2026-05-30T14:31:00+08:00');
     writeFile(path.join(firstTrackDir, 'proposal.md'), '# Proposal\n\nFirst decision owner.\n');
     writeFile(
-      path.join(firstTrackDir, 'decisions.xnl'),
+      path.join(firstTrackDir, 'decisions', 'archive', 'shared-policy.xnl'),
       sharedDecision('Use the first registry policy.', 'Approved by the first archive.'),
     );
 
@@ -647,7 +652,7 @@ describe('codument archive', () => {
     writeTrackXml(secondTrackDir, secondTrackId, '2026-05-30T14:32:00+08:00');
     writeFile(path.join(secondTrackDir, 'proposal.md'), '# Proposal\n\nConflicting decision owner.\n');
     writeFile(
-      path.join(secondTrackDir, 'decisions.xnl'),
+      path.join(secondTrackDir, 'decisions', 'archive', 'shared-policy.xnl'),
       sharedDecision('Use a conflicting registry policy.', 'Approved by the second archive.'),
     );
 
@@ -684,7 +689,7 @@ describe('codument archive', () => {
     ).toBe(false);
   });
 
-  it('uses track UpdatedAt minute prefix for explicit legacy Markdown compatibility and memory promotion', async () => {
+  it('uses track UpdatedAt minute prefix for memory promotion', async () => {
     const repoRoot = path.resolve(__dirname, '../../..');
     const cliEntry = path.join(repoRoot, 'src/cli/index.ts');
     const ws = makeTempDir('codument-archive-ws-');
@@ -697,7 +702,6 @@ describe('codument archive', () => {
     writeTrackXml(trackDir, trackId);
     writeFile(path.join(trackDir, 'spec.md'), '## ADDED Requirements\n### Requirement: X\n#### Scenario: Y\n');
     writeFile(path.join(trackDir, 'proposal.md'), '# Proposal\n\nArchive behavior.\n');
-    writeFile(path.join(trackDir, 'decisions.md'), '# Decisions\n\n### Durable\nUse new archive layout.\n');
     writeFile(path.join(trackDir, 'memory', 'patterns', 'archive-layout.md'), '# Archive Layout\n\nUse minute-level archive prefixes.\n');
 
     const proc = Bun.spawn([
@@ -724,10 +728,6 @@ describe('codument archive', () => {
     const archived = fs.readdirSync(archiveRoot).find((name) => name.endsWith(trackId));
     expect(archived).toBeDefined();
     expect(archived).toContain('2026-05-30');
-    const decisionRoot = path.join(ws, 'codument', 'decisions', '2026-05');
-    expect(fs.existsSync(decisionRoot)).toBe(true);
-    const decisionDir = fs.readdirSync(decisionRoot)[0];
-    expect(fs.readFileSync(path.join(decisionRoot, decisionDir, 'decision.md'), 'utf-8')).toContain('decision://archive-minute-prefix');
     const memoryRoot = path.join(ws, 'codument', 'memory', 'patterns', '2026-05');
     expect(fs.existsSync(memoryRoot)).toBe(true);
     const memoryDir = fs.readdirSync(memoryRoot)[0];
@@ -735,18 +735,25 @@ describe('codument archive', () => {
     expect(fs.existsSync(path.join(ws, 'codument', 'memory', 'index.md'))).toBe(false);
   });
 
-  it('does not promote non-durable decisions or synthesize memory summaries', async () => {
+  it('does not promote non-durable decisions or explicit memory candidates when the memory profile is disabled', async () => {
     const repoRoot = path.resolve(__dirname, '../../..');
     const cliEntry = path.join(repoRoot, 'src/cli/index.ts');
     const ws = makeTempDir('codument-archive-no-promotion-ws-');
     const trackId = 'archive-no-promotion';
     const trackDir = path.join(ws, 'codument', 'tracks', 'active', trackId);
 
-    writeAttractorProfiles(ws, true);
+    writeAttractorProfiles(ws, false);
     writeTrackXml(trackDir, trackId);
     writeFile(path.join(trackDir, 'spec.md'), '## ADDED Requirements\n### Requirement: X\n#### Scenario: Y\n');
     writeFile(path.join(trackDir, 'proposal.md'), '# Proposal\n\nArchive behavior.\n');
-    writeFile(path.join(trackDir, 'decisions.md'), '# Decisions\n\n### 1. Local choice\nUse temporary debug logging.\n');
+    writeFile(path.join(trackDir, 'memory', 'patterns', 'disabled.md'), '# Disabled\n\nDo not promote this candidate.\n');
+    writeFile(path.join(trackDir, 'decisions.xnl'), `<decision #track.archive_no_promotion.local {
+  status = "accepted"
+  durable_candidate = false
+} (
+  <question ?>Use temporary debug logging?</?>
+)>
+`);
 
     const proc = Bun.spawn([
       'bun',
@@ -772,7 +779,7 @@ describe('codument archive', () => {
     expect(fs.existsSync(path.join(ws, 'codument', 'memory'))).toBe(false);
   });
 
-  it('merges durable root decisions.xnl records into the canonical XNL registry', async () => {
+  it('requires a business-semantic owner path for durable root decisions.xnl records', async () => {
     const repoRoot = path.resolve(__dirname, '../../..');
     const cliEntry = path.join(repoRoot, 'src/cli/index.ts');
     const ws = makeTempDir('codument-archive-xnl-decision-ws-');
@@ -813,19 +820,10 @@ describe('codument archive', () => {
 
     const exitCode = await proc.exited;
     const err = await new Response(proc.stderr).text();
-    expect(err).toBe('');
-    expect(exitCode).toBe(0);
-
-    const promotedPath = path.join(ws, 'codument', 'decisions', 'registry.xnl');
-    const promoted = fs.readFileSync(promotedPath, 'utf-8');
-    expect(promoted).toContain('#track.archive_xnl_decision.promote_durable');
-    expect(promoted).toContain('The user approved decisions.xnl as the canonical carrier.');
-    expect(fs.existsSync(path.join(ws, 'codument', 'decisions', '2026-05'))).toBe(false);
-    const archiveRoot = path.join(ws, 'codument', 'tracks', 'archived', '2026-05');
-    const archived = fs.readdirSync(archiveRoot).find((name) => name.endsWith(trackId))!;
-    expect(fs.readFileSync(path.join(archiveRoot, archived, 'summary.md'), 'utf-8')).toContain(
-      'track.archive_xnl_decision.promote_durable',
-    );
+    expect(exitCode).not.toBe(0);
+    expect(err).toContain('business-semantic owner path under decisions/**');
+    expect(fs.existsSync(trackDir)).toBe(true);
+    expect(fs.existsSync(path.join(ws, 'codument', 'decisions', 'registry.xnl'))).toBe(false);
   });
 
   it('rejects malformed decisions.xnl before registry mutation or track movement', async () => {
@@ -853,7 +851,7 @@ describe('codument archive', () => {
     }
   });
 
-  it('keeps explicit legacy decision-directory Markdown promotion as a compatibility fallback', async () => {
+  it('blocks legacy decision-directory Markdown until upgrade-resource and AI review', async () => {
     const repoRoot = path.resolve(__dirname, '../../..');
     const cliEntry = path.join(repoRoot, 'src/cli/index.ts');
     const ws = makeTempDir('codument-archive-decision-dir-ws-');
@@ -884,30 +882,13 @@ describe('codument archive', () => {
 
     const exitCode = await proc.exited;
     const err = await new Response(proc.stderr).text();
-    expect(err).toBe('');
-    expect(exitCode).toBe(0);
-
-    const decisionRoot = path.join(ws, 'codument', 'decisions', '2026-05');
-    const promotedDirs = fs.readdirSync(decisionRoot).sort();
-    expect(promotedDirs).toHaveLength(2);
-    for (const dirName of promotedDirs) {
-      expect(fs.existsSync(path.join(decisionRoot, dirName, 'decision.md'))).toBe(true);
-    }
-    const xmlDecision = fs.readFileSync(path.join(
-      decisionRoot,
-      promotedDirs.find((dirName) => dirName.endsWith('use-xml-specs'))!,
-      'decision.md'
-    ), 'utf-8');
-    const markdownDecision = fs.readFileSync(path.join(
-      decisionRoot,
-      promotedDirs.find((dirName) => dirName.endsWith('keep-markdown-compat'))!,
-      'decision.md'
-    ), 'utf-8');
-    expect(xmlDecision).toContain('Decision URI: decision://use-xml-specs');
-    expect(markdownDecision).toContain('Decision URI: decision://keep-markdown-compat');
+    expect(exitCode).not.toBe(0);
+    expect(err).toContain('upgrade-resource and AI review');
+    expect(fs.existsSync(trackDir)).toBe(true);
+    expect(fs.existsSync(path.join(ws, 'codument', 'decisions'))).toBe(false);
   });
 
-  it('keeps legacy Markdown decision compatibility inside Codument and ignores old knowledge sync targets', async () => {
+  it('does not route legacy Decision Markdown through old knowledge sync targets', async () => {
     const repoRoot = path.resolve(__dirname, '../../..');
     const cliEntry = path.join(repoRoot, 'src/cli/index.ts');
     const ws = makeTempDir('codument-archive-knowledge-sync-ws-');
@@ -945,15 +926,9 @@ describe('codument archive', () => {
 
     const exitCode = await proc.exited;
     const err = await new Response(proc.stderr).text();
-    expect(err).toBe('');
-    expect(exitCode).toBe(0);
-
-    const decisionRoot = path.join(ws, 'codument', 'decisions', '2026-05');
-    expect(fs.existsSync(decisionRoot)).toBe(true);
-    const promotedDecisionDir = fs.readdirSync(decisionRoot)[0];
-    const promotedDecision = fs.readFileSync(path.join(decisionRoot, promotedDecisionDir, 'decision.md'), 'utf-8');
-    expect(promotedDecision).toContain('Decision URI: decision://use-docs-sync');
-    expect(promotedDecision).toContain('Source: archive://');
+    expect(exitCode).not.toBe(0);
+    expect(err).toContain('upgrade-resource and AI review');
+    expect(fs.existsSync(trackDir)).toBe(true);
     expect(fs.existsSync(path.join(ws, 'docs', '2026-05'))).toBe(false);
   });
 
@@ -974,7 +949,6 @@ describe('codument archive', () => {
     }, null, 2));
     writeTrackXml(trackDir, trackId);
     writeFile(path.join(trackDir, 'proposal.md'), '# Proposal\n\nArchive missing knowledge target behavior.\n');
-    writeFile(path.join(trackDir, 'decisions', 'external-docs.md'), '# External Docs\n\n### Durable\nDo not create missing external roots silently.\n');
 
     const proc = Bun.spawn([
       'bun',
@@ -1057,7 +1031,7 @@ describe('codument archive', () => {
     expect(updatedSpec).not.toContain('id="old-case"');
   });
 
-  it('applies recursive behavior_deltas XML patches and creates missing capability registries', async () => {
+  it('applies recursive BehaviorPatch XNL and creates missing capability registries', async () => {
     const repoRoot = path.resolve(__dirname, '../../..');
     const cliEntry = path.join(repoRoot, 'src/cli/index.ts');
     const ws = makeTempDir('codument-archive-behavior-deltas-ws-');
@@ -1083,20 +1057,26 @@ describe('codument archive', () => {
     }, null, 2));
     writeFile(path.join(trackDir, 'proposal.md'), '# proposal\n');
     writeTrackXml(trackDir, trackId, '2026-05-30T02:03:00Z');
-    writeFile(path.join(trackDir, 'behavior_deltas', 'provider.deepseek', 'delta.xml'), `<behavior-patch capability="provider.deepseek" version="1">
-  <upsert selector="behavior://provider.deepseek/requirements/cache-support">
-    <requirement id="cache-support">
-      <statement>系统 SHALL 支持 DeepSeek 前缀缓存。</statement>
-      <suite id="request-build" name="请求构建">
-        <case id="inject-cache-control">
-          <given>provider 为 deepseek</given>
-          <when>系统构造请求</when>
-          <then>系统 SHALL 插入 cache_control</then>
-        </case>
-      </suite>
-    </requirement>
-  </upsert>
-</behavior-patch>
+    writeFile(path.join(trackDir, 'behavior_deltas', 'provider.deepseek', 'delta.xnl'), `<BehaviorPatch #track.add-deepseek-cache.behavior_patch.provider.deepseek apiVersion="codument.tech/v1alpha1" version="1" { capability = "provider.deepseek" } (
+  <Mutations [
+    <Upsert { selector = "behavior://provider.deepseek/requirements/cache-support" } (
+      <Requirement #cache-support (
+        <Statement ?>系统 SHALL 支持 DeepSeek 前缀缓存。</?>
+        <Suites [
+          <Suite #request-build { name = "请求构建" } (
+            <Cases [
+              <Case #inject-cache-control (
+                <Given ?>provider 为 deepseek</?>
+                <When ?>系统构造请求</?>
+                <Then ?>系统 SHALL 插入 cache_control</?>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+  ]>
+)>
 `);
 
     const proc = Bun.spawn([
@@ -1119,12 +1099,12 @@ describe('codument archive', () => {
     expect(err).toBe('');
     expect(exitCode).toBe(0);
 
-    const behaviorPath = path.join(ws, 'codument', 'behaviors', 'provider.deepseek.xml');
+    const behaviorPath = path.join(ws, 'codument', 'behaviors', 'provider.deepseek.xnl');
     expect(fs.existsSync(behaviorPath)).toBe(true);
     const updatedBehavior = fs.readFileSync(behaviorPath, 'utf-8');
-    expect(updatedBehavior).toContain('<behaviors capability="provider.deepseek"');
-    expect(updatedBehavior).toContain('id="cache-support"');
-    expect(updatedBehavior).toContain('inject-cache-control');
+    expect(updatedBehavior).toContain('<Behavior #provider.deepseek apiVersion="codument.tech/v1alpha1"');
+    expect(updatedBehavior).toContain('<Requirement #cache-support');
+    expect(updatedBehavior).toContain('<Case #inject-cache-control');
   });
 
   it('commits behavior, modeling, engineering, and decision registries before moving the track', async () => {
@@ -1171,7 +1151,7 @@ describe('codument archive', () => {
     );
     fs.writeFileSync(path.join(trackDir, 'track.xml'), trackXml, 'utf-8');
     writeFile(path.join(trackDir, 'proposal.md'), '# Proposal\n\nArchive all registries together.\n');
-    writeFile(path.join(trackDir, 'decisions.xnl'), `<decision #track.archive_all_registries.atomic {
+    writeFile(path.join(trackDir, 'decisions', 'archive', 'atomicity.xnl'), `<decision #track.archive_all_registries.atomic {
   status = "accepted"
   durable_candidate = true
 }
@@ -1233,13 +1213,13 @@ describe('codument archive', () => {
     expect(stderr).toBe('');
     expect(exitCode).toBe(0);
 
-    const behavior = fs.readFileSync(path.join(ws, 'codument', 'behaviors', 'orders.xml'), 'utf-8');
+    const behavior = fs.readFileSync(path.join(ws, 'codument', 'behaviors', 'orders.xnl'), 'utf-8');
     const modeling = fs.readFileSync(
       path.join(ws, 'codument', 'modeling', 'domain', 'orders', 'index.xnl'),
       'utf-8',
     );
     const engineering = fs.readFileSync(path.join(ws, 'codument', 'engineering', 'global', 'howto', 'orders.xnl'), 'utf-8');
-    const decision = fs.readFileSync(path.join(ws, 'codument', 'decisions', 'registry.xnl'), 'utf-8');
+    const decision = fs.readFileSync(path.join(ws, 'codument', 'decisions', 'archive', 'atomicity.xnl'), 'utf-8');
     expect(behavior).toContain('Archive commits every applicable registry together.');
     expect(modeling).toContain('#orders.order');
     expect(engineering).toContain('#global.howto.orders.add_endpoint');
@@ -1249,7 +1229,7 @@ describe('codument archive', () => {
     expect(stdout).toContain('✓ Updated behavior/spec registry: orders');
     expect(stdout).toContain(`✓ Updated modeling registry: ${path.join('domain', 'orders', 'index.xnl')}`);
     expect(stdout).toContain(`✓ Updated engineering registry: ${path.join('global', 'howto', 'orders.xnl')}`);
-    expect(stdout).toContain('✓ Updated decision registry: registry.xnl');
+    expect(stdout).toContain(`✓ Updated decision registry: ${path.join('archive', 'atomicity.xnl')}`);
   });
 
   it('three-way merges disjoint modeling registry and track changes when modeling is enabled', async () => {
@@ -1336,6 +1316,46 @@ describe('codument archive', () => {
     expect(validation.exitCode).toBe(0);
     expect(validation.stdout).toContain('✓ modeling validate: no issues');
     expect(fs.existsSync(trackDir)).toBe(false);
+  });
+
+  it('blocks modeling archive when an existing registry has no Track merge base', async () => {
+    const repoRoot = path.resolve(__dirname, '../../..');
+    const cliEntry = path.join(repoRoot, 'src/cli/index.ts');
+    const ws = makeTempDir('codument-archive-modeling-base-ws-');
+    const trackId = 'missing-modeling-base';
+    const trackDir = path.join(ws, 'codument', 'tracks', 'active', trackId);
+
+    writeModelingConfig(ws);
+    writeFile(path.join(ws, 'codument', 'modeling', 'domain', 'orders', 'index.xnl'), `<object #orders.order { kind = "entity" fact_grade = "authoritative_fact" single_writer = "backend.order_store" } (
+  <desc ?>Existing registry state.</?>
+)>
+`);
+    writeTrackXml(trackDir, trackId, '2026-05-30T02:03:00Z');
+    writeFile(path.join(trackDir, 'proposal.md'), '# Proposal\n\nModeling delta without a captured base.\n');
+    writeFile(path.join(trackDir, 'modeling_deltas', 'domain', 'orders.xnl'), `<object #orders.order { kind = "entity" fact_grade = "authoritative_fact" single_writer = "backend.order_store" } (
+  <desc ?>Track registry state.</?>
+)>
+`);
+
+    const proc = Bun.spawn([
+      'bun',
+      'run',
+      cliEntry,
+      '--workspace-dir',
+      ws,
+      'archive',
+      trackId,
+      '--yes',
+      '--skip-specs',
+    ], {
+      cwd: repoRoot,
+      stdout: 'pipe',
+      stderr: 'pipe',
+    });
+
+    expect(await proc.exited).toBe(1);
+    expect(await new Response(proc.stderr).text()).toContain('no modeling_base_commit');
+    expect(fs.existsSync(trackDir)).toBe(true);
   });
 
   it('creates the modeling registry from a first valid delta when modeling is enabled', async () => {
@@ -1637,7 +1657,7 @@ describe('codument archive', () => {
     writeFile(behaviorPath, originalBehavior);
     writeTrackXml(trackDir, trackId, '2026-05-30T02:03:00+03:00');
     writeFile(path.join(trackDir, 'proposal.md'), '# Proposal\n\nTrack move rollback.\n');
-    writeFile(path.join(trackDir, 'decisions.xnl'), `<decision #track.rollback_after_move.decision {
+    writeFile(path.join(trackDir, 'decisions', 'archive', 'rollback.xnl'), `<decision #track.rollback_after_move.decision {
   status = "accepted"
   durable_candidate = true
 }>

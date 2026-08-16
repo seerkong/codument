@@ -10,14 +10,15 @@ function template(relative: string): string {
 
 describe('autonomous ordinary-task delegation', () => {
   it('lets the current AI choose local or delegated execution', () => {
-    const impl = template('codument/std/actions/impl-track.md');
+    const impl = template('codument/std/operations/impl-track.md');
     const workflow = template('codument/std/methods/workflow.md');
     const dag = template('codument/std/methods/dag-execution.md');
     const skill = template('skills/codument-impl-track/SKILL.md');
 
     expect(impl).toContain('选择 `local` 或 `delegated`');
     expect(impl).toContain('leaf/DAG 本身不意味着必须 fresh-spawn');
-    expect(impl).toContain('track executor 唯一拥有 `track.xml`');
+    expect(impl).toContain('track executor 拥有状态转换决策');
+    expect(impl).toContain('codument track task transition');
     expect(impl).not.toContain('不亲自写代码');
     expect(impl).not.toContain('对每个叶 `Task`，编排器 fresh-spawn');
     expect(workflow).toContain('普通叶任务由当前 AI');
@@ -26,13 +27,13 @@ describe('autonomous ordinary-task delegation', () => {
   });
 
   it('keeps mandatory isolation explicit', () => {
-    const impl = template('codument/std/actions/impl-track.md');
+    const impl = template('codument/std/operations/impl-track.md');
     const validation = template('codument/std/protocols/validation.md');
-    const verify = template('codument/std/actions/verify.md');
+    const verify = template('codument/std/operations/verify.md');
 
-    expect(impl).toContain('`cdt:GapLoop`、`cdt:AttractorCheck`、`codument-verify`');
-    expect(validation).toContain('每轮 **fresh-spawn** 一个独立子代理');
-    expect(validation).toContain('执行器固定 fresh-subagent');
+    expect(impl).toContain('`GapLoop`、`AttractorCheck`、`codument-verify`');
+    expect(validation).toContain('Each round uses a fresh child context');
+    expect(validation).toContain('The parent coordinator owns rounds');
     expect(verify).toContain('verify 必须用 fresh-subagent');
   });
 });

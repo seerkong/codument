@@ -2,7 +2,7 @@
   <Metadata>
     <Status>in_progress</Status>
     <Goal>add-csv-export 规范示例（track-xml-spec §4 + §5 组合，供 validate 防回归）</Goal>
-    <Description>track-xml-spec.md §4/§5 修正后的 canonical 组合示例；任何使示例不再合法的修改都会在此失败。</Description>
+    <Description>track-xnl-spec.md §4/§5 修正后的 canonical 组合示例；任何使示例不再合法的修改都会在此失败。</Description>
   </Metadata>
 
   <TaskSpace id="space_add-csv-export" name="add-csv-export" version="1">

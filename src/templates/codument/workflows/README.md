@@ -9,7 +9,7 @@ workflows/
 ```
 
 - 这里放的是**结构化、可被引擎执行的流程定义/实例**（`BTWorkflow` + `<Imports>`/`<Ports>`/`<Hook>`/`<TaskSpace>`/`<Extension>`），复用同一内核。
-- 与 codument 自身：codument track（`track.xml`）的 `<TaskSpace>` 与这里 BTWorkflow 的 task-space **同构**，可互相引用/嵌入；codument 的 `cdt:` check 是内置节点类型（配置在节点上），dynamic-workflow 侧也可用同名 kind。
+- 与 codument 自身：codument track（`track.xnl`）的 `<TaskSpace>` 与这里 BTWorkflow 的 task-space **同构**，可互相引用/嵌入；Codument XNL 使用无前缀 `AttractorCheck` / `GapLoop` / `HumanConfirm` 节点。
 - **业务自定义的执行流程（文字/SOP 型）不放这里**——放项目顶层 `codument/sop/`；内置共享方法在 `codument/std/methods/`。
 
 > 具体 definitions/instances 按项目需要补充。

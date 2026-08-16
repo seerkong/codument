@@ -1,0 +1,57 @@
+<Track #e2e-claude-tty apiVersion="codument.tech/v1alpha1" version="1" { status = "completed" goal = "让 run.sh 的 claude 分支获得伪 TTY，恢复 tool call 吞吐与实时可见性" description = "在 modeling-engineering 和 project-implementation 的 run_agent() 中，为 claude 分支使用 script 包裹调用，CI/headless 环境自动 fallback 到管道。" question_mode = "decision-tree" question_severity = "auto" commit_mode = "manual" created_at = "2026-08-16T13:57:31.390Z" updated_at = "2026-08-16T14:50:53.547Z" modeling_base_commit = "3f7ee9d56e871fadcec1354f32582326ad187b03" engineering_base_commit = "3f7ee9d56e871fadcec1354f32582326ad187b03" } (
+  <Ports { scope = "track" } [
+    <MaterialBundle { role = "input" name = "e2e-runners" domain = "code" path = "vfs://./e2e/" }>
+  ]>
+  <TaskSpace #space_e2e-claude-tty { name = "e2e-claude-tty" version = "1" } (
+    <SubNodes [
+      <TaskGroup #P1 { name = "改造 run.sh" status = "DONE" priority = "P0" order = 0 } (
+        <Description ?01M05GVC85BWQA6XJS74TTY95K>
+        修改 modeling-engineering/run.sh 和 project-implementation/run.sh 的 run_agent()，claude 分支使用 script 包裹并提供 fallback。
+        </?01M05GVC85BWQA6XJS74TTY95K>
+        <SubNodes [
+          <Task #P1-T1 { name = "实现 tty 调用辅助函数" status = "DONE" priority = "P0" order = 0 } (
+            <Description ?01M05GVC86J2C4T3CC0B28XPQM>
+            在 run.sh 中新增 run_agent_claude()，检测 script 可用性，可用时用 script -q /dev/null，不可用时 fallback 到原有管道。
+            </?01M05GVC86J2C4T3CC0B28XPQM>
+            <Acceptance [
+              <Criterion #P1-T1-AC1 { checked = true } ?01M05GVC86J2C4T3CC0B28XPQN>
+              macOS 本地运行时使用 script 包裹 claude。
+              </?01M05GVC86J2C4T3CC0B28XPQN>
+              <Criterion #P1-T1-AC2 { checked = true } ?01M05GVC86J2C4T3CC0B28XPQP>
+              CI/headless 环境无 script 时自动 fallback 到管道。
+              </?01M05GVC86J2C4T3CC0B28XPQP>
+            ]>
+          )>
+          <Task #P1-T2 { name = "应用 tty 调用到两个 runner" status = "DONE" priority = "P0" order = 1 } (
+            <Description ?01M05GVC86J2C4T3CC0B28XPQQ>
+            将 run_agent_claude() 接入 modeling-engineering/run.sh 和 project-implementation/run.sh。
+            </?01M05GVC86J2C4T3CC0B28XPQQ>
+            <Acceptance [
+              <Criterion #P1-T2-AC1 { checked = true } ?01M05GVC86J2C4T3CC0B28XPQR>
+              两个 runner 的 claude 分支均使用 tty 调用。
+              </?01M05GVC86J2C4T3CC0B28XPQR>
+              <Criterion #P1-T2-AC2 { checked = true } ?01M05GVC86J2C4T3CC0B28XPQS>
+              AGENT=codex 分支行为不变。
+              </?01M05GVC86J2C4T3CC0B28XPQS>
+            ]>
+          )>
+        ]>
+      )>
+      <TaskGroup #P2 { name = "验证 TTY 效果" status = "DONE" priority = "P0" order = 1 } (
+        <Description ?01M05GVC86J2C4T3CC0B28XPQT>
+        运行 todo e2e (plan-only) 验证 _agent-plan.log 包含中间工具调用输出，且 planning 时间不差于管道模式。
+        </?01M05GVC86J2C4T3CC0B28XPQT>
+        <Acceptance [
+          <Criterion #P2-AC1 { checked = true } ?01M05GVC86J2C4T3CC0B28XPQV>
+          _agent-plan.log 包含 codument track create 等中间 CLI 调用记录。
+          </?01M05GVC86J2C4T3CC0B28XPQV>
+          <Criterion #P2-AC2 { checked = true } ?01M05GVC86J2C4T3CC0B28XPQW>
+          todo plan-only 在 TTY 模式下 planning 时间合理。
+          </?01M05GVC86J2C4T3CC0B28XPQW>
+        ]>
+      )>
+    ]>
+  )>
+  <Schedule []>
+  <Hooks []>
+)>

@@ -111,11 +111,11 @@ Create a track:
 请使用 codument-plan-track skill, 创建 track: <track-id or description>
 ```
 
-A track is stored in `codument/tracks/<track-id>/` and uses `track.xml` as the state source. A typical track contains:
+A track is stored in `codument/tracks/<track-id>/` and uses `track.xnl` as the state source. A typical track contains:
 
 ```text
 codument/tracks/<track-id>/
-  track.xml
+  track.xnl
   proposal.md
   design.md
   decisions.md
@@ -170,16 +170,23 @@ codument/missions/
   archived/
 ```
 
-Each mission has `mission.xml`, `proposal.md`, and `design.md`. The mission DAG coordinates groups of tasks and can bind leaf tasks to real tracks via `cdt:TrackLink`.
+Each mission has `mission.xnl`, `proposal.md`, and `design.md`. The mission DAG coordinates groups of tasks and can bind leaf tasks to real tracks via `TrackLink`.
 
 ## CLI Commands
 
 ```bash
 codument init [--agent <tool[,tool...]>] [--skills-dir <path>] [--force]
 codument upgrade-workspace [--agent <tool[,tool...]>] [--skills-dir <path>]
+codument upgrade-resource <path> [--json]
+codument migrate inspect|plan|apply|verify <path> [--json]
 codument upgrade-track <track-id-or-archive-id>
+codument track create <id> --stage pending|active
+codument mission create <id> --stage pending|active
+codument behavior-patch create <track-id> <capability>
 codument list [--behaviors] [--json]
-codument show [item] [--json]
+codument show [item] [--json] [--include-content]
+codument track ready <id> [--json]
+codument track task complete <id> <task-id> [--json] -- <verification-command> [args...]
 codument validate [item] [--strict]
 codument archive <track-id> [--yes]
 codument modeling lint

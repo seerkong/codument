@@ -1,0 +1,119 @@
+<decision #track.add_quick_impl_and_preplan_discuss.legacy.d01 apiVersion="codument.tech/v1alpha1" { kind = "historical-decision" status = "accepted" durable_candidate = false legacy_source = "codument/tracks/active/add-quick-impl-and-preplan-discuss/decisions.md" } (
+  <question ?m>
+  D1: quick impl 不创建 track
+  </?m>
+  <answer {  } (
+    <raw-answer ?m>
+    状态：accepted
+
+    `codument-impl-quick` 是小改动入口，默认不创建 track/proposal/behavior delta。若发现任务实际超出 quick 范围，停止并建议创建 track/mission。
+    </?m>
+    <decision-text ?m>
+    状态：accepted
+
+    `codument-impl-quick` 是小改动入口，默认不创建 track/proposal/behavior delta。若发现任务实际超出 quick 范围，停止并建议创建 track/mission。
+    </?m>
+    <rationale ?m>
+    历史 Markdown 没有独立 rationale 字段；决策上下文与理由保留在 raw-answer。
+    </?m>
+    <evidence ?m>
+    从 legacy decisions.md 保真迁移；完整原始段落保存在 raw-answer。
+    </?m>
+  )>
+)>
+
+<decision #track.add_quick_impl_and_preplan_discuss.legacy.d02 apiVersion="codument.tech/v1alpha1" { kind = "historical-decision" status = "accepted" durable_candidate = false legacy_source = "codument/tracks/active/add-quick-impl-and-preplan-discuss/decisions.md" } (
+  <question ?m>
+  D2: quick 可提示沉淀 modeling/engineering
+  </?m>
+  <answer {  } (
+    <raw-answer ?m>
+    状态：accepted
+
+    quick 实现过程中若发现稳定结构知识或工程知识，可提示写入 `codument/modeling` 或 `codument/engineering`；不得静默沉淀。
+    </?m>
+    <decision-text ?m>
+    状态：accepted
+
+    quick 实现过程中若发现稳定结构知识或工程知识，可提示写入 `codument/modeling` 或 `codument/engineering`；不得静默沉淀。
+    </?m>
+    <rationale ?m>
+    历史 Markdown 没有独立 rationale 字段；决策上下文与理由保留在 raw-answer。
+    </?m>
+    <evidence ?m>
+    从 legacy decisions.md 保真迁移；完整原始段落保存在 raw-answer。
+    </?m>
+  )>
+)>
+
+<decision #track.add_quick_impl_and_preplan_discuss.legacy.d03 apiVersion="codument.tech/v1alpha1" { kind = "historical-decision" status = "accepted" durable_candidate = false legacy_source = "codument/tracks/active/add-quick-impl-and-preplan-discuss/decisions.md" } (
+  <question ?m>
+  D3: 新 discuss 不创建 discussion workspace
+  </?m>
+  <answer {  } (
+    <raw-answer ?m>
+    状态：accepted
+
+    `codument-discuss` 不创建 `codument/discussions/`。它必须先作为人机对话进行澄清；讨论内容和决策主要保留在 AI agent 对话上下文，临时 analysis 只写到 `codument/analysis/`。
+    </?m>
+    <decision-text ?m>
+    状态：accepted
+
+    `codument-discuss` 不创建 `codument/discussions/`。它必须先作为人机对话进行澄清；讨论内容和决策主要保留在 AI agent 对话上下文，临时 analysis 只写到 `codument/analysis/`。
+    </?m>
+    <rationale ?m>
+    历史 Markdown 没有独立 rationale 字段；决策上下文与理由保留在 raw-answer。
+    </?m>
+    <evidence ?m>
+    从 legacy decisions.md 保真迁移；完整原始段落保存在 raw-answer。
+    </?m>
+  )>
+)>
+
+<decision #track.add_quick_impl_and_preplan_discuss.legacy.d04 apiVersion="codument.tech/v1alpha1" { kind = "historical-decision" status = "accepted" durable_candidate = false legacy_source = "codument/tracks/active/add-quick-impl-and-preplan-discuss/decisions.md" } (
+  <question ?m>
+  D4: discuss analysis 生命周期
+  </?m>
+  <answer {  } (
+    <raw-answer ?m>
+    状态：accepted
+
+    每次触发 `codument-discuss` 时清理旧 `codument/analysis/`；讨论完毕准备创建 track/mission 前也清理 `codument/analysis/`。`codument/analysis/` 只用于 findings/knowledge 类临时材料，不用于保存 route 报告、决策树报告或推荐命令报告。
+    </?m>
+    <decision-text ?m>
+    状态：accepted
+
+    每次触发 `codument-discuss` 时清理旧 `codument/analysis/`；讨论完毕准备创建 track/mission 前也清理 `codument/analysis/`。`codument/analysis/` 只用于 findings/knowledge 类临时材料，不用于保存 route 报告、决策树报告或推荐命令报告。
+    </?m>
+    <rationale ?m>
+    历史 Markdown 没有独立 rationale 字段；决策上下文与理由保留在 raw-answer。
+    </?m>
+    <evidence ?m>
+    从 legacy decisions.md 保真迁移；完整原始段落保存在 raw-answer。
+    </?m>
+  )>
+)>
+
+<decision #track.add_quick_impl_and_preplan_discuss.legacy.d05 apiVersion="codument.tech/v1alpha1" { kind = "historical-decision" status = "accepted" durable_candidate = false legacy_source = "codument/tracks/active/add-quick-impl-and-preplan-discuss/decisions.md" } (
+  <question ?m>
+  D5: 统一 gitignore
+  </?m>
+  <answer {  } (
+    <raw-answer ?m>
+    状态：accepted
+
+    `codument init` / `codument upgrade-workspace` 在 `.gitignore` 已存在时确保包含 `codument/**/analysis` 与 `codument/**/reports`。
+    </?m>
+    <decision-text ?m>
+    状态：accepted
+
+    `codument init` / `codument upgrade-workspace` 在 `.gitignore` 已存在时确保包含 `codument/**/analysis` 与 `codument/**/reports`。
+    </?m>
+    <rationale ?m>
+    历史 Markdown 没有独立 rationale 字段；决策上下文与理由保留在 raw-answer。
+    </?m>
+    <evidence ?m>
+    从 legacy decisions.md 保真迁移；完整原始段落保存在 raw-answer。
+    </?m>
+  )>
+)>

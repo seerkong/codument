@@ -1,0 +1,61 @@
+<BehaviorPatch #track.migrate-track-kind-to-xnl.behavior_patch.codument-core apiVersion="codument.tech/v1alpha1" version="1" { capability = "codument-core" } (
+  <Mutations [
+    <Upsert { selector = "behavior://codument-core/requirements/track-xnl-authority" } (
+      <Requirement #track-xnl-authority (
+        <Statement ?01M02NT0VD4DRKCQYP1X1Z4CJY>
+        Codument SHALL 使用由 Halfcode Track KindDefinition 约束的 track.xnl 作为新 Track authority，并为 legacy track.xml 提供确定性迁移与只读兼容。
+        </?01M02NT0VD4DRKCQYP1X1Z4CJY>
+        <Suites [
+          <Suite #track-xnl { name = "Track XNL authority" } (
+            <Cases [
+              <Case #scaffold-xnl (
+                <Given ?01M02NT0VD4DRKCQYP1X1Z4CJZ>
+                workspace 已初始化
+                </?01M02NT0VD4DRKCQYP1X1Z4CJZ>
+                <When ?01M02NT0VD4DRKCQYP1X1Z4CK0>
+                CLI 只接收 id 与 stage 创建 Track
+                </?01M02NT0VD4DRKCQYP1X1Z4CK0>
+                <Then ?01M02NT0VD4DRKCQYP1X1Z4CK1>
+                系统 SHALL 生成符合当前 Kind version 的 track.xnl 且不生成 track.xml
+                </?01M02NT0VD4DRKCQYP1X1Z4CK1>
+              )>
+              <Case #migrate-legacy (
+                <Given ?01M02NT0VD4DRKCQYP1X1Z4CK2>
+                legacy track.xml 可唯一解析
+                </?01M02NT0VD4DRKCQYP1X1Z4CK2>
+                <When ?01M02NT0VD4DRKCQYP1X1Z4CK3>
+                执行 workspace upgrade
+                </?01M02NT0VD4DRKCQYP1X1Z4CK3>
+                <Then ?01M02NT0VD4DRKCQYP1X1Z4CK4>
+                系统 SHALL 备份、生成语义等价 track.xnl、验证并移除 XML authority
+                </?01M02NT0VD4DRKCQYP1X1Z4CK4>
+              )>
+              <Case #reject-conflict (
+                <Given ?01M02NT0VD4DRKCQYP1X1Z4CK5>
+                同目录存在 track.xnl 与 track.xml
+                </?01M02NT0VD4DRKCQYP1X1Z4CK5>
+                <When ?01M02NT0VD4DRKCQYP1X1Z4CK6>
+                CLI 发现 Track
+                </?01M02NT0VD4DRKCQYP1X1Z4CK6>
+                <Then ?01M02NT0VD4DRKCQYP1X1Z4CK7>
+                系统 SHALL 报 authority conflict 且不静默选择可写来源
+                </?01M02NT0VD4DRKCQYP1X1Z4CK7>
+              )>
+              <Case #halfcode-package (
+                <Given ?01M02NT0VD4DRKCQYP1X1Z4CK8>
+                pending/active Track 与 workspace ResourcePackage
+                </?01M02NT0VD4DRKCQYP1X1Z4CK8>
+                <When ?01M02NT0VD4DRKCQYP1X1Z4CK9>
+                Halfcode 加载 package
+                </?01M02NT0VD4DRKCQYP1X1Z4CK9>
+                <Then ?01M02NT0VD4DRKCQYP1X1Z4CKA>
+                每个 Track SHALL 通过 Kind、version、shape、identity 与 required material 校验
+                </?01M02NT0VD4DRKCQYP1X1Z4CKA>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+  ]>
+)>

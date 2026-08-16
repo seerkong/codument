@@ -1,0 +1,42 @@
+<Track #add-autonomous-workspace-migration apiVersion="codument.tech/v1alpha1" version="1" { status = "completed" goal = "让一次 codument-migrate Skill 调用自主完成完整 workspace 或单资源升级" description = "增加 workspace JSON receipt，并让当前 Coding Agent 连续处理 review-required、语义复核和最终验证" question_mode = "decision-tree" question_severity = "auto" commit_mode = "manual" created_at = "2026-08-15T20:29:33.574Z" updated_at = "2026-08-15T20:40:30.794Z" modeling_base_commit = "f4a7e810e35e05b7565233808a8bcb9687a05942" engineering_base_commit = "f4a7e810e35e05b7565233808a8bcb9687a05942" } (
+  <Ports { scope = "track" } [
+    <MaterialBundle #cli { role = "output" name = "workspace-upgrade-receipt" domain = "code" path = "vfs://@/src/cli/commands/upgrade-workspace.ts" }>
+    <MaterialBundle #templates { role = "output" name = "autonomous-migrate-skill" domain = "docs" path = "vfs://@/src/templates/skills/codument-migrate/" }>
+    <MaterialBundle #tests { role = "output" name = "migration-regression-tests" domain = "test" path = "vfs://@/test/" }>
+  ]>
+  <TaskSpace #space_add-autonomous-workspace-migration { name = "add-autonomous-workspace-migration" version = "1" child_mode = "dag" } (
+    <SubNodes [
+      <TaskGroup #P1 { name = "Structured workspace receipt" status = "DONE" priority = "P0" order = 0 } (
+        <SubNodes [
+          <Task #P1-T1 { name = "Refactor workspace upgrade into a JSON-capable receipt" status = "DONE" priority = "P0" order = 0 }>
+          <Task #P1-T2 { name = "Add JSON and help regression tests" status = "DONE" priority = "P0" order = 1 }>
+        ]>
+      )>
+      <TaskGroup #P2 { name = "Autonomous migrate Skill" status = "DONE" priority = "P0" order = 1 } (
+        <SubNodes [
+          <Task #P2-T1 { name = "Define no-argument workspace and path resource routing" status = "DONE" priority = "P0" order = 0 }>
+          <Task #P2-T2 { name = "Define in-agent review and convergence loop" status = "DONE" priority = "P0" order = 1 }>
+          <Task #P2-T3 { name = "Add template contract tests" status = "DONE" priority = "P0" order = 2 }>
+        ]>
+      )>
+      <TaskGroup #P3 { name = "Verification and dogfood" status = "DONE" priority = "P0" order = 2 } (
+        <SubNodes [
+          <Task #P3-T1 { name = "Run full checks and build" status = "DONE" priority = "P0" order = 0 }>
+          <Task #P3-T2 { name = "Dogfood the workspace receipt and validate affected resources" status = "DONE" priority = "P0" order = 1 }>
+        ]>
+      )>
+    ]>
+  )>
+  <Schedule [
+    <Dag { for = "space_add-autonomous-workspace-migration" } [
+      <Node #P1>
+      <Node #P2 [
+        <After { ref = "P1" }>
+      ]>
+      <Node #P3 [
+        <After { ref = "P2" }>
+      ]>
+    ]>
+  ]>
+  <Hooks []>
+)>

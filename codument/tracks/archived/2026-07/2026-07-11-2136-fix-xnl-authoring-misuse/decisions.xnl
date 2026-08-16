@@ -1,0 +1,40 @@
+<decision #track.fix_xnl_authoring_misuse.root apiVersion="codument.tech/v1alpha1" { kind = "planning-decision" priority = "P0" status = "accepted" blocks = ["proposal.md" "design.md" "track.xml"] frontier = false durable_candidate = false confidence = 0.94 reversibility = "easy" } [
+  <decision #track.fix_xnl_authoring_misuse.metadata_attributes { kind = "planning-decision" priority = "P0" status = "accepted" blocks = ["docs" "fixtures" "tests"] frontier = false durable_candidate = false confidence = 0.9 reversibility = "moderate" } (
+    <question ?01M02EGV9J7979NNC85D416S4D>
+    是否把历史 metadata/attribute 放错位置的问题纳入本 track？
+    </?01M02EGV9J7979NNC85D416S4D>
+    <answer ?01M02EGV9J7979NNC85D416S4E>
+    是。
+    </?01M02EGV9J7979NNC85D416S4E>
+    <rationale ?01M02EGV9J7979NNC85D416S4F>
+    用户明确要求“顺手把刚刚你修的历史xnl使用 metadata, attribute放错位置的问题也放到这个track中”。
+    </?01M02EGV9J7979NNC85D416S4F>
+  )>
+  <decision #track.fix_xnl_authoring_misuse.extend_array { kind = "planning-decision" priority = "P0" status = "accepted" blocks = ["xnl-format" "decision-dsl" "lint"] frontier = false durable_candidate = false confidence = 0.92 reversibility = "easy" } (
+    <question ?01M02EGV9J7979NNC85D416S4G>
+    是否把单例子节点误用 `[]` 的问题纳入本 track？
+    </?01M02EGV9J7979NNC85D416S4G>
+    <answer ?01M02EGV9J7979NNC85D416S4H>
+    是。
+    </?01M02EGV9J7979NNC85D416S4H>
+    <rationale ?01M02EGV9J7979NNC85D416S4J>
+    这是同一类“没有按 XNL 数据结构语义建模”的 authoring 问题。
+    </?01M02EGV9J7979NNC85D416S4J>
+  )>
+] (
+  <question ?01M02EGV9J7979NNC85D416S4K>
+  是否需要独立 track 追踪历史 XNL 误用修正？
+  </?01M02EGV9J7979NNC85D416S4K>
+  <recommendation ?01M02EGV9J7979NNC85D416S4M>
+  需要。把 metadata/attribute 误用与 `()`/`[]` 误用放进同一条 XNL authoring cleanup track。
+  </?01M02EGV9J7979NNC85D416S4M>
+  <answer ?01M02EGV9J7979NNC85D416S4N>
+  是。用户明确要求另新创建一个 track。
+  </?01M02EGV9J7979NNC85D416S4N>
+  <rationale ?01M02EGV9J7979NNC85D416S4P>
+  这类问题跨规范、模板、测试资源和 DSL，不适合混在 `update-decisions-xnl` 的实现 track 里。
+  </?01M02EGV9J7979NNC85D416S4P>
+  <evidence ?01M02EGV9J7979NNC85D416S4Q>
+  用户指出 decision tree 设计不符合 XNL 形式，并要求排查过去是否有类似问题。
+  </?01M02EGV9J7979NNC85D416S4Q>
+)>

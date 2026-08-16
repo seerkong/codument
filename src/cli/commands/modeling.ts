@@ -1,8 +1,9 @@
 import * as path from 'path';
-import { parseOptions, CODUMENT_DIR } from '../utils';
+import { parseOptions, resolveLifecycleTrackDir } from '../utils';
 import { lintModelingRegistry } from '../modeling/lint';
 import { loadModelingConfig, modelingEnabled } from '../modeling/config';
 import { validateModelingTree, type ValidateFinding } from '../modeling/validate';
+import { scaffoldModelingDelta } from '../modeling/scaffold';
 
 export async function modelingCommand(args: string[]) {
   const sub = args[0];
@@ -12,10 +13,13 @@ export async function modelingCommand(args: string[]) {
       return modelingLint(rest);
     case 'validate':
       return modelingValidate(rest);
+    case 'scaffold':
+      return modelingScaffold(rest);
     default:
       console.error(`Unknown modeling subcommand: ${sub ?? '(none)'}`);
       console.log('Usage: codument modeling lint [dir] [--max-lines N] [--max-nodes N]');
       console.log('       codument modeling validate [dir] [--deltas <track>]');
+      console.log('       codument modeling scaffold <kind> <name> --plane <plane> --context <ctx> [--fields a:string,b:int] [--states a,b]');
       process.exit(1);
   }
 }
@@ -31,7 +35,12 @@ function modelingValidate(args: string[]): void {
   let explicit = positional.length > 0;
 
   if (deltaTrack) {
-    dir = path.join(CODUMENT_DIR, 'tracks', deltaTrack, 'modeling_deltas');
+    const trackDir = resolveLifecycleTrackDir(deltaTrack);
+    if (!trackDir) {
+      console.error(`Track '${deltaTrack}' not found in codument/tracks/{active,pending}.`);
+      process.exit(1);
+    }
+    dir = path.join(trackDir, 'modeling_deltas');
     mode = 'deltas';
     explicit = true;
   } else if (positional[0]) {
@@ -44,7 +53,7 @@ function modelingValidate(args: string[]): void {
 
   // Default registry mode is gated; explicit dir / --deltas bypass the gate.
   if (!explicit && !modelingEnabled()) {
-    console.log('modeling disabled，跳过 (set enabled="true" in codument/config/modeling.xml)');
+    console.log('modeling disabled，跳过 (set enabled="true" in codument/config/modeling.xnl)');
     return;
   }
 
@@ -76,7 +85,11 @@ function reportFindings(findings: ValidateFinding[], dir: string): void {
     console.log(`${file}:`);
     for (const f of list) {
       const where = f.line !== undefined ? ` (line ${f.line})` : '';
-      console.log(`  [${f.layer}/${f.severity}] ${f.message}${where}`);
+      const rule = f.rule ? ` [${f.rule}]` : '';
+      console.log(`  [${f.layer}/${f.severity}]${rule} ${f.message}${where}`);
+      if (f.fix_hint) {
+        console.log(`    fix_hint: ${f.fix_hint}`);
+      }
     }
   }
 
@@ -85,6 +98,41 @@ function reportFindings(findings: ValidateFinding[], dir: string): void {
   console.log(`${errors} error(s), ${warnings} warning(s)`);
 
   if (errors > 0) process.exit(1);
+}
+
+function modelingScaffold(args: string[]): void {
+  const { positional, options } = parseOptions(args);
+  const [kind, name] = positional;
+  const plane = options.plane;
+  const context = options.context;
+  if (!kind || !name || typeof plane !== 'string' || typeof context !== 'string') {
+    throw new Error('Usage: codument modeling scaffold <kind> <name> --plane <plane> --context <ctx> [--track <track>] [--fields a:string,b:int] [--states a,b]');
+  }
+  const fields = typeof options.fields === 'string' ? options.fields.split(',') : [];
+  const states = typeof options.states === 'string' ? options.states.split(',') : [];
+  const outDir = resolveModelingScaffoldDir(plane, options.track);
+  const file = scaffoldModelingDelta(kind, name, { plane, context, fields, states });
+  const absDir = path.join(outDir, `${context}.xnl`);
+  const fs = awaitImportFs();
+  fs.mkdirSync(path.dirname(absDir), { recursive: true });
+  fs.appendFileSync(absDir, file);
+  console.log(`modeling scaffold: ${kind} '${name}' appended to ${absDir}`);
+}
+
+function resolveModelingScaffoldDir(plane: string, trackOpt: string | boolean | undefined): string {
+  // --track <id> writes into that track's modeling_deltas/<plane>/; default (registry mode)
+  // writes into codument/modeling/<plane>/<context>/index.xnl.
+  if (typeof trackOpt === 'string' && trackOpt) {
+    const trackDir = resolveLifecycleTrackDir(trackOpt);
+    if (!trackDir) throw new Error(`Track '${trackOpt}' not found`);
+    return path.join(trackDir, 'modeling_deltas', plane);
+  }
+  return path.join(process.cwd(), 'codument', 'modeling', plane);
+}
+
+function awaitImportFs(): typeof import('fs') {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  return require('fs') as typeof import('fs');
 }
 
 function modelingLint(args: string[]): void {

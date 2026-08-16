@@ -1,0 +1,41 @@
+<Track #build-versioned-cli-foundation apiVersion="codument.tech/v1alpha1" version="1" { status = "completed" goal = "建立注册表驱动的 CLI 与版本化 Track/Mission scaffold。" description = "统一命令发现、help 和 dispatch，并让 CLI 以最小参数生成当前 Kind 版本骨架。" question_mode = "decision-tree" question_severity = "auto" commit_mode = "manual" created_at = "2026-08-15T09:30:00Z" updated_at = "2026-08-15T10:13:07Z" } (
+  <Ports { scope = "track" } [
+    <MaterialBundle { role = "input" name = "cli" domain = "code" path = "vfs://@/src/cli/" }>
+    <MaterialBundle { role = "input" name = "templates" domain = "code" path = "vfs://@/src/templates/" }>
+    <MaterialBundle { role = "output" name = "cli" domain = "code" path = "vfs://@/src/cli/" }>
+    <MaterialBundle { role = "output" name = "tests" domain = "test" path = "vfs://@/test/" }>
+  ]>
+  <TaskSpace #space_build-versioned-cli-foundation { name = "build-versioned-cli-foundation" child_mode = "dag" } (
+    <SubNodes [
+      <TaskGroup #P1 { name = "命令注册表" status = "DONE" order = 0 } (
+        <SubNodes [
+          <Task #P1-T1 { name = "添加注册表驱动 help/dispatch 回归测试" status = "DONE" order = 0 }>
+          <Task #P1-T2 { name = "实现 CommandDefinition registry 与薄入口" status = "DONE" order = 1 }>
+        ]>
+      )>
+      <TaskGroup #P2 { name = "版本化 Kind scaffold" status = "DONE" order = 1 } (
+        <SubNodes [
+          <Task #P2-T1 { name = "实现 Kind registry 与 Track/Mission writers" status = "DONE" order = 0 }>
+          <Task #P2-T2 { name = "实现最小参数 create 命令与错误边界" status = "DONE" order = 1 }>
+          <Task #P2-T3 { name = "更新 plan prompts 与 scaffold E2E" status = "DONE" order = 2 }>
+        ]>
+      )>
+      <TaskGroup #P3 { name = "验证与 dogfood" status = "DONE" order = 2 } (
+        <SubNodes [
+          <Task #P3-T1 { name = "运行 CLI、模板和全量回归" status = "DONE" order = 0 }>
+          <Task #P3-T2 { name = "构建并用 scaffold 契约复验 bootstrap 资产" status = "DONE" order = 1 }>
+        ]>
+      )>
+    ]>
+  )>
+  <Schedule [
+    <Dag { for = "space_build-versioned-cli-foundation" } [
+      <Node #P2 [
+        <After { ref = "P1" }>
+      ]>
+      <Node #P3 [
+        <After { ref = "P2" }>
+      ]>
+    ]>
+  ]>
+)>

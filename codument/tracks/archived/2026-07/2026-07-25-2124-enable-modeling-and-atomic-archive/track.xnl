@@ -1,0 +1,209 @@
+<Track #enable-modeling-and-atomic-archive apiVersion="codument.tech/v1alpha1" version="1" { status = "completed" goal = "默认启用 modeling，并让 behavior/modeling/engineering 通过原子归档事务共同收敛" description = "接入 modeling 三方合并、调整空 registry 语义，并建立跨 registry prepare/stage/commit/rollback 边界。" question_mode = "decision-tree" question_severity = "auto" commit_mode = "manual" created_at = "2026-07-25T17:58:56+03:00" updated_at = "2026-07-25T21:24:43+03:00" } (
+  <Ports { scope = "track" } [
+    <MaterialBundle { role = "input" name = "behavior-deltas" domain = "behavior" path = "vfs://./behavior_deltas/" }>
+    <MaterialBundle { role = "state" name = "decisions" domain = "decision" path = "vfs://./decisions.xnl" }>
+    <MaterialBundle { role = "state" name = "analysis" domain = "track" path = "vfs://./analysis/" }>
+    <MaterialBundle { role = "output" name = "behavior" domain = "codument" path = "vfs://@/codument/behaviors/" }>
+    <MaterialBundle { role = "output" name = "cli" domain = "code" path = "vfs://@/src/cli/" }>
+    <MaterialBundle { role = "output" name = "release-templates" domain = "codument" path = "vfs://@/src/templates/" }>
+    <MaterialBundle { role = "output" name = "tests" domain = "test" path = "vfs://@/test/" }>
+  ]>
+  <TaskSpace #space_enable-modeling-and-atomic-archive { name = "enable-modeling-and-atomic-archive" } (
+    <Description ?01M02JDH9HKDSBVMX5Y1DTVMXZ>
+    以 TDD 建立 modeling 默认语义和跨 registry 原子 archive。
+    </?01M02JDH9HKDSBVMX5Y1DTVMXZ>
+    <SubNodes [
+      <TaskGroup #P1 { name = "失败契约与事务边界" status = "DONE" order = 0 } (
+        <Description ?01M02JDH9HKDSBVMX5Y1DTVMY0>
+        先用失败测试冻结默认值、首次合并、冲突无写入和 commit rollback 行为。
+        </?01M02JDH9HKDSBVMX5Y1DTVMY0>
+        <Gate [
+          <Criterion ?01M02JDH9HKDSBVMX5Y1DTVMY1>
+          新增测试在实现前按预期失败
+          </?01M02JDH9HKDSBVMX5Y1DTVMY1>
+          <Criterion ?01M02JDH9HKDSBVMX5Y1DTVMY2>
+          测试断言 registry 内容和 track/archive 路径，而非只断言 exit code
+          </?01M02JDH9HKDSBVMX5Y1DTVMY2>
+        ]>
+        <SubNodes [
+          <Task { id = "T1.1" name = "编写 modeling 默认值与空 registry 红测试" status = "DONE" order = 0 priority = "P0" } (
+            <Description ?01M02JDH9HKDSBVMX5Y1DTVMY3>
+            覆盖缺失配置默认 true、显式 false、模板 true、空 registry warning 和非空无 domain error。
+            </?01M02JDH9HKDSBVMX5Y1DTVMY3>
+            <Acceptance [
+              <Criterion { id = "T1.1-AC1" checked = true } ?01M02JDH9HKDSBVMX5Y1DTVMY4>
+              默认值与 validate 边界均有失败证据
+              </?01M02JDH9HKDSBVMX5Y1DTVMY4>
+            ]>
+          )>
+          <Task { id = "T1.2" name = "编写 modeling archive 与首次 registry 红测试" status = "DONE" order = 1 priority = "P0" } (
+            <Description ?01M02JDH9HKDSBVMX5Y1DTVMY5>
+            覆盖真实三方合并、首次创建 registry、无 delta 不创建 registry。
+            </?01M02JDH9HKDSBVMX5Y1DTVMY5>
+            <Acceptance [
+              <Criterion { id = "T1.2-AC1" checked = true } ?01M02JDH9HKDSBVMX5Y1DTVMY6>
+              测试证明当前 CLI 未接入 modeling merge
+              </?01M02JDH9HKDSBVMX5Y1DTVMY6>
+            ]>
+          )>
+          <Task { id = "T1.3" name = "编写跨 registry 冲突与故障注入红测试" status = "DONE" order = 2 priority = "P0" } (
+            <Description ?01M02JDH9HKDSBVMX5Y1DTVMY7>
+            覆盖 prepare conflict 和 commit 中途失败，两者都要求 registry 不变且 track 不移动。
+            </?01M02JDH9HKDSBVMX5Y1DTVMY7>
+            <Acceptance [
+              <Criterion { id = "T1.3-AC1" checked = true } ?01M02JDH9HKDSBVMX5Y1DTVMY8>
+              至少一个测试能复现当前半写入风险
+              </?01M02JDH9HKDSBVMX5Y1DTVMY8>
+            ]>
+          )>
+        ]>
+      )>
+      <TaskGroup #P2 { name = "Modeling 默认语义与 prepare adapter" status = "DONE" order = 1 } (
+        <Description ?01M02JDH9HKDSBVMX5Y1DTVMY9>
+        实现默认启用、空 registry warning 和 modeling 三方合并 prepare。
+        </?01M02JDH9HKDSBVMX5Y1DTVMY9>
+        <Gate [
+          <Criterion ?01M02JDH9HKDSBVMX5Y1DTVMYA>
+          显式 false 兼容测试通过
+          </?01M02JDH9HKDSBVMX5Y1DTVMYA>
+          <Criterion ?01M02JDH9HKDSBVMX5Y1DTVMYB>
+          modeling prepare 不写 live registry
+          </?01M02JDH9HKDSBVMX5Y1DTVMYB>
+        ]>
+        <SubNodes [
+          <Task { id = "T2.1" name = "实现 modeling 默认启用与验证语义" status = "DONE" order = 0 priority = "P0" } (
+            <Description ?01M02JDH9HKDSBVMX5Y1DTVMYC>
+            同步 loader、fresh-init 模板和空 registry warning；保留非空 registry 的 domain 要求。
+            </?01M02JDH9HKDSBVMX5Y1DTVMYC>
+            <Acceptance [
+              <Criterion { id = "T2.1-AC1" checked = true } ?01M02JDH9HKDSBVMX5Y1DTVMYD>
+              config 与 validate focused tests 通过
+              </?01M02JDH9HKDSBVMX5Y1DTVMYD>
+            ]>
+          )>
+          <Task { id = "T2.2" name = "实现 modeling archive prepare" status = "DONE" order = 1 priority = "P0" } (
+            <Description ?01M02JDH9HKDSBVMX5Y1DTVMYE>
+            物化 base/ours/theirs，复用 mergeModeling，返回 staged mutation plan 与 conflicts。
+            </?01M02JDH9HKDSBVMX5Y1DTVMYE>
+            <Acceptance [
+              <Criterion { id = "T2.2-AC1" checked = true } ?01M02JDH9HKDSBVMX5Y1DTVMYF>
+              首次 registry 和并发 disjoint merge 测试通过
+              </?01M02JDH9HKDSBVMX5Y1DTVMYF>
+            ]>
+          )>
+          <Task { id = "T2.3" name = "统一 engineering prepare 输出协议" status = "DONE" order = 2 priority = "P1" } (
+            <Description ?01M02JDH9HKDSBVMX5Y1DTVMYG>
+            移除直接写 live registry 的 apply 形态，使 engineering 与 modeling 可由同一事务提交。
+            </?01M02JDH9HKDSBVMX5Y1DTVMYG>
+            <Acceptance [
+              <Criterion { id = "T2.3-AC1" checked = true } ?01M02JDH9HKDSBVMX5Y1DTVMYH>
+              现有 engineering archive 测试保持通过
+              </?01M02JDH9HKDSBVMX5Y1DTVMYH>
+            ]>
+          )>
+        ]>
+      )>
+      <TaskGroup #P3 { name = "跨 Registry 原子 commit" status = "DONE" order = 2 } (
+        <Description ?01M02JDH9HKDSBVMX5Y1DTVMYJ>
+        将 behavior、modeling、engineering staged output 纳入统一 commit/rollback，并在成功后移动 track。
+        </?01M02JDH9HKDSBVMX5Y1DTVMYJ>
+        <Gate [
+          <Criterion ?01M02JDH9HKDSBVMX5Y1DTVMYK>
+          任一 prepare/conflict failure 不触碰 live registry
+          </?01M02JDH9HKDSBVMX5Y1DTVMYK>
+          <Criterion ?01M02JDH9HKDSBVMX5Y1DTVMYM>
+          任一 commit failure 恢复全部已替换目标
+          </?01M02JDH9HKDSBVMX5Y1DTVMYM>
+          <Criterion ?01M02JDH9HKDSBVMX5Y1DTVMYN>
+          只有 commit 成功后 track 才移动
+          </?01M02JDH9HKDSBVMX5Y1DTVMYN>
+        ]>
+        <SubNodes [
+          <Task { id = "T3.1" name = "实现 registry staging transaction" status = "DONE" order = 0 priority = "P0" } (
+            <Description ?01M02JDH9HKDSBVMX5Y1DTVMYP>
+            复制适用 registry 到 staging，应用 behavior patch 和 XNL merge 输出并完成校验。
+            </?01M02JDH9HKDSBVMX5Y1DTVMYP>
+            <Acceptance [
+              <Criterion { id = "T3.1-AC1" checked = true } ?01M02JDH9HKDSBVMX5Y1DTVMYQ>
+              prepare 成功前 live targets 无变更
+              </?01M02JDH9HKDSBVMX5Y1DTVMYQ>
+            ]>
+          )>
+          <Task { id = "T3.2" name = "实现 replace 与 rollback Effect" status = "DONE" order = 1 priority = "P0" } (
+            <Description ?01M02JDH9HKDSBVMX5Y1DTVMYR>
+            backup/replace 目标并在失败时逆序恢复；保留可诊断错误信息。
+            </?01M02JDH9HKDSBVMX5Y1DTVMYR>
+            <Acceptance [
+              <Criterion { id = "T3.2-AC1" checked = true } ?01M02JDH9HKDSBVMX5Y1DTVMYS>
+              故障注入测试证明 rollback 恢复逐字节状态
+              </?01M02JDH9HKDSBVMX5Y1DTVMYS>
+            ]>
+          )>
+          <Task { id = "T3.3" name = "重接 archive orchestration 与输出" status = "DONE" order = 2 priority = "P0" } (
+            <Description ?01M02JDH9HKDSBVMX5Y1DTVMYT>
+            archive command 使用统一 transaction，成功后移动 track，并准确报告三类 registry 更新。
+            </?01M02JDH9HKDSBVMX5Y1DTVMYT>
+            <Acceptance [
+              <Criterion { id = "T3.3-AC1" checked = true } ?01M02JDH9HKDSBVMX5Y1DTVMYV>
+              archive focused matrix 全部通过
+              </?01M02JDH9HKDSBVMX5Y1DTVMYV>
+            ]>
+          )>
+        ]>
+      )>
+      <TaskGroup #P4 { name = "发布标准与最终验证" status = "DONE" order = 3 } (
+        <Description ?01M02JDH9HKDSBVMX5Y1DTVMYW>
+        更新模板标准、刷新 manifest，并验证 archive 数据一致性与兼容边界。
+        </?01M02JDH9HKDSBVMX5Y1DTVMYW>
+        <Gate [
+          <Criterion ?01M02JDH9HKDSBVMX5Y1DTVMYX>
+          发布模板与 runtime 默认值一致
+          </?01M02JDH9HKDSBVMX5Y1DTVMYX>
+          <Criterion ?01M02JDH9HKDSBVMX5Y1DTVMYY>
+          focused tests、完整 archive tests、typecheck、build、strict validate 通过
+          </?01M02JDH9HKDSBVMX5Y1DTVMYY>
+          <Criterion ?01M02JDH9HKDSBVMX5Y1DTVMYZ>
+          最终 coding AttractorCheck PASS
+          </?01M02JDH9HKDSBVMX5Y1DTVMYZ>
+        ]>
+        <SubNodes [
+          <Task { id = "T4.1" name = "更新 release-source 标准说明" status = "DONE" order = 0 priority = "P1" } (
+            <Description ?01M02JDH9HKDSBVMX5Y1DTVMZ0>
+            只修改 src/templates 下 modeling/archive 说明并刷新 manifest，不手工双写 dogfood std。
+            </?01M02JDH9HKDSBVMX5Y1DTVMZ0>
+            <Acceptance [
+              <Criterion { id = "T4.1-AC1" checked = true } ?01M02JDH9HKDSBVMX5Y1DTVMZ1>
+              标准明确 default-on、按结构变化生成和原子 archive
+              </?01M02JDH9HKDSBVMX5Y1DTVMZ1>
+            ]>
+          )>
+          <Task { id = "T4.2" name = "运行回归、类型与构建验证" status = "DONE" order = 1 priority = "P0" } (
+            <Description ?01M02JDH9HKDSBVMX5Y1DTVMZ2>
+            运行 modeling/config/validate、archive、init/upgrade 相关 tests、typecheck 和 build。
+            </?01M02JDH9HKDSBVMX5Y1DTVMZ2>
+            <Acceptance [
+              <Criterion { id = "T4.2-AC1" checked = true } ?01M02JDH9HKDSBVMX5Y1DTVMZ3>
+              全部验证命令通过且无遗留 staging/backup
+              </?01M02JDH9HKDSBVMX5Y1DTVMZ3>
+            ]>
+          )>
+          <Task { id = "T4.3" name = "生成行为与回滚证据矩阵" status = "DONE" order = 2 priority = "P0" } (
+            <Description ?01M02JDH9HKDSBVMX5Y1DTVMZ4>
+            把每个 behavior case 映射到代码、测试和实际失败/成功证据。
+            </?01M02JDH9HKDSBVMX5Y1DTVMZ4>
+            <Acceptance [
+              <Criterion { id = "T4.3-AC1" checked = true } ?01M02JDH9HKDSBVMX5Y1DTVMZ5>
+              矩阵覆盖 default、merge、conflict、rollback、track move
+              </?01M02JDH9HKDSBVMX5Y1DTVMZ5>
+            ]>
+          )>
+        ]>
+        <Hooks [
+          <Hook { on = "phase:after" } (
+            <AttractorCheck { use = "coding" }>
+          )>
+        ]>
+      )>
+    ]>
+  )>
+)>

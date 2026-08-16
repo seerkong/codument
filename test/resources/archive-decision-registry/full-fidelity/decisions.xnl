@@ -1,4 +1,4 @@
-<decision #track.fixture.registry_format {
+<decision #track.fixture.registry_format apiVersion="codument.tech/v1alpha1" {
   status = "accepted"
   priority = "P0"
   durable_candidate = true
@@ -61,7 +61,7 @@
   >
 ]>
 
-<decision #track.fixture.non_durable_context {
+<decision #track.fixture.non_durable_context apiVersion="codument.tech/v1alpha1" {
   status = "accepted"
   priority = "P1"
   durable_candidate = false

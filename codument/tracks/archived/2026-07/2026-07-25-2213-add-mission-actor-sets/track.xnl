@@ -1,0 +1,121 @@
+<Track #add-mission-actor-sets apiVersion="codument.tech/v1alpha1" version="1" { status = "completed" goal = "让 Mission 使用结构化 ActorSet、路径无关的 ProjectRef 和 session-local WorkspaceBinding 编排单项目与多项目反馈飞轮。" description = "补齐 Mission XML schema、validator、plan/impl prompt 和 canonical examples。" question_mode = "decision-tree" question_severity = "auto" commit_mode = "manual" created_at = "2026-07-25T21:58:25+03:00" updated_at = "2026-07-25T22:13:43+03:00" } (
+  <Ports { scope = "track" } [
+    <MaterialBundle { role = "input" name = "behavior-deltas" domain = "behavior" path = "vfs://./behavior_deltas/" }>
+    <MaterialBundle { role = "state" name = "decisions" domain = "decision" path = "vfs://./decisions.xnl" }>
+    <MaterialBundle { role = "state" name = "analysis" domain = "track" path = "vfs://./analysis/" }>
+    <MaterialBundle { role = "output" name = "release-templates" domain = "codument" path = "vfs://@/src/templates/" }>
+    <MaterialBundle { role = "output" name = "mission-validator" domain = "code" path = "vfs://@/src/cli/mission/" }>
+    <MaterialBundle { role = "output" name = "tests" domain = "test" path = "vfs://@/test/" }>
+  ]>
+  <TaskSpace #space_add-mission-actor-sets { name = "add-mission-actor-sets" } (
+    <Description ?01M02JDH9JPGDTMDD0EYMG65WS>
+    以验证优先的方式收敛 Mission ActorSet、ProjectRef 和 session runtime 边界。
+    </?01M02JDH9JPGDTMDD0EYMG65WS>
+    <SubNodes [
+      <TaskGroup #P1 { name = "Mission schema 与 validator 契约" status = "DONE" order = 0 } (
+        <Description ?01M02JDH9JPGDTMDD0EYMG65WT>
+        用失败验证冻结 ActorSet 完整性、引用和无路径边界。
+        </?01M02JDH9JPGDTMDD0EYMG65WT>
+        <Gate [
+          <Criterion ?01M02JDH9JPGDTMDD0EYMG65WV>
+          mission validator 覆盖完整、错误和外部引用边界
+          </?01M02JDH9JPGDTMDD0EYMG65WV>
+        ]>
+        <SubNodes [
+          <Task { id = "T1.1" name = "编写 ActorSet 与 ProjectRef 红测试" status = "DONE" order = 0 priority = "P0" } (
+            <Description ?01M02JDH9JPGDTMDD0EYMG65WW>
+            为完整/缺失/重复角色、default/override、未知/重复 ProjectRef、路径字段和 TrackLink project-ref 写失败 fixtures。
+            </?01M02JDH9JPGDTMDD0EYMG65WW>
+            <Acceptance [
+              <Criterion { id = "T1.1-AC1" checked = true } ?01M02JDH9JPGDTMDD0EYMG65WX>
+              测试在实现前证明 Mission schema 无法验证这些边界
+              </?01M02JDH9JPGDTMDD0EYMG65WX>
+            ]>
+          )>
+          <Task { id = "T1.2" name = "实现独立 Mission validator" status = "DONE" order = 1 priority = "P0" } (
+            <Description ?01M02JDH9JPGDTMDD0EYMG65WY>
+            新增 Mission XML validator，不改变现有 Track validator 枚举；校验 ActorSet、ProjectRef、override 和 TrackLink 引用。
+            </?01M02JDH9JPGDTMDD0EYMG65WY>
+            <Acceptance [
+              <Criterion { id = "T1.2-AC1" checked = true } ?01M02JDH9JPGDTMDD0EYMG65WZ>
+              有效 Mission 通过且所有失败 fixtures 被拒绝
+              </?01M02JDH9JPGDTMDD0EYMG65WZ>
+            ]>
+          )>
+        ]>
+      )>
+      <TaskGroup #P2 { name = "发布 schema 与 session 协议" status = "DONE" order = 1 } (
+        <Description ?01M02JDH9JPGDTMDD0EYMG65X0>
+        将 canonical structure、examples 与 runtime binding protocol 写入 release source。
+        </?01M02JDH9JPGDTMDD0EYMG65X0>
+        <Gate [
+          <Criterion ?01M02JDH9JPGDTMDD0EYMG65X1>
+          spec 是唯一完整示例 owner，prompt 不复制协议
+          </?01M02JDH9JPGDTMDD0EYMG65X1>
+        ]>
+        <SubNodes [
+          <Task { id = "T2.1" name = "更新 Mission XML spec 与 canonical examples" status = "DONE" order = 0 priority = "P0" } (
+            <Description ?01M02JDH9JPGDTMDD0EYMG65X2>
+            定义 ActorSets/ProjectRefs/override/TrackLink project-ref，写入单项目和底层库/上层应用双向反馈示例。
+            </?01M02JDH9JPGDTMDD0EYMG65X2>
+            <Acceptance [
+              <Criterion { id = "T2.1-AC1" checked = true } ?01M02JDH9JPGDTMDD0EYMG65X3>
+              示例无绝对路径，覆盖 restart 后 UNBOUND 与外部 actual-state owner
+              </?01M02JDH9JPGDTMDD0EYMG65X3>
+            ]>
+          )>
+          <Task { id = "T2.2" name = "更新 plan-mission 与 impl-mission prompts" status = "DONE" order = 1 priority = "P0" } (
+            <Description ?01M02JDH9JPGDTMDD0EYMG65X4>
+            使新 Mission materialize ActorSet/ProjectRef，并让 impl-mission 用 session WorkspaceBinding、UNBOUND/MISSING 和 bounded action 协议恢复。
+            </?01M02JDH9JPGDTMDD0EYMG65X4>
+            <Acceptance [
+              <Criterion { id = "T2.2-AC1" checked = true } ?01M02JDH9JPGDTMDD0EYMG65X5>
+              prompt 明确不持久化路径且只阻断依赖 UNBOUND 的 action
+              </?01M02JDH9JPGDTMDD0EYMG65X5>
+            ]>
+          )>
+        ]>
+      )>
+      <TaskGroup #P3 { name = "行为、模板与最终验证" status = "DONE" order = 2 } (
+        <Description ?01M02JDH9JPGDTMDD0EYMG65X6>
+        同步行为契约、manifest 和 Mission schema/template 验证。
+        </?01M02JDH9JPGDTMDD0EYMG65X6>
+        <Gate [
+          <Criterion ?01M02JDH9JPGDTMDD0EYMG65X7>
+          behavior、validator、release templates 和 manifest 一致
+          </?01M02JDH9JPGDTMDD0EYMG65X7>
+          <Criterion ?01M02JDH9JPGDTMDD0EYMG65X8>
+          最终 coding AttractorCheck PASS
+          </?01M02JDH9JPGDTMDD0EYMG65X8>
+        ]>
+        <SubNodes [
+          <Task { id = "T3.1" name = "补齐模板与行为一致性测试" status = "DONE" order = 0 priority = "P0" } (
+            <Description ?01M02JDH9JPGDTMDD0EYMG65X9>
+            断言 release templates 包含唯一 ActorSet owner、session-only binding 禁令和 examples；刷新 manifest。
+            </?01M02JDH9JPGDTMDD0EYMG65X9>
+            <Acceptance [
+              <Criterion { id = "T3.1-AC1" checked = true } ?01M02JDH9JPGDTMDD0EYMG65XA>
+              模板、manifest、behavior delta 与 validator 测试通过
+              </?01M02JDH9JPGDTMDD0EYMG65XA>
+            ]>
+          )>
+          <Task { id = "T3.2" name = "运行最终验证与生成证据矩阵" status = "DONE" order = 1 priority = "P0" } (
+            <Description ?01M02JDH9JPGDTMDD0EYMG65XB>
+            运行 mission validator fixtures、template tests、typecheck、build、strict validate，并映射单/多项目恢复证据。
+            </?01M02JDH9JPGDTMDD0EYMG65XB>
+            <Acceptance [
+              <Criterion { id = "T3.2-AC1" checked = true } ?01M02JDH9JPGDTMDD0EYMG65XC>
+              全部验证通过且没有路径持久化或 schema owner 重复
+              </?01M02JDH9JPGDTMDD0EYMG65XC>
+            ]>
+          )>
+        ]>
+        <Hooks [
+          <Hook { on = "phase:after" } (
+            <AttractorCheck { use = "coding" }>
+          )>
+        ]>
+      )>
+    ]>
+  )>
+)>

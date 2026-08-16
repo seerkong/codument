@@ -1,0 +1,17 @@
+<decision #track.topological_decision_questions.frontier_batches apiVersion="codument.tech/v1alpha1" { status = "accepted" blocks = [] durable_candidate = true } (
+  <question ?01M02EGVAZX2K0VZ036CGW46N3>
+  How should planning ask a decision forest with multiple roots?
+  </?01M02EGVAZX2K0VZ036CGW46N3>
+  <answer ?01M02EGVAZX2K0VZ036CGW46N4>
+  Ask every independently answerable root or unlocked child in one bounded topological batch, then recompute after the response.
+  </?01M02EGVAZX2K0VZ036CGW46N4>
+  <evidence ?01M02EGVAZX2K0VZ036CGW46N5>
+  The requested protocol must avoid serialising unrelated decision directions while retaining dependency order.
+  </?01M02EGVAZX2K0VZ036CGW46N5>
+  <confidence ?01M02EGVAZX2K0VZ036CGW46N6>
+  0.99
+  </?01M02EGVAZX2K0VZ036CGW46N6>
+  <reversibility ?01M02EGVAZX2K0VZ036CGW46N7>
+  moderate
+  </?01M02EGVAZX2K0VZ036CGW46N7>
+)>

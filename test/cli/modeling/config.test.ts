@@ -11,6 +11,13 @@ function writeConfig(xml: string): string {
   return p;
 }
 
+function writeXnlConfig(xnl: string): string {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'codument-modeling-xnl-cfg-'));
+  const p = path.join(dir, 'modeling.xnl');
+  fs.writeFileSync(p, xnl);
+  return p;
+}
+
 describe('modeling config', () => {
   it('defaults to enabled when the file is absent', () => {
     const cfg = loadModelingConfig(path.join(os.tmpdir(), 'nope-modeling.xml'));
@@ -46,5 +53,20 @@ describe('modeling config', () => {
       writeConfig(`<Modeling enabled="true"><MergePolicy><Conflict type="same-field" resolve="bogus"/></MergePolicy></Modeling>`),
     );
     expect(cfg.mergePolicy['same-field']).toBe('human');
+  });
+
+  it('reads canonical ModelingConfig XNL structurally', () => {
+    const cfg = loadModelingConfig(writeXnlConfig(`<ModelingConfig #codument.config.modeling apiVersion="codument.tech/v1alpha1" { enabled = false } (
+      <Lint { max_lines = 512 max_nodes = 13 }>
+      <MergePolicy (<Conflicts [
+        <Conflict { type = "same-field" resolve = "ours" }>
+        <Conflict { type = "delete-modify" resolve = "theirs" }>
+      ]>)>
+    )>`));
+
+    expect(cfg.enabled).toBe(false);
+    expect(cfg.thresholds).toEqual({ maxLines: 512, maxNodes: 13 });
+    expect(cfg.mergePolicy['same-field']).toBe('ours');
+    expect(cfg.mergePolicy['delete-modify']).toBe('theirs');
   });
 });

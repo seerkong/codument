@@ -1,0 +1,95 @@
+<BehaviorPatch #track.r_2_0_2_6_-_0_6_-_2_8_-_0_1_3_7_-_a_d_d_-_m_o_d_e_l_i_n_g_-_e_n_g_i_n_e_e_r_i_n_g_-_e_2_e_-_s_k_i_l_l_s.behavior_patch.codument-core apiVersion="codument.tech/v1alpha1" version="1" { capability = "codument-core" } (
+  <Mutations [
+    <Upsert { selector = "behavior://codument-core/requirements/modeling-engineering-e2e" } (
+      <Requirement #modeling-engineering-e2e (
+        <Statement ?01M02NT0WDWV8D3FW0XMA6KJYV>
+        系统 SHALL provide a real-LLM end-to-end verification harness that initializes a clean workspace, enables both modeling and engineering registries, creates a track with both delta types, implements the track, and records code quality evidence.
+        </?01M02NT0WDWV8D3FW0XMA6KJYV>
+        <Suites [
+          <Suite #real-llm-e2e { name = "Modeling + engineering real LLM E2E" } (
+            <Cases [
+              <Case #create-track-with-both-deltas (
+                <Given ?01M02NT0WDWV8D3FW0XMA6KJYW>
+                A clean temporary workspace initialized with codument
+                </?01M02NT0WDWV8D3FW0XMA6KJYW>
+                <When ?01M02NT0WDWV8D3FW0XMA6KJYX>
+                The E2E harness enables modeling and engineering and asks a real agent to plan a business application track
+                </?01M02NT0WDWV8D3FW0XMA6KJYX>
+                <Then ?01M02NT0WDWV8D3FW0XMA6KJYY>
+                The generated track SHALL contain `modeling_deltas/**/*.xnl` and `engineering_deltas/**/*.xnl`
+                </?01M02NT0WDWV8D3FW0XMA6KJYY>
+                <Ands [
+                  <And ?01M02NT0WDWV8D3FW0XMA6KJYZ>
+                  The harness SHALL run `codument validate`, `codument modeling validate --deltas`, and `codument engineering validate --deltas`
+                  </?01M02NT0WDWV8D3FW0XMA6KJYZ>
+                ]>
+              )>
+              <Case #implement-and-score-quality (
+                <Given ?01M02NT0WDWV8D3FW0XMA6KJZ0>
+                The generated track and deltas pass validation
+                </?01M02NT0WDWV8D3FW0XMA6KJZ0>
+                <When ?01M02NT0WDWV8D3FW0XMA6KJZ1>
+                The E2E harness runs in full mode
+                </?01M02NT0WDWV8D3FW0XMA6KJZ1>
+                <Then ?01M02NT0WDWV8D3FW0XMA6KJZ2>
+                The real agent SHALL implement the application code using the track design and registry deltas as input
+                </?01M02NT0WDWV8D3FW0XMA6KJZ2>
+                <Ands [
+                  <And ?01M02NT0WDWV8D3FW0XMA6KJZ3>
+                  The harness SHALL produce machine-readable and human-readable code quality reports
+                  </?01M02NT0WDWV8D3FW0XMA6KJZ3>
+                ]>
+              )>
+              <Case #three-business-topics (
+                <Given ?01M02NT0WDWV8D3FW0XMA6KJZ4>
+                The harness is invoked with a built-in topic
+                </?01M02NT0WDWV8D3FW0XMA6KJZ4>
+                <When ?01M02NT0WDWV8D3FW0XMA6KJZ5>
+                The topic is `todo`, `ecommerce`, or `blog`
+                </?01M02NT0WDWV8D3FW0XMA6KJZ5>
+                <Then ?01M02NT0WDWV8D3FW0XMA6KJZ6>
+                The harness SHALL use the corresponding business prompt and preserve logs for review
+                </?01M02NT0WDWV8D3FW0XMA6KJZ6>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/e2e-and-quality-skills" } (
+      <Requirement #e2e-and-quality-skills (
+        <Statement ?01M02NT0WDWV8D3FW0XMA6KJZ7>
+        系统 SHALL install reusable agent skills for running the modeling+engineering E2E harness and for scoring generated code quality.
+        </?01M02NT0WDWV8D3FW0XMA6KJZ7>
+        <Suites [
+          <Suite #skills { name = "E2E and quality skills" } (
+            <Cases [
+              <Case #e2e-skill (
+                <Given ?01M02NT0WDWV8D3FW0XMA6KJZ8>
+                codument skill templates are installed or upgraded
+                </?01M02NT0WDWV8D3FW0XMA6KJZ8>
+                <When ?01M02NT0WDWV8D3FW0XMA6KJZ9>
+                An agent needs to run the real modeling+engineering E2E suite
+                </?01M02NT0WDWV8D3FW0XMA6KJZ9>
+                <Then ?01M02NT0WDWV8D3FW0XMA6KJZA>
+                The `codument-modeling-engineering-e2e` skill SHALL explain setup, commands, environment variables, outputs, and failure triage
+                </?01M02NT0WDWV8D3FW0XMA6KJZA>
+              )>
+              <Case #quality-skill (
+                <Given ?01M02NT0WDWV8D3FW0XMA6KJZB>
+                An agent needs to evaluate generated code quality after an E2E run or track implementation
+                </?01M02NT0WDWV8D3FW0XMA6KJZB>
+                <When ?01M02NT0WDWV8D3FW0XMA6KJZC>
+                The `codument-code-quality-score` skill is used
+                </?01M02NT0WDWV8D3FW0XMA6KJZC>
+                <Then ?01M02NT0WDWV8D3FW0XMA6KJZD>
+                The skill SHALL guide evidence-based scoring across runnable behavior, tests, architecture, codument alignment, maintainability, and safety
+                </?01M02NT0WDWV8D3FW0XMA6KJZD>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+  ]>
+)>

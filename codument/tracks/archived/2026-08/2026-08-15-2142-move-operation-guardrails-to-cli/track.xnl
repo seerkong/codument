@@ -1,0 +1,54 @@
+<Track #move-operation-guardrails-to-cli apiVersion="codument.tech/v1alpha1" version="1" { status = "completed" goal = "把确定性结构、生命周期和文件事务护栏从提示词迁入 CLI" description = "清理旧格式提示词并补齐 transition、frontier、artifact sync、std lint 与薄 operation" question_mode = "decision-tree" question_severity = "auto" commit_mode = "manual" created_at = "2026-08-15T18:11:39.723Z" updated_at = "2026-08-15T18:42:02.026Z" } (
+  <Ports { scope = "track" } [
+    <MaterialBundle #operations { role = "input" name = "operation-prompts" domain = "docs" path = "vfs://@/src/templates/codument/std/operations/" }>
+    <MaterialBundle #cli { role = "output" name = "cli-runtime" domain = "code" path = "vfs://@/src/cli/" }>
+    <MaterialBundle #tests { role = "output" name = "tests" domain = "test" path = "vfs://@/test/" }>
+  ]>
+  <TaskSpace #space_move-operation-guardrails-to-cli { name = "move-operation-guardrails-to-cli" version = "1" child_mode = "dag" } (
+    <SubNodes [
+      <TaskGroup #P1 { name = "Canonical prompt cleanup" status = "DONE" priority = "P0" order = 0 } (
+        <SubNodes [
+          <Task #P1-T1 { name = "清理旧 XML/CDT 与失效 BehaviorPatch 口径" status = "DONE" priority = "P0" order = 0 }>
+          <Task #P1-T2 { name = "移除 planning 结构禁令并改为 scaffold/validate" status = "DONE" priority = "P0" order = 1 }>
+          <Task #P1-T3 { name = "修正 skill shells 与普通 operation 路由" status = "DONE" priority = "P0" order = 2 }>
+        ]>
+      )>
+      <TaskGroup #P2 { name = "Deterministic CLI authority" status = "DONE" priority = "P0" order = 1 } (
+        <SubNodes [
+          <Task #P2-T1 { name = "增加 list JSON 与 Decision frontier" status = "DONE" priority = "P0" order = 0 }>
+          <Task #P2-T2 { name = "增加 Track/Mission lifecycle transition 与绑定" status = "DONE" priority = "P0" order = 1 }>
+          <Task #P2-T3 { name = "增加 Mission archive transaction" status = "DONE" priority = "P0" order = 2 }>
+          <Task #P2-T4 { name = "增加 artifact staging tree sync" status = "DONE" priority = "P1" order = 3 }>
+          <Task #P2-T5 { name = "增加 std prompt lint" status = "DONE" priority = "P1" order = 4 }>
+        ]>
+      )>
+      <TaskGroup #P3 { name = "Thin operations" status = "DONE" priority = "P0" order = 2 } (
+        <SubNodes [
+          <Task #P3-T1 { name = "缩短 validate/archive/migrate fallback" status = "DONE" priority = "P0" order = 0 }>
+          <Task #P3-T2 { name = "让 impl/gap/decision/artifact operations 调用 CLI" status = "DONE" priority = "P0" order = 1 }>
+          <Task #P3-T3 { name = "替换固化禁止措辞的模板测试" status = "DONE" priority = "P1" order = 2 }>
+        ]>
+      )>
+      <TaskGroup #P4 { name = "Verification and dogfood" status = "DONE" priority = "P0" order = 3 } (
+        <SubNodes [
+          <Task #P4-T1 { name = "运行 CLI 与模板回归测试" status = "DONE" priority = "P0" order = 0 }>
+          <Task #P4-T2 { name = "构建并以当前 workspace 验证新命令" status = "DONE" priority = "P0" order = 1 }>
+        ]>
+      )>
+    ]>
+  )>
+  <Schedule [
+    <Dag { for = "space_move-operation-guardrails-to-cli" } [
+      <Node #P1>
+      <Node #P2>
+      <Node #P3 [
+        <After { ref = "P1" }>
+        <After { ref = "P2" }>
+      ]>
+      <Node #P4 [
+        <After { ref = "P3" }>
+      ]>
+    ]>
+  ]>
+  <Hooks []>
+)>

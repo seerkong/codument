@@ -1,0 +1,43 @@
+<BehaviorPatch #track.r_2_0_2_6_-_0_7_-_2_5_-_2_2_5_1_-_s_i_m_p_l_i_f_y_-_c_o_d_u_m_e_n_t_-_a_c_t_i_o_n_s.behavior_patch.codument-core apiVersion="codument.tech/v1alpha1" version="1" { capability = "codument-core" } (
+  <Mutations [
+    <Upsert { selector = "behavior://codument-core/requirements/action-defaults" } (
+      <Requirement #action-defaults (
+        <Statement ?01M02NT0WMPFS48SE0P5X90C19>
+        系统 SHALL create design.md and decisions.xnl for every newly planned track and mission, create decisions/ and memory/ only when eligible durable content exists, and run fresh attractor checks only when an explicit hook or a high-risk final scope requests one.
+        </?01M02NT0WMPFS48SE0P5X90C19>
+        <Suites [
+          <Suite #planning-defaults { name = "Planning defaults" } (
+            <Cases [
+              <Case #ordinary-track (
+                <Given ?01M02NT0WMPFS48SE0P5X90C1A>
+                an ordinary track is planned
+                </?01M02NT0WMPFS48SE0P5X90C1A>
+                <When ?01M02NT0WMPFS48SE0P5X90C1B>
+                the planner writes its default artifacts and hooks
+                </?01M02NT0WMPFS48SE0P5X90C1B>
+                <Then ?01M02NT0WMPFS48SE0P5X90C1C>
+                the track SHALL contain design.md and decisions.xnl without a routine phase attractor check
+                </?01M02NT0WMPFS48SE0P5X90C1C>
+              )>
+            ]>
+          )>
+          <Suite #archive-guard { name = "Archive decision guard" } (
+            <Cases [
+              <Case #invalid-xnl (
+                <Given ?01M02NT0WMPFS48SE0P5X90C1D>
+                an active completed track has invalid decisions.xnl
+                </?01M02NT0WMPFS48SE0P5X90C1D>
+                <When ?01M02NT0WMPFS48SE0P5X90C1E>
+                archive starts
+                </?01M02NT0WMPFS48SE0P5X90C1E>
+                <Then ?01M02NT0WMPFS48SE0P5X90C1F>
+                the system SHALL fail before registry mutation or track movement
+                </?01M02NT0WMPFS48SE0P5X90C1F>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+  ]>
+)>

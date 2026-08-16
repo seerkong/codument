@@ -1,0 +1,181 @@
+<BehaviorPatch #track.r_2_0_2_6_-_0_6_-_2_8_-_0_0_5_0_-_a_d_d_-_e_n_g_i_n_e_e_r_i_n_g_-_r_e_g_i_s_t_r_y.behavior_patch.codument-core apiVersion="codument.tech/v1alpha1" version="1" { capability = "codument-core" } (
+  <Mutations [
+    <Upsert { selector = "behavior://codument-core/requirements/engineering-registry" } (
+      <Requirement #engineering-registry (
+        <Statement ?01M02NT0WCVDMG8TC2XTDYV7RQ>
+        系统 SHALL provide an engineering knowledge registry at `codument/engineering/` as an XNL working tree for long-lived implementation, maintenance, operations, reference, and troubleshooting knowledge, replacing free-form `docs/impl` as the managed source of truth when enabled.
+        </?01M02NT0WCVDMG8TC2XTDYV7RQ>
+        <Suites [
+          <Suite #engineering-registry-shape { name = "Engineering registry shape" } (
+            <Cases [
+              <Case #registry-location (
+                <Given ?01M02NT0WCVDMG8TC2XTDYV7RR>
+                The engineering profile is enabled
+                </?01M02NT0WCVDMG8TC2XTDYV7RR>
+                <When ?01M02NT0WCVDMG8TC2XTDYV7RS>
+                The system materializes long-lived implementation knowledge
+                </?01M02NT0WCVDMG8TC2XTDYV7RS>
+                <Then ?01M02NT0WCVDMG8TC2XTDYV7RT>
+                The knowledge SHALL be stored as XNL files under `codument/engineering/&lt;plane&gt;/&lt;category&gt;/...`
+                </?01M02NT0WCVDMG8TC2XTDYV7RT>
+                <Ands [
+                  <And ?01M02NT0WCVDMG8TC2XTDYV7RV>
+                  The system SHALL preserve `engineering` as separate from `modeling`, `behaviors`, `decisions`, and `memory`
+                  </?01M02NT0WCVDMG8TC2XTDYV7RV>
+                ]>
+              )>
+              <Case #host-git-versioned (
+                <Given ?01M02NT0WCVDMG8TC2XTDYV7RW>
+                The engineering registry exists
+                </?01M02NT0WCVDMG8TC2XTDYV7RW>
+                <When ?01M02NT0WCVDMG8TC2XTDYV7RX>
+                The system records history and collaboration
+                </?01M02NT0WCVDMG8TC2XTDYV7RX>
+                <Then ?01M02NT0WCVDMG8TC2XTDYV7RY>
+                `codument/engineering/**.xnl` SHALL be versioned by the host project git
+                </?01M02NT0WCVDMG8TC2XTDYV7RY>
+                <Ands [
+                  <And ?01M02NT0WCVDMG8TC2XTDYV7RZ>
+                  Ephemeral xnl-vfs/xnl-vcs artifacts SHALL NOT be persisted in the registry
+                  </?01M02NT0WCVDMG8TC2XTDYV7RZ>
+                ]>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/engineering-node-schema" } (
+      <Requirement #engineering-node-schema (
+        <Statement ?01M02NT0WCVDMG8TC2XTDYV7S0>
+        系统 SHALL define engineering knowledge nodes as XNL elements with stable ids, implementation-oriented kinds, and minimal required representations per kind.
+        </?01M02NT0WCVDMG8TC2XTDYV7S0>
+        <Suites [
+          <Suite #engineering-kinds { name = "Engineering kinds" } (
+            <Cases [
+              <Case #default-kinds (
+                <Given ?01M02NT0WCVDMG8TC2XTDYV7S1>
+                An author creates engineering knowledge
+                </?01M02NT0WCVDMG8TC2XTDYV7S1>
+                <When ?01M02NT0WCVDMG8TC2XTDYV7S2>
+                The node kind is selected
+                </?01M02NT0WCVDMG8TC2XTDYV7S2>
+                <Then ?01M02NT0WCVDMG8TC2XTDYV7S3>
+                The system SHALL support `overview`, `howto`, `rule`, `example`, `reference`, `troubleshooting`, `runbook`, and `code-map` kinds
+                </?01M02NT0WCVDMG8TC2XTDYV7S3>
+              )>
+              <Case #minimal-representations (
+                <Given ?01M02NT0WCVDMG8TC2XTDYV7S4>
+                An engineering node of a given kind
+                </?01M02NT0WCVDMG8TC2XTDYV7S4>
+                <When ?01M02NT0WCVDMG8TC2XTDYV7S5>
+                The system validates the node
+                </?01M02NT0WCVDMG8TC2XTDYV7S5>
+                <Then ?01M02NT0WCVDMG8TC2XTDYV7S6>
+                `howto` and `runbook` SHALL include steps and verification
+                </?01M02NT0WCVDMG8TC2XTDYV7S6>
+                <Ands [
+                  <And ?01M02NT0WCVDMG8TC2XTDYV7S7>
+                  `rule` SHALL include rationale and enforcement
+                  </?01M02NT0WCVDMG8TC2XTDYV7S7>
+                  <And ?01M02NT0WCVDMG8TC2XTDYV7S8>
+                  `troubleshooting` SHALL include symptoms, diagnosis, and fix
+                  </?01M02NT0WCVDMG8TC2XTDYV7S8>
+                  <And ?01M02NT0WCVDMG8TC2XTDYV7S9>
+                  `reference` and `code-map` SHALL include source/update information
+                  </?01M02NT0WCVDMG8TC2XTDYV7S9>
+                ]>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/engineering-delta-merge" } (
+      <Requirement #engineering-delta-merge (
+        <Statement ?01M02NT0WCVDMG8TC2XTDYV7SA>
+        系统 SHALL express a track's long-lived engineering knowledge changes as target-state nodes under `engineering_deltas/` and apply them through the same conservative node-level three-way merge model used by modeling.
+        </?01M02NT0WCVDMG8TC2XTDYV7SA>
+        <Suites [
+          <Suite #engineering-delta { name = "Engineering deltas" } (
+            <Cases [
+              <Case #delta-location (
+                <Given ?01M02NT0WCVDMG8TC2XTDYV7SB>
+                A track produces long-lived engineering knowledge
+                </?01M02NT0WCVDMG8TC2XTDYV7SB>
+                <When ?01M02NT0WCVDMG8TC2XTDYV7SC>
+                The track is authored or implemented
+                </?01M02NT0WCVDMG8TC2XTDYV7SC>
+                <Then ?01M02NT0WCVDMG8TC2XTDYV7SD>
+                The change SHALL be written under `tracks/&lt;id&gt;/engineering_deltas/&lt;plane&gt;/&lt;category&gt;/&lt;topic&gt;.xnl`
+                </?01M02NT0WCVDMG8TC2XTDYV7SD>
+              )>
+              <Case #archive-merge (
+                <Given ?01M02NT0WCVDMG8TC2XTDYV7SE>
+                A completed track contains engineering deltas
+                </?01M02NT0WCVDMG8TC2XTDYV7SE>
+                <When ?01M02NT0WCVDMG8TC2XTDYV7SF>
+                The track is archived and engineering is enabled
+                </?01M02NT0WCVDMG8TC2XTDYV7SF>
+                <Then ?01M02NT0WCVDMG8TC2XTDYV7SG>
+                The system SHALL merge base, ours, and theirs with a node-level three-way merge keyed by node id
+                </?01M02NT0WCVDMG8TC2XTDYV7SG>
+                <Ands [
+                  <And ?01M02NT0WCVDMG8TC2XTDYV7SH>
+                  True conflicts SHALL be reported issues-first unless explicitly resolved by policy
+                  </?01M02NT0WCVDMG8TC2XTDYV7SH>
+                ]>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/engineering-config-and-cli" } (
+      <Requirement #engineering-config-and-cli (
+        <Statement ?01M02NT0WCVDMG8TC2XTDYV7SJ>
+        系统 SHALL gate engineering registry behavior behind `codument/config/engineering.xml`, disabled by default, and SHALL provide `codument engineering validate` and `codument engineering lint` commands.
+        </?01M02NT0WCVDMG8TC2XTDYV7SJ>
+        <Suites [
+          <Suite #engineering-cli { name = "Engineering config and CLI" } (
+            <Cases [
+              <Case #default-off (
+                <Given ?01M02NT0WCVDMG8TC2XTDYV7SK>
+                A workspace has no enabled engineering config
+                </?01M02NT0WCVDMG8TC2XTDYV7SK>
+                <When ?01M02NT0WCVDMG8TC2XTDYV7SM>
+                track create, implement, archive, or default engineering validation runs
+                </?01M02NT0WCVDMG8TC2XTDYV7SM>
+                <Then ?01M02NT0WCVDMG8TC2XTDYV7SN>
+                The system SHALL skip engineering behavior and leave existing behavior unchanged
+                </?01M02NT0WCVDMG8TC2XTDYV7SN>
+              )>
+              <Case #validate (
+                <Given ?01M02NT0WCVDMG8TC2XTDYV7SP>
+                An engineering registry or engineering delta tree exists
+                </?01M02NT0WCVDMG8TC2XTDYV7SP>
+                <When ?01M02NT0WCVDMG8TC2XTDYV7SQ>
+                `codument engineering validate` runs
+                </?01M02NT0WCVDMG8TC2XTDYV7SQ>
+                <Then ?01M02NT0WCVDMG8TC2XTDYV7SR>
+                The system SHALL report syntax, schema, hierarchy, and reference findings in an author-friendly format
+                </?01M02NT0WCVDMG8TC2XTDYV7SR>
+              )>
+              <Case #lint (
+                <Given ?01M02NT0WCVDMG8TC2XTDYV7SS>
+                An engineering XNL file exceeds configured line or node thresholds
+                </?01M02NT0WCVDMG8TC2XTDYV7SS>
+                <When ?01M02NT0WCVDMG8TC2XTDYV7ST>
+                `codument engineering lint` runs
+                </?01M02NT0WCVDMG8TC2XTDYV7ST>
+                <Then ?01M02NT0WCVDMG8TC2XTDYV7SV>
+                The system SHALL flag it as a fractal-split candidate
+                </?01M02NT0WCVDMG8TC2XTDYV7SV>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+  ]>
+)>

@@ -1,0 +1,3 @@
+<BehaviorPatch #track.xnl-validator-error-messages.behavior_patch.e2e-optimize apiVersion="codument.tech/v1alpha1" version="1" { capability = "e2e-optimize" } (
+  <Mutations []>
+)>

@@ -17,13 +17,13 @@ const VALID_MISSION = `<Mission id="feedback-loop" version="1" xmlns:cdt="urn:co
       <cdt:Actor role="MissionPlanner" project-ref="host"><Description>Plan host tracks.</Description></cdt:Actor>
       <cdt:Actor role="MissionObserver" project-ref="host"><Description>Observe host evidence.</Description></cdt:Actor>
       <cdt:Actor role="MissionReconciler" project-ref="host"><Description>Reconcile host drift.</Description></cdt:Actor>
-      <cdt:Actor role="MissionApplier" project-ref="host"><Description>Apply one host action.</Description></cdt:Actor>
+      <cdt:Actor role="MissionApplier" project-ref="host"><Description>Apply one host operation.</Description></cdt:Actor>
     </cdt:ActorSet>
     <cdt:ActorSet id="library-feedback-loop">
       <cdt:Actor role="MissionPlanner" project-ref="library"><Description>Plan library feedback.</Description></cdt:Actor>
       <cdt:Actor role="MissionObserver" project-ref="library"><Description>Observe library evidence.</Description></cdt:Actor>
       <cdt:Actor role="MissionReconciler" project-ref="library"><Description>Reconcile library drift.</Description></cdt:Actor>
-      <cdt:Actor role="MissionApplier" project-ref="library"><Description>Apply one library action.</Description></cdt:Actor>
+      <cdt:Actor role="MissionApplier" project-ref="library"><Description>Apply one library operation.</Description></cdt:Actor>
     </cdt:ActorSet>
   </cdt:ActorSets>
   <TaskSpace id="space_feedback-loop" name="feedback-loop" version="1">
@@ -53,7 +53,7 @@ describe('validateMissionXml ActorSet and ProjectRef contract', () => {
 
   it('requires each ActorSet to contain each of the four roles exactly once', () => {
     const missingRole = VALID_MISSION.replace(
-      '      <cdt:Actor role="MissionApplier" project-ref="host"><Description>Apply one host action.</Description></cdt:Actor>\n',
+      '      <cdt:Actor role="MissionApplier" project-ref="host"><Description>Apply one host operation.</Description></cdt:Actor>\n',
       '',
     );
     const duplicateRole = VALID_MISSION.replace(

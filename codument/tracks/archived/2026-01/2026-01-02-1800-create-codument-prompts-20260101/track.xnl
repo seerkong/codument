@@ -1,0 +1,445 @@
+<Track #create-codument-prompts-20260101 apiVersion="codument.tech/v1alpha1" version="1" { status = "completed" goal = "创建完整的 Codument 提示词文件和规范目录结构" description = "创建完整的 Codument 提示词文件和规范目录结构" commit_mode = "manual" created_at = "2026-01-01T10:00:00Z" updated_at = "2026-01-02T10:00:00Z" } (
+  <Ports { scope = "track" } [
+    <MaterialBundle { role = "input" name = "behavior-deltas" domain = "behavior" path = "vfs://./behavior_deltas/" }>
+    <MaterialBundle { role = "output" name = "docs" domain = "doc" path = "vfs://@/docs/" }>
+    <MaterialBundle { role = "output" name = "behavior" domain = "codument" path = "vfs://@/codument/behaviors/" }>
+  ]>
+  <TaskSpace #space_create-codument-prompts-20260101 { name = "create-codument-prompts-20260101" } (
+    <Description ?01M02JDH8RP10BQBMT8WCX1RYT>
+    创建完整的 Codument 提示词文件和规范目录结构
+    </?01M02JDH8RP10BQBMT8WCX1RYT>
+    <SubNodes [
+      <TaskGroup #P1 { name = "提示词文件" status = "DONE" order = 0 child_mode = "dag" } (
+        <Description ?01M02JDH8RP10BQBMT8WCX1RYV>
+        创建所有 slash command 提示词文件
+        </?01M02JDH8RP10BQBMT8WCX1RYV>
+        <Gate [
+          <Criterion ?01M02JDH8RP10BQBMT8WCX1RYW>
+          所有提示词文件已创建
+          </?01M02JDH8RP10BQBMT8WCX1RYW>
+          <Criterion ?01M02JDH8RP10BQBMT8WCX1RYX>
+          提示词格式正确
+          </?01M02JDH8RP10BQBMT8WCX1RYX>
+        ]>
+        <SubNodes [
+          <Task { id = "T1.1" name = "创建 agents.md 核心指令" status = "DONE" order = 0 priority = "P0" } (
+            <Description ?01M02JDH8RP10BQBMT8WCX1RYY>
+            创建 AI 助手核心指令文档，包含工作流说明和最佳实践
+            </?01M02JDH8RP10BQBMT8WCX1RYY>
+            <Acceptance [
+              <Criterion { id = "T1.1-AC1" checked = true } ?01M02JDH8RP10BQBMT8WCX1RYZ>
+              包含快速检查清单
+              </?01M02JDH8RP10BQBMT8WCX1RYZ>
+              <Criterion { id = "T1.1-AC2" checked = true } ?01M02JDH8RP10BQBMT8WCX1RZ0>
+              包含三阶段工作流说明
+              </?01M02JDH8RP10BQBMT8WCX1RZ0>
+              <Criterion { id = "T1.1-AC3" checked = true } ?01M02JDH8RP10BQBMT8WCX1RZ1>
+              包含目录结构说明
+              </?01M02JDH8RP10BQBMT8WCX1RZ1>
+            ]>
+          )>
+          <Task { id = "T1.2" name = "创建 init.md 初始化命令" status = "DONE" order = 1 priority = "P0" } (
+            <Description ?01M02JDH8RP10BQBMT8WCX1RZ2>
+            创建项目初始化命令提示词
+            </?01M02JDH8RP10BQBMT8WCX1RZ2>
+            <Acceptance [
+              <Criterion { id = "T1.2-AC1" checked = true } ?01M02JDH8RP10BQBMT8WCX1RZ3>
+              支持 Brownfield/Greenfield 检测
+              </?01M02JDH8RP10BQBMT8WCX1RZ3>
+              <Criterion { id = "T1.2-AC2" checked = true } ?01M02JDH8RP10BQBMT8WCX1RZ4>
+              支持交互式信息收集
+              </?01M02JDH8RP10BQBMT8WCX1RZ4>
+            ]>
+          )>
+          <Task { id = "T1.3" name = "创建 track.md 创建追踪命令" status = "DONE" order = 2 priority = "P0" } (
+            <Description ?01M02JDH8RP10BQBMT8WCX1RZ5>
+            创建变更追踪命令提示词，支持 spec.md 和 plan.xml 生成
+            </?01M02JDH8RP10BQBMT8WCX1RZ5>
+            <Acceptance [
+              <Criterion { id = "T1.3-AC1" checked = true } ?01M02JDH8RP10BQBMT8WCX1RZ6>
+              支持交互式规范生成
+              </?01M02JDH8RP10BQBMT8WCX1RZ6>
+              <Criterion { id = "T1.3-AC2" checked = true } ?01M02JDH8RP10BQBMT8WCX1RZ7>
+              支持提交模式选择
+              </?01M02JDH8RP10BQBMT8WCX1RZ7>
+            ]>
+          )>
+          <Task { id = "T1.4" name = "创建 implement.md 实现命令" status = "DONE" order = 3 priority = "P0" } (
+            <Description ?01M02JDH8RP10BQBMT8WCX1RZ8>
+            创建实现命令提示词，包含阶段门控验证
+            </?01M02JDH8RP10BQBMT8WCX1RZ8>
+            <Acceptance [
+              <Criterion { id = "T1.4-AC1" checked = true } ?01M02JDH8RP10BQBMT8WCX1RZ9>
+              包含任务执行流程
+              </?01M02JDH8RP10BQBMT8WCX1RZ9>
+              <Criterion { id = "T1.4-AC2" checked = true } ?01M02JDH8RP10BQBMT8WCX1RZA>
+              包含阶段门控验证协议
+              </?01M02JDH8RP10BQBMT8WCX1RZA>
+              <Criterion { id = "T1.4-AC3" checked = true } ?01M02JDH8RP10BQBMT8WCX1RZB>
+              包含中断恢复检查
+              </?01M02JDH8RP10BQBMT8WCX1RZB>
+            ]>
+          )>
+          <Task { id = "T1.5" name = "创建 validate.md 验证命令" status = "DONE" order = 4 priority = "P0" } (
+            <Description ?01M02JDH8RP10BQBMT8WCX1RZC>
+            创建验证命令提示词
+            </?01M02JDH8RP10BQBMT8WCX1RZC>
+            <Acceptance [
+              <Criterion { id = "T1.5-AC1" checked = true } ?01M02JDH8RP10BQBMT8WCX1RZD>
+              支持 track 验证
+              </?01M02JDH8RP10BQBMT8WCX1RZD>
+              <Criterion { id = "T1.5-AC2" checked = true } ?01M02JDH8RP10BQBMT8WCX1RZE>
+              支持 spec 验证
+              </?01M02JDH8RP10BQBMT8WCX1RZE>
+            ]>
+          )>
+          <Task { id = "T1.6" name = "创建 archive.md 归档命令" status = "DONE" order = 5 priority = "P0" } (
+            <Description ?01M02JDH8RP10BQBMT8WCX1RZF>
+            创建归档命令提示词
+            </?01M02JDH8RP10BQBMT8WCX1RZF>
+            <Acceptance [
+              <Criterion { id = "T1.6-AC1" checked = true } ?01M02JDH8RP10BQBMT8WCX1RZG>
+              支持移动到 archive/
+              </?01M02JDH8RP10BQBMT8WCX1RZG>
+              <Criterion { id = "T1.6-AC2" checked = true } ?01M02JDH8RP10BQBMT8WCX1RZH>
+              支持更新 specs/
+              </?01M02JDH8RP10BQBMT8WCX1RZH>
+            ]>
+          )>
+          <Task { id = "T1.7" name = "创建 status.md 状态命令" status = "DONE" order = 6 priority = "P0" } (
+            <Description ?01M02JDH8RP10BQBMT8WCX1RZJ>
+            创建状态命令提示词
+            </?01M02JDH8RP10BQBMT8WCX1RZJ>
+            <Acceptance [
+              <Criterion { id = "T1.7-AC1" checked = true } ?01M02JDH8RP10BQBMT8WCX1RZK>
+              显示项目进度
+              </?01M02JDH8RP10BQBMT8WCX1RZK>
+            ]>
+          )>
+        ]>
+      )>
+      <TaskGroup #P2 { name = "模板文件" status = "DONE" order = 1 } (
+        <Description ?01M02JDH8RP10BQBMT8WCX1RZM>
+        创建项目模板文件
+        </?01M02JDH8RP10BQBMT8WCX1RZM>
+        <Gate [
+          <Criterion ?01M02JDH8RP10BQBMT8WCX1RZN>
+          所有模板文件已创建
+          </?01M02JDH8RP10BQBMT8WCX1RZN>
+        ]>
+        <SubNodes [
+          <Task { id = "T2.1" name = "创建 workflow.md 模板" status = "DONE" order = 0 priority = "P0" } (
+            <Description ?01M02JDH8RP10BQBMT8WCX1RZP>
+            创建工作流模板，包含 TDD 流程和阶段门控
+            </?01M02JDH8RP10BQBMT8WCX1RZP>
+            <Acceptance [
+              <Criterion { id = "T2.1-AC1" checked = true } ?01M02JDH8RP10BQBMT8WCX1RZQ>
+              包含 auto/manual 提交模式
+              </?01M02JDH8RP10BQBMT8WCX1RZQ>
+              <Criterion { id = "T2.1-AC2" checked = true } ?01M02JDH8RP10BQBMT8WCX1RZR>
+              包含阶段完成验证协议
+              </?01M02JDH8RP10BQBMT8WCX1RZR>
+            ]>
+          )>
+          <Task { id = "T2.2" name = "创建 project.md 模板" status = "DONE" order = 1 priority = "P0" } (
+            <Description ?01M02JDH8RP10BQBMT8WCX1RZS>
+            创建项目配置模板
+            </?01M02JDH8RP10BQBMT8WCX1RZS>
+            <Acceptance [
+              <Criterion { id = "T2.2-AC1" checked = true } ?01M02JDH8RP10BQBMT8WCX1RZT>
+              包含项目基本信息
+              </?01M02JDH8RP10BQBMT8WCX1RZT>
+            ]>
+          )>
+          <Task { id = "T2.3" name = "创建 product.md 模板" status = "DONE" order = 2 priority = "P0" } (
+            <Description ?01M02JDH8RP10BQBMT8WCX1RZV>
+            创建产品定义模板
+            </?01M02JDH8RP10BQBMT8WCX1RZV>
+            <Acceptance [
+              <Criterion { id = "T2.3-AC1" checked = true } ?01M02JDH8RP10BQBMT8WCX1RZW>
+              包含产品愿景
+              </?01M02JDH8RP10BQBMT8WCX1RZW>
+            ]>
+          )>
+          <Task { id = "T2.4" name = "创建 plan-xml-spec.md 规范" status = "DONE" order = 3 priority = "P0" } (
+            <Description ?01M02JDH8RP10BQBMT8WCX1RZX>
+            创建 plan.xml 格式规范文档
+            </?01M02JDH8RP10BQBMT8WCX1RZX>
+            <Acceptance [
+              <Criterion { id = "T2.4-AC1" checked = true } ?01M02JDH8RP10BQBMT8WCX1RZY>
+              包含完整 XML 结构
+              </?01M02JDH8RP10BQBMT8WCX1RZY>
+              <Criterion { id = "T2.4-AC2" checked = true } ?01M02JDH8RP10BQBMT8WCX1RZZ>
+              包含元素说明
+              </?01M02JDH8RP10BQBMT8WCX1RZZ>
+              <Criterion { id = "T2.4-AC3" checked = true } ?01M02JDH8RP10BQBMT8WCX1S00>
+              包含示例
+              </?01M02JDH8RP10BQBMT8WCX1S00>
+            ]>
+          )>
+          <Task { id = "T2.5" name = "创建 tech-stack.md 模板" status = "DONE" order = 4 priority = "P0" } (
+            <Description ?01M02JDH8RP10BQBMT8WCX1S01>
+            创建技术栈配置模板
+            </?01M02JDH8RP10BQBMT8WCX1S01>
+            <Acceptance [
+              <Criterion { id = "T2.5-AC1" checked = true } ?01M02JDH8RP10BQBMT8WCX1S02>
+              包含技术选型表格
+              </?01M02JDH8RP10BQBMT8WCX1S02>
+              <Criterion { id = "T2.5-AC2" checked = true } ?01M02JDH8RP10BQBMT8WCX1S03>
+              包含架构决策记录
+              </?01M02JDH8RP10BQBMT8WCX1S03>
+            ]>
+          )>
+        ]>
+      )>
+      <TaskGroup #P3 { name = "规范目录" status = "DONE" order = 2 } (
+        <Description ?01M02JDH8RP10BQBMT8WCX1S04>
+        创建 codument/ 规范目录结构
+        </?01M02JDH8RP10BQBMT8WCX1S04>
+        <Gate [
+          <Criterion ?01M02JDH8RP10BQBMT8WCX1S05>
+          codument 目录结构完整
+          </?01M02JDH8RP10BQBMT8WCX1S05>
+        ]>
+        <SubNodes [
+          <Task { id = "T3.1" name = "创建 codument/project.md" status = "DONE" order = 0 priority = "P0" } (
+            <Description ?01M02JDH8RP10BQBMT8WCX1S06>
+            创建项目配置文件
+            </?01M02JDH8RP10BQBMT8WCX1S06>
+            <Acceptance [
+              <Criterion { id = "T3.1-AC1" checked = true } ?01M02JDH8RP10BQBMT8WCX1S07>
+              文件存在且格式正确
+              </?01M02JDH8RP10BQBMT8WCX1S07>
+            ]>
+          )>
+          <Task { id = "T3.2" name = "创建 codument/product.md" status = "DONE" order = 1 priority = "P0" } (
+            <Description ?01M02JDH8RP10BQBMT8WCX1S08>
+            创建产品定义文件
+            </?01M02JDH8RP10BQBMT8WCX1S08>
+            <Acceptance [
+              <Criterion { id = "T3.2-AC1" checked = true } ?01M02JDH8RP10BQBMT8WCX1S09>
+              文件存在且格式正确
+              </?01M02JDH8RP10BQBMT8WCX1S09>
+            ]>
+          )>
+          <Task { id = "T3.3" name = "创建 codument/workflow.md" status = "DONE" order = 2 priority = "P0" } (
+            <Description ?01M02JDH8RP10BQBMT8WCX1S0A>
+            创建工作流文件
+            </?01M02JDH8RP10BQBMT8WCX1S0A>
+            <Acceptance [
+              <Criterion { id = "T3.3-AC1" checked = true } ?01M02JDH8RP10BQBMT8WCX1S0B>
+              文件存在且格式正确
+              </?01M02JDH8RP10BQBMT8WCX1S0B>
+            ]>
+          )>
+          <Task { id = "T3.4" name = "创建 codument/tech-stack.md" status = "DONE" order = 3 priority = "P0" } (
+            <Description ?01M02JDH8RP10BQBMT8WCX1S0C>
+            创建技术栈配置文件
+            </?01M02JDH8RP10BQBMT8WCX1S0C>
+            <Acceptance [
+              <Criterion { id = "T3.4-AC1" checked = true } ?01M02JDH8RP10BQBMT8WCX1S0D>
+              文件存在且格式正确
+              </?01M02JDH8RP10BQBMT8WCX1S0D>
+            ]>
+          )>
+          <Task { id = "T3.5" name = "创建 codument/tracks.md" status = "DONE" order = 4 priority = "P0" } (
+            <Description ?01M02JDH8RP10BQBMT8WCX1S0E>
+            创建 tracks 索引文件
+            </?01M02JDH8RP10BQBMT8WCX1S0E>
+            <Acceptance [
+              <Criterion { id = "T3.5-AC1" checked = true } ?01M02JDH8RP10BQBMT8WCX1S0F>
+              文件存在且格式正确
+              </?01M02JDH8RP10BQBMT8WCX1S0F>
+            ]>
+          )>
+          <Task { id = "T3.6" name = "创建本次需求的 track 目录" status = "DONE" order = 5 priority = "P0" } (
+            <Description ?01M02JDH8RP10BQBMT8WCX1S0G>
+            创建 tracks/create-codument-prompts-20260101/ 目录
+            </?01M02JDH8RP10BQBMT8WCX1S0G>
+            <Acceptance [
+              <Criterion { id = "T3.6-AC1" checked = true } ?01M02JDH8RP10BQBMT8WCX1S0H>
+              目录结构正确
+              </?01M02JDH8RP10BQBMT8WCX1S0H>
+              <Criterion { id = "T3.6-AC2" checked = true } ?01M02JDH8RP10BQBMT8WCX1S0J>
+              包含 spec.md、plan.xml、metadata.json
+              </?01M02JDH8RP10BQBMT8WCX1S0J>
+            ]>
+          )>
+        ]>
+      )>
+      <TaskGroup #P4 { name = "入口文件" status = "DONE" order = 3 } (
+        <Description ?01M02JDH8RP10BQBMT8WCX1S0K>
+        创建 AGENTS.md 入口文件
+        </?01M02JDH8RP10BQBMT8WCX1S0K>
+        <Gate [
+          <Criterion ?01M02JDH8RP10BQBMT8WCX1S0M>
+          AGENTS.md 存在且格式正确
+          </?01M02JDH8RP10BQBMT8WCX1S0M>
+        ]>
+        <SubNodes [
+          <Task { id = "T4.1" name = "创建 AGENTS.md" status = "DONE" order = 0 priority = "P0" } (
+            <Description ?01M02JDH8RP10BQBMT8WCX1S0N>
+            创建项目根目录的 AI 助手入口文件
+            </?01M02JDH8RP10BQBMT8WCX1S0N>
+            <Acceptance [
+              <Criterion { id = "T4.1-AC1" checked = true } ?01M02JDH8RP10BQBMT8WCX1S0P>
+              引导 AI 助手阅读 codument 目录
+              </?01M02JDH8RP10BQBMT8WCX1S0P>
+            ]>
+          )>
+        ]>
+      )>
+      <TaskGroup #P5 { name = "CLI 程序" status = "DONE" order = 4 child_mode = "dag" } (
+        <Description ?01M02JDH8RP10BQBMT8WCX1S0Q>
+        开发 Codument CLI 程序
+        </?01M02JDH8RP10BQBMT8WCX1S0Q>
+        <Gate [
+          <Criterion ?01M02JDH8RP10BQBMT8WCX1S0R>
+          所有命令正常工作
+          </?01M02JDH8RP10BQBMT8WCX1S0R>
+          <Criterion ?01M02JDH8RP10BQBMT8WCX1S0S>
+          构建生成单文件可执行文件
+          </?01M02JDH8RP10BQBMT8WCX1S0S>
+        ]>
+        <SubNodes [
+          <Task { id = "T5.1" name = "初始化 Bun 项目" status = "DONE" order = 0 priority = "P0" } (
+            <Description ?01M02JDH8RP10BQBMT8WCX1S0T>
+            初始化 Bun 项目，配置 TypeScript
+            </?01M02JDH8RP10BQBMT8WCX1S0T>
+            <Acceptance [
+              <Criterion { id = "T5.1-AC1" checked = true } ?01M02JDH8RP10BQBMT8WCX1S0V>
+              package.json 存在
+              </?01M02JDH8RP10BQBMT8WCX1S0V>
+              <Criterion { id = "T5.1-AC2" checked = true } ?01M02JDH8RP10BQBMT8WCX1S0W>
+              tsconfig.json 配置正确
+              </?01M02JDH8RP10BQBMT8WCX1S0W>
+            ]>
+          )>
+          <Task { id = "T5.2" name = "实现 list 命令" status = "DONE" order = 1 priority = "P0" } (
+            <Description ?01M02JDH8RP10BQBMT8WCX1S0X>
+            实现 list 命令，支持列出 tracks 和 specs
+            </?01M02JDH8RP10BQBMT8WCX1S0X>
+            <Acceptance [
+              <Criterion { id = "T5.2-AC1" checked = true } ?01M02JDH8RP10BQBMT8WCX1S0Y>
+              列出活跃 tracks
+              </?01M02JDH8RP10BQBMT8WCX1S0Y>
+              <Criterion { id = "T5.2-AC2" checked = true } ?01M02JDH8RP10BQBMT8WCX1S0Z>
+              支持 --specs 选项
+              </?01M02JDH8RP10BQBMT8WCX1S0Z>
+            ]>
+          )>
+          <Task { id = "T5.3" name = "实现 show 命令" status = "DONE" order = 2 priority = "P1" } (
+            <Description ?01M02JDH8RP10BQBMT8WCX1S10>
+            实现 show 命令，显示 track 或 spec 详情
+            </?01M02JDH8RP10BQBMT8WCX1S10>
+            <Acceptance [
+              <Criterion { id = "T5.3-AC1" checked = true } ?01M02JDH8RP10BQBMT8WCX1S11>
+              显示 track 详情
+              </?01M02JDH8RP10BQBMT8WCX1S11>
+              <Criterion { id = "T5.3-AC2" checked = true } ?01M02JDH8RP10BQBMT8WCX1S12>
+              支持 --json 输出
+              </?01M02JDH8RP10BQBMT8WCX1S12>
+            ]>
+          )>
+          <Task { id = "T5.4" name = "实现 validate 命令" status = "DONE" order = 3 priority = "P1" } (
+            <Description ?01M02JDH8RP10BQBMT8WCX1S13>
+            实现 validate 命令，验证格式
+            </?01M02JDH8RP10BQBMT8WCX1S13>
+            <Acceptance [
+              <Criterion { id = "T5.4-AC1" checked = true } ?01M02JDH8RP10BQBMT8WCX1S14>
+              验证 XML 格式
+              </?01M02JDH8RP10BQBMT8WCX1S14>
+              <Criterion { id = "T5.4-AC2" checked = true } ?01M02JDH8RP10BQBMT8WCX1S15>
+              支持 --strict 模式
+              </?01M02JDH8RP10BQBMT8WCX1S15>
+            ]>
+          )>
+          <Task { id = "T5.5" name = "实现 archive 命令" status = "DONE" order = 4 priority = "P2" } (
+            <Description ?01M02JDH8RP10BQBMT8WCX1S16>
+            实现 archive 命令，归档已完成 track
+            </?01M02JDH8RP10BQBMT8WCX1S16>
+            <Acceptance [
+              <Criterion { id = "T5.5-AC1" checked = true } ?01M02JDH8RP10BQBMT8WCX1S17>
+              移动到 archive/
+              </?01M02JDH8RP10BQBMT8WCX1S17>
+              <Criterion { id = "T5.5-AC2" checked = true } ?01M02JDH8RP10BQBMT8WCX1S18>
+              更新 tracks.md
+              </?01M02JDH8RP10BQBMT8WCX1S18>
+            ]>
+          )>
+          <Task { id = "T5.6" name = "配置单文件构建" status = "DONE" order = 5 priority = "P0" } (
+            <Description ?01M02JDH8RP10BQBMT8WCX1S19>
+            配置 Bun 构建生成单文件可执行文件
+            </?01M02JDH8RP10BQBMT8WCX1S19>
+            <Acceptance [
+              <Criterion { id = "T5.6-AC1" checked = true } ?01M02JDH8RP10BQBMT8WCX1S1A>
+              bun build --compile 正常工作
+              </?01M02JDH8RP10BQBMT8WCX1S1A>
+              <Criterion { id = "T5.6-AC2" checked = true } ?01M02JDH8RP10BQBMT8WCX1S1B>
+              提示词文件正确嵌入
+              </?01M02JDH8RP10BQBMT8WCX1S1B>
+            ]>
+          )>
+          <Task { id = "T5.7" name = "更新 CLI utils 支持新 XML 格式" status = "DONE" order = 6 priority = "P0" } (
+            <Description ?01M02JDH8RP10BQBMT8WCX1S1C>
+            更新 CLI utils 以解析新的 plan.xml 格式
+            </?01M02JDH8RP10BQBMT8WCX1S1C>
+            <Acceptance [
+              <Criterion { id = "T5.7-AC1" checked = true } ?01M02JDH8RP10BQBMT8WCX1S1D>
+              支持任务属性解析
+              </?01M02JDH8RP10BQBMT8WCX1S1D>
+              <Criterion { id = "T5.7-AC2" checked = true } ?01M02JDH8RP10BQBMT8WCX1S1E>
+              支持 commit_mode 读取
+              </?01M02JDH8RP10BQBMT8WCX1S1E>
+              <Criterion { id = "T5.7-AC3" checked = true } ?01M02JDH8RP10BQBMT8WCX1S1F>
+              支持阶段门控标准解析
+              </?01M02JDH8RP10BQBMT8WCX1S1F>
+            ]>
+          )>
+        ]>
+      )>
+    ]>
+  )>
+  <Schedule [
+    <Dag { for = "P1" } [
+      <Node { id = "T1.2" } [
+        <After { ref = "T1.1" }>
+      ]>
+      <Node { id = "T1.3" } [
+        <After { ref = "T1.1" }>
+      ]>
+      <Node { id = "T1.4" } [
+        <After { ref = "T1.1" }>
+      ]>
+      <Node { id = "T1.5" } [
+        <After { ref = "T1.1" }>
+      ]>
+      <Node { id = "T1.6" } [
+        <After { ref = "T1.1" }>
+      ]>
+      <Node { id = "T1.7" } [
+        <After { ref = "T1.1" }>
+      ]>
+    ]>
+    <Dag { for = "P5" } [
+      <Node { id = "T5.2" } [
+        <After { ref = "T5.1" }>
+      ]>
+      <Node { id = "T5.3" } [
+        <After { ref = "T5.2" }>
+      ]>
+      <Node { id = "T5.4" } [
+        <After { ref = "T5.2" }>
+      ]>
+      <Node { id = "T5.5" } [
+        <After { ref = "T5.2" }>
+      ]>
+      <Node { id = "T5.6" } [
+        <After { ref = "T5.1" }>
+      ]>
+      <Node { id = "T5.7" } [
+        <After { ref = "T5.2" }>
+      ]>
+    ]>
+  ]>
+)>

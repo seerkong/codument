@@ -1,0 +1,70 @@
+<Behavior #e2e-optimize apiVersion="codument.tech/v1alpha1" version="1" (
+  <Requirements [
+    <Requirement #improve-xnl-authoring (
+      <Statement ?01M05ZPQQKWJK6VCF14C9EED94>
+      系统 SHALL 通过 TTY 调用、validator 错误提示升级、staged validate、scaffold 辅助和 e2e 任务拆分五条 Track 系统性优化 XNL 编写体验。
+      </?01M05ZPQQKWJK6VCF14C9EED94>
+      <Suites [
+        <Suite #validate-all (
+          <Cases [
+            <Case #tty (
+              <Given ?01M05ZPQQKWJK6VCF14C9EED95>
+              run.sh 的 claude 分支获得伪 TTY
+              </?01M05ZPQQKWJK6VCF14C9EED95>
+              <When ?01M05ZPQQKWJK6VCF14C9EED96>
+              agent 调用 codument
+              </?01M05ZPQQKWJK6VCF14C9EED96>
+              <Then ?01M05ZPQQKWJK6VCF14C9EED97>
+              tool call 吞吐量恢复，_agent-plan.log 实时可见
+              </?01M05ZPQQKWJK6VCF14C9EED97>
+            )>
+            <Case #fix-hint (
+              <Given ?01M05ZPQQKWJK6VCF14C9EED98>
+              validator 输出包含 fix_hint
+              </?01M05ZPQQKWJK6VCF14C9EED98>
+              <When ?01M05ZPQQKWJK6VCF14C9EED99>
+              agent 读取错误
+              </?01M05ZPQQKWJK6VCF14C9EED99>
+              <Then ?01M05ZPQQKWJK6VCF14C9EED9A>
+              一轮修复成功率 >= 90%
+              </?01M05ZPQQKWJK6VCF14C9EED9A>
+            )>
+            <Case #staged (
+              <Given ?01M05ZPQQKWJK6VCF14C9EED9B>
+              planning 阶段 staged validate
+              </?01M05ZPQQKWJK6VCF14C9EED9B>
+              <When ?01M05ZPQQKWJK6VCF14C9EED9C>
+              agent 写完所有 deltas
+              </?01M05ZPQQKWJK6VCF14C9EED9C>
+              <Then ?01M05ZPQQKWJK6VCF14C9EED9D>
+              一次性 validate 通过
+              </?01M05ZPQQKWJK6VCF14C9EED9D>
+            )>
+            <Case #scaffold (
+              <Given ?01M05ZPQQKWJK6VCF14C9EED9E>
+              agent 调用 scaffold 获得合法骨架
+              </?01M05ZPQQKWJK6VCF14C9EED9E>
+              <When ?01M05ZPQQKWJK6VCF14C9EED9F>
+              填充业务内容
+              </?01M05ZPQQKWJK6VCF14C9EED9F>
+              <Then ?01M05ZPQQKWJK6VCF14C9EED9G>
+              validate 0 error
+              </?01M05ZPQQKWJK6VCF14C9EED9G>
+            )>
+            <Case #split (
+              <Given ?01M05ZPQQKWJK6VCF14C9EED9H>
+              ecommerce 拆分为 core/payment
+              </?01M05ZPQQKWJK6VCF14C9EED9H>
+              <When ?01M05ZPQQKWJK6VCF14C9EED9J>
+              单次 claude 会话运行
+              </?01M05ZPQQKWJK6VCF14C9EED9J>
+              <Then ?01M05ZPQQKWJK6VCF14C9EED9K>
+              score >= 80
+              </?01M05ZPQQKWJK6VCF14C9EED9K>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+  ]>
+)>

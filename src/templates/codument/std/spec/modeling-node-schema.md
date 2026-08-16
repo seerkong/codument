@@ -26,7 +26,7 @@ modeling 节点的常规属性一律写进 `{}` 属性块：`kind`、`fact_grade
 | | `port` | `command\|message` 标注（**CLI 强制**）+ 入口签名（评审项） | Actor/Processor；泛化 HttpEndpoint/Kafka |
 | | `actor` | 单写边界 + 偏重(data-owner/执行/组合) + 解环决策（**评审项**；CLI 仅校验 kind 合法） | DEPA actor-paradigm |
 | | `policy` | rule `pseudo`(datalog/switch) 或引用 `behavior://`（**CLI 强制**） | 跨对象； `policies` |
-| shell（命名空间，领域定） | `surface:route` `backend:endpoint` `cli:command` `agent:tool` … | 各 plane 自定义 | route/command/action 本就跨领域 |
+| shell（命名空间，领域定） | `surface:route` `backend:endpoint` `cli:command` `agent:tool` … | 各 plane 自定义 | route/command/operation 本就跨领域 |
 
 > kind 词汇的“内核裸名 vs 命名空间领域”区分 Layer-1 的 Extension kind 谱系：通用概念裸名共用，领域概念加命名空间前缀。
 
@@ -117,28 +117,28 @@ Good（entity，最小必备齐）：
   kind = "entity"
   fact_grade = "authoritative_fact"
   single_writer = "resource.store"
-} [
+} (
   <desc ?>聚合型资源…</?>
   <types ?t>interface SkillTool { key: string; status: SkillToolStatus }
   enum SkillToolStatus { Draft="draft", Online="online" }</?t>
-  <state-machine #resource.skill_tool_status [ <mermaid ?m>
+  <state-machine #resource.skill_tool_status ( <mermaid ?m>
   stateDiagram-v2
     draft --> online: publish
-  </?m> ]>
+  </?m> )>
   <fact-source ?>唯一写入者 resource.store；file_contents 只读投影不反写。</?>
-]>
+)>
 ```
 
 Good（component，四块裸标签 — canonical）：
 ```xnl
-<component #orders.place_order_proc { kind = "component" } [
+<component #orders.place_order_proc { kind = "component" } (
   <desc ?>下单组件：校验库存、落账、投递通知。</?>
   <runtime ?r>type Runtime = { clock: Clock; orderStore: OrderStore }</?r>
   <input ?i>interface PlaceOrderInput { cartId: string; userId: string }</?i>
   <config ?c>interface PlaceOrderConfig { maxLines: number }</?c>
   <output ?o>interface PlaceOrderOutput { orderId: string; total: number }</?o>
   <pseudo { kind = "ctrl" } ?p>validate(input) -> reserve(stock) -> append(order) -> notify</?p>
-]>
+)>
 ```
 
 Good（shell kind 节点 — 普通标签 + `kind` 属性）：
@@ -174,7 +174,7 @@ modeling 节点的**描述性内容一律用中文**，**代码标识符保持�
 
 Good（注释/描述中文，标识符英文）：
 ```xnl
-<component #orders.place_order { kind = "component" } [
+<component #orders.place_order { kind = "component" } (
   <desc ?>下单组件：校验购物车、预留库存、落账。</?>
   <runtime ?r>
   interface PlaceOrderRuntime {
@@ -183,7 +183,7 @@ Good（注释/描述中文，标识符英文）：
   }
   </?r>
   <pseudo { kind = "ctrl" } ?p>校验 input → 经 message 预留库存 → 落账 → 发布事件</?p>
-]>
+)>
 ```
 
 Bad：

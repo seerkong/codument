@@ -112,6 +112,30 @@ describe('XML spec CLI compatibility', () => {
     expect(shown.scenarios).toBe(1);
   });
 
+  it('prefers canonical Behavior XNL for --behaviors list and show', async () => {
+    const ws = makeTempDir('codument-behavior-xnl-cli-');
+    writeFile(path.join(ws, 'codument', 'behaviors', 'orders.xnl'), `<Behavior #orders apiVersion="codument.tech/v1alpha1" version="1" (
+      <Requirements [
+        <Requirement #place-order (
+          <Statement ?>Place an order.</?>
+          <Suites [<Suite #placement (<Cases [<Case #valid (<Then ?>Created.</?>)>]>)>]>
+        )>
+      ]>
+    )>`);
+    writeFile(path.join(ws, 'codument', 'specs', 'orders.xml'), '<behaviors capability="orders"><requirement id="legacy"/></behaviors>');
+
+    const list = await runCli(ws, ['list', '--behaviors', '--json']);
+    expect(list.stderr).toBe('');
+    expect(list.exitCode).toBe(0);
+    const behaviors = JSON.parse(list.stdout) as Array<{ id: string; path: string; format: string; requirements: number; scenarios: number }>;
+    expect(behaviors).toEqual([{ id: 'orders', path: path.join('codument', 'behaviors', 'orders.xnl'), format: 'xnl', requirements: 1, scenarios: 1 }]);
+
+    const show = await runCli(ws, ['show', 'orders', '--json']);
+    expect(show.stderr).toBe('');
+    expect(show.exitCode).toBe(0);
+    expect(JSON.parse(show.stdout)).toMatchObject({ id: 'orders', format: 'xnl', requirements: 1, scenarios: 1 });
+  });
+
   it('validates active tracks that use behavior deltas without legacy spec.md', async () => {
     const ws = makeTempDir('codument-track-xml-delta-cli-');
     const trackId = 'add-xml-delta';

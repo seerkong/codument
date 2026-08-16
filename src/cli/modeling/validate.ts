@@ -32,7 +32,11 @@ export interface ValidateFinding {
   line?: number;
   layer: ValidateLayer;
   severity: ValidateSeverity;
+  /** Stable rule id for machine-readable findings (when available). */
+  rule?: string;
   message: string;
+  /** Optional minimal fix hint for authoring errors. */
+  fix_hint?: string;
 }
 
 export type ValidateMode = 'registry' | 'deltas';
@@ -53,6 +57,14 @@ const KNOWN_PLANES = new Set(['domain', 'backend', 'surface', 'cli', 'agent']);
 /** Reference scheme prefixes we recognise in node attribute values. */
 const MODELING_SCHEME = 'modeling://';
 const BEHAVIOR_SCHEME = 'behavior://';
+
+const RULE_FIX_HINTS: Record<string, string> = {
+  'modeling.id-context-mismatch': '将节点 id 改为与路径 context 对齐，例如 modeling_deltas/domain/<ctx>.xnl 中应使用 #domain.<ctx>.xxx',
+  'modeling.id-plane-mismatch': '将节点 id 的 plane 前缀改为与路径 plane 一致，例如 backend 路径应使用 #backend.<ctx>.xxx',
+  'modeling.dangling-reference': '检查 modeling:// 引用路径是否存在于 registry；使用 modeling://<plane>/<context>/<name> 完整路径',
+  'modeling.missing-domain-plane': '在 domain/ 目录下创建至少一个 context 文件',
+  'modeling.unknown-derived-plane': '如为有意使用的自定义 plane，可忽略此 warning；否则改为已知 plane（backend/surface/cli/agent）',
+};
 
 interface PathLoc {
   plane: string;
@@ -130,7 +142,9 @@ function checkIdPathAlignment(
       file: relFile,
       layer: 'hierarchy',
       severity: 'error',
+      rule: 'modeling.id-context-mismatch',
       message: `#${id}: id context '${idContext}' does not match path context '${loc.context}' (${relFile})`,
+      fix_hint: RULE_FIX_HINTS['modeling.id-context-mismatch'],
     });
   }
 
@@ -142,7 +156,9 @@ function checkIdPathAlignment(
         file: relFile,
         layer: 'hierarchy',
         severity: 'error',
+        rule: 'modeling.id-plane-mismatch',
         message: `#${id}: id plane prefix '${idPlane}' does not match path plane '${loc.plane}' (${relFile})`,
+        fix_hint: RULE_FIX_HINTS['modeling.id-plane-mismatch'],
       });
     }
   }
@@ -166,7 +182,9 @@ function checkReferences(
           file: relFile,
           layer: 'hierarchy',
           severity: 'error',
+          rule: 'modeling.dangling-reference',
           message: `${where}: dangling reference '${ref}' (no such node in the registry index)`,
+          fix_hint: RULE_FIX_HINTS['modeling.dangling-reference'],
         });
       }
     } else if (ref.startsWith(BEHAVIOR_SCHEME)) {
@@ -218,7 +236,9 @@ function checkPlanes(
       file: '.',
       layer: 'hierarchy',
       severity: 'error',
+      rule: 'modeling.missing-domain-plane',
       message: `modeling registry must contain a 'domain' plane (found planes: ${[...planes].sort().join(', ') || '(none)'})`,
+      fix_hint: RULE_FIX_HINTS['modeling.missing-domain-plane'],
     });
   }
 
@@ -228,7 +248,9 @@ function checkPlanes(
         file: '.',
         layer: 'hierarchy',
         severity: 'warning',
+        rule: 'modeling.unknown-derived-plane',
         message: `unknown derived plane '${plane}' (open derived planes are allowed; verify it is intentional)`,
+        fix_hint: RULE_FIX_HINTS['modeling.unknown-derived-plane'],
       });
     }
   }
@@ -255,13 +277,16 @@ export function validateModelingTree(dir: string, opts: ValidateOptions = {}): V
         line: issue.line,
         layer: 'syntax',
         severity: 'error',
+        rule: 'xnl.syntax',
         message: issue.message,
+        fix_hint: '检查 XNL 语法：节点闭合、文本块 </?>、数组末尾逗号',
       });
     } else {
       findings.push({
         file: issue.file,
         layer: 'hierarchy',
         severity: 'error',
+        rule: 'modeling.registry-load',
         message: issue.message,
       });
     }

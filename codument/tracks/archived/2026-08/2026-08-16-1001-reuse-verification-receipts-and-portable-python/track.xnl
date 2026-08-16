@@ -1,0 +1,91 @@
+<Track #reuse-verification-receipts-and-portable-python apiVersion="codument.tech/v1alpha1" version="1" { status = "completed" goal = "让验证事实可在 Track gate 间安全复用，并让真实开发 E2E 可迁移地选择 Python 环境。" description = "增加内容指纹约束的 CLI 验证回执、fresh 边界和不绑定 Python 次版本的 E2E 环境发现。" question_mode = "decision-tree" question_severity = "auto" commit_mode = "manual" created_at = "2026-08-16T06:48:23.795Z" updated_at = "2026-08-16T07:01:55.166Z" modeling_base_commit = "f4a7e810e35e05b7565233808a8bcb9687a05942" engineering_base_commit = "f4a7e810e35e05b7565233808a8bcb9687a05942" } (
+  <Ports { scope = "track" } [
+    <MaterialBundle #source { role = "output" name = "source" domain = "code" path = "vfs://@/src/" }>
+    <MaterialBundle #tests { role = "output" name = "tests" domain = "test" path = "vfs://@/test/" }>
+    <MaterialBundle #templates { role = "output" name = "templates" domain = "docs" path = "vfs://@/src/templates/" }>
+    <MaterialBundle #e2e { role = "output" name = "e2e" domain = "test" path = "vfs://@/e2e/project-implementation/" }>
+  ]>
+  <TaskSpace #space_reuse-verification-receipts-and-portable-python { name = "reuse-verification-receipts-and-portable-python" version = "1" child_mode = "dag" } (
+    <SubNodes [
+      <TaskGroup #P1 { name = "Verification receipt reuse" status = "DONE" priority = "P0" order = 0 } (
+        <SubNodes [
+          <Task #P1-T1 { name = "实现内容指纹验证回执" status = "DONE" priority = "P0" order = 0 } (
+            <Description ?01M04NEA14WMQBQP16XZDA92XE>
+            新增 track verify 共享引擎，持久化成功回执并基于工作区内容指纹自动复用或失效。
+            </?01M04NEA14WMQBQP16XZDA92XE>
+            <Acceptance [
+              <Criterion #P1-T1-AC1 { checked = true } ?01M04NEA14WMQBQP16XZDA92XF>
+              首次成功执行落紧凑回执，相同命令和工作区状态再次调用时不启动进程。
+              </?01M04NEA14WMQBQP16XZDA92XF>
+              <Criterion #P1-T1-AC2 { checked = true } ?01M04NEA14WMQBQP16XZDA92XG>
+              源码变化或 --fresh 会重新执行；失败命令不落成功回执。
+              </?01M04NEA14WMQBQP16XZDA92XG>
+            ]>
+          )>
+          <Task #P1-T2 { name = "接入 task 与 gate 提示" status = "DONE" priority = "P0" order = 1 } (
+            <Description ?01M04NEA14WMQBQP16XZDA92XH>
+            让 task complete 使用共享回执，并让 executor 的 task、phase 和最终 gate 调用统一 CLI；保持 independent verify fresh。
+            </?01M04NEA14WMQBQP16XZDA92XH>
+            <Acceptance [
+              <Criterion #P1-T2-AC1 { checked = true } ?01M04NEA14WMQBQP16XZDA92XJ>
+              task complete 的 JSON 输出包含验证回执及 reused 状态，状态写回仍保持原子门控。
+              </?01M04NEA14WMQBQP16XZDA92XJ>
+              <Criterion #P1-T2-AC2 { checked = true } ?01M04NEA14WMQBQP16XZDA92XK>
+              模板明确跨 gate 自动复用，并要求独立 verify 使用 --fresh 实跑唯一命令。
+              </?01M04NEA14WMQBQP16XZDA92XK>
+            ]>
+          )>
+        ]>
+        <Gate [
+          <Criterion #P1-G1 { checked = true } ?01M04NEA14WMQBQP16XZDA92XM>
+          CLI 回归证明回执只在相同验证输入下复用，且 lifecycle 状态不会被失败或陈旧证据推进。
+          </?01M04NEA14WMQBQP16XZDA92XM>
+        ]>
+      )>
+      <TaskGroup #P2 { name = "Portable E2E Python" status = "DONE" priority = "P0" order = 1 } (
+        <SubNodes [
+          <Task #P2-T1 { name = "动态发现并验证 Python 环境" status = "DONE" priority = "P0" order = 0 } (
+            <Description ?01M04NEA154C8RBBY4SHF8VB3J>
+            移除固定次版本枚举，按 override、项目环境工具和动态 PATH 候选尝试可运行 venv 与项目安装。
+            </?01M04NEA154C8RBBY4SHF8VB3J>
+            <Acceptance [
+              <Criterion #P2-T1-AC1 { checked = true } ?01M04NEA154C8RBBY4SHF8VB3K>
+              报告版本但不能提供可运行 venv 的解释器不会被选中。
+              </?01M04NEA154C8RBBY4SHF8VB3K>
+              <Criterion #P2-T1-AC2 { checked = true } ?01M04NEA154C8RBBY4SHF8VB3M>
+              runner 不包含固定 Python 次版本候选列表，仍支持显式 PYTHON override。
+              </?01M04NEA154C8RBBY4SHF8VB3M>
+            ]>
+          )>
+          <Task #P2-T2 { name = "压缩 Agent Python 提示" status = "DONE" priority = "P1" order = 1 } (
+            <Description ?01M04NEA154C8RBBY4SHF8VB3N>
+            用一句工具无关约束指导 Agent 使用满足项目声明的隔离环境，并更新脚本测试。
+            </?01M04NEA154C8RBBY4SHF8VB3N>
+            <Acceptance [
+              <Criterion #P2-T2-AC1 { checked = true } ?01M04NEA154C8RBBY4SHF8VB3P>
+              Agent prompt 的新增 Python 说明短小且不写死版本或环境工具。
+              </?01M04NEA154C8RBBY4SHF8VB3P>
+              <Criterion #P2-T2-AC2 { checked = true } ?01M04NEA154C8RBBY4SHF8VB3Q>
+              E2E smoke 与脚本测试覆盖新的环境选择契约。
+              </?01M04NEA154C8RBBY4SHF8VB3Q>
+            ]>
+          )>
+        ]>
+        <Gate [
+          <Criterion #P2-G1 { checked = true } ?01M04NEA154C8RBBY4SHF8VB3R>
+          目标测试、E2E smoke、构建、类型检查、std lint 和全量回归通过。
+          </?01M04NEA154C8RBBY4SHF8VB3R>
+        ]>
+      )>
+    ]>
+  )>
+  <Schedule [
+    <Dag { for = "space_reuse-verification-receipts-and-portable-python" } [
+      <Node #P1>
+      <Node #P2 [
+        <After { ref = "P1" }>
+      ]>
+    ]>
+  ]>
+  <Hooks []>
+)>

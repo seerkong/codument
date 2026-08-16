@@ -1,6 +1,6 @@
 {
   "name": "depa-codument",
-  "version": "0.4.13",
+  "version": "0.5.0",
   "description": "DEPA-oriented Codument workflow tool for AI coding assistants",
   "type": "module",
   "main": "src/cli/index.ts",
@@ -28,16 +28,22 @@
     "bun": ">=1.0.0"
   },
   "scripts": {
-    "gen:templates": "bun run scripts/gen-template-manifest.ts",
+    "gen:kinds": "bun run scripts/gen-kind-registry.ts",
+    "gen:kinds:check": "bun run scripts/gen-kind-registry.ts --check",
     "dev": "bun run src/cli/index.ts",
-    "build": "bun run gen:templates && bun build src/cli/index.ts --compile --outfile=dist/codument",
-    "build:dev": "bun run gen:templates && bun build src/cli/index.ts --compile --outfile=dist/codument-dev",
+    "build": "bun run gen:kinds && bun run scripts/build.ts --outfile=dist/codument",
+    "build:dev": "bun run gen:kinds && bun run scripts/build.ts --outfile=dist/codument-dev",
     "build:all": "bun run build && bun run build:dev",
     "test": "bun test",
+    "test:e2e:smoke": "bash e2e/modeling-engineering/smoke.sh",
+    "test:e2e:real": "bash e2e/modeling-engineering/run.sh",
+    "test:e2e:project-implementation:smoke": "bash e2e/project-implementation/smoke.sh",
+    "test:e2e:project-implementation": "bash e2e/project-implementation/run.sh stream-pipeline-ai-agent",
     "test:coverage": "bun test --coverage",
     "lint": "bunx eslint src",
+    "lint:std": "bun run src/cli/index.ts std lint src/templates",
     "typecheck": "bunx tsc --noEmit",
-    "check": "bun run typecheck && bun run lint && bun run test",
+    "check": "bun run gen:kinds:check && bun run typecheck && bun run lint && bun run lint:std && bun run test",
     "install:local": "bun run scripts/install.ts",
     "install:local:dev": "bun run scripts/install.ts codument-dev"
   },
@@ -57,7 +63,8 @@
   },
   "dependencies": {
     "chalk": "^5.3.0",
-    "xnl-core": "0.1.7",
+    "halfcode-compiler.xnl": "0.2.1",
+    "xnl-core": "0.1.12",
     "xnl-vfs": "^0.1.1"
   }
 }

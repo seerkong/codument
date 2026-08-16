@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'bun:test';
 import * as fs from 'fs';
 import * as path from 'path';
-import { validateMissionXml } from '../../src/cli/mission/validate';
+import { parseMissionResourceContent } from '../../src/cli/mission/resource';
+import { validateMissionNode } from '../../src/cli/mission/validate';
 
 const TEMPLATES_DIR = path.join(__dirname, '..', '..', 'src', 'templates', 'codument', 'std');
 
@@ -10,29 +11,30 @@ function read(relativePath: string): string {
 }
 
 function missionExamples(spec: string): string[] {
-  return [...spec.matchAll(/```xml\r?\n(<Mission[\s\S]*?<\/Mission>)\r?\n```/g)].map((match) => match[1]);
+  return [...spec.matchAll(/```xnl\r?\n(<Mission[\s\S]*?)\r?\n```/g)].map((match) => match[1]);
 }
 
 describe('Mission ActorSet release templates', () => {
-  it('keeps the two canonical, validator-complete examples in the Mission XML spec', () => {
-    const spec = read('spec/mission-xml-spec.md');
+  it('keeps a canonical, validator-complete example in the Mission XNL spec', () => {
+    const spec = read('spec/mission-xnl-spec.md');
     const examples = missionExamples(spec);
 
-    expect(examples).toHaveLength(2);
-    expect(examples.map((example) => validateMissionXml(example)
-      .filter((finding) => finding.severity === 'error'))).toEqual([[], []]);
+    expect(examples).toHaveLength(1);
+    expect(examples.map((example) => validateMissionNode(
+      parseMissionResourceContent(example, 'mission.xnl'),
+    ).filter((finding) => finding.severity === 'error'))).toEqual([[]]);
     expect(spec).toContain('WorkspaceBinding');
     expect(spec).toContain('UNBOUND');
     expect(spec).toContain('MISSING');
     expect(spec).not.toContain('workspaces.xml');
   });
 
-  it('keeps role protocol and full examples out of mission actions', () => {
-    const planMission = read('actions/plan-mission.md');
-    const implMission = read('actions/impl-mission.md');
+  it('keeps role protocol and full examples out of mission operations', () => {
+    const planMission = read('operations/plan-mission.md');
+    const implMission = read('operations/impl-mission.md');
 
-    expect(planMission).toContain('std/spec/mission-xml-spec.md');
-    expect(implMission).toContain('std/spec/mission-xml-spec.md');
+    expect(planMission).toContain('std/spec/mission-xnl-spec.md');
+    expect(implMission).toContain('std/spec/mission-xnl-spec.md');
     expect(planMission).not.toContain('<Mission id=');
     expect(implMission).not.toContain('<Mission id=');
     expect(planMission).toContain('design.md` 只记录');

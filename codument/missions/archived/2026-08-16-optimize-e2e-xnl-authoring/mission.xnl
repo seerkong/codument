@@ -1,0 +1,88 @@
+<Mission #optimize-e2e-xnl-authoring apiVersion="codument.tech/v1alpha1" version="1" { status = "archived" goal = "降低 XNL authoring 写错概率并恢复 planning 效率" description = "通过 TTY 调用、validator 错误提示升级、staged validate、scaffold 辅助和 e2e 任务拆分五条 Track 系统性优化 XNL 编写体验。" question_mode = "decision-tree" question_severity = "auto" revision = 17 created_at = "2026-08-16T13:53:42.000Z" updated_at = "2026-08-16T19:10:32.627Z" } (
+  <Ports { scope = "mission" } [
+    <MaterialBundle { role = "state" name = "reports" domain = "mission" path = "vfs://./reports/" }>
+    <MaterialBundle { role = "state" name = "analysis" domain = "mission" path = "vfs://./analysis/" }>
+  ]>
+  <ProjectRefs [
+    <ProjectRef #host { kind = "host" }>
+  ]>
+  <ActorSets { default = "default-control-loop" } [
+    <ActorSet #default-control-loop [
+      <Actor { role = "MissionPlanner" project_ref = "host" } (
+        <Description ?01M05E40KXV8RAMK61HZGC11GP>
+        选择下一条 ready Track；G1 三条 Track 并行启动，G2 在 G1 完成后启动，G3 在 G2 完成后启动。
+        </?01M05E40KXV8RAMK61HZGC11GP>
+      )>
+      <Actor { role = "MissionObserver" project_ref = "host" } (
+        <Description ?01M05E40KXV8RAMK61HZGC11GQ>
+        读取 e2e 输出、validator 实现、scaffold CLI 帮助文本和 track 验证结果。
+        </?01M05E40KXV8RAMK61HZGC11GQ>
+      )>
+      <Actor { role = "MissionReconciler" project_ref = "host" } (
+        <Description ?01M05E40KXV8RAMK61HZGC11GR>
+        比较 planning 时间、validate 轮次、error message 质量和 e2e 评分；识别 drift 并触发 replan。
+        </?01M05E40KXV8RAMK61HZGC11GR>
+      )>
+      <Actor { role = "MissionApplier" project_ref = "host" } (
+        <Description ?01M05E40KXV8RAMK61HZGC11GS>
+        逐条执行 Track；Track 完成后运行 validate 和 smoke，写回 evidence，继续下一个 ready Track。
+        </?01M05E40KXV8RAMK61HZGC11GS>
+      )>
+    ]>
+  ]>
+  <TaskSpace #space_optimize-e2e-xnl-authoring { name = "optimize-e2e-xnl-authoring" version = "1" child_mode = "dag" } (
+    <SubNodes [
+      <TaskGroup #G1 { name = "独立优化" status = "DONE" priority = "P0" order = 0 } (
+        <Description ?01M05E40KXV8RAMK61HZGC11GT>
+        三条独立 Track 并行实现：TTY 调用、validator 错误提示升级、staged validate。
+        </?01M05E40KXV8RAMK61HZGC11GT>
+        <SubNodes [
+          <Task #G1-T1 { name = "claude TTY 调用" status = "DONE" priority = "P0" order = 0 } (
+            <TrackLink #e2e-claude-tty { state = "bound" project_ref = "host" }>
+          )>
+          <Task #G1-T2 { name = "validator 错误提示升级" status = "DONE" priority = "P0" order = 1 } (
+            <TrackLink #xnl-validator-error-messages { state = "bound" project_ref = "host" }>
+          )>
+          <Task #G1-T3 { name = "staged validate" status = "DONE" priority = "P0" order = 2 } (
+            <TrackLink #xnl-staged-validate { state = "bound" project_ref = "host" }>
+          )>
+        ]>
+      )>
+      <TaskGroup #G2 { name = "scaffold CLI" status = "DONE" priority = "P0" order = 1 } (
+        <Description ?01M05E40KXV8RAMK61HZGC11GV>
+        在 validator 错误格式稳定后，实现 modeling/engineering scaffold 子命令，为 agent 提供合法 XNL 骨架。
+        </?01M05E40KXV8RAMK61HZGC11GV>
+        <SubNodes [
+          <Task #G2-T1 { name = "modeling scaffold 子命令" status = "DONE" priority = "P0" order = 0 } (
+            <TrackLink #xnl-authoring-scaffold { state = "bound" project_ref = "host" }>
+          )>
+        ]>
+      )>
+      <TaskGroup #G3 { name = "e2e 任务拆分" status = "DONE" priority = "P1" order = 2 } (
+        <Description ?01M05E40KXV8RAMK61HZGC11GW>
+        scaffold CLI 就绪后，拆分重 e2e 任务为多个 track，验证单次会话可承载。
+        </?01M05E40KXV8RAMK61HZGC11GW>
+        <SubNodes [
+          <Task #G3-T1 { name = "拆分 ecommerce 为 core/payment 两条 track" status = "DONE" priority = "P1" order = 0 } (
+            <TrackLink #e2e-task-split { state = "bound" project_ref = "host" }>
+          )>
+        ]>
+      )>
+    ]>
+  )>
+  <Schedule [
+    <Dag { for = "space_optimize-e2e-xnl-authoring" } [
+      <Node #G2 [
+        <After { ref = "G1" }>
+      ]>
+      <Node #G3 [
+        <After { ref = "G2" }>
+      ]>
+    ]>
+  ]>
+  <Hooks [
+    <Hook { on = "mission:after-node" } (
+      <MissionReconcile { max_tracks = 10 on_limit = "checkpoint" on_drift = "replan-or-block" }>
+    )>
+  ]>
+)>

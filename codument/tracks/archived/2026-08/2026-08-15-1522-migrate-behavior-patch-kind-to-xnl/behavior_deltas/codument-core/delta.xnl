@@ -1,0 +1,39 @@
+<BehaviorPatch #track.migrate-behavior-patch-kind-to-xnl.behavior_patch.codument-core apiVersion="codument.tech/v1alpha1" version="1" { capability = "codument-core" } (
+  <Mutations [
+    <Upsert { selector = "behavior://codument-core/requirements/versioned-behavior-patch-authority" } (
+      <Requirement #versioned-behavior-patch-authority (
+        <Statement ?01M02NT0VBJWF8T6YSTR4XYEXB>
+        Codument SHALL scaffold、author、validate、migrate 并 apply 带当前 apiVersion 的 BehaviorPatch XNL，同时兼容读取 legacy XML patch。
+        </?01M02NT0VBJWF8T6YSTR4XYEXB>
+        <Suites [
+          <Suite #resource-lifecycle { name = "BehaviorPatch resource lifecycle" } (
+            <Cases [
+              <Case #scaffold-current-version (
+                <Given ?01M02NT0VBJWF8T6YSTR4XYEXC>
+                一个 pending 或 active track 与 capability 已确定
+                </?01M02NT0VBJWF8T6YSTR4XYEXC>
+                <When ?01M02NT0VBJWF8T6YSTR4XYEXD>
+                调用 behavior-patch create
+                </?01M02NT0VBJWF8T6YSTR4XYEXD>
+                <Then ?01M02NT0VBJWF8T6YSTR4XYEXE>
+                CLI SHALL 创建当前 Kind apiVersion 的 delta.xnl 骨架且拒绝覆盖
+                </?01M02NT0VBJWF8T6YSTR4XYEXE>
+              )>
+              <Case #migrate-and-apply (
+                <Given ?01M02NT0VBJWF8T6YSTR4XYEXF>
+                工作区包含 legacy behavior_deltas XML patch
+                </?01M02NT0VBJWF8T6YSTR4XYEXF>
+                <When ?01M02NT0VBJWF8T6YSTR4XYEXG>
+                执行 upgrade-workspace 并归档 track
+                </?01M02NT0VBJWF8T6YSTR4XYEXG>
+                <Then ?01M02NT0VBJWF8T6YSTR4XYEXH>
+                Codument SHALL 将 patch 转为 XNL 并以等价 mutation 更新 Behavior registry
+                </?01M02NT0VBJWF8T6YSTR4XYEXH>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+  ]>
+)>

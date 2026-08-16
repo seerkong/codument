@@ -15,7 +15,8 @@ describe('topological decision questioning templates', () => {
     expect(protocol).toContain('## Decision Forest And Dependencies');
     expect(protocol).toContain('depends_on = ["decision-id" ...]');
     expect(protocol).toContain('## Topological Question Batches');
-    expect(protocol).toContain('Find every pending decision whose parent and every `depends_on` target are resolved');
+    expect(protocol).toContain('codument decisions frontier <file> --json');
+    expect(protocol).toContain('Let the CLI validate dependencies, parent readiness and cycles');
     expect(protocol).toContain('Do not descend one root while another ready root remains unasked');
     expect(protocol).toContain('Recompute the graph; newly unlocked children join the next batch');
     expect(protocol).toContain('## Conditional Decision Activation');
@@ -26,19 +27,20 @@ describe('topological decision questioning templates', () => {
     expect(protocol).toContain('mission.example.deployment=self_hosted');
     expect(protocol).toContain('mission.example.compliance=regulated');
     expect(protocol).toContain('mission.example.key_management');
+    expect(protocol).toContain('retain each CLI-generated `apiVersion`');
     expect(protocol).toContain('evaluate declared activation rules using resolved answers');
   });
 
   it('routes track and mission planning through one bounded ready batch', () => {
     const questioning = template('std/protocols/questioning.md');
-    const planTrack = template('std/actions/plan-track.md');
-    const planMission = template('std/actions/plan-mission.md');
+    const planTrack = template('std/operations/plan-track.md');
+    const planMission = template('std/operations/plan-mission.md');
 
     expect(questioning).toContain('### ask-multi-question-closed');
-    expect(planTrack).toContain('计算当前拓扑 ready set 并一次询问该批次');
-    expect(planTrack).toContain('不得为单独确认 id 打断其他独立问题');
+    expect(planTrack).toContain('codument decisions frontier <file> --json');
     expect(planTrack).toContain('不做逐产物确认');
-    expect(planMission).toContain('一次询问整个 ready batch');
-    expect(planMission).toContain('Dependency Graph、Topological Ready Batch');
+    expect(planMission).toContain('codument decisions create <mission-dir>/analysis/decision-tree.xnl <decision-id>');
+    expect(planMission).toContain('codument decisions frontier <file> --json');
+    expect(planMission).toContain('按 CLI 返回的 ready batch 继续');
   });
 });

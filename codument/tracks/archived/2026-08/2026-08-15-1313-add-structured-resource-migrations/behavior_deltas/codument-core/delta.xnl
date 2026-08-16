@@ -1,0 +1,50 @@
+<BehaviorPatch #track.add-structured-resource-migrations.behavior_patch.codument-core apiVersion="codument.tech/v1alpha1" version="1" { capability = "codument-core" } (
+  <Mutations [
+    <Upsert { selector = "behavior://codument-core/requirements/versioned-resource-migrations" } (
+      <Requirement #versioned-resource-migrations (
+        <Statement ?01M02NT0V1T0RYTG9WBQ97477N>
+        Codument SHALL migrate XML and XNL resources through a version-aware deterministic pipeline before requesting AI review.
+        </?01M02NT0V1T0RYTG9WBQ97477N>
+        <Suites [
+          <Suite #migration { name = "Structured resource migration" } (
+            <Cases [
+              <Case #deterministic-first (
+                <Given ?01M02NT0V1T0RYTG9WBQ97477P>
+                无 apiVersion 的历史资源能被唯一结构指纹识别
+                </?01M02NT0V1T0RYTG9WBQ97477P>
+                <When ?01M02NT0V1T0RYTG9WBQ97477Q>
+                迁移到当前 Kind 版本
+                </?01M02NT0V1T0RYTG9WBQ97477Q>
+                <Then ?01M02NT0V1T0RYTG9WBQ97477R>
+                CLI SHALL 通过 parser/AST 转换并在提交前验证目标结构
+                </?01M02NT0V1T0RYTG9WBQ97477R>
+              )>
+              <Case #ai-fallback (
+                <Given ?01M02NT0V1T0RYTG9WBQ97477S>
+                解析、指纹选择、转换或目标验证无法确定成功
+                </?01M02NT0V1T0RYTG9WBQ97477S>
+                <When ?01M02NT0V1T0RYTG9WBQ97477T>
+                程序化迁移停止
+                </?01M02NT0V1T0RYTG9WBQ97477T>
+                <Then ?01M02NT0V1T0RYTG9WBQ97477V>
+                CLI SHALL 返回 review-required 诊断且 SHALL NOT 静默破坏原文件
+                </?01M02NT0V1T0RYTG9WBQ97477V>
+              )>
+              <Case #workspace-reuse (
+                <Given ?01M02NT0V1T0RYTG9WBQ97477W>
+                upgrade-workspace 处理项目 Codument 资产
+                </?01M02NT0V1T0RYTG9WBQ97477W>
+                <When ?01M02NT0V1T0RYTG9WBQ97477X>
+                发现旧版本 XML/XNL
+                </?01M02NT0V1T0RYTG9WBQ97477X>
+                <Then ?01M02NT0V1T0RYTG9WBQ97477Y>
+                系统 SHALL 复用与 migrate 命令相同的 registry、transformer 和 validator
+                </?01M02NT0V1T0RYTG9WBQ97477Y>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+  ]>
+)>

@@ -1,0 +1,140 @@
+<decision #track.update_decisions_xnl.dsl apiVersion="codument.tech/v1alpha1" { priority = "P0" status = "accepted" } [
+  <decision #track.update_decisions_xnl.compatibility { priority = "P1" status = "accepted" blocks = ["migration" "tests"] } (
+    <question ?01M02EGV9RS3N9DE7T0JFRBCS9>
+    是否需要兼容历史 decisions.md？
+    </?01M02EGV9RS3N9DE7T0JFRBCS9>
+    <recommendation ?01M02EGV9RS3N9DE7T0JFRBCSA>
+    需要，读路径兼容 decisions.md；新建路径默认 decisions.xnl。
+    </?01M02EGV9RS3N9DE7T0JFRBCSA>
+    <options {  } [
+      <option { key = "A" } (
+        <title ?01M02EGV9RS3N9DE7T0JFRBCSB>
+        不兼容历史 decisions.md
+        </?01M02EGV9RS3N9DE7T0JFRBCSB>
+        <description ?01M02EGV9RS3N9DE7T0JFRBCSC>
+        所有历史决策文件立即迁移为 XNL，旧 Markdown 不再读取。
+        </?01M02EGV9RS3N9DE7T0JFRBCSC>
+        <tradeoff ?01M02EGV9RS3N9DE7T0JFRBCSD>
+        实现路径更单一，但会破坏既有 track、archive 和用户资产。
+        </?01M02EGV9RS3N9DE7T0JFRBCSD>
+      )>
+      <option { key = "B" recommended = true } (
+        <title ?01M02EGV9RS3N9DE7T0JFRBCSE>
+        保留 decisions.md fallback
+        </?01M02EGV9RS3N9DE7T0JFRBCSE>
+        <description ?01M02EGV9RS3N9DE7T0JFRBCSF>
+        新建记录使用 decisions.xnl；只有缺少 XNL 时才读取历史 decisions.md。
+        </?01M02EGV9RS3N9DE7T0JFRBCSF>
+        <tradeoff ?01M02EGV9RS3N9DE7T0JFRBCSG>
+        需要保留一条兼容读取路径，但可以渐进迁移且不破坏历史资产。
+        </?01M02EGV9RS3N9DE7T0JFRBCSG>
+      )>
+    ]>
+    <answer {  } (
+      <raw-answer ?01M02EGV9RS3N9DE7T0JFRBCSH>
+      采用 B：保留 legacy fallback。
+      </?01M02EGV9RS3N9DE7T0JFRBCSH>
+      <decision-text ?01M02EGV9RS3N9DE7T0JFRBCSJ>
+      track-id 优先解析 decisions.xnl；不存在时 fallback 到 decisions.md。
+      </?01M02EGV9RS3N9DE7T0JFRBCSJ>
+      <rationale ?01M02EGV9RS3N9DE7T0JFRBCSK>
+      archive 中已有 decisions.md，直接破坏读取会影响历史 track 和测试。
+      </?01M02EGV9RS3N9DE7T0JFRBCSK>
+      <evidence ?01M02EGV9RS3N9DE7T0JFRBCSM>
+      历史 archive 和 track 已经存在 decisions.md。
+      </?01M02EGV9RS3N9DE7T0JFRBCSM>
+    )>
+  )>
+] (
+  <question ?01M02EGV9RS3N9DE7T0JFRBCSN>
+  decisions.xnl 的 DSL 是否采用单一 `<decision>` 节点模型？
+  </?01M02EGV9RS3N9DE7T0JFRBCSN>
+  <recommendation ?01M02EGV9RS3N9DE7T0JFRBCSP>
+  采用单一 `<decision>` 节点；顶层多个 decision 是 forest，子 decision 用 decision 自身的 `[]` 表达。
+  </?01M02EGV9RS3N9DE7T0JFRBCSP>
+  <options {  } [
+    <option { key = "A" recommended = true } (
+      <title ?01M02EGV9RS3N9DE7T0JFRBCSQ>
+      只使用 `<decision>`
+      </?01M02EGV9RS3N9DE7T0JFRBCSQ>
+      <description ?01M02EGV9RS3N9DE7T0JFRBCSR>
+      顶层多个 decision 构成 forest；树中的父子关系由 decision 自身的 `[]` 嵌套表达。
+      </?01M02EGV9RS3N9DE7T0JFRBCSR>
+      <tradeoff ?01M02EGV9RS3N9DE7T0JFRBCSS>
+      节点语义单一，解析器无需处理额外的 decision-tree 包装类型。
+      </?01M02EGV9RS3N9DE7T0JFRBCSS>
+    )>
+    <option { key = "B" } (
+      <title ?01M02EGV9RS3N9DE7T0JFRBCST>
+      保留 `<decision-tree>` 包装节点
+      </?01M02EGV9RS3N9DE7T0JFRBCST>
+      <description ?01M02EGV9RS3N9DE7T0JFRBCSV>
+      用包装节点表示一棵树，再在其中放置 decision 节点。
+      </?01M02EGV9RS3N9DE7T0JFRBCSV>
+      <tradeoff ?01M02EGV9RS3N9DE7T0JFRBCSW>
+      分组直观，但引入第二套节点语义和额外读取分支。
+      </?01M02EGV9RS3N9DE7T0JFRBCSW>
+    )>
+  ]>
+  <answer {  } (
+    <raw-answer ?01M02EGV9RS3N9DE7T0JFRBCSX>
+    采用 A：只使用 `<decision>`；顶层多个 decision 是 forest。
+    </?01M02EGV9RS3N9DE7T0JFRBCSX>
+    <decision-text ?01M02EGV9RS3N9DE7T0JFRBCSY>
+    实现 decisions.xnl 主入口，并以 XNL attributes + extend/body 分工表达决策记录和决策树。
+    </?01M02EGV9RS3N9DE7T0JFRBCSY>
+    <rationale ?01M02EGV9RS3N9DE7T0JFRBCSZ>
+    `<decision-tree>` 包装节点会引入第二套节点语义；XNL 已能用嵌套 `<decision>` 表达树，不需要额外包装类型。
+    </?01M02EGV9RS3N9DE7T0JFRBCSZ>
+    <evidence ?01M02EGV9RS3N9DE7T0JFRBCT0>
+    用户要求“去掉 `<decision-tree>` 这种包装类型节点。只用 `<decision>` 节点表示决策树”。
+    </?01M02EGV9RS3N9DE7T0JFRBCT0>
+  )>
+)>
+
+<decision #track.update_decisions_xnl.syntax_partition apiVersion="codument.tech/v1alpha1" { priority = "P0" status = "accepted" } (
+  <question ?01M02EGV9RS3N9DE7T0JFRBCT1>
+  单例语义、备选方案和决策树子节点分别应该放在哪个 XNL 承载位？
+  </?01M02EGV9RS3N9DE7T0JFRBCT1>
+  <recommendation ?01M02EGV9RS3N9DE7T0JFRBCT2>
+  单例字段放 decision 的 `()`；decision 的 `[]` 只放子 decision；备选方案放唯一 `<options>`，由 `<options>` 自己的 `[]` 放多个 `<option>`。
+  </?01M02EGV9RS3N9DE7T0JFRBCT2>
+  <options {  } [
+    <option { key = "A" } (
+      <title ?01M02EGV9RS3N9DE7T0JFRBCT3>
+      所有子节点统一放 decision 的 `[]`
+      </?01M02EGV9RS3N9DE7T0JFRBCT3>
+      <description ?01M02EGV9RS3N9DE7T0JFRBCT4>
+      question、option、rationale 和子 decision 都作为 decision body array 的直接成员。
+      </?01M02EGV9RS3N9DE7T0JFRBCT4>
+      <tradeoff ?01M02EGV9RS3N9DE7T0JFRBCT5>
+      表面结构简单，但会混淆单例字段、选项集合和树关系，并丢失重复字段语义。
+      </?01M02EGV9RS3N9DE7T0JFRBCT5>
+    )>
+    <option { key = "B" recommended = true } (
+      <title ?01M02EGV9RS3N9DE7T0JFRBCT6>
+      按语义分区承载
+      </?01M02EGV9RS3N9DE7T0JFRBCT6>
+      <description ?01M02EGV9RS3N9DE7T0JFRBCT7>
+      decision 的 `()` 承载单例字段和唯一 `<options>`；`<options>` 的 `[]` 承载 option；decision 的 `[]` 只承载子 decision。
+      </?01M02EGV9RS3N9DE7T0JFRBCT7>
+      <tradeoff ?01M02EGV9RS3N9DE7T0JFRBCT8>
+      层级多一层，但能保留 XNL 的 singleton、collection 和 tree 三种语义，便于校验与集成。
+      </?01M02EGV9RS3N9DE7T0JFRBCT8>
+    )>
+  ]>
+  <answer {  } (
+    <raw-answer ?01M02EGV9RS3N9DE7T0JFRBCT9>
+    采用 B：按语义分区承载。
+    </?01M02EGV9RS3N9DE7T0JFRBCT9>
+    <decision-text ?01M02EGV9RS3N9DE7T0JFRBCTA>
+    `()` 用于单例语义槽位；唯一 `<options>` 位于 `()` 中，其自身 `[]` 承载选项；decision 的 `[]` 保留给下级 `<decision>`。
+    </?01M02EGV9RS3N9DE7T0JFRBCTA>
+    <rationale ?01M02EGV9RS3N9DE7T0JFRBCTB>
+    用户明确要求 `<options>` 包装备选方案，并保留 decision 的 `[]` 作为决策树子节点集合。
+    </?01M02EGV9RS3N9DE7T0JFRBCTB>
+    <evidence ?01M02EGV9RS3N9DE7T0JFRBCTC>
+    用户指出“不能放到 `<decision>` 的 `[]` 中，之前明确强调 `[]` 留给决策树下的子决策”。
+    </?01M02EGV9RS3N9DE7T0JFRBCTC>
+  )>
+)>

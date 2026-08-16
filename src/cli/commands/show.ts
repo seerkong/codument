@@ -8,6 +8,7 @@ import {
   parseOptions,
   formatStatus,
   codumentExists,
+  BEHAVIORS_DIR,
   SPECS_DIR,
 } from '../utils';
 import {
@@ -16,6 +17,7 @@ import {
   resolveDecisionRegistryReference,
 } from '../decisions/registry';
 import { getSpecXmlStats, loadSpecXml } from '../utils/spec-xml';
+import { parseBehaviorXnlContent } from '../behavior/resource';
 
 export async function showCommand(args: string[]) {
   if (!codumentExists()) {
@@ -27,10 +29,11 @@ export async function showCommand(args: string[]) {
   const itemId = positional[0];
   const itemType = options['type'] as string | undefined;
   const jsonOutput = options['json'] === true;
+  const includeContent = options['include-content'] === true;
 
   if (!itemId) {
     console.error('Please specify a track, spec, or decision ID.');
-    console.log('Usage: codument show <id|decision://id> [--type track|spec|decision] [--json]');
+    console.log('Usage: codument show <id|decision://id> [--type track|spec|decision] [--json] [--include-content]');
     process.exit(1);
   }
 
@@ -42,12 +45,14 @@ export async function showCommand(args: string[]) {
   } else {
     // Auto-detect
     const trackDir = getActiveTrackDir(itemId);
-    const specDir = path.join(SPECS_DIR, itemId);
-    const specXmlFile = path.join(SPECS_DIR, `${itemId}.xml`);
+    const roots = [BEHAVIORS_DIR, SPECS_DIR];
+    const hasSpec = roots.some((root) => fs.existsSync(path.join(root, itemId))
+      || fs.existsSync(path.join(root, `${itemId}.xml`))
+      || fs.existsSync(path.join(root, `${itemId}.xnl`)));
 
     if (fs.existsSync(trackDir)) {
       foundType = 'track';
-    } else if (fs.existsSync(specDir) || fs.existsSync(specXmlFile)) {
+    } else if (hasSpec) {
       foundType = 'spec';
     } else {
       const decisionId = decisionIdFromReference(itemId);
@@ -68,7 +73,7 @@ export async function showCommand(args: string[]) {
   }
 
   if (foundType === 'track') {
-    showTrack(itemId, jsonOutput);
+    showTrack(itemId, jsonOutput, includeContent);
   } else if (foundType === 'spec') {
     showSpec(itemId, jsonOutput);
   } else {
@@ -76,7 +81,7 @@ export async function showCommand(args: string[]) {
   }
 }
 
-function showTrack(trackId: string, jsonOutput: boolean) {
+function showTrack(trackId: string, jsonOutput: boolean, includeContent: boolean) {
   const track = getTrack(trackId);
 
   if (!track) {
@@ -85,24 +90,22 @@ function showTrack(trackId: string, jsonOutput: boolean) {
   }
 
   if (jsonOutput) {
-    // Include file contents in JSON output
     const trackDir = getActiveTrackDir(trackId);
-    const specDeltaFiles = collectTrackXmlSpecDeltas(trackDir);
+    const specDeltaFiles = collectTrackBehaviorDeltas(trackDir);
+    const standardFiles = ['proposal.md', 'track.xnl', 'track.xml', 'design.md', 'decisions.xnl', 'decisions.md']
+      .filter((file) => fs.existsSync(path.join(trackDir, file)));
+    const relativeFiles = [...standardFiles, ...specDeltaFiles.map((filePath) => portableRelative(trackDir, filePath))];
     const result: Record<string, unknown> = {
       ...track,
-      files: {},
+      files: relativeFiles,
     };
 
-    const files = ['proposal.md', 'track.xml', 'design.md', 'decisions.xnl', 'decisions.md'];
-    for (const file of files) {
-      const filePath = path.join(trackDir, file);
-      if (fs.existsSync(filePath)) {
-        (result.files as Record<string, string>)[file] = fs.readFileSync(filePath, 'utf-8');
+    if (includeContent) {
+      const contents: Record<string, string> = {};
+      for (const file of relativeFiles) {
+        contents[file] = fs.readFileSync(path.join(trackDir, file), 'utf-8');
       }
-    }
-    for (const filePath of specDeltaFiles) {
-      const relativePath = portableRelative(trackDir, filePath);
-      (result.files as Record<string, string>)[relativePath] = fs.readFileSync(filePath, 'utf-8');
+      result.contents = contents;
     }
 
     console.log(JSON.stringify(result, null, 2));
@@ -110,7 +113,7 @@ function showTrack(trackId: string, jsonOutput: boolean) {
   }
 
   const trackDir = getActiveTrackDir(trackId);
-  const specDeltaFiles = collectTrackXmlSpecDeltas(trackDir);
+  const specDeltaFiles = collectTrackBehaviorDeltas(trackDir);
 
   console.log('\n' + '='.repeat(60));
   console.log(`Track: ${trackId}`);
@@ -134,7 +137,7 @@ function showTrack(trackId: string, jsonOutput: boolean) {
   }
 
   console.log('\nFiles:');
-  const files = ['proposal.md', 'track.xml', 'design.md', 'decisions.xnl', 'decisions.md'];
+  const files = ['proposal.md', 'track.xnl', 'track.xml', 'design.md', 'decisions.xnl', 'decisions.md'];
   for (const file of files) {
     const filePath = path.join(trackDir, file);
     const exists = fs.existsSync(filePath);
@@ -146,7 +149,7 @@ function showTrack(trackId: string, jsonOutput: boolean) {
       console.log(`  ✓ ${portableRelative(trackDir, filePath)}`);
     }
   } else {
-    console.log(`  ✗ behavior_deltas/**/*.xml`);
+    console.log(`  ✗ behavior_deltas/**/*.xnl`);
   }
 
   console.log('');
@@ -156,7 +159,7 @@ function portableRelative(base: string, file: string): string {
   return path.relative(base, file).split(path.sep).join('/');
 }
 
-function collectTrackXmlSpecDeltas(trackDir: string): string[] {
+function collectTrackBehaviorDeltas(trackDir: string): string[] {
   const results: string[] = [];
   const roots = [
     path.join(trackDir, 'behavior_deltas'),
@@ -172,7 +175,7 @@ function collectTrackXmlSpecDeltas(trackDir: string): string[] {
       const entryPath = path.join(dir, entry.name);
       if (entry.isDirectory()) {
         visit(entryPath);
-      } else if (entry.isFile() && entry.name.endsWith('.xml')) {
+      } else if (entry.isFile() && /\.(xnl|xml)$/i.test(entry.name)) {
         results.push(entryPath);
       }
     }
@@ -185,29 +188,36 @@ function collectTrackXmlSpecDeltas(trackDir: string): string[] {
 }
 
 function showSpec(specId: string, jsonOutput: boolean) {
-  const specDir = path.join(SPECS_DIR, specId);
+  const registryRoot = [BEHAVIORS_DIR, SPECS_DIR].find((candidate) =>
+    fs.existsSync(path.join(candidate, specId))
+    || fs.existsSync(path.join(candidate, `${specId}.xnl`))
+    || fs.existsSync(path.join(candidate, `${specId}.xml`))) ?? BEHAVIORS_DIR;
+  const specDir = path.join(registryRoot, specId);
   const specPath = path.join(specDir, 'spec.md');
-  const specXmlFilePath = path.join(SPECS_DIR, `${specId}.xml`);
+  const specXnlFilePath = path.join(registryRoot, `${specId}.xnl`);
+  const specXmlFilePath = path.join(registryRoot, `${specId}.xml`);
   const specXmlIndexPath = path.join(specDir, 'index.xml');
 
+  const isXnl = fs.existsSync(specXnlFilePath);
   const isXml = fs.existsSync(specXmlFilePath) || fs.existsSync(specXmlIndexPath);
-  if (!fs.existsSync(specPath) && !isXml) {
+  if (!fs.existsSync(specPath) && !isXnl && !isXml) {
     console.error(`Spec not found: ${specId}`);
     process.exit(1);
   }
 
-  if (isXml) {
+  if (isXnl || isXml) {
+    const xnlContent = isXnl ? fs.readFileSync(specXnlFilePath, 'utf-8') : undefined;
     const xmlEntryPath = fs.existsSync(specXmlFilePath) ? specXmlFilePath : specDir;
-    const xmlDisplayPath = fs.existsSync(specXmlFilePath) ? specXmlFilePath : specXmlIndexPath;
-    const content = fs.readFileSync(xmlDisplayPath, 'utf-8');
-    const root = loadSpecXml(xmlEntryPath);
+    const displayPath = isXnl ? specXnlFilePath : fs.existsSync(specXmlFilePath) ? specXmlFilePath : specXmlIndexPath;
+    const content = xnlContent ?? fs.readFileSync(displayPath, 'utf-8');
+    const root = isXnl ? parseBehaviorXnlContent(content) : loadSpecXml(xmlEntryPath);
     const stats = getSpecXmlStats(root);
 
     if (jsonOutput) {
       console.log(JSON.stringify({
         id: specId,
-        path: xmlDisplayPath,
-        format: 'xml',
+        path: displayPath,
+        format: isXnl ? 'xnl' : 'xml',
         requirements: stats.requirements,
         scenarios: stats.scenarios,
         content,
@@ -218,11 +228,11 @@ function showSpec(specId: string, jsonOutput: boolean) {
     console.log('\n' + '='.repeat(60));
     console.log(`Spec: ${specId}`);
     console.log('='.repeat(60));
-    console.log('\nFormat: XML');
+    console.log(`\nFormat: ${isXnl ? 'XNL' : 'XML'}`);
     console.log(`Requirements: ${stats.requirements}`);
     console.log(`Scenarios: ${stats.scenarios}`);
     console.log('\nFiles:');
-    console.log(`  ✓ ${path.relative(specDir, xmlDisplayPath) || path.basename(xmlDisplayPath)}`);
+    console.log(`  ✓ ${path.relative(registryRoot, displayPath) || path.basename(displayPath)}`);
     console.log('');
     return;
   }

@@ -1,0 +1,43 @@
+<Track #standardize-cli-contract-and-resource-effects apiVersion="codument.tech/v1alpha1" version="1" { status = "completed" goal = "统一 CLI 叶命令协议与发布资源 I/O 边界。" description = "保留嵌套命令树，引入 Command contract、只读 ResourceEffect、可写 WorkspaceEffect 和 source/embedded 双适配，并删除生成式模板 manifest。" question_mode = "decision-tree" question_severity = "auto" commit_mode = "manual" created_at = "2026-08-16T07:31:34.132Z" updated_at = "2026-08-16T07:48:01.862Z" modeling_base_commit = "f4a7e810e35e05b7565233808a8bcb9687a05942" engineering_base_commit = "f4a7e810e35e05b7565233808a8bcb9687a05942" } (
+  <Ports { scope = "track" } [
+    <MaterialBundle { role = "input" name = "command-tree" domain = "code" path = "vfs://@/src/cli/command-registry.ts" }>
+    <MaterialBundle { role = "input" name = "packaged-resources" domain = "code" path = "vfs://@/src/templates/" }>
+    <MaterialBundle { role = "output" name = "cli-contracts" domain = "code" path = "vfs://@/src/cli/" }>
+    <MaterialBundle { role = "output" name = "build" domain = "code" path = "vfs://@/scripts/" }>
+    <MaterialBundle { role = "output" name = "tests" domain = "test" path = "vfs://@/test/" }>
+  ]>
+  <TaskSpace #space_standardize-cli-contract-and-resource-effects { name = "standardize-cli-contract-and-resource-effects" version = "1" child_mode = "dag" } (
+    <SubNodes [
+      <TaskGroup #P1 { name = "统一命令叶协议" status = "DONE" order = 0 } (
+        <SubNodes [
+          <Task #P1-T1 { name = "定义 CommandContext、CommandResult、schema、doc 与 runtime contract" status = "DONE" order = 0 }>
+          <Task #P1-T2 { name = "迁移命令树分发、帮助与所有叶命令并补齐回归测试" status = "DONE" order = 1 }>
+        ]>
+      )>
+      <TaskGroup #P2 { name = "分离发布资源与 workspace Effects" status = "DONE" order = 1 } (
+        <SubNodes [
+          <Task #P2-T1 { name = "实现只读 ResourceEffect 与可写 WorkspaceEffect contracts" status = "DONE" order = 0 }>
+          <Task #P2-T2 { name = "实现 source 和 embedded 发布资源适配器及 contract tests" status = "DONE" order = 1 }>
+          <Task #P2-T3 { name = "让 init/upgrade 安装链路使用独立资源与 workspace effects" status = "DONE" order = 2 }>
+        ]>
+      )>
+      <TaskGroup #P3 { name = "直接嵌入发布资源" status = "DONE" order = 2 } (
+        <SubNodes [
+          <Task #P3-T1 { name = "实现发布资源嵌入构建并删除生成式模板 manifest" status = "DONE" order = 0 }>
+          <Task #P3-T2 { name = "验证资源覆盖、编译产物 init 与全量回归" status = "DONE" order = 1 }>
+        ]>
+      )>
+    ]>
+  )>
+  <Schedule [
+    <Dag { for = "space_standardize-cli-contract-and-resource-effects" } [
+      <Node #P2 [
+        <After { ref = "P1" }>
+      ]>
+      <Node #P3 [
+        <After { ref = "P2" }>
+      ]>
+    ]>
+  ]>
+  <Hooks []>
+)>

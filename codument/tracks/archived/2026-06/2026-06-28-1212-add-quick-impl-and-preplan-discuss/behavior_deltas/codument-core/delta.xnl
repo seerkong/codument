@@ -1,0 +1,177 @@
+<BehaviorPatch #track.add-quick-impl-and-preplan-discuss.behavior_patch.codument-core apiVersion="codument.tech/v1alpha1" version="1" { capability = "codument-core" } (
+  <Mutations [
+    <Upsert { selector = "behavior://codument-core/requirements/quick-impl-operation" } (
+      <Requirement #quick-impl-operation (
+        <Statement ?01M02NT0TZXJQHGFXV65X6ABRG>
+        系统 SHALL provide a `codument-impl-quick` operation and skill for small changes that can be implemented directly with Codument context but without creating a track or mission.
+        </?01M02NT0TZXJQHGFXV65X6ABRG>
+        <Suites [
+          <Suite #quick-impl { name = "Quick implementation" } (
+            <Cases [
+              <Case #uses-codument-context (
+                <Given ?01M02NT0TZXJQHGFXV65X6ABRH>
+                A user requests a small code change.
+                </?01M02NT0TZXJQHGFXV65X6ABRH>
+                <When ?01M02NT0TZXJQHGFXV65X6ABRJ>
+                `codument-impl-quick` runs.
+                </?01M02NT0TZXJQHGFXV65X6ABRJ>
+                <Then ?01M02NT0TZXJQHGFXV65X6ABRK>
+                The agent SHALL read relevant attractors, behaviors, modeling, engineering, decisions, tests, and source files before editing.
+                </?01M02NT0TZXJQHGFXV65X6ABRK>
+              )>
+              <Case #escalates-non-quick-work (
+                <Given ?01M02NT0TZXJQHGFXV65X6ABRM>
+                The requested change introduces a new behavior, architecture change, or multi-stage effort.
+                </?01M02NT0TZXJQHGFXV65X6ABRM>
+                <When ?01M02NT0TZXJQHGFXV65X6ABRN>
+                `codument-impl-quick` evaluates scope.
+                </?01M02NT0TZXJQHGFXV65X6ABRN>
+                <Then ?01M02NT0TZXJQHGFXV65X6ABRP>
+                The agent SHALL stop quick implementation and recommend `codument-plan-track` or `codument-plan-mission`.
+                </?01M02NT0TZXJQHGFXV65X6ABRP>
+              )>
+              <Case #prompts-durable-knowledge (
+                <Given ?01M02NT0TZXJQHGFXV65X6ABRQ>
+                The quick implementation discovers stable structure knowledge or engineering knowledge.
+                </?01M02NT0TZXJQHGFXV65X6ABRQ>
+                <When ?01M02NT0TZXJQHGFXV65X6ABRR>
+                The agent reports completion.
+                </?01M02NT0TZXJQHGFXV65X6ABRR>
+                <Then ?01M02NT0TZXJQHGFXV65X6ABRS>
+                The agent SHALL prompt before writing durable knowledge to `codument/modeling` or `codument/engineering`.
+                </?01M02NT0TZXJQHGFXV65X6ABRS>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/preplan-discuss-operation" } (
+      <Requirement #preplan-discuss-operation (
+        <Statement ?01M02NT0TZXJQHGFXV65X6ABRT>
+        系统 SHALL redefine `codument-discuss` as a pre-plan human discussion operation that reads context, clarifies with the user, and recommends quick, track, mission, or blocked routing without creating a discussion workspace.
+        </?01M02NT0TZXJQHGFXV65X6ABRT>
+        <Suites [
+          <Suite #preplan-discuss { name = "Pre-plan discuss" } (
+            <Cases [
+              <Case #conversation-first (
+                <Given ?01M02NT0TZXJQHGFXV65X6ABRV>
+                A user invokes `codument-discuss` without explicitly requesting auto/no-question mode.
+                </?01M02NT0TZXJQHGFXV65X6ABRV>
+                <When ?01M02NT0TZXJQHGFXV65X6ABRW>
+                The operation runs.
+                </?01M02NT0TZXJQHGFXV65X6ABRW>
+                <Then ?01M02NT0TZXJQHGFXV65X6ABRX>
+                The agent SHALL discuss with the user and ask clarifying questions before finalizing route, instead of only generating files.
+                </?01M02NT0TZXJQHGFXV65X6ABRX>
+              )>
+              <Case #uses-root-analysis (
+                <Given ?01M02NT0TZXJQHGFXV65X6ABRY>
+                A user invokes `codument-discuss` before creating a track or mission.
+                </?01M02NT0TZXJQHGFXV65X6ABRY>
+                <When ?01M02NT0TZXJQHGFXV65X6ABRZ>
+                The operation starts.
+                </?01M02NT0TZXJQHGFXV65X6ABRZ>
+                <Then ?01M02NT0TZXJQHGFXV65X6ABS0>
+                The agent SHALL remove any existing `codument/analysis/` directory and use a fresh `codument/analysis/` only for temporary findings or knowledge notes.
+                </?01M02NT0TZXJQHGFXV65X6ABS0>
+              )>
+              <Case #no-report-files (
+                <Given ?01M02NT0TZXJQHGFXV65X6ABS1>
+                `codument-discuss` records temporary analysis.
+                </?01M02NT0TZXJQHGFXV65X6ABS1>
+                <When ?01M02NT0TZXJQHGFXV65X6ABS2>
+                It writes files under `codument/analysis/`.
+                </?01M02NT0TZXJQHGFXV65X6ABS2>
+                <Then ?01M02NT0TZXJQHGFXV65X6ABS3>
+                The agent SHALL NOT create fixed route-report files such as `context.md`, `decision-tree.md`, or `recommendation.md` there.
+                </?01M02NT0TZXJQHGFXV65X6ABS3>
+              )>
+              <Case #cleans-before-plan (
+                <Given ?01M02NT0TZXJQHGFXV65X6ABS4>
+                The pre-plan discussion has produced a recommendation to create a track or mission.
+                </?01M02NT0TZXJQHGFXV65X6ABS4>
+                <When ?01M02NT0TZXJQHGFXV65X6ABS5>
+                The agent proceeds to planning.
+                </?01M02NT0TZXJQHGFXV65X6ABS5>
+                <Then ?01M02NT0TZXJQHGFXV65X6ABS6>
+                The agent SHALL clean `codument/analysis/` so pre-plan scratch files do not become durable state.
+                </?01M02NT0TZXJQHGFXV65X6ABS6>
+              )>
+              <Case #no-discussion-workspace (
+                <Given ?01M02NT0TZXJQHGFXV65X6ABS7>
+                `codument-discuss` runs.
+                </?01M02NT0TZXJQHGFXV65X6ABS7>
+                <When ?01M02NT0TZXJQHGFXV65X6ABS8>
+                It records temporary analysis.
+                </?01M02NT0TZXJQHGFXV65X6ABS8>
+                <Then ?01M02NT0TZXJQHGFXV65X6ABS9>
+                The system SHALL NOT create `codument/discussions/` or a discussion workspace.
+                </?01M02NT0TZXJQHGFXV65X6ABS9>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/discuss-phase-operation" } (
+      <Requirement #discuss-phase-operation (
+        <Statement ?01M02NT0TZXJQHGFXV65X6ABSA>
+        系统 SHALL provide `codument-discuss-phase` as the operation and skill for discussing and refining an existing track phase.
+        </?01M02NT0TZXJQHGFXV65X6ABSA>
+        <Suites [
+          <Suite #discuss-phase { name = "Phase discuss" } (
+            <Cases [
+              <Case #phase-refinement-moved (
+                <Given ?01M02NT0TZXJQHGFXV65X6ABSB>
+                An existing track has a coarse phase.
+                </?01M02NT0TZXJQHGFXV65X6ABSB>
+                <When ?01M02NT0TZXJQHGFXV65X6ABSC>
+                The user invokes `codument-discuss-phase`.
+                </?01M02NT0TZXJQHGFXV65X6ABSC>
+                <Then ?01M02NT0TZXJQHGFXV65X6ABSD>
+                The agent SHALL apply the phase TaskSpace refinement workflow formerly owned by `codument-discuss`.
+                </?01M02NT0TZXJQHGFXV65X6ABSD>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/analysis-reports-gitignore" } (
+      <Requirement #analysis-reports-gitignore (
+        <Statement ?01M02NT0TZXJQHGFXV65X6ABSE>
+        系统 SHALL ensure existing `.gitignore` files contain `codument/**/analysis` and `codument/**/reports` during `codument init` and `codument upgrade-workspace`.
+        </?01M02NT0TZXJQHGFXV65X6ABSE>
+        <Suites [
+          <Suite #gitignore { name = "Analysis and reports ignore rules" } (
+            <Cases [
+              <Case #append-missing-rules (
+                <Given ?01M02NT0TZXJQHGFXV65X6ABSF>
+                A workspace has an existing `.gitignore` missing Codument analysis/report rules.
+                </?01M02NT0TZXJQHGFXV65X6ABSF>
+                <When ?01M02NT0TZXJQHGFXV65X6ABSG>
+                The user runs `codument init` or `codument upgrade-workspace`.
+                </?01M02NT0TZXJQHGFXV65X6ABSG>
+                <Then ?01M02NT0TZXJQHGFXV65X6ABSH>
+                The system SHALL append `codument/**/analysis` and `codument/**/reports`.
+                </?01M02NT0TZXJQHGFXV65X6ABSH>
+              )>
+              <Case #preserve-existing-rules (
+                <Given ?01M02NT0TZXJQHGFXV65X6ABSJ>
+                A workspace `.gitignore` already contains those rules.
+                </?01M02NT0TZXJQHGFXV65X6ABSJ>
+                <When ?01M02NT0TZXJQHGFXV65X6ABSK>
+                The user runs `codument init` or `codument upgrade-workspace`.
+                </?01M02NT0TZXJQHGFXV65X6ABSK>
+                <Then ?01M02NT0TZXJQHGFXV65X6ABSM>
+                The system SHALL NOT duplicate the rules.
+                </?01M02NT0TZXJQHGFXV65X6ABSM>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+  ]>
+)>

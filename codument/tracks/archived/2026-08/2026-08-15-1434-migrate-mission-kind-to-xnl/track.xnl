@@ -1,0 +1,35 @@
+<Track #migrate-mission-kind-to-xnl apiVersion="codument.tech/v1alpha1" version="1" {
+  status = "completed"
+  goal = "将 Mission authority 从 XML 迁移到 Halfcode-backed XNL。"
+  description = "实现 Mission codec、scaffold、migration、validator、workspace catalog、authoring 和 dogfood。"
+  question_mode = "decision-tree"
+  question_severity = "auto"
+  commit_mode = "manual"
+  created_at = "2026-08-15T11:22:27.173Z"
+  updated_at = "2026-08-15T11:34:29Z"
+} (
+  <Ports { scope = "track" } [
+    <MaterialBundle { role = "output" name = "mission-codec" domain = "code" path = "vfs://@/src/cli/mission/" }>
+    <MaterialBundle { role = "output" name = "templates" domain = "docs" path = "vfs://@/src/templates/codument/std/" }>
+    <MaterialBundle { role = "output" name = "tests" domain = "test" path = "vfs://@/test/" }>
+  ]>
+  <TaskSpace #space_migrate-mission-kind-to-xnl { name = "migrate-mission-kind-to-xnl" version = "1" } (
+    <SubNodes [
+      <TaskGroup #P1 { name = "Mission codec and migration" status = "DONE" order = 0 } (
+        <SubNodes [
+          <Task #P1-T1 { name = "实现 Mission XNL normalized codec" status = "DONE" order = 0 }>
+          <Task #P1-T2 { name = "切换 scaffold、validate 与 owner resolution" status = "DONE" order = 1 }>
+          <Task #P1-T3 { name = "接入 structural migration 与 workspace catalogs" status = "DONE" order = 2 }>
+        ]>
+      )>
+      <TaskGroup #P2 { name = "Authoring and dogfood" status = "DONE" order = 1 } (
+        <SubNodes [
+          <Task #P2-T1 { name = "更新 Mission 规范、actions 与 skills" status = "DONE" order = 0 }>
+          <Task #P2-T2 { name = "全量验证并迁移当前 missions" status = "DONE" order = 1 }>
+        ]>
+      )>
+    ]>
+  )>
+  <Schedule []>
+  <Hooks []>
+)>

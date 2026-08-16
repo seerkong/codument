@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { ARCHIVED_TRACKS_DIR } from './index';
+import { parseTrackResource, resolveTrackAuthority } from '../track/resource';
 
 function parseDate(value: string | undefined): Date | null {
   if (!value) {
@@ -10,14 +11,14 @@ function parseDate(value: string | undefined): Date | null {
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
-function readUpdatedAtFromTrack(trackXmlPath: string): Date | null {
-  if (!fs.existsSync(trackXmlPath)) {
+function readUpdatedAtFromTrack(trackFile: string): Date | null {
+  if (!fs.existsSync(trackFile)) {
     return null;
   }
-  const content = fs.readFileSync(trackXmlPath, 'utf-8');
-  const meta = content.match(/<Metadata>([\s\S]*?)<\/Metadata>/)?.[1] ?? content;
-  const updatedAt = meta.match(/<UpdatedAt>([\s\S]*?)<\/UpdatedAt>/)?.[1]?.trim();
-  const createdAt = meta.match(/<CreatedAt>([\s\S]*?)<\/CreatedAt>/)?.[1]?.trim();
+  const root = parseTrackResource(trackFile);
+  const metadata = root.children.find((child) => child.tag === 'Metadata');
+  const updatedAt = metadata?.children.find((child) => child.tag === 'UpdatedAt')?.text?.trim();
+  const createdAt = metadata?.children.find((child) => child.tag === 'CreatedAt')?.text?.trim();
   return parseDate(updatedAt) ?? parseDate(createdAt);
 }
 
@@ -43,7 +44,8 @@ function maxMtimeMs(dir: string): number {
 }
 
 export function resolveTrackUpdatedDate(trackDir: string, now = new Date()): Date {
-  const trackDate = readUpdatedAtFromTrack(path.join(trackDir, 'track.xml'));
+  const authority = resolveTrackAuthority(trackDir);
+  const trackDate = authority ? readUpdatedAtFromTrack(authority.file) : null;
   if (trackDate) {
     return trackDate;
   }

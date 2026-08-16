@@ -1,0 +1,168 @@
+<BehaviorPatch #track.r_2_0_2_6_-_0_6_-_2_1_-_2_0_0_0_-_r_e_f_a_c_t_o_r_-_s_t_d_-_p_r_o_m_p_t_s_-_a_n_d_-_s_k_i_l_l_s.behavior_patch.codument-core apiVersion="codument.tech/v1alpha1" version="1" { capability = "codument-core" } (
+  <Mutations [
+    <Upsert { selector = "behavior://codument-core/requirements/std-sop-no-operation-dup" } (
+      <Requirement #std-sop-no-operation-dup (
+        <Statement ?01M02NT0WARD862T7V99A8PXG8>
+        系统 SHALL keep `codument/std/sop/` for cross-operation methodology only, with no file that duplicates a single operation's flow already owned by `codument/std/operations/`. Operation-specific procedure SHALL live in the operation prompt; sop SHALL hold shared methodology (questioning/tdd/validation/wave-exec/workflow).
+        </?01M02NT0WARD862T7V99A8PXG8>
+        <Suites [
+          <Suite #dedup { name = "sop / operations de-duplication" } (
+            <Cases [
+              <Case #no-dup-files (
+                <Given ?01M02NT0WARD862T7V99A8PXG9>
+                The std prompt tree.
+                </?01M02NT0WARD862T7V99A8PXG9>
+                <When ?01M02NT0WARD862T7V99A8PXGA>
+                An operation already has a complete prompt in `std/operations/&lt;op&gt;.md`.
+                </?01M02NT0WARD862T7V99A8PXGA>
+                <Then ?01M02NT0WARD862T7V99A8PXGB>
+                There SHALL NOT be a same-named `std/sop/&lt;op&gt;.md` re-stating that operation's flow; archive/artifact-sync/gap-loop SHALL be removed from sop and consolidated into their operations file.
+                </?01M02NT0WARD862T7V99A8PXGB>
+              )>
+              <Case #unique-content-preserved (
+                <Given ?01M02NT0WARD862T7V99A8PXGC>
+                `sop/artifact-sync.md` carries unique docs-routing guidance not in `operations/artifact-sync.md`.
+                </?01M02NT0WARD862T7V99A8PXGC>
+                <When ?01M02NT0WARD862T7V99A8PXGD>
+                The sop file is removed.
+                </?01M02NT0WARD862T7V99A8PXGD>
+                <Then ?01M02NT0WARD862T7V99A8PXGE>
+                Its unique content (docs routing / knowledge-tiers judgement / folder-manifest backfill) SHALL be merged into `operations/artifact-sync.md` first, losing nothing.
+                </?01M02NT0WARD862T7V99A8PXGE>
+              )>
+              <Case #references-redirected (
+                <Given ?01M02NT0WARD862T7V99A8PXGF>
+                Files reference `sop/{archive,artifact-sync,gap-loop}.md`.
+                </?01M02NT0WARD862T7V99A8PXGF>
+                <When ?01M02NT0WARD862T7V99A8PXGG>
+                Those sop files are removed.
+                </?01M02NT0WARD862T7V99A8PXGG>
+                <Then ?01M02NT0WARD862T7V99A8PXGH>
+                All references (operations/spec/memory/attractors/skill shells, src/templates + dogfood) SHALL be redirected to the operations file, and `manifest.ts` regenerated; no dangling `sop/{archive,artifact-sync,gap-loop}.md` reference remains.
+                </?01M02NT0WARD862T7V99A8PXGH>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/gap-loop-recheck-efficiency" } (
+      <Requirement #gap-loop-recheck-efficiency (
+        <Statement ?01M02NT0WARD862T7V99A8PXGJ>
+        系统 SHALL make the gap-loop first-round verification round a configurable, default-off option (global default overridable per-scope), asked at track creation; and SHALL make every re-check round lightweight/incremental — all to cut fresh-spawn cost without losing the FIX-must-recheck guarantee.
+        </?01M02NT0WARD862T7V99A8PXGJ>
+        <Suites [
+          <Suite #verify-round-config { name = "Verification round as a config switch" } (
+            <Cases [
+              <Case #global-default-off (
+                <Given ?01M02NT0WARD862T7V99A8PXGK>
+                The global gap-loop config and a scope with no per-scope override.
+                </?01M02NT0WARD862T7V99A8PXGK>
+                <When ?01M02NT0WARD862T7V99A8PXGM>
+                A first round returns `NO_GAP` with no history.
+                </?01M02NT0WARD862T7V99A8PXGM>
+                <Then ?01M02NT0WARD862T7V99A8PXGN>
+                The first-round-suspicion verification round SHALL default to OFF — the parent closes out without an extra round — governed by a global gap-loop config switch (default off).
+                </?01M02NT0WARD862T7V99A8PXGN>
+              )>
+              <Case #node-attr-override (
+                <Given ?01M02NT0WARD862T7V99A8PXGP>
+                A `&lt;cdt:GapLoop&gt;` hook node carrying `verify-round="true|false"`.
+                </?01M02NT0WARD862T7V99A8PXGP>
+                <When ?01M02NT0WARD862T7V99A8PXGQ>
+                The parent decides whether to run the first-round verification round.
+                </?01M02NT0WARD862T7V99A8PXGQ>
+                <Then ?01M02NT0WARD862T7V99A8PXGR>
+                The node attribute SHALL override the global default for that scope: `true` runs the verification round, `false` skips it (first-round `NO_GAP` closes out).
+                </?01M02NT0WARD862T7V99A8PXGR>
+              )>
+              <Case #asked-at-track-creation (
+                <Given ?01M02NT0WARD862T7V99A8PXGS>
+                Track creation's same-round confirmation (commit mode + validation mode).
+                </?01M02NT0WARD862T7V99A8PXGS>
+                <When ?01M02NT0WARD862T7V99A8PXGT>
+                The user is prompted.
+                </?01M02NT0WARD862T7V99A8PXGT>
+                <Then ?01M02NT0WARD862T7V99A8PXGV>
+                The system SHALL also ask whether to enable the gap-loop verification round, and write the chosen `verify-round` onto the GapLoop hook nodes; later-added phases SHALL follow the same setting.
+                </?01M02NT0WARD862T7V99A8PXGV>
+              )>
+            ]>
+          )>
+          <Suite #lightweight-recheck { name = "Lightweight / incremental re-check" } (
+            <Cases [
+              <Case #verification-round-lightweight (
+                <Given ?01M02NT0WARD862T7V99A8PXGW>
+                verify-round is ON and the parent re-spawns the first-round verification round.
+                </?01M02NT0WARD862T7V99A8PXGW>
+                <When ?01M02NT0WARD862T7V99A8PXGX>
+                The fresh sub-agent runs it.
+                </?01M02NT0WARD862T7V99A8PXGX>
+                <Then ?01M02NT0WARD862T7V99A8PXGY>
+                It SHALL only re-confirm the prior round's gap-report conclusion plus the current uncommitted diff, not re-derive the full target comparison; a lower reasoning effort MAY be used.
+                </?01M02NT0WARD862T7V99A8PXGY>
+              )>
+              <Case #fix-incremental-recheck (
+                <Given ?01M02NT0WARD862T7V99A8PXGZ>
+                A prior round returned `FIX_APPLIED`.
+                </?01M02NT0WARD862T7V99A8PXGZ>
+                <When ?01M02NT0WARD862T7V99A8PXH0>
+                The parent re-spawns the mandatory re-check (ALWAYS required, independent of `verify-round`).
+                </?01M02NT0WARD862T7V99A8PXH0>
+                <Then ?01M02NT0WARD862T7V99A8PXH1>
+                That round SHALL focus on the FIX's changed scope (incremental), not re-review the whole scope from scratch.
+                </?01M02NT0WARD862T7V99A8PXH1>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/skill-operation-naming" } (
+      <Requirement #skill-operation-naming (
+        <Statement ?01M02NT0WARD862T7V99A8PXH2>
+        系统 SHALL name track planning/implement operation prompts and their skill shells consistently in a `codument-plan-&lt;noun&gt;` / `codument-impl-track` family, with skill name = operation base name; high-traffic renamed names keep alias shells, low-traffic ones are dropped.
+        </?01M02NT0WARD862T7V99A8PXH2>
+        <Suites [
+          <Suite #naming { name = "Skill / operation naming" } (
+            <Cases [
+              <Case #family-names (
+                <Given ?01M02NT0WARD862T7V99A8PXH3>
+                The track planning/implement skills and their operation files.
+                </?01M02NT0WARD862T7V99A8PXH3>
+                <When ?01M02NT0WARD862T7V99A8PXH4>
+                They are named.
+                </?01M02NT0WARD862T7V99A8PXH4>
+                <Then ?01M02NT0WARD862T7V99A8PXH5>
+                `codument-implement`→`codument-impl-track`, `codument-track`→`codument-plan-track`, `codument-plan-schedule`→`codument-plan-track-wave`; each skill shell SHALL `@`-reference an operation file of the same base name (`impl-track.md` / `plan-track.md` / `plan-track-wave.md`). Future `codument-plan-mission` (default-DAG) follows the same `codument-plan-&lt;noun&gt;` style.
+                </?01M02NT0WARD862T7V99A8PXH5>
+              )>
+              <Case #legacy-aliases (
+                <Given ?01M02NT0WARD862T7V99A8PXH6>
+                Renamed skills are invoked by an old name.
+                </?01M02NT0WARD862T7V99A8PXH6>
+                <When ?01M02NT0WARD862T7V99A8PXH7>
+                The old name is used.
+                </?01M02NT0WARD862T7V99A8PXH7>
+                <Then ?01M02NT0WARD862T7V99A8PXH8>
+                `codument-implement` and `codument-track` SHALL remain as alias shells routing to the new operation (back-compat); `codument-plan-schedule` SHALL be dropped with no alias.
+                </?01M02NT0WARD862T7V99A8PXH8>
+              )>
+              <Case #references-updated (
+                <Given ?01M02NT0WARD862T7V99A8PXH9>
+                References to old skill/operation names.
+                </?01M02NT0WARD862T7V99A8PXH9>
+                <When ?01M02NT0WARD862T7V99A8PXHA>
+                The rename is applied.
+                </?01M02NT0WARD862T7V99A8PXHA>
+                <Then ?01M02NT0WARD862T7V99A8PXHB>
+                All references (operations cross-refs, AGENTS.md, skills/README, src/cli init, std docs; src+dogfood) SHALL point to new names; `codument-plan-schedule` SHALL have zero residual references; `manifest.ts` regenerated to match disk.
+                </?01M02NT0WARD862T7V99A8PXHB>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+  ]>
+)>

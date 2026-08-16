@@ -1,0 +1,171 @@
+<BehaviorPatch #track.r_2_0_2_6_-_0_7_-_2_5_-_2_1_2_4_-_e_n_a_b_l_e_-_m_o_d_e_l_i_n_g_-_a_n_d_-_a_t_o_m_i_c_-_a_r_c_h_i_v_e.behavior_patch.codument-core apiVersion="codument.tech/v1alpha1" version="1" { capability = "codument-core" } (
+  <Mutations [
+    <Upsert { selector = "behavior://codument-core/requirements/modeling-config" } (
+      <Requirement #modeling-config (
+        <Statement ?01M02NT0WHYCW7Z72AA0ER1M64>
+        系统 SHALL 默认启用 modeling，同时将启用状态与 modeling delta 的生成义务分离。
+        </?01M02NT0WHYCW7Z72AA0ER1M64>
+        <Suites [
+          <Suite #modeling-config-gate { name = "Modeling config gate" } (
+            <Cases [
+              <Case #default-on (
+                <Given ?01M02NT0WHYCW7Z72AA0ER1M65>
+                fresh init 生成 modeling 配置，或 runtime 加载一个不存在的 modeling 配置文件。
+                </?01M02NT0WHYCW7Z72AA0ER1M65>
+                <When ?01M02NT0WHYCW7Z72AA0ER1M66>
+                系统解析 modeling enablement。
+                </?01M02NT0WHYCW7Z72AA0ER1M66>
+                <Then ?01M02NT0WHYCW7Z72AA0ER1M67>
+                系统 SHALL 将 modeling 视为 enabled。
+                </?01M02NT0WHYCW7Z72AA0ER1M67>
+                <Ands [
+                  <And ?01M02NT0WHYCW7Z72AA0ER1M68>
+                  发布模板 SHALL 生成 `&lt;Modeling enabled=&quot;true&quot;&gt;`。
+                  </?01M02NT0WHYCW7Z72AA0ER1M68>
+                ]>
+              )>
+              <Case #explicit-disable-wins (
+                <Given ?01M02NT0WHYCW7Z72AA0ER1M69>
+                已有 workspace 明确配置 `&lt;Modeling enabled=&quot;false&quot;&gt;`。
+                </?01M02NT0WHYCW7Z72AA0ER1M69>
+                <When ?01M02NT0WHYCW7Z72AA0ER1M6A>
+                runtime 加载配置或 `upgrade-workspace` 升级该项目。
+                </?01M02NT0WHYCW7Z72AA0ER1M6A>
+                <Then ?01M02NT0WHYCW7Z72AA0ER1M6B>
+                系统 SHALL 保持 modeling disabled，不得用新默认覆盖用户的显式选择。
+                </?01M02NT0WHYCW7Z72AA0ER1M6B>
+              )>
+              <Case #structural-delta-trigger (
+                <Given ?01M02NT0WHYCW7Z72AA0ER1M6C>
+                modeling 已启用。
+                </?01M02NT0WHYCW7Z72AA0ER1M6C>
+                <When ?01M02NT0WHYCW7Z72AA0ER1M6D>
+                track 改变对象、状态机、policy、模块边界、事实源或组件 IO 等结构知识。
+                </?01M02NT0WHYCW7Z72AA0ER1M6D>
+                <Then ?01M02NT0WHYCW7Z72AA0ER1M6E>
+                系统 SHALL 生成对应 modeling delta。
+                </?01M02NT0WHYCW7Z72AA0ER1M6E>
+                <Ands [
+                  <And ?01M02NT0WHYCW7Z72AA0ER1M6F>
+                  若 track 不改变结构知识，系统 SHALL NOT 强制生成 modeling delta。
+                  </?01M02NT0WHYCW7Z72AA0ER1M6F>
+                ]>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/modeling-delta-merge/suites/delta-merge/cases/archive-cli-merge" } (
+      <Case #archive-cli-merge (
+        <Given ?01M02NT0WHYCW7Z72AA0ER1M6G>
+        modeling 已启用，track 包含有效 `modeling_deltas`，并记录可解析的 modeling base commit。
+        </?01M02NT0WHYCW7Z72AA0ER1M6G>
+        <When ?01M02NT0WHYCW7Z72AA0ER1M6H>
+        用户运行 `codument archive &lt;track-id&gt;`。
+        </?01M02NT0WHYCW7Z72AA0ER1M6H>
+        <Then ?01M02NT0WHYCW7Z72AA0ER1M6J>
+        archive CLI SHALL 调用 modeling 的节点级三方合并并把合并结果提交到 `codument/modeling/`。
+        </?01M02NT0WHYCW7Z72AA0ER1M6J>
+        <Ands [
+          <And ?01M02NT0WHYCW7Z72AA0ER1M6K>
+          首次 delta 归档时，若 registry 尚不存在，系统 SHALL 在成功 commit 时创建 registry。
+          </?01M02NT0WHYCW7Z72AA0ER1M6K>
+          <And ?01M02NT0WHYCW7Z72AA0ER1M6M>
+          若 track 没有 modeling delta，系统 SHALL NOT 创建空 modeling registry。
+          </?01M02NT0WHYCW7Z72AA0ER1M6M>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/modeling-validate/suites/hierarchy-layer/cases/plane-legality" } (
+      <Case #plane-legality (
+        <Given ?01M02NT0WHYCW7Z72AA0ER1M6N>
+        modeling registry 尚不存在或不包含任何 XNL 节点。
+        </?01M02NT0WHYCW7Z72AA0ER1M6N>
+        <When ?01M02NT0WHYCW7Z72AA0ER1M6P>
+        `codument modeling validate` 检查 registry。
+        </?01M02NT0WHYCW7Z72AA0ER1M6P>
+        <Then ?01M02NT0WHYCW7Z72AA0ER1M6Q>
+        系统 SHALL 报告 warning 而不是 error。
+        </?01M02NT0WHYCW7Z72AA0ER1M6Q>
+        <Ands [
+          <And ?01M02NT0WHYCW7Z72AA0ER1M6R>
+          当 registry 已有内容时，系统 SHALL 继续要求存在 `domain` plane，并对未知 derived plane 使用 warning。
+          </?01M02NT0WHYCW7Z72AA0ER1M6R>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/atomic-registry-archive" } (
+      <Requirement #atomic-registry-archive (
+        <Statement ?01M02NT0WHYCW7Z72AA0ER1M6S>
+        系统 SHALL 在单一 prepare → validate/conflict-detect → stage → commit/rollback 边界内归档 behavior、modeling 与 engineering registry，并仅在成功后移动 track。
+        </?01M02NT0WHYCW7Z72AA0ER1M6S>
+        <Suites [
+          <Suite #transaction { name = "Cross-registry archive transaction" } (
+            <Cases [
+              <Case #prepare-before-write (
+                <Given ?01M02NT0WHYCW7Z72AA0ER1M6T>
+                一个 track 同时包含 behavior、modeling 与 engineering deltas。
+                </?01M02NT0WHYCW7Z72AA0ER1M6T>
+                <When ?01M02NT0WHYCW7Z72AA0ER1M6V>
+                archive 开始处理 registry 更新。
+                </?01M02NT0WHYCW7Z72AA0ER1M6V>
+                <Then ?01M02NT0WHYCW7Z72AA0ER1M6W>
+                系统 SHALL 在修改任何 live registry 前完成全部 patch 解析、三方合并、schema 校验与冲突检测。
+                </?01M02NT0WHYCW7Z72AA0ER1M6W>
+              )>
+              <Case #conflict-leaves-no-writes (
+                <Given ?01M02NT0WHYCW7Z72AA0ER1M6X>
+                任一 registry 的 prepare 或 conflict detection 失败。
+                </?01M02NT0WHYCW7Z72AA0ER1M6X>
+                <When ?01M02NT0WHYCW7Z72AA0ER1M6Y>
+                archive 返回失败。
+                </?01M02NT0WHYCW7Z72AA0ER1M6Y>
+                <Then ?01M02NT0WHYCW7Z72AA0ER1M6Z>
+                behavior、modeling 与 engineering registry SHALL 与调用前逐字节等价。
+                </?01M02NT0WHYCW7Z72AA0ER1M6Z>
+                <Ands [
+                  <And ?01M02NT0WHYCW7Z72AA0ER1M70>
+                  active track SHALL 保持原路径且 archive destination SHALL NOT 存在。
+                  </?01M02NT0WHYCW7Z72AA0ER1M70>
+                ]>
+              )>
+              <Case #commit-failure-rolls-back (
+                <Given ?01M02NT0WHYCW7Z72AA0ER1M71>
+                全部 prepare 成功，但 commit 在替换部分 registry 后发生写入或 rename 失败。
+                </?01M02NT0WHYCW7Z72AA0ER1M71>
+                <When ?01M02NT0WHYCW7Z72AA0ER1M72>
+                事务执行 rollback。
+                </?01M02NT0WHYCW7Z72AA0ER1M72>
+                <Then ?01M02NT0WHYCW7Z72AA0ER1M73>
+                系统 SHALL 恢复所有已经替换的 registry，并清理事务 staging。
+                </?01M02NT0WHYCW7Z72AA0ER1M73>
+                <Ands [
+                  <And ?01M02NT0WHYCW7Z72AA0ER1M74>
+                  track SHALL NOT 被移动。
+                  </?01M02NT0WHYCW7Z72AA0ER1M74>
+                ]>
+              )>
+              <Case #success-commits-all (
+                <Given ?01M02NT0WHYCW7Z72AA0ER1M75>
+                全部 deltas 有效且 commit 无失败。
+                </?01M02NT0WHYCW7Z72AA0ER1M75>
+                <When ?01M02NT0WHYCW7Z72AA0ER1M76>
+                archive 完成。
+                </?01M02NT0WHYCW7Z72AA0ER1M76>
+                <Then ?01M02NT0WHYCW7Z72AA0ER1M77>
+                三个 registry 的适用更新 SHALL 一并可见。
+                </?01M02NT0WHYCW7Z72AA0ER1M77>
+                <Ands [
+                  <And ?01M02NT0WHYCW7Z72AA0ER1M78>
+                  track SHALL 在 registry commit 成功后移动到唯一 archive destination。
+                  </?01M02NT0WHYCW7Z72AA0ER1M78>
+                ]>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+  ]>
+)>

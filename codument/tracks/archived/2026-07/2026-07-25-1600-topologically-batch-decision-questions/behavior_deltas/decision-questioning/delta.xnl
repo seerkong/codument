@@ -1,0 +1,28 @@
+<BehaviorPatch #track.r_2_0_2_6_-_0_7_-_2_5_-_1_6_0_0_-_t_o_p_o_l_o_g_i_c_a_l_l_y_-_b_a_t_c_h_-_d_e_c_i_s_i_o_n_-_q_u_e_s_t_i_o_n_s.behavior_patch.decision-questioning apiVersion="codument.tech/v1alpha1" version="1" { capability = "decision-questioning" } (
+  <Mutations [
+    <Upsert { selector = "behavior://decision-questioning/requirements/topological-batches" } (
+      <Requirement #topological-batches (
+        <Statement ?01M02NT0WGHQYJTENECMS6ETQH>
+        Planning SHALL ask all ready independent decision directions in one bounded batch before asking dependent refinements.
+        </?01M02NT0WGHQYJTENECMS6ETQH>
+        <Suites [
+          <Suite #multiple-roots { name = "multiple roots" } (
+            <Cases [
+              <Case #asks-roots-together (
+                <Given ?01M02NT0WGHQYJTENECMS6ETQJ>
+                a decision forest has multiple unresolved roots
+                </?01M02NT0WGHQYJTENECMS6ETQJ>
+                <When ?01M02NT0WGHQYJTENECMS6ETQK>
+                planning requires user input
+                </?01M02NT0WGHQYJTENECMS6ETQK>
+                <Then ?01M02NT0WGHQYJTENECMS6ETQM>
+                the planner SHALL present the ready roots together within the severity budget
+                </?01M02NT0WGHQYJTENECMS6ETQM>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+  ]>
+)>

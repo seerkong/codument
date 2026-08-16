@@ -3,9 +3,10 @@ import * as path from 'path';
 import { CODUMENT_DIR } from '../utils';
 import { DEFAULT_THRESHOLDS, type LintThresholds } from './lint';
 import { DEFAULT_POLICY, type MergePolicy, type ConflictType, type Resolve } from './merge';
+import { loadRegistrySettingsXnl, resolveConfigAuthority } from '../config/registry-settings';
 
 /**
- * codument/config/engineering.xml gate + settings.
+ * codument/config/engineering.xnl gate + settings (legacy XML remains readable).
  *
  * Default OFF: when the file is absent or `enabled` is not "true", engineering is
  * disabled and all engineering behavior (track delta, archive merge, lint) is skipped.
@@ -20,7 +21,7 @@ export interface EngineeringConfig {
 }
 
 export function engineeringConfigPath(workspaceDir = '.'): string {
-  return path.join(workspaceDir, CODUMENT_DIR, 'config', 'engineering.xml');
+  return path.join(workspaceDir, CODUMENT_DIR, 'config', 'engineering.xnl');
 }
 
 function matchNum(xml: string, re: RegExp): number | undefined {
@@ -37,9 +38,29 @@ export function loadEngineeringConfig(configPath = engineeringConfigPath()): Eng
     thresholds: { ...DEFAULT_THRESHOLDS },
     mergePolicy: { ...DEFAULT_POLICY },
   };
-  if (!fs.existsSync(configPath)) return def;
+  const authority = resolveConfigAuthority(configPath);
+  if (!authority) return def;
 
-  const xml = fs.readFileSync(configPath, 'utf-8');
+  if (path.extname(authority).toLowerCase() === '.xnl') {
+    const config = loadRegistrySettingsXnl(authority, 'EngineeringConfig');
+    const mergePolicy: MergePolicy = { ...DEFAULT_POLICY };
+    for (const item of config.conflicts) {
+      const type = item.type as ConflictType;
+      const resolve = item.resolve as Resolve;
+      if (type in mergePolicy && VALID_RESOLVE.has(resolve)) mergePolicy[type] = resolve;
+    }
+    return {
+      enabled: config.enabled ?? def.enabled,
+      registryDir: def.registryDir,
+      thresholds: {
+        maxLines: config.maxLines ?? DEFAULT_THRESHOLDS.maxLines,
+        maxNodes: config.maxNodes ?? DEFAULT_THRESHOLDS.maxNodes,
+      },
+      mergePolicy,
+    };
+  }
+
+  const xml = fs.readFileSync(authority, 'utf-8');
   const enabled = /<Engineering[^>]*\benabled="true"/.test(xml);
   const maxLines = matchNum(xml, /<Lint[^>]*\bmaxLines="(\d+)"/);
   const maxNodes = matchNum(xml, /<Lint[^>]*\bmaxNodes="(\d+)"/);

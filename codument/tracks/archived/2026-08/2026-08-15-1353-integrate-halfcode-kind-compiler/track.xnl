@@ -1,0 +1,40 @@
+<Track #integrate-halfcode-kind-compiler apiVersion="codument.tech/v1alpha1" version="1" { status = "completed" goal = "以 Halfcode 校验的 XNL KindDefinition 统一 Codument 资源版本 authority。" description = "建立 XNL authority 到生成 registry 再到 CLI scaffold/migration/validation 的可验证链路。" question_mode = "decision-tree" question_severity = "auto" commit_mode = "manual" created_at = "2026-08-15T10:31:07.150Z" updated_at = "2026-08-15T10:53:10Z" } (
+  <Ports { scope = "track" } [
+    <MaterialBundle { role = "input" name = "halfcode-package" domain = "dependency" path = "vfs://@/package.json" }>
+    <MaterialBundle { role = "output" name = "kind-authority" domain = "code" path = "vfs://@/src/templates/codument/std/kinds/" }>
+    <MaterialBundle { role = "output" name = "cli-projection" domain = "code" path = "vfs://@/src/cli/kinds/" }>
+    <MaterialBundle { role = "output" name = "tests" domain = "test" path = "vfs://@/test/" }>
+  ]>
+  <TaskSpace #space_integrate-halfcode-kind-compiler { name = "integrate-halfcode-kind-compiler" child_mode = "dag" } (
+    <SubNodes [
+      <TaskGroup #P1 { name = "Halfcode Kind authority" status = "DONE" order = 0 } (
+        <SubNodes [
+          <Task #P1-T1 { name = "接入 Halfcode public package 与 consumer contract" status = "DONE" order = 0 }>
+          <Task #P1-T2 { name = "定义 Codument ResourcePackage 与三类 KindDefinition" status = "DONE" order = 1 }>
+        ]>
+      )>
+      <TaskGroup #P2 { name = "generated CLI projection" status = "DONE" order = 1 } (
+        <SubNodes [
+          <Task #P2-T1 { name = "实现确定性 Kind registry generator 与 check" status = "DONE" order = 0 }>
+          <Task #P2-T2 { name = "迁移 scaffold/migration/decision validation 到 projection" status = "DONE" order = 1 }>
+        ]>
+      )>
+      <TaskGroup #P3 { name = "consumer verification" status = "DONE" order = 2 } (
+        <SubNodes [
+          <Task #P3-T1 { name = "补充 Kind authority 与 compiled CLI 回归" status = "DONE" order = 0 }>
+          <Task #P3-T2 { name = "运行全量构建并确认 npm dependency" status = "DONE" order = 1 }>
+        ]>
+      )>
+    ]>
+  )>
+  <Schedule [
+    <Dag { for = "space_integrate-halfcode-kind-compiler" } [
+      <Node #P2 [
+        <After { ref = "P1" }>
+      ]>
+      <Node #P3 [
+        <After { ref = "P2" }>
+      ]>
+    ]>
+  ]>
+)>

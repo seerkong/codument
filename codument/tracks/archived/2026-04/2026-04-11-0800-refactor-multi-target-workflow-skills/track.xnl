@@ -1,0 +1,71 @@
+<Track #refactor-multi-target-workflow-skills apiVersion="codument.tech/v1alpha1" version="1" { status = "completed" goal = "用公共 skill 模板、sub-skill 和 target profile 统一 Codex、Sparrow 及 command 型 target 的工作流生成方式。" description = "用公共 skill 模板、sub-skill 和 target profile 统一 Codex、Sparrow 及 command 型 target 的工作流生成方式。" commit_mode = "manual" created_at = "2026-04-11T00:00:00Z" updated_at = "2026-04-11T00:00:00Z" } (
+  <Ports { scope = "track" } [
+    <MaterialBundle { role = "input" name = "behavior-deltas" domain = "behavior" path = "vfs://./behavior_deltas/" }>
+    <MaterialBundle { role = "output" name = "docs" domain = "doc" path = "vfs://@/docs/" }>
+    <MaterialBundle { role = "output" name = "behavior" domain = "codument" path = "vfs://@/codument/behaviors/" }>
+  ]>
+  <TaskSpace #space_refactor-multi-target-workflow-skills { name = "refactor-multi-target-workflow-skills" } (
+    <Description ?01M02JDH92XN2D981DAR3R1DQP>
+    用公共 skill 模板、sub-skill 和 target profile 统一 Codex、Sparrow 及 command 型 target 的工作流生成方式。
+    </?01M02JDH92XN2D981DAR3R1DQP>
+    <SubNodes [
+      <TaskGroup #P1 { name = "规格与模型定稿" status = "DONE" order = 0 } (
+        <Description ?01M02JDH92XN2D981DAR3R1DQQ>
+        明确共享 skill 模板、sub-skill 结构与 target profile 边界。
+        </?01M02JDH92XN2D981DAR3R1DQQ>
+        <SubNodes [
+          <Task { id = "T1.1" name = "固化 review 结论与规范增量" status = "DONE" order = 0 priority = "P0" } (
+            <Description ?01M02JDH92XN2D981DAR3R1DQR>
+            把当前 Codex/Sparrow 字符串替换耦合、command prompt 漂移与子代理模型分叉写入 proposal/spec/design。
+            </?01M02JDH92XN2D981DAR3R1DQR>
+          )>
+          <Task { id = "T1.2" name = "定义公共模板和 target profile 模型" status = "DONE" order = 1 priority = "P0" } (
+            <Description ?01M02JDH92XN2D981DAR3R1DQS>
+            确定 root skill、sub-skill、shared 文件与 target profile 的字段、职责和生成边界。
+            </?01M02JDH92XN2D981DAR3R1DQS>
+          )>
+        ]>
+      )>
+      <TaskGroup #P2 { name = "生成器重构" status = "DONE" order = 1 } (
+        <Description ?01M02JDH92XN2D981DAR3R1DQT>
+        重构 skill 构建器、target 安装逻辑和 command wrapper 生成方式。
+        </?01M02JDH92XN2D981DAR3R1DQT>
+        <SubNodes [
+          <Task { id = "T2.1" name = "实现公共 skill 构建器" status = "DONE" order = 0 priority = "P0" } (
+            <Description ?01M02JDH92XN2D981DAR3R1DQV>
+            把 `src/skills/codument-workflow` 重构为公共模板与 target 适配，而不是基于 Codex 产物再替换 Sparrow。
+            </?01M02JDH92XN2D981DAR3R1DQV>
+          )>
+          <Task { id = "T2.2" name = "让所有 target 生成 skill 目录" status = "DONE" order = 1 priority = "P0" } (
+            <Description ?01M02JDH92XN2D981DAR3R1DQW>
+            更新 init / upgrade-workspace 和各 target 生成器，使 Codex、Sparrow、Claude、Eidolon、OpenCode 都生成 skill 目录。
+            </?01M02JDH92XN2D981DAR3R1DQW>
+          )>
+          <Task { id = "T2.3" name = "把 command prompt 改成 sub-skill wrapper" status = "DONE" order = 2 priority = "P0" } (
+            <Description ?01M02JDH92XN2D981DAR3R1DQX>
+            保留 command 目录，但改为引用同一次生成的 `codument-workflow` sub-skill，不再复制完整业务 prompt。
+            </?01M02JDH92XN2D981DAR3R1DQX>
+          )>
+        ]>
+      )>
+      <TaskGroup #P3 { name = "回归验证与文档同步" status = "DONE" order = 2 } (
+        <Description ?01M02JDH92XN2D981DAR3R1DQY>
+        验证多 target 产物结构、回归测试和公开文档一致。
+        </?01M02JDH92XN2D981DAR3R1DQY>
+        <SubNodes [
+          <Task { id = "T3.1" name = "补齐生成器与升级测试" status = "DONE" order = 0 priority = "P0" } (
+            <Description ?01M02JDH92XN2D981DAR3R1DQZ>
+            更新 codex/sparrow/generic command tests，验证 skill 目录、sub-skill、wrapper 引用和升级备份行为。
+            </?01M02JDH92XN2D981DAR3R1DQZ>
+          )>
+          <Task { id = "T3.2" name = "同步 README 与真相规范" status = "DONE" order = 1 priority = "P1" } (
+            <Description ?01M02JDH92XN2D981DAR3R1DR0>
+            更新 README、README-cn 与 `codument-core`，反映“所有 target 都生成 skill，command 仅作 wrapper”的新模型。
+            </?01M02JDH92XN2D981DAR3R1DR0>
+          )>
+        ]>
+      )>
+    ]>
+  )>
+  <Schedule>
+)>

@@ -1,0 +1,105 @@
+<BehaviorPatch #track.make-subagent-delegation-autonomous.behavior_patch.codument-core apiVersion="codument.tech/v1alpha1" version="1" { capability = "codument-core" } (
+  <Mutations [
+    <Upsert { selector = "behavior://codument-core/requirements/autonomous-task-delegation" } (
+      <Requirement #autonomous-task-delegation (
+        <Statement ?01M02NT0VA4DY2646M3VMXP8TQ>
+        系统 SHALL 将普通任务的委派视为 AI 的运行期执行策略，同时仅在独立性属于校验协议语义时强制 fresh context。
+        </?01M02NT0VA4DY2646M3VMXP8TQ>
+        <Suites [
+          <Suite #ordinary-task-execution { name = "Ordinary track task execution" } (
+            <Cases [
+              <Case #executor-chooses-local-or-delegated (
+                <Given ?01M02NT0VA4DY2646M3VMXP8TR>
+                impl-track reaches an ordinary ready leaf task without an isolation hook
+                </?01M02NT0VA4DY2646M3VMXP8TR>
+                <When ?01M02NT0VA4DY2646M3VMXP8TS>
+                the task is executed
+                </?01M02NT0VA4DY2646M3VMXP8TS>
+                <Then ?01M02NT0VA4DY2646M3VMXP8TT>
+                the current AI SHALL choose local or delegated execution from task boundaries, context continuity, file overlap, parallel value, and available runtime capabilities
+                </?01M02NT0VA4DY2646M3VMXP8TT>
+                <Ands [
+                  <And ?01M02NT0VA4DY2646M3VMXP8TV>
+                  the task MUST NOT require a fresh subagent merely because it is a leaf task
+                  </?01M02NT0VA4DY2646M3VMXP8TV>
+                ]>
+              )>
+              <Case #dag-readiness-does-not-imply-delegation (
+                <Given ?01M02NT0VA4DY2646M3VMXP8TW>
+                a DAG wave contains multiple ready tasks
+                </?01M02NT0VA4DY2646M3VMXP8TW>
+                <When ?01M02NT0VA4DY2646M3VMXP8TX>
+                the executor schedules the wave
+                </?01M02NT0VA4DY2646M3VMXP8TX>
+                <Then ?01M02NT0VA4DY2646M3VMXP8TY>
+                the DAG SHALL define readiness and dependency order only
+                </?01M02NT0VA4DY2646M3VMXP8TY>
+                <Ands [
+                  <And ?01M02NT0VA4DY2646M3VMXP8TZ>
+                  the AI MAY execute ready tasks locally, delegate them, or combine both strategies while respecting concurrency and file ownership
+                  </?01M02NT0VA4DY2646M3VMXP8TZ>
+                ]>
+              )>
+              <Case #executor-owns-completion-state (
+                <Given ?01M02NT0VA4DY2646M3VMXP8V0>
+                an ordinary task is delegated
+                </?01M02NT0VA4DY2646M3VMXP8V0>
+                <When ?01M02NT0VA4DY2646M3VMXP8V1>
+                the delegated worker returns
+                </?01M02NT0VA4DY2646M3VMXP8V1>
+                <Then ?01M02NT0VA4DY2646M3VMXP8V2>
+                the track executor SHALL objectively verify acceptance, tests, and diff scope before completion
+                </?01M02NT0VA4DY2646M3VMXP8V2>
+                <Ands [
+                  <And ?01M02NT0VA4DY2646M3VMXP8V3>
+                  only the track executor SHALL write track.xml status, acceptance checkmarks, findings, and task commits
+                  </?01M02NT0VA4DY2646M3VMXP8V3>
+                ]>
+              )>
+            ]>
+          )>
+          <Suite #mandatory-isolation { name = "Independent validation contexts" } (
+            <Cases [
+              <Case #isolation-remains-explicit (
+                <Given ?01M02NT0VA4DY2646M3VMXP8V4>
+                a GapLoop, AttractorCheck, explicit independent verify, or user-requested independent audit is invoked
+                </?01M02NT0VA4DY2646M3VMXP8V4>
+                <When ?01M02NT0VA4DY2646M3VMXP8V5>
+                the protocol performs its independent check
+                </?01M02NT0VA4DY2646M3VMXP8V5>
+                <Then ?01M02NT0VA4DY2646M3VMXP8V6>
+                the protocol SHALL use a fresh independent context as specified
+                </?01M02NT0VA4DY2646M3VMXP8V6>
+                <Ands [
+                  <And ?01M02NT0VA4DY2646M3VMXP8V7>
+                  ordinary implementation freedom MUST NOT weaken those isolation guarantees
+                  </?01M02NT0VA4DY2646M3VMXP8V7>
+                ]>
+              )>
+            ]>
+          )>
+          <Suite #workspace-upgrade { name = "Legacy default hook cleanup" } (
+            <Cases [
+              <Case #obsolete-default-attractor-hooks-are-removed (
+                <Given ?01M02NT0VA4DY2646M3VMXP8V8>
+                an existing workspace contains the historical built-in coding AttractorCheck on discuss:before, impl-quick:before, or revise-track:before
+                </?01M02NT0VA4DY2646M3VMXP8V8>
+                <When ?01M02NT0VA4DY2646M3VMXP8V9>
+                upgrade-workspace runs
+                </?01M02NT0VA4DY2646M3VMXP8V9>
+                <Then ?01M02NT0VA4DY2646M3VMXP8VA>
+                the exact obsolete built-in hooks SHALL be removed
+                </?01M02NT0VA4DY2646M3VMXP8VA>
+                <Ands [
+                  <And ?01M02NT0VA4DY2646M3VMXP8VB>
+                  unrelated user hooks and configuration SHALL be preserved
+                  </?01M02NT0VA4DY2646M3VMXP8VB>
+                ]>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+  ]>
+)>

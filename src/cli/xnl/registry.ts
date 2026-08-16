@@ -6,7 +6,7 @@ import {
   wordToString,
   XnlParseError,
 } from 'xnl-core';
-import type { DataElementNode, XnlNode, XnlWord } from 'xnl-core';
+import type { DataElementNode, ElementNode, XnlNode, XnlWord } from 'xnl-core';
 
 /**
  * Domain-neutral loader/index for recursive XNL registries.
@@ -227,6 +227,27 @@ function orderedExtendKeys(node: DataElementNode): string[] {
     .filter((key) => !seen.has(key))
     .sort(comparePortablePaths);
   return [...keys, ...remaining];
+}
+
+/**
+ * Return direct element children in XNL structural order: singleton slots from
+ * `()` first, followed by collection/legacy children from `[]`.
+ */
+export function orderedElementChildren(node: DataElementNode): ElementNode[] {
+  const children = orderedExtendKeys(node)
+    .map((key) => node.extend?.children[key])
+    .filter((child): child is ElementNode => child !== undefined);
+  for (const child of node.body ?? []) {
+    if (
+      child
+      && typeof child === 'object'
+      && !Array.isArray(child)
+      && ((child as ElementNode).kind === 'DataElement' || (child as ElementNode).kind === 'TextElement')
+    ) {
+      children.push(child as ElementNode);
+    }
+  }
+  return children;
 }
 
 function childContext(

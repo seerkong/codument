@@ -1,0 +1,117 @@
+<decision #track.add_modeling_validate.legacy.d01 apiVersion="codument.tech/v1alpha1" { kind = "historical-decision" status = "accepted" durable_candidate = false legacy_source = "codument/tracks/archived/2026-06/2026-06-21-1730-add-modeling-validate/decisions.md" } (
+  <question ?m>
+  1. 【P1】命令形态：validate vs check（是否合并 lint）
+  </?m>
+  <answer {  } (
+    <raw-answer ?m>
+    - 选项：A) validate 与 lint 并列；B) 合并 modeling check；C) validate 并列 + 末尾附 lint 提示
+    - 用户答复：A
+    - 最终决策：`modeling validate`（语法+schema+层级）与 `modeling lint`（分形拆分）**并列**两个独立子命令
+    - 决策理由：语义清晰（validate=对错、lint=结构建议），各自可单独跑
+    - 状态：confirmed
+    </?m>
+    <decision-text ?m>
+    `modeling validate`（语法+schema+层级）与 `modeling lint`（分形拆分）**并列**两个独立子命令
+    </?m>
+    <rationale ?m>
+    语义清晰（validate=对错、lint=结构建议），各自可单独跑
+    </?m>
+    <evidence ?m>
+    从 legacy decisions.md 保真迁移；完整原始段落保存在 raw-answer。
+    </?m>
+  )>
+)>
+
+<decision #track.add_modeling_validate.legacy.d02 apiVersion="codument.tech/v1alpha1" { kind = "historical-decision" status = "accepted" durable_candidate = false legacy_source = "codument/tracks/archived/2026-06/2026-06-21-1730-add-modeling-validate/decisions.md" } (
+  <question ?m>
+  2. 【P1】层级规范：id 命名空间 ↔ 路径对齐的严格度
+  </?m>
+  <answer {  } (
+    <raw-answer ?m>
+    - 选项：A) 宽松（context 必适配、plane 前缀可选）；B) 严格（必须全限定且完全匹配）
+    - 用户答复：A
+    - 最终决策：**宽松**——id 的 context 段必须 == 路径 context；plane 前缀可选，若写则必须 == 路径 plane
+    - 决策理由：与 node-schema §5"同 context 可省 plane 前缀"一致，减少误报噪音
+    - 状态：confirmed
+    </?m>
+    <decision-text ?m>
+    **宽松**——id 的 context 段必须 == 路径 context；plane 前缀可选，若写则必须 == 路径 plane
+    </?m>
+    <rationale ?m>
+    与 node-schema §5"同 context 可省 plane 前缀"一致，减少误报噪音
+    </?m>
+    <evidence ?m>
+    从 legacy decisions.md 保真迁移；完整原始段落保存在 raw-answer。
+    </?m>
+  )>
+)>
+
+<decision #track.add_modeling_validate.legacy.d03 apiVersion="codument.tech/v1alpha1" { kind = "historical-decision" status = "accepted" durable_candidate = false legacy_source = "codument/tracks/archived/2026-06/2026-06-21-1730-add-modeling-validate/decisions.md" } (
+  <question ?m>
+  3. 【P1】引用解析范围与严重度
+  </?m>
+  <answer {  } (
+    <raw-answer ?m>
+    - 选项：A) modeling:// 悬空=error、behavior:// 不验存在；B) modeling:// warning、behavior:// 验存在；C) 都验存在且都 error
+    - 用户答复：A
+    - 最终决策：`modeling://` 悬空引用 = **error**（按 registry index 解析）；`behavior://` 仅语法检查、**不**验证存在性
+    - 决策理由：modeling 内部引用必须可解析；behavior 跨体系，存在性留给 codument validate behaviors，避免硬依赖
+    - 状态：confirmed
+    </?m>
+    <decision-text ?m>
+    `modeling://` 悬空引用 = **error**（按 registry index 解析）；`behavior://` 仅语法检查、**不**验证存在性
+    </?m>
+    <rationale ?m>
+    modeling 内部引用必须可解析；behavior 跨体系，存在性留给 codument validate behaviors，避免硬依赖
+    </?m>
+    <evidence ?m>
+    从 legacy decisions.md 保真迁移；完整原始段落保存在 raw-answer。
+    </?m>
+  )>
+)>
+
+<decision #track.add_modeling_validate.legacy.d04 apiVersion="codument.tech/v1alpha1" { kind = "historical-decision" status = "accepted" durable_candidate = false legacy_source = "codument/tracks/archived/2026-06/2026-06-21-1730-add-modeling-validate/decisions.md" } (
+  <question ?m>
+  4. 【P2】未知 plane 的严重度
+  </?m>
+  <answer {  } (
+    <raw-answer ?m>
+    - 选项：A) 未知 plane=warning（domain 缺失才 error）；B) config 增 <planes> 白名单
+    - 用户答复：（未单独询问，采用推荐默认）
+    - 最终决策：**A**——domain 必须存在（缺失=error）；未知 derived plane = warning；白名单留作后续增强
+    - 决策理由：derived plane 开放优先；白名单是可选增强，不在本 track 范围
+    - 状态：confirmed（default）
+    </?m>
+    <decision-text ?m>
+    **A**——domain 必须存在（缺失=error）；未知 derived plane = warning；白名单留作后续增强
+    </?m>
+    <rationale ?m>
+    derived plane 开放优先；白名单是可选增强，不在本 track 范围
+    </?m>
+    <evidence ?m>
+    从 legacy decisions.md 保真迁移；完整原始段落保存在 raw-answer。
+    </?m>
+  )>
+)>
+
+<decision #track.add_modeling_validate.legacy.d05 apiVersion="codument.tech/v1alpha1" { kind = "historical-decision" status = "accepted" durable_candidate = false legacy_source = "codument/tracks/archived/2026-06/2026-06-21-1730-add-modeling-validate/decisions.md" } (
+  <question ?m>
+  5. 【过程】提交模式 + 校验模式
+  </?m>
+  <answer {  } (
+    <raw-answer ?m>
+    - 用户答复：手动提交 + Gap Loop
+    - 最终决策：`CommitMode=manual`；校验用 `cdt:GapLoop`（final_phase，仅 P4）；方向审查每 phase `cdt:AttractorCheck`（P1=docs，P2–P4=coding）
+    - 状态：confirmed
+    </?m>
+    <decision-text ?m>
+    `CommitMode=manual`；校验用 `cdt:GapLoop`（final_phase，仅 P4）；方向审查每 phase `cdt:AttractorCheck`（P1=docs，P2–P4=coding）
+    </?m>
+    <rationale ?m>
+    历史 Markdown 没有独立 rationale 字段；决策上下文与理由保留在 raw-answer。
+    </?m>
+    <evidence ?m>
+    从 legacy decisions.md 保真迁移；完整原始段落保存在 raw-answer。
+    </?m>
+  )>
+)>

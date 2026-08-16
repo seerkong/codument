@@ -1,0 +1,365 @@
+<BehaviorPatch #track.r_2_0_2_6_-_0_6_-_0_6_-_1_3_4_1_-_a_d_d_-_a_t_t_r_a_c_t_o_r_-_c_h_e_c_k_-_h_o_o_k_s.behavior_patch.codument-core apiVersion="codument.tech/v1alpha1" version="1" { capability = "codument-core" } (
+  <Mutations [
+    <Upsert { selector = "behavior://codument-core/requirements/attractor-profile-config" } (
+      <Requirement #attractor-profile-config (
+        <Statement ?01M02NT0W4XFRN4R6JHTRE3PN3>
+        系统 SHALL support named attractor profiles that bundle one or more project-level attractor files for reusable validation contexts.
+        </?01M02NT0W4XFRN4R6JHTRE3PN3>
+        <Suites [
+          <Suite #profile-config { name = "Attractor profile configuration" } (
+            <Cases [
+              <Case #default-profile (
+                <Given ?01M02NT0W4XFRN4R6JHTRE3PN4>
+                A workspace has `codument/attractors/project.md` and `codument/attractors/product.md`.
+                </?01M02NT0W4XFRN4R6JHTRE3PN4>
+                <When ?01M02NT0W4XFRN4R6JHTRE3PN5>
+                No explicit attractor profile configuration exists.
+                </?01M02NT0W4XFRN4R6JHTRE3PN5>
+                <Then ?01M02NT0W4XFRN4R6JHTRE3PN6>
+                The effective `default` profile SHALL include `codument/attractors/project.md` and `codument/attractors/product.md`.
+                </?01M02NT0W4XFRN4R6JHTRE3PN6>
+              )>
+              <Case #configured-profiles (
+                <Given ?01M02NT0W4XFRN4R6JHTRE3PN7>
+                A workspace defines `codument/config/attractor-profiles.json`.
+                </?01M02NT0W4XFRN4R6JHTRE3PN7>
+                <When ?01M02NT0W4XFRN4R6JHTRE3PN8>
+                A plan hook references a profile by name.
+                </?01M02NT0W4XFRN4R6JHTRE3PN8>
+                <Then ?01M02NT0W4XFRN4R6JHTRE3PN9>
+                The system SHALL resolve that profile to its configured attractor file list.
+                </?01M02NT0W4XFRN4R6JHTRE3PN9>
+                <Ands [
+                  <And ?01M02NT0W4XFRN4R6JHTRE3PNA>
+                  The system SHALL report `BLOCKED` if the referenced profile or any required attractor file is missing.
+                  </?01M02NT0W4XFRN4R6JHTRE3PNA>
+                ]>
+              )>
+              <Case #custom-attractors (
+                <Given ?01M02NT0W4XFRN4R6JHTRE3PNB>
+                A workspace contains custom files under `codument/attractors/`.
+                </?01M02NT0W4XFRN4R6JHTRE3PNB>
+                <When ?01M02NT0W4XFRN4R6JHTRE3PNC>
+                Those files are referenced by an attractor profile.
+                </?01M02NT0W4XFRN4R6JHTRE3PNC>
+                <Then ?01M02NT0W4XFRN4R6JHTRE3PND>
+                The system SHALL treat them as valid attractors without assuming only `project.md` and `product.md` exist.
+                </?01M02NT0W4XFRN4R6JHTRE3PND>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/attractor-check-hook" } (
+      <Requirement #attractor-check-hook (
+        <Statement ?01M02NT0W4XFRN4R6JHTRE3PNE>
+        系统 SHALL support an explicit `plan.xml` attractor check hook that validates a track, phase, or task against a selected attractor profile.
+        </?01M02NT0W4XFRN4R6JHTRE3PNE>
+        <Suites [
+          <Suite #plan-xml-hook { name = "Plan XML hook behavior" } (
+            <Cases [
+              <Case #hook-placement (
+                <Given ?01M02NT0W4XFRN4R6JHTRE3PNF>
+                A `plan.xml` contains an `&lt;attractor-check profile="..." when="..." status="..." /&gt;` node under the track, a phase, or a task.
+                </?01M02NT0W4XFRN4R6JHTRE3PNF>
+                <When ?01M02NT0W4XFRN4R6JHTRE3PNG>
+                The execution workflow reaches the hook's guarded scope.
+                </?01M02NT0W4XFRN4R6JHTRE3PNG>
+                <Then ?01M02NT0W4XFRN4R6JHTRE3PNH>
+                The system SHALL run attractor alignment validation for that scope using the selected profile.
+                </?01M02NT0W4XFRN4R6JHTRE3PNH>
+              )>
+              <Case #when-semantics (
+                <Given ?01M02NT0W4XFRN4R6JHTRE3PNJ>
+                An `&lt;attractor-check&gt;` node has `when="before"`, `when="after"`, or `when="both"`.
+                </?01M02NT0W4XFRN4R6JHTRE3PNJ>
+                <When ?01M02NT0W4XFRN4R6JHTRE3PNK>
+                The guarded scope is executed.
+                </?01M02NT0W4XFRN4R6JHTRE3PNK>
+                <Then ?01M02NT0W4XFRN4R6JHTRE3PNM>
+                The system SHALL apply the same before, after, and both timing semantics used by `&lt;confirm&gt;`.
+                </?01M02NT0W4XFRN4R6JHTRE3PNM>
+              )>
+              <Case #status-semantics (
+                <Given ?01M02NT0W4XFRN4R6JHTRE3PNN>
+                An attractor check starts execution.
+                </?01M02NT0W4XFRN4R6JHTRE3PNN>
+                <When ?01M02NT0W4XFRN4R6JHTRE3PNP>
+                The check is running, passes, finds a fixable gap, or cannot proceed.
+                </?01M02NT0W4XFRN4R6JHTRE3PNP>
+                <Then ?01M02NT0W4XFRN4R6JHTRE3PNQ>
+                The system SHALL update the hook status using `TODO`, `IN_PROGRESS`, `DONE`, `BLOCKED`, or `CANCELLED` consistently with existing confirmation status semantics.
+                </?01M02NT0W4XFRN4R6JHTRE3PNQ>
+              )>
+              <Case #explicit-profile-by-lifecycle (
+                <Given ?01M02NT0W4XFRN4R6JHTRE3PNR>
+                A track uses one profile for implementation phases and another profile for archive readiness.
+                </?01M02NT0W4XFRN4R6JHTRE3PNR>
+                <When ?01M02NT0W4XFRN4R6JHTRE3PNS>
+                The corresponding hook executes.
+                </?01M02NT0W4XFRN4R6JHTRE3PNS>
+                <Then ?01M02NT0W4XFRN4R6JHTRE3PNT>
+                The system SHALL use the profile configured on that specific hook instead of a global one-size-fits-all attractor set.
+                </?01M02NT0W4XFRN4R6JHTRE3PNT>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/attractor-check-result-policy" } (
+      <Requirement #attractor-check-result-policy (
+        <Statement ?01M02NT0W4XFRN4R6JHTRE3PNV>
+        系统 SHALL support configurable post-check policies so attractor gaps can be repaired immediately, routed through confirmation, or blocked for user input.
+        </?01M02NT0W4XFRN4R6JHTRE3PNV>
+        <Suites [
+          <Suite #result-policy { name = "Attractor check result policy" } (
+            <Cases [
+              <Case #fix-immediately (
+                <Given ?01M02NT0W4XFRN4R6JHTRE3PNW>
+                An attractor check contains `&lt;result-policy on-gap="fix-immediately" /&gt;`.
+                </?01M02NT0W4XFRN4R6JHTRE3PNW>
+                <When ?01M02NT0W4XFRN4R6JHTRE3PNX>
+                The check returns a gap that the executor can safely repair.
+                </?01M02NT0W4XFRN4R6JHTRE3PNX>
+                <Then ?01M02NT0W4XFRN4R6JHTRE3PNY>
+                The system SHALL apply the repair and rerun the attractor check before marking the hook `DONE`.
+                </?01M02NT0W4XFRN4R6JHTRE3PNY>
+              )>
+              <Case #confirm-before-fix (
+                <Given ?01M02NT0W4XFRN4R6JHTRE3PNZ>
+                An attractor check contains `&lt;result-policy on-gap="confirm-before-fix"&gt;` with a nested `&lt;confirm protocol="yield-human-confirm" when="after" status="TODO" /&gt;`.
+                </?01M02NT0W4XFRN4R6JHTRE3PNZ>
+                <When ?01M02NT0W4XFRN4R6JHTRE3PP0>
+                The check returns a gap.
+                </?01M02NT0W4XFRN4R6JHTRE3PP0>
+                <Then ?01M02NT0W4XFRN4R6JHTRE3PP1>
+                The system SHALL run the nested confirmation before applying the proposed repair.
+                </?01M02NT0W4XFRN4R6JHTRE3PP1>
+              )>
+              <Case #block-on-gap (
+                <Given ?01M02NT0W4XFRN4R6JHTRE3PP2>
+                An attractor check contains `&lt;result-policy on-gap="block" /&gt;`.
+                </?01M02NT0W4XFRN4R6JHTRE3PP2>
+                <When ?01M02NT0W4XFRN4R6JHTRE3PP3>
+                The check returns any gap.
+                </?01M02NT0W4XFRN4R6JHTRE3PP3>
+                <Then ?01M02NT0W4XFRN4R6JHTRE3PP4>
+                The system SHALL mark the attractor check `BLOCKED` and wait for user input.
+                </?01M02NT0W4XFRN4R6JHTRE3PP4>
+              )>
+              <Case #structured-result (
+                <Given ?01M02NT0W4XFRN4R6JHTRE3PP5>
+                An attractor check executor completes a validation pass.
+                </?01M02NT0W4XFRN4R6JHTRE3PP5>
+                <When ?01M02NT0W4XFRN4R6JHTRE3PP6>
+                It reports the result to the parent workflow.
+                </?01M02NT0W4XFRN4R6JHTRE3PP6>
+                <Then ?01M02NT0W4XFRN4R6JHTRE3PP7>
+                The result SHALL include a structured status of `PASS`, `GAP`, or `BLOCKED` plus the profile name, checked scope, summary, and gap details when present.
+                </?01M02NT0W4XFRN4R6JHTRE3PP7>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/attractor-check-workflow-integration" } (
+      <Requirement #attractor-check-workflow-integration (
+        <Statement ?01M02NT0W4XFRN4R6JHTRE3PP8>
+        系统 SHALL integrate attractor check hooks into track creation, implementation, wave execution, gap-loop, and archive workflows.
+        </?01M02NT0W4XFRN4R6JHTRE3PP8>
+        <Suites [
+          <Suite #workflow-integration { name = "Workflow integration" } (
+            <Cases [
+              <Case #track-design-check (
+                <Given ?01M02NT0W4XFRN4R6JHTRE3PP9>
+                A new track has completed proposal, design, and plan drafting.
+                </?01M02NT0W4XFRN4R6JHTRE3PP9>
+                <When ?01M02NT0W4XFRN4R6JHTRE3PPA>
+                The track includes a design-level attractor check hook.
+                </?01M02NT0W4XFRN4R6JHTRE3PPA>
+                <Then ?01M02NT0W4XFRN4R6JHTRE3PPB>
+                The system SHALL validate the drafted track artifacts against the selected attractor profile before treating the design as confirmed.
+                </?01M02NT0W4XFRN4R6JHTRE3PPB>
+              )>
+              <Case #phase-check (
+                <Given ?01M02NT0W4XFRN4R6JHTRE3PPC>
+                A phase contains an attractor check with `when="after"`.
+                </?01M02NT0W4XFRN4R6JHTRE3PPC>
+                <When ?01M02NT0W4XFRN4R6JHTRE3PPD>
+                All tasks in the phase are complete.
+                </?01M02NT0W4XFRN4R6JHTRE3PPD>
+                <Then ?01M02NT0W4XFRN4R6JHTRE3PPE>
+                The implementation workflow SHALL run the attractor check before moving past the phase.
+                </?01M02NT0W4XFRN4R6JHTRE3PPE>
+              )>
+              <Case #archive-docs-check (
+                <Given ?01M02NT0W4XFRN4R6JHTRE3PPF>
+                A track is ready to archive and an archive-readiness attractor profile includes documentation-related attractors.
+                </?01M02NT0W4XFRN4R6JHTRE3PPF>
+                <When ?01M02NT0W4XFRN4R6JHTRE3PPG>
+                The archive workflow reaches the configured attractor check.
+                </?01M02NT0W4XFRN4R6JHTRE3PPG>
+                <Then ?01M02NT0W4XFRN4R6JHTRE3PPH>
+                The system SHALL validate archive and documentation-sync readiness against that profile before completing archive steps.
+                </?01M02NT0W4XFRN4R6JHTRE3PPH>
+              )>
+              <Case #no-hook-no-extra-wait (
+                <Given ?01M02NT0W4XFRN4R6JHTRE3PPJ>
+                A plan scope has no attractor check hook.
+                </?01M02NT0W4XFRN4R6JHTRE3PPJ>
+                <When ?01M02NT0W4XFRN4R6JHTRE3PPK>
+                The workflow reaches that scope.
+                </?01M02NT0W4XFRN4R6JHTRE3PPK>
+                <Then ?01M02NT0W4XFRN4R6JHTRE3PPM>
+                The system SHALL NOT require an implicit attractor check only because attractors exist in the workspace.
+                </?01M02NT0W4XFRN4R6JHTRE3PPM>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/operation-hooks-config" } (
+      <Requirement #operation-hooks-config (
+        <Statement ?01M02NT0W4XFRN4R6JHTRE3PPN>
+        系统 SHALL support `codument/config/operation-hooks.xml` as a sparse workspace-level XML hook overlay for Codument operations that do not have their own `plan.xml` execution plan.
+        </?01M02NT0W4XFRN4R6JHTRE3PPN>
+        <Suites [
+          <Suite #sparse-overlay { name = "Sparse operation hook overlay" } (
+            <Cases [
+              <Case #only-configured-commands (
+                <Given ?01M02NT0W4XFRN4R6JHTRE3PPP>
+                `codument/config/operation-hooks.xml` contains a `track` operation entry but no `archive` operation entry.
+                </?01M02NT0W4XFRN4R6JHTRE3PPP>
+                <When ?01M02NT0W4XFRN4R6JHTRE3PPQ>
+                The user runs `track` and later runs `archive`.
+                </?01M02NT0W4XFRN4R6JHTRE3PPQ>
+                <Then ?01M02NT0W4XFRN4R6JHTRE3PPR>
+                The system SHALL apply only the configured `track` hooks.
+                </?01M02NT0W4XFRN4R6JHTRE3PPR>
+                <Ands [
+                  <And ?01M02NT0W4XFRN4R6JHTRE3PPS>
+                  The system SHALL run `archive` with its existing default behavior.
+                  </?01M02NT0W4XFRN4R6JHTRE3PPS>
+                ]>
+              )>
+              <Case #reuse-hook-dsl (
+                <Given ?01M02NT0W4XFRN4R6JHTRE3PPT>
+                `codument/config/operation-hooks.xml` contains an operation hook with nested `&lt;attractor-check&gt;` and `&lt;confirm&gt;` nodes.
+                </?01M02NT0W4XFRN4R6JHTRE3PPT>
+                <When ?01M02NT0W4XFRN4R6JHTRE3PPV>
+                The operation reaches the configured hook point.
+                </?01M02NT0W4XFRN4R6JHTRE3PPV>
+                <Then ?01M02NT0W4XFRN4R6JHTRE3PPW>
+                The system SHALL execute those nodes using the same protocol semantics as plan-level hooks.
+                </?01M02NT0W4XFRN4R6JHTRE3PPW>
+              )>
+              <Case #known-hook-points (
+                <Given ?01M02NT0W4XFRN4R6JHTRE3PPX>
+                An operation defines stable hook points such as `after-design`, `after-plan`, `before-archive`, or `before-revise`.
+                </?01M02NT0W4XFRN4R6JHTRE3PPX>
+                <When ?01M02NT0W4XFRN4R6JHTRE3PPY>
+                `codument/config/operation-hooks.xml` references one of those points.
+                </?01M02NT0W4XFRN4R6JHTRE3PPY>
+                <Then ?01M02NT0W4XFRN4R6JHTRE3PPZ>
+                The system SHALL execute the hook at that point.
+                </?01M02NT0W4XFRN4R6JHTRE3PPZ>
+                <Ands [
+                  <And ?01M02NT0W4XFRN4R6JHTRE3PQ0>
+                  The system SHALL report validation errors for unknown points when the operation's point list is known.
+                  </?01M02NT0W4XFRN4R6JHTRE3PQ0>
+                ]>
+              )>
+              <Case #missing-overlay (
+                <Given ?01M02NT0W4XFRN4R6JHTRE3PQ1>
+                No `codument/config/operation-hooks.xml` file exists.
+                </?01M02NT0W4XFRN4R6JHTRE3PQ1>
+                <When ?01M02NT0W4XFRN4R6JHTRE3PQ2>
+                A Codument command or skill runs.
+                </?01M02NT0W4XFRN4R6JHTRE3PQ2>
+                <Then ?01M02NT0W4XFRN4R6JHTRE3PQ3>
+                The system SHALL NOT require extra hooks or waits solely because the overlay feature exists.
+                </?01M02NT0W4XFRN4R6JHTRE3PQ3>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/revise-track-command" } (
+      <Requirement #revise-track-command (
+        <Statement ?01M02NT0W4XFRN4R6JHTRE3PQ4>
+        系统 SHALL provide a `revise-track` command or skill for correcting or appending an existing track's artifacts during non-linear Codument work.
+        </?01M02NT0W4XFRN4R6JHTRE3PQ4>
+        <Suites [
+          <Suite #revise-track { name = "Revise existing track artifacts" } (
+            <Cases [
+              <Case #revise-existing-track (
+                <Given ?01M02NT0W4XFRN4R6JHTRE3PQ5>
+                A user is implementing, gap-looping, or preparing to archive an existing track.
+                </?01M02NT0W4XFRN4R6JHTRE3PQ5>
+                <When ?01M02NT0W4XFRN4R6JHTRE3PQ6>
+                The user invokes `revise-track` with a target track and revision request.
+                </?01M02NT0W4XFRN4R6JHTRE3PQ6>
+                <Then ?01M02NT0W4XFRN4R6JHTRE3PQ7>
+                The system SHALL read the target track's proposal, design, spec deltas, plan, analysis, and decisions context.
+                </?01M02NT0W4XFRN4R6JHTRE3PQ7>
+                <Ands [
+                  <And ?01M02NT0W4XFRN4R6JHTRE3PQ8>
+                  The system SHALL update the minimal set of track-local artifacts needed to capture the revision.
+                  </?01M02NT0W4XFRN4R6JHTRE3PQ8>
+                ]>
+              )>
+              <Case #revise-before-hook (
+                <Given ?01M02NT0W4XFRN4R6JHTRE3PQ9>
+                `codument/config/operation-hooks.xml` configures `operation name="revise-track"` with a `before-revise` hook.
+                </?01M02NT0W4XFRN4R6JHTRE3PQ9>
+                <When ?01M02NT0W4XFRN4R6JHTRE3PQA>
+                The user invokes `revise-track`.
+                </?01M02NT0W4XFRN4R6JHTRE3PQA>
+                <Then ?01M02NT0W4XFRN4R6JHTRE3PQB>
+                The system SHALL execute the configured hook before modifying the track.
+                </?01M02NT0W4XFRN4R6JHTRE3PQB>
+                <Ands [
+                  <And ?01M02NT0W4XFRN4R6JHTRE3PQC>
+                  If the hook is `BLOCKED`, the system SHALL stop without changing track files.
+                  </?01M02NT0W4XFRN4R6JHTRE3PQC>
+                ]>
+              )>
+              <Case #track-local-revision (
+                <Given ?01M02NT0W4XFRN4R6JHTRE3PQD>
+                A revision requires new context, findings, decisions, spec changes, or plan tasks.
+                </?01M02NT0W4XFRN4R6JHTRE3PQD>
+                <When ?01M02NT0W4XFRN4R6JHTRE3PQE>
+                `revise-track` applies the revision.
+                </?01M02NT0W4XFRN4R6JHTRE3PQE>
+                <Then ?01M02NT0W4XFRN4R6JHTRE3PQF>
+                The system SHALL keep required context inside the target track directory.
+                </?01M02NT0W4XFRN4R6JHTRE3PQF>
+                <Ands [
+                  <And ?01M02NT0W4XFRN4R6JHTRE3PQG>
+                  The system SHALL NOT require hidden-directory documents or external notes to understand the revised track.
+                  </?01M02NT0W4XFRN4R6JHTRE3PQG>
+                ]>
+              )>
+              <Case #revision-report (
+                <Given ?01M02NT0W4XFRN4R6JHTRE3PQH>
+                `revise-track` completes successfully.
+                </?01M02NT0W4XFRN4R6JHTRE3PQH>
+                <When ?01M02NT0W4XFRN4R6JHTRE3PQJ>
+                The command or skill reports its result.
+                </?01M02NT0W4XFRN4R6JHTRE3PQJ>
+                <Then ?01M02NT0W4XFRN4R6JHTRE3PQK>
+                The system SHALL list changed track files, summarize the revision reason, and recommend whether to continue implement, gap-loop, or archive.
+                </?01M02NT0W4XFRN4R6JHTRE3PQK>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+  ]>
+)>

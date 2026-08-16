@@ -1,0 +1,54 @@
+<Track #xnl-authoring-scaffold apiVersion="codument.tech/v1alpha1" version="1" { status = "completed" goal = "新增 modeling/engineering scaffold 子命令，为 agent 提供合法 XNL 骨架" description = "实现 codument modeling scaffold 和 codument engineering scaffold，覆盖 entity/state-machine/module/rule/howto/reference 等常见节点类型。" question_mode = "decision-tree" question_severity = "auto" commit_mode = "manual" created_at = "2026-08-16T14:01:00.000Z" updated_at = "2026-08-16T16:28:03.427Z" modeling_base_commit = "3f7ee9d56e871fadcec1354f32582326ad187b03" engineering_base_commit = "3f7ee9d56e871fadcec1354f32582326ad187b03" } (
+  <Ports { scope = "track" } [
+    <MaterialBundle { role = "input" name = "modeling-schema" domain = "code" path = "vfs://@/src/cli/modeling/schema.ts" }>
+    <MaterialBundle { role = "input" name = "engineering-schema" domain = "code" path = "vfs://@/src/cli/engineering/schema.ts" }>
+  ]>
+  <TaskSpace #space_xnl-authoring-scaffold { name = "xnl-authoring-scaffold" version = "1" } (
+    <SubNodes [
+      <TaskGroup #P1 { name = "modeling scaffold" status = "DONE" priority = "P0" order = 0 } (
+        <Description ?01M05MY735H1MH73X4MXBHSTJQ>
+        实现 codument modeling scaffold 子命令，支持 entity/state-machine/module 三种节点类型的骨架生成。
+        </?01M05MY735H1MH73X4MXBHSTJQ>
+        <Acceptance [
+          <Criterion #P1-AC1 { checked = true } ?01M05MY736QWQVSBJN0WYYHGJC>
+          codument modeling scaffold entity --plane domain --context todo --fields id:string 输出合法 XNL。
+          </?01M05MY736QWQVSBJN0WYYHGJC>
+          <Criterion #P1-AC2 { checked = true } ?01M05MY736QWQVSBJN0WYYHGJD>
+          codument modeling scaffold state-machine --states todo,doing,done 输出合法 XNL。
+          </?01M05MY736QWQVSBJN0WYYHGJD>
+          <Criterion #P1-AC3 { checked = true } ?01M05MY736QWQVSBJN0WYYHGJE>
+          输出可通过 codument modeling validate --deltas。
+          </?01M05MY736QWQVSBJN0WYYHGJE>
+        ]>
+      )>
+      <TaskGroup #P2 { name = "engineering scaffold" status = "DONE" priority = "P0" order = 1 } (
+        <Description ?01M05MY736QWQVSBJN0WYYHGJF>
+        实现 codument engineering scaffold 子命令，支持 rule/howto/reference/code-map 四种类型的骨架生成。
+        </?01M05MY736QWQVSBJN0WYYHGJF>
+        <Acceptance [
+          <Criterion #P2-AC1 { checked = true } ?01M05MY736QWQVSBJN0WYYHGJG>
+          codument engineering scaffold rule --category rules --topic x --description "..." 输出合法 XNL。
+          </?01M05MY736QWQVSBJN0WYYHGJG>
+          <Criterion #P2-AC2 { checked = true } ?01M05MY736QWQVSBJN0WYYHGJH>
+          输出可通过 codument engineering validate --deltas。
+          </?01M05MY736QWQVSBJN0WYYHGJH>
+        ]>
+      )>
+      <TaskGroup #P3 { name = "集成到 plan-track" status = "DONE" priority = "P1" order = 2 } (
+        <Description ?01M05MY736QWQVSBJN0WYYHGJJ>
+        在 plan-track skill 中增加 scaffold 调用指引，并在 e2e plan prompt 中体现。
+        </?01M05MY736QWQVSBJN0WYYHGJJ>
+        <Acceptance [
+          <Criterion #P3-AC1 { checked = true } ?01M05MY736QWQVSBJN0WYYHGJK>
+          plan-track.md 包含 scaffold 调用示例。
+          </?01M05MY736QWQVSBJN0WYYHGJK>
+          <Criterion #P3-AC2 { checked = true } ?01M05MY736QWQVSBJN0WYYHGJM>
+          e2e todo e2e 使用 scaffold 后 validate 轮次减少。
+          </?01M05MY736QWQVSBJN0WYYHGJM>
+        ]>
+      )>
+    ]>
+  )>
+  <Schedule []>
+  <Hooks []>
+)>

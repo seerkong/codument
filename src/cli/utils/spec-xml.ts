@@ -1,6 +1,9 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { parseCodumentVfsUri } from './vfs';
+import { parseBehaviorXnlContent, serializeBehaviorNode } from '../behavior/resource';
+import { parseBehaviorPatchXnlContent } from '../behavior/patch-resource';
+import { applyNativeBehaviorMutations } from '../behavior/mutations';
 
 export interface SpecXmlNode {
   tag: string;
@@ -101,6 +104,12 @@ export function parseSpecXmlContent(content: string): SpecXmlNode {
     throw new Error('Spec XML must contain exactly one root node.');
   }
   return root.children[0];
+}
+
+export function parseBehaviorPatchContent(content: string): SpecXmlNode {
+  return content.trimStart().startsWith('<BehaviorPatch')
+    ? parseBehaviorPatchXnlContent(content)
+    : parseSpecXmlContent(content);
 }
 
 function expandIncludes(node: SpecXmlNode, baseDir: string): SpecXmlNode[] {
@@ -316,7 +325,7 @@ function setSourcePath(node: SpecXmlNode, sourcePath: string | undefined): void 
 
 export function applySpecXmlPatchContent(specContent: string, patchContent: string): string {
   const root = parseSpecXmlContent(specContent);
-  const patchRoot = parseSpecXmlContent(patchContent);
+  const patchRoot = parseBehaviorPatchContent(patchContent);
   assertPatchRoot(patchRoot);
 
   for (const mutation of getPatchMutations(patchRoot)) {
@@ -367,7 +376,7 @@ export function applySpecXmlPatchContent(specContent: string, patchContent: stri
 }
 
 export function getSpecPatchCapabilities(patchContent: string): string[] {
-  const patchRoot = parseSpecXmlContent(patchContent);
+  const patchRoot = parseBehaviorPatchContent(patchContent);
   assertPatchRoot(patchRoot);
 
   const capabilities = new Set<string>();
@@ -384,16 +393,23 @@ export function getSpecPatchCapabilities(patchContent: string): string[] {
   return [...capabilities];
 }
 
-function resolveRegistrySpecEntry(specsDir: string, capability: string): { loadPath: string; writePath: string } {
+function resolveRegistrySpecEntry(specsDir: string, capability: string): { loadPath: string; writePath: string; format: 'xml' | 'xnl' } {
+  const xnlPath = path.join(specsDir, `${capability}.xnl`);
   const filePath = path.join(specsDir, `${capability}.xml`);
+  if (fs.existsSync(xnlPath) && fs.existsSync(filePath)) {
+    throw new Error(`Behavior registry has dual authority for capability: ${capability}`);
+  }
+  if (fs.existsSync(xnlPath)) {
+    return { loadPath: xnlPath, writePath: xnlPath, format: 'xnl' };
+  }
   if (fs.existsSync(filePath)) {
-    return { loadPath: filePath, writePath: filePath };
+    return { loadPath: filePath, writePath: filePath, format: 'xml' };
   }
 
   const folderPath = path.join(specsDir, capability);
   const indexPath = path.join(folderPath, 'index.xml');
   if (fs.existsSync(indexPath)) {
-    return { loadPath: folderPath, writePath: indexPath };
+    return { loadPath: folderPath, writePath: indexPath, format: 'xml' };
   }
 
   throw new Error(`Spec XML registry entry not found for capability: ${capability}`);
@@ -402,6 +418,8 @@ function resolveRegistrySpecEntry(specsDir: string, capability: string): { loadP
 interface RegistryMutationEntry {
   root: SpecXmlNode;
   writePath: string;
+  format: 'xml' | 'xnl';
+  originalXnlContent?: string;
   includedRootByPath?: Map<string, SpecXmlNode>;
   includeNodeByPath?: Map<string, SpecXmlNode>;
 }
@@ -411,9 +429,14 @@ function loadRegistryEntry(specsDir: string, capability: string): RegistryMutati
   if (fs.statSync(entry.loadPath).isDirectory()) {
     return loadFolderRegistryEntry(entry.writePath);
   }
+  const content = fs.readFileSync(entry.loadPath, 'utf8');
   return {
-    root: loadSpecXml(entry.loadPath),
+    root: entry.format === 'xnl'
+      ? parseBehaviorXnlContent(content)
+      : loadSpecXml(entry.loadPath),
     writePath: entry.writePath,
+    format: entry.format,
+    ...(entry.format === 'xnl' ? { originalXnlContent: content } : {}),
   };
 }
 
@@ -475,20 +498,24 @@ function loadFolderRegistryEntry(indexPath: string): RegistryMutationEntry {
   return {
     root,
     writePath: indexPath,
+    format: 'xml',
     includedRootByPath,
     includeNodeByPath,
   };
 }
 
 function createRegistryEntry(specsDir: string, capability: string): RegistryMutationEntry {
+  const root = { tag: 'behaviors', attrs: { capability, version: '1', apiVersion: 'codument.tech/v1alpha1' }, children: [] };
   return {
-    root: { tag: 'behaviors', attrs: { capability, version: '1' }, children: [] },
-    writePath: path.join(specsDir, `${capability}.xml`),
+    root,
+    writePath: path.join(specsDir, `${capability}.xnl`),
+    format: 'xnl',
+    originalXnlContent: serializeBehaviorNode(root),
   };
 }
 
-export function applySpecXmlPatchToRegistry(patchContent: string, specsDir: string): string[] {
-  const patchRoot = parseSpecXmlContent(patchContent);
+export function applyBehaviorPatchToRegistry(patchContent: string, specsDir: string): string[] {
+  const patchRoot = parseBehaviorPatchContent(patchContent);
   assertPatchRoot(patchRoot);
   if (!fs.existsSync(specsDir)) {
     fs.mkdirSync(specsDir, { recursive: true });
@@ -605,6 +632,9 @@ export function applySpecXmlPatchToRegistry(patchContent: string, specsDir: stri
   return [...updated];
 }
 
+/** @deprecated Compatibility alias for callers that still use the pre-XNL name. */
+export const applySpecXmlPatchToRegistry = applyBehaviorPatchToRegistry;
+
 function cloneForIndex(node: SpecXmlNode, entry: RegistryMutationEntry, parentSourcePath?: string): SpecXmlNode {
   const nodeSourcePath = node.sourcePath;
   if (nodeSourcePath && nodeSourcePath !== parentSourcePath) {
@@ -625,7 +655,13 @@ function cloneForIndex(node: SpecXmlNode, entry: RegistryMutationEntry, parentSo
 
 function writeRegistryEntry(entry: RegistryMutationEntry): void {
   if (!entry.includedRootByPath || !entry.includeNodeByPath) {
-    fs.writeFileSync(entry.writePath, `${serializeSpecXml(entry.root)}\n`, 'utf-8');
+    const content = entry.format === 'xnl'
+      ? applyNativeBehaviorMutations(
+        entry.originalXnlContent ?? serializeBehaviorNode(entry.root),
+        entry.root,
+      ).content
+      : `${serializeSpecXml(entry.root)}\n`;
+    fs.writeFileSync(entry.writePath, content, 'utf-8');
     return;
   }
 

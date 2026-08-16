@@ -1,0 +1,17 @@
+<decision #track.conditional_decision_activation.graph_nodes apiVersion="codument.tech/v1alpha1" { status = "accepted" blocks = [] durable_candidate = true } (
+  <question ?01M02EGVBJC3R5EHYAPNFSSTK9>
+  How should a combination of decisions create a new planning question?
+  </?01M02EGVBJC3R5EHYAPNFSSTK9>
+  <answer ?01M02EGVBJC3R5EHYAPNFSSTKA>
+  Materialize a same-level conditional decision with explicit prerequisites, activation predicate, and provenance.
+  </?01M02EGVBJC3R5EHYAPNFSSTKA>
+  <evidence ?01M02EGVBJC3R5EHYAPNFSSTKB>
+  A static nested tree cannot represent a question that depends on choices from multiple independent roots.
+  </?01M02EGVBJC3R5EHYAPNFSSTKB>
+  <confidence ?01M02EGVBJC3R5EHYAPNFSSTKC>
+  0.99
+  </?01M02EGVBJC3R5EHYAPNFSSTKC>
+  <reversibility ?01M02EGVBJC3R5EHYAPNFSSTKD>
+  moderate
+  </?01M02EGVBJC3R5EHYAPNFSSTKD>
+)>

@@ -1,4 +1,5 @@
-import type { XnlNode, DataElementNode, TextElementNode } from 'xnl-core';
+import type { XnlNode, DataElementNode } from 'xnl-core';
+import { orderedElementChildren } from '../xnl/registry';
 import { isDataElement, readNodeId, type ModelingRegistry } from './registry';
 
 /**
@@ -31,27 +32,14 @@ export const KERNEL_KINDS = [
   'policy',
 ] as const;
 
-type Element = DataElementNode | TextElementNode;
-
-function isElement(node: XnlNode | undefined): node is Element {
-  return Boolean(
-    node && typeof node === 'object' &&
-      ((node as Element).kind === 'DataElement' || (node as Element).kind === 'TextElement'),
-  );
-}
-
-function bodyChildren(node: DataElementNode): Element[] {
-  return (node.body ?? []).filter(isElement);
-}
-
 /** Direct child element tags (Data + Text). */
 function childTags(node: DataElementNode): Set<string> {
-  return new Set(bodyChildren(node).map((c) => c.tag));
+  return new Set(orderedElementChildren(node).map((c) => c.tag));
 }
 
 /** Whether any descendant element has the given tag. */
 function hasChildDeep(node: DataElementNode, tag: string): boolean {
-  for (const child of bodyChildren(node)) {
+  for (const child of orderedElementChildren(node)) {
     if (child.tag === tag) return true;
     if (isDataElement(child) && hasChildDeep(child, tag)) return true;
   }
@@ -64,7 +52,7 @@ function hasChildDeep(node: DataElementNode, tag: string): boolean {
  * Bare tags are spec-recommended; role-tagged is accepted-but-discouraged.
  */
 function hasIoSlot(node: DataElementNode, slot: string): boolean {
-  for (const child of bodyChildren(node)) {
+  for (const child of orderedElementChildren(node)) {
     if (child.tag === slot) return true;
     if (child.tag === 'types') {
       const role = child.attributes?.['role'] ?? child.metadata?.['role'];
@@ -86,7 +74,7 @@ function propString(node: DataElementNode, key: string): string | undefined {
 
 /** Deep text of the first TextElement with the given tag (canonical 表征 form). */
 function deepText(node: DataElementNode, tag: string): string | undefined {
-  for (const child of bodyChildren(node)) {
+  for (const child of orderedElementChildren(node)) {
     if (child.tag === tag) return child.kind === 'TextElement' ? child.text : undefined;
     if (isDataElement(child)) {
       const nested = deepText(child, tag);
@@ -166,7 +154,7 @@ export function validateModelingNode(node: XnlNode): string[] {
       for (const slot of ['runtime', 'input', 'config', 'output']) {
         req(hasIoSlot(node, slot), `component requires a <${slot}> block`);
       }
-      req(bodyChildren(node).some((c) => c.tag === 'pseudo'), 'component requires a ctrl|rule|dataflow <pseudo> slot');
+      req(orderedElementChildren(node).some((c) => c.tag === 'pseudo'), 'component requires a ctrl|rule|dataflow <pseudo> slot');
       break;
     case 'port': {
       const portKind = propString(node, 'port_kind');

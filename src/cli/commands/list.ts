@@ -7,7 +7,7 @@ export async function listCommand(args: string[]) {
   }
 
   const { options } = parseOptions(args);
-  const showSpecs = options['specs'] === true;
+  const showSpecs = options['behaviors'] === true || options['specs'] === true;
   const jsonOutput = options['json'] === true;
 
   if (showSpecs) {

@@ -1,0 +1,30 @@
+<Track #enable-continuous-mission-execution apiVersion="codument.tech/v1alpha1" version="1" { status = "completed" goal = "让 mission 从启动开始连续执行，以动作内验证驱动推进，并以十条 track 为单次运行上限。" description = "移除 mission 的 start-only、bounded-action 和每动作强制全量收敛语义，统一提示词、行为契约、规范和回归测试。" question_mode = "decision-tree" question_severity = "auto" commit_mode = "manual" created_at = "2026-07-26T00:00:00Z" updated_at = "2026-07-26T19:32:28+03:00" } (
+  <Ports { scope = "track" } [
+    <MaterialBundle { role = "input" name = "mission-templates" domain = "code" path = "vfs://@/src/templates/" }>
+    <MaterialBundle { role = "input" name = "behavior" domain = "behavior" path = "vfs://@/codument/behaviors/" }>
+    <MaterialBundle { role = "output" name = "templates" domain = "code" path = "vfs://@/src/templates/" }>
+    <MaterialBundle { role = "output" name = "tests" domain = "test" path = "vfs://@/test/" }>
+  ]>
+  <TaskSpace #space_enable-continuous-mission-execution { name = "enable-continuous-mission-execution" } (
+    <SubNodes [
+      <TaskGroup #P1 { name = "连续执行契约" status = "DONE" order = 0 } (
+        <SubNodes [
+          <Task #P1-T1 { name = "更新 mission 行为与执行提示词" status = "DONE" order = 0 }>
+          <Task #P1-T2 { name = "更新 Mission XML 规范和 skill 描述" status = "DONE" order = 1 }>
+        ]>
+      )>
+      <TaskGroup #P2 { name = "回归验证与 dogfood" status = "DONE" order = 1 } (
+        <SubNodes [
+          <Task #P2-T1 { name = "增加连续执行提示词回归测试" status = "DONE" order = 0 }>
+          <Task #P2-T2 { name = "构建并升级当前工作区" status = "DONE" order = 1 }>
+        ]>
+      )>
+      <TaskGroup #P3 { name = "验证驱动的连续推进" status = "DONE" order = 2 } (
+        <SubNodes [
+          <Task #P3-T1 { name = "修订动作验证与条件观察契约" status = "DONE" order = 0 }>
+          <Task #P3-T2 { name = "更新回归测试并重新构建 dogfood" status = "DONE" order = 1 }>
+        ]>
+      )>
+    ]>
+  )>
+)>

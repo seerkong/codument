@@ -1,0 +1,89 @@
+<BehaviorPatch #track.r_2_0_2_6_-_0_1_-_2_3_-_0_4_0_0_-_r_e_f_a_c_t_o_r_-_p_r_o_m_p_t_-_q_u_e_s_t_i_o_n_-_p_r_o_t_o_c_o_l_s.behavior_patch.codument-core apiVersion="codument.tech/v1alpha1" version="1" { capability = "codument-core" } (
+  <Mutations [
+    <Upsert { selector = "behavior://codument-core/requirements/提问协议复用" } (
+      <Requirement { id = "提问协议复用" } (
+        <Statement ?01M02NT0VPKRQ137M2R533CMX1>
+        系统应当（SHALL）将提问提示词的通用规则封装为可复用协议，并在所有提问场景中引用。
+        </?01M02NT0VPKRQ137M2R533CMX1>
+        <Suites [
+          <Suite { name = "提问协议复用" } (
+            <Cases [
+              <Case { id = "多问提示复用" name = "多问提示复用" } (
+                <Given ?01M02NT0VPKRQ137M2R533CMX2>
+                提示词需要在一轮中提出多个问题
+                </?01M02NT0VPKRQ137M2R533CMX2>
+                <When ?01M02NT0VPKRQ137M2R533CMX3>
+                系统生成提问提示词
+                </?01M02NT0VPKRQ137M2R533CMX3>
+                <Then ?01M02NT0VPKRQ137M2R533CMX4>
+                系统引用多问协议而非重复描述
+                用户可按 Q1/Q2 标识回答
+                </?01M02NT0VPKRQ137M2R533CMX4>
+              )>
+              <Case { id = "单问提示复用" name = "单问提示复用" } (
+                <Given ?01M02NT0VPKRQ137M2R533CMX5>
+                提示词需要一次提一个问题
+                </?01M02NT0VPKRQ137M2R533CMX5>
+                <When ?01M02NT0VPKRQ137M2R533CMX6>
+                系统生成提问提示词
+                </?01M02NT0VPKRQ137M2R533CMX6>
+                <Then ?01M02NT0VPKRQ137M2R533CMX7>
+                系统引用单问协议而非重复描述
+                </?01M02NT0VPKRQ137M2R533CMX7>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/自由输入选项" } (
+      <Requirement { id = "自由输入选项" } (
+        <Statement ?01M02NT0VPKRQ137M2R533CMX8>
+        系统应当（SHALL）在需要自由输入的提问中提供可输入答案的选项，但不强制固定选项名称。
+        </?01M02NT0VPKRQ137M2R533CMX8>
+        <Suites [
+          <Suite { name = "自由输入选项" } (
+            <Cases [
+              <Case { id = "工具内置选项避免重复" name = "工具内置选项避免重复" } (
+                <Given ?01M02NT0VPKRQ137M2R533CMX9>
+                运行环境已提供内置“其他/自定义输入”选项
+                </?01M02NT0VPKRQ137M2R533CMX9>
+                <When ?01M02NT0VPKRQ137M2R533CMXA>
+                系统生成提问选项
+                </?01M02NT0VPKRQ137M2R533CMXA>
+                <Then ?01M02NT0VPKRQ137M2R533CMXB>
+                系统不重复添加同义自由输入选项
+                </?01M02NT0VPKRQ137M2R533CMXB>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/归档-xml-规范对齐" } (
+      <Requirement { id = "归档-xml-规范对齐" } (
+        <Statement ?01M02NT0VPKRQ137M2R533CMXC>
+        系统应当（SHALL）将归档中的旧任务 XML（早期格式）迁移为 plan.xml，并与 plan.xml 规范对齐。
+        </?01M02NT0VPKRQ137M2R533CMXC>
+        <Suites [
+          <Suite { name = "归档-xml-规范对齐" } (
+            <Cases [
+              <Case { id = "归档-xml-迁移" name = "归档 XML 迁移" } (
+                <Given ?01M02NT0VPKRQ137M2R533CMXD>
+                归档目录中存在旧任务 XML（早期格式）
+                </?01M02NT0VPKRQ137M2R533CMXD>
+                <When ?01M02NT0VPKRQ137M2R533CMXE>
+                系统进行规范同步
+                </?01M02NT0VPKRQ137M2R533CMXE>
+                <Then ?01M02NT0VPKRQ137M2R533CMXF>
+                文件被重命名为 plan.xml
+                XML 根节点与元数据字段符合 plan.xml 规范
+                </?01M02NT0VPKRQ137M2R533CMXF>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+  ]>
+)>

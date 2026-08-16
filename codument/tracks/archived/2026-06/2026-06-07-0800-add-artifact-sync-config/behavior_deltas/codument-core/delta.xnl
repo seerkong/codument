@@ -1,0 +1,479 @@
+<BehaviorPatch #track.r_2_0_2_6_-_0_6_-_0_7_-_0_8_0_0_-_a_d_d_-_a_r_t_i_f_a_c_t_-_s_y_n_c_-_c_o_n_f_i_g.behavior_patch.codument-core apiVersion="codument.tech/v1alpha1" version="1" { capability = "codument-core" } (
+  <Mutations [
+    <Upsert { selector = "behavior://codument-core/requirements/artifacts-config" } (
+      <Requirement #artifacts-config (
+        <Statement ?01M02NT0W5D184T958T764RSYW>
+        系统 SHALL support `codument/config/artifacts.xml` as an XML artifact sync registry for hook-triggered artifact generation and synchronization.
+        </?01M02NT0W5D184T958T764RSYW>
+        <Suites [
+          <Suite #artifacts-xml-shape { name = "Artifacts XML shape" } (
+            <Cases [
+              <Case #root-shape (
+                <Given ?01M02NT0W5D184T958T764RSYX>
+                A workspace defines `codument/config/artifacts.xml`.
+                </?01M02NT0W5D184T958T764RSYX>
+                <When ?01M02NT0W5D184T958T764RSYY>
+                The system loads artifact sync configuration.
+                </?01M02NT0W5D184T958T764RSYY>
+                <Then ?01M02NT0W5D184T958T764RSYZ>
+                The root node SHALL be `artifact-config` with `version="1"`.
+                </?01M02NT0W5D184T958T764RSYZ>
+                <Ands [
+                  <And ?01M02NT0W5D184T958T764RSZ0>
+                  The root SHALL contain `resources` and `artifacts` sections.
+                  </?01M02NT0W5D184T958T764RSZ0>
+                  <And ?01M02NT0W5D184T958T764RSZ1>
+                  The root SHALL NOT require or define a `pipelines` section.
+                  </?01M02NT0W5D184T958T764RSZ1>
+                ]>
+              )>
+              <Case #missing-config (
+                <Given ?01M02NT0W5D184T958T764RSZ2>
+                No `codument/config/artifacts.xml` file exists.
+                </?01M02NT0W5D184T958T764RSZ2>
+                <When ?01M02NT0W5D184T958T764RSZ3>
+                A Codument command or skill runs.
+                </?01M02NT0W5D184T958T764RSZ3>
+                <Then ?01M02NT0W5D184T958T764RSZ4>
+                The system SHALL continue the default workflow without artifact sync.
+                </?01M02NT0W5D184T958T764RSZ4>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/artifact-resources" } (
+      <Requirement #artifact-resources (
+        <Statement ?01M02NT0W5D184T958T764RSZ5>
+        系统 SHALL restrict artifact sync resources to explicit workflow, skill, attractor-profile, and agent references.
+        </?01M02NT0W5D184T958T764RSZ5>
+        <Suites [
+          <Suite #resource-types { name = "Artifact resource types" } (
+            <Cases [
+              <Case #allowed-resource-types (
+                <Given ?01M02NT0W5D184T958T764RSZ6>
+                `codument/config/artifacts.xml` contains a `resources` section.
+                </?01M02NT0W5D184T958T764RSZ6>
+                <When ?01M02NT0W5D184T958T764RSZ7>
+                The system validates the file.
+                </?01M02NT0W5D184T958T764RSZ7>
+                <Then ?01M02NT0W5D184T958T764RSZ8>
+                The only allowed child nodes under `resources` SHALL be `workflow`, `skill`, `attractor-profile`, and `agent`.
+                </?01M02NT0W5D184T958T764RSZ8>
+              )>
+              <Case #skill-is-rule (
+                <Given ?01M02NT0W5D184T958T764RSZ9>
+                A `skill` resource references a file such as `/Users/kongweixian/ai/ai-team/multica/terminal/skills/atm-cli/SKILL.md`.
+                </?01M02NT0W5D184T958T764RSZ9>
+                <When ?01M02NT0W5D184T958T764RSZA>
+                An artifact uses that resource.
+                </?01M02NT0W5D184T958T764RSZA>
+                <Then ?01M02NT0W5D184T958T764RSZB>
+                The system SHALL treat the skill file as a rule or instruction source.
+                </?01M02NT0W5D184T958T764RSZB>
+                <Ands [
+                  <And ?01M02NT0W5D184T958T764RSZC>
+                  The system SHALL NOT treat the skill file itself as the artifact output.
+                  </?01M02NT0W5D184T958T764RSZC>
+                ]>
+              )>
+              <Case #workflow-resource (
+                <Given ?01M02NT0W5D184T958T764RSZD>
+                A `workflow` resource references a file under `codument/workflows/`.
+                </?01M02NT0W5D184T958T764RSZD>
+                <When ?01M02NT0W5D184T958T764RSZE>
+                The artifact sync executor prepares an artifact.
+                </?01M02NT0W5D184T958T764RSZE>
+                <Then ?01M02NT0W5D184T958T764RSZF>
+                The system SHALL read that workflow file as project-specific execution guidance.
+                </?01M02NT0W5D184T958T764RSZF>
+              )>
+              <Case #missing-workflow-or-skill-ref (
+                <Given ?01M02NT0W5D184T958T764RSZG>
+                A `workflow` or `skill` resource references a file path.
+                </?01M02NT0W5D184T958T764RSZG>
+                <When ?01M02NT0W5D184T958T764RSZH>
+                The system validates artifact sync configuration.
+                </?01M02NT0W5D184T958T764RSZH>
+                <Then ?01M02NT0W5D184T958T764RSZJ>
+                The system SHALL report a validation error when the referenced file is missing.
+                </?01M02NT0W5D184T958T764RSZJ>
+              )>
+              <Case #attractor-profile-resource (
+                <Given ?01M02NT0W5D184T958T764RSZK>
+                An `attractor-profile` resource names a profile from `codument/config/attractor-profiles.json`.
+                </?01M02NT0W5D184T958T764RSZK>
+                <When ?01M02NT0W5D184T958T764RSZM>
+                The artifact sync executor prepares or validates an artifact.
+                </?01M02NT0W5D184T958T764RSZM>
+                <Then ?01M02NT0W5D184T958T764RSZN>
+                The system SHALL resolve and use that attractor profile as artifact quality guidance.
+                </?01M02NT0W5D184T958T764RSZN>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/artifact-definition" } (
+      <Requirement #artifact-definition (
+        <Statement ?01M02NT0W5D184T958T764RSZP>
+        系统 SHALL define each artifact with compact attributes plus explicit resource, target, and policy child nodes.
+        </?01M02NT0W5D184T958T764RSZP>
+        <Suites [
+          <Suite #artifact-node-shape { name = "Artifact node shape" } (
+            <Cases [
+              <Case #allowed-children (
+                <Given ?01M02NT0W5D184T958T764RSZQ>
+                An `artifact` node appears under `artifacts`.
+                </?01M02NT0W5D184T958T764RSZQ>
+                <When ?01M02NT0W5D184T958T764RSZR>
+                The system validates the node.
+                </?01M02NT0W5D184T958T764RSZR>
+                <Then ?01M02NT0W64Z5XFKP0Z3SVT5H8>
+                The only allowed child nodes SHALL be `uses`, `targets`, and `policy`.
+                </?01M02NT0W64Z5XFKP0Z3SVT5H8>
+              )>
+              <Case #artifact-attributes (
+                <Given ?01M02NT0W64Z5XFKP0Z3SVT5H9>
+                An artifact needs source information.
+                </?01M02NT0W64Z5XFKP0Z3SVT5H9>
+                <When ?01M02NT0W64Z5XFKP0Z3SVT5HA>
+                The artifact is configured.
+                </?01M02NT0W64Z5XFKP0Z3SVT5HA>
+                <Then ?01M02NT0W64Z5XFKP0Z3SVT5HB>
+                The artifact SHALL express stable source information through attributes such as `source-kind` and `source-scope`.
+                </?01M02NT0W64Z5XFKP0Z3SVT5HB>
+                <Ands [
+                  <And ?01M02NT0W64Z5XFKP0Z3SVT5HC>
+                  The artifact MAY keep legacy single-target attributes for compatibility, but new multi-target configuration SHALL use `targets`.
+                  </?01M02NT0W64Z5XFKP0Z3SVT5HC>
+                ]>
+              )>
+              <Case #uses-resources (
+                <Given ?01M02NT0W64Z5XFKP0Z3SVT5HD>
+                An artifact has a `uses` child node.
+                </?01M02NT0W64Z5XFKP0Z3SVT5HD>
+                <When ?01M02NT0W64Z5XFKP0Z3SVT5HE>
+                The artifact sync executor resolves the artifact.
+                </?01M02NT0W64Z5XFKP0Z3SVT5HE>
+                <Then ?01M02NT0W64Z5XFKP0Z3SVT5HF>
+                Each `use` entry SHALL reference a resource id from the `resources` section.
+                </?01M02NT0W64Z5XFKP0Z3SVT5HF>
+              )>
+              <Case #multiple-targets (
+                <Given ?01M02NT0W64Z5XFKP0Z3SVT5HG>
+                An artifact has a `targets` child node.
+                </?01M02NT0W64Z5XFKP0Z3SVT5HG>
+                <When ?01M02NT0W64Z5XFKP0Z3SVT5HH>
+                The artifact sync executor generates the artifact content.
+                </?01M02NT0W64Z5XFKP0Z3SVT5HH>
+                <Then ?01M02NT0W64Z5XFKP0Z3SVT5HJ>
+                The system SHALL support one or more `target` entries under `targets`.
+                </?01M02NT0W64Z5XFKP0Z3SVT5HJ>
+                <Ands [
+                  <And ?01M02NT0W64Z5XFKP0Z3SVT5HK>
+                  Each target SHALL define its destination kind and `base-dir` target root.
+                  </?01M02NT0W64Z5XFKP0Z3SVT5HK>
+                  <And ?01M02NT0W64Z5XFKP0Z3SVT5HM>
+                  Each target SHALL define exactly one of `relative-dir` or `relative-file`.
+                  </?01M02NT0W64Z5XFKP0Z3SVT5HM>
+                  <And ?01M02NT0W64Z5XFKP0Z3SVT5HN>
+                  `relative-dir` SHALL represent a directory inside the target root for artifacts that may write multiple files.
+                  </?01M02NT0W64Z5XFKP0Z3SVT5HN>
+                  <And ?01M02NT0W64Z5XFKP0Z3SVT5HP>
+                  `relative-file` SHALL represent a single file path inside the target root for single-file artifacts.
+                  </?01M02NT0W64Z5XFKP0Z3SVT5HP>
+                  <And ?01M02NT0W64Z5XFKP0Z3SVT5HQ>
+                  The system SHALL treat multiple targets as one generated artifact distributed to multiple destinations, not as multiple independent artifact generations.
+                  </?01M02NT0W64Z5XFKP0Z3SVT5HQ>
+                ]>
+              )>
+              <Case #policy-behavior (
+                <Given ?01M02NT0W64Z5XFKP0Z3SVT5HR>
+                An artifact has a `policy` child node.
+                </?01M02NT0W64Z5XFKP0Z3SVT5HR>
+                <When ?01M02NT0W64Z5XFKP0Z3SVT5HS>
+                The artifact sync executor applies the artifact.
+                </?01M02NT0W64Z5XFKP0Z3SVT5HS>
+                <Then ?01M02NT0W64Z5XFKP0Z3SVT5HT>
+                The policy MAY define dry-run, conflict, and provenance behavior.
+                </?01M02NT0W64Z5XFKP0Z3SVT5HT>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/feature-artifact-migration" } (
+      <Requirement #feature-artifact-migration (
+        <Statement ?01M02NT0W64Z5XFKP0Z3SVT5HV>
+        系统 SHALL migrate enabled legacy feature sync targets into explicit artifact sync configuration during workspace upgrade.
+        </?01M02NT0W64Z5XFKP0Z3SVT5HV>
+        <Suites [
+          <Suite #feature-target-migration { name = "Feature target migration" } (
+            <Cases [
+              <Case #knowledge-targets-move-to-artifacts (
+                <Given ?01M02NT0W64Z5XFKP0Z3SVT5HW>
+                `codument/config/feature.json` has `knowledgeSync.enabled=true` with one or more `targets`.
+                </?01M02NT0W64Z5XFKP0Z3SVT5HW>
+                <When ?01M02NT0W64Z5XFKP0Z3SVT5HX>
+                The user runs `codument upgrade-workspace`.
+                </?01M02NT0W64Z5XFKP0Z3SVT5HX>
+                <Then ?01M02NT0W64Z5XFKP0Z3SVT5HY>
+                The system SHALL create `codument/config/artifacts.xml`.
+                </?01M02NT0W64Z5XFKP0Z3SVT5HY>
+                <Ands [
+                  <And ?01M02NT0W64Z5XFKP0Z3SVT5HZ>
+                  `codument/config/artifacts.xml` does not exist.
+                  </?01M02NT0W64Z5XFKP0Z3SVT5HZ>
+                  <And ?01M02NT0W64Z5XFKP0Z3SVT5J0>
+                  The generated docs knowledge artifact SHALL use a `docs` attractor profile that includes `codument/attractors/docs-knowledge.md`.
+                  </?01M02NT0W64Z5XFKP0Z3SVT5J0>
+                  <And ?01M02NT0W64Z5XFKP0Z3SVT5J1>
+                  The generated `attractor-profile` resource SHALL reference that profile by `name` and SHALL NOT depend on direct `attractor` or `ref` attributes.
+                  </?01M02NT0W64Z5XFKP0Z3SVT5J1>
+                  <And ?01M02NT0W64Z5XFKP0Z3SVT5J2>
+                  Each legacy knowledge target SHALL become a directory target under the generated artifact's `targets` node using `base-dir` and `relative-dir`.
+                  </?01M02NT0W64Z5XFKP0Z3SVT5J2>
+                  <And ?01M02NT0W64Z5XFKP0Z3SVT5J3>
+                  The system SHALL remove migrated `knowledgeSync.targets` from `feature.json` after writing them to artifacts.xml.
+                  </?01M02NT0W64Z5XFKP0Z3SVT5J3>
+                  <And ?01M02NT0W64Z5XFKP0Z3SVT5J4>
+                  If `codument/config/operation-hooks.xml` does not exist, the system SHALL create a default archive `after-archive` hook that triggers the generated docs artifact.
+                  </?01M02NT0W64Z5XFKP0Z3SVT5J4>
+                ]>
+              )>
+              <Case #legacy-target-location-migration (
+                <Given ?01M02NT0W64Z5XFKP0Z3SVT5J5>
+                `codument/config/artifacts.xml` contains generated target locations using old `path` and `output-path` attributes.
+                </?01M02NT0W64Z5XFKP0Z3SVT5J5>
+                <When ?01M02NT0W64Z5XFKP0Z3SVT5J6>
+                The user runs `codument upgrade-workspace`.
+                </?01M02NT0W64Z5XFKP0Z3SVT5J6>
+                <Then ?01M02NT0W64Z5XFKP0Z3SVT5J7>
+                The system SHALL migrate single-file targets to `base-dir` and `relative-file`.
+                </?01M02NT0W64Z5XFKP0Z3SVT5J7>
+                <Ands [
+                  <And ?01M02NT0W64Z5XFKP0Z3SVT5J8>
+                  The system SHALL migrate docs knowledge targets to `base-dir` and `relative-dir`.
+                  </?01M02NT0W64Z5XFKP0Z3SVT5J8>
+                ]>
+              )>
+              <Case #preserve-existing-artifacts-config (
+                <Given ?01M02NT0W64Z5XFKP0Z3SVT5J9>
+                `codument/config/artifacts.xml` already exists.
+                </?01M02NT0W64Z5XFKP0Z3SVT5J9>
+                <When ?01M02NT0W64Z5XFKP0Z3SVT5JA>
+                The user runs `codument upgrade-workspace`.
+                </?01M02NT0W64Z5XFKP0Z3SVT5JA>
+                <Then ?01M02NT0W64Z5XFKP0Z3SVT5JB>
+                The system SHALL NOT overwrite the existing artifacts.xml.
+                </?01M02NT0W64Z5XFKP0Z3SVT5JB>
+                <Ands [
+                  <And ?01M02NT0W64Z5XFKP0Z3SVT5JC>
+                  The system SHALL NOT remove legacy targets from feature.json unless it has written an equivalent explicit artifact target.
+                  </?01M02NT0W64Z5XFKP0Z3SVT5JC>
+                ]>
+              )>
+              <Case #empty-targets-removed (
+                <Given ?01M02NT0W64Z5XFKP0Z3SVT5JD>
+                `codument/config/feature.json` has `knowledgeSync.targets=[]`.
+                </?01M02NT0W64Z5XFKP0Z3SVT5JD>
+                <When ?01M02NT0W64Z5XFKP0Z3SVT5JE>
+                The user runs `codument upgrade-workspace`.
+                </?01M02NT0W64Z5XFKP0Z3SVT5JE>
+                <Then ?01M02NT0W64Z5XFKP0Z3SVT5JF>
+                The system SHALL remove the empty `targets` field from feature.json.
+                </?01M02NT0W64Z5XFKP0Z3SVT5JF>
+              )>
+              <Case #project-memory-feature-artifact (
+                <Given ?01M02NT0W64Z5XFKP0Z3SVT5JG>
+                `projectMemory.enabled=true`.
+                </?01M02NT0W64Z5XFKP0Z3SVT5JG>
+                <When ?01M02NT0W64Z5XFKP0Z3SVT5JH>
+                The user runs `codument upgrade-workspace`.
+                </?01M02NT0W64Z5XFKP0Z3SVT5JH>
+                <Then ?01M02NT0W64Z5XFKP0Z3SVT5JJ>
+                The generated artifacts.xml SHALL include a project memory artifact that uses a `memory` attractor profile containing `codument/attractors/project-memory.md`.
+                </?01M02NT0W64Z5XFKP0Z3SVT5JJ>
+                <Ands [
+                  <And ?01M02NT0W64Z5XFKP0Z3SVT5JK>
+                  `codument/config/artifacts.xml` does not exist.
+                  </?01M02NT0W64Z5XFKP0Z3SVT5JK>
+                  <And ?01M02NT0W64Z5XFKP0Z3SVT5JM>
+                  If `codument/config/operation-hooks.xml` does not exist, the system SHALL create a default archive `after-archive` hook that triggers the generated memory artifact.
+                  </?01M02NT0W64Z5XFKP0Z3SVT5JM>
+                ]>
+              )>
+              <Case #docs-fractal-attractors (
+                <Given ?01M02NT0W64Z5XFKP0Z3SVT5JN>
+                `knowledgeSync.enabled=true`.
+                </?01M02NT0W64Z5XFKP0Z3SVT5JN>
+                <When ?01M02NT0W64Z5XFKP0Z3SVT5JP>
+                The user runs `codument upgrade-workspace`.
+                </?01M02NT0W64Z5XFKP0Z3SVT5JP>
+                <Then ?01M02NT0W64Z5XFKP0Z3SVT5JQ>
+                The system SHALL create `codument/attractors/docs-knowledge.md` when missing.
+                </?01M02NT0W64Z5XFKP0Z3SVT5JQ>
+                <Ands [
+                  <And ?01M02NT0W64Z5XFKP0Z3SVT5JR>
+                  The system SHALL create `codument/attractors/docs-modeling-fractal/index.md` when missing.
+                  </?01M02NT0W64Z5XFKP0Z3SVT5JR>
+                  <And ?01M02NT0W64Z5XFKP0Z3SVT5JS>
+                  The system SHALL create `codument/attractors/docs-impl-fractal/index.md` when missing.
+                  </?01M02NT0W64Z5XFKP0Z3SVT5JS>
+                ]>
+              )>
+              <Case #default-only-profile-cleanup (
+                <Given ?01M02NT0W64Z5XFKP0Z3SVT5JT>
+                `codument/config/attractor-profiles.json` contains only the built-in default project/product profile.
+                </?01M02NT0W64Z5XFKP0Z3SVT5JT>
+                <When ?01M02NT0W64Z5XFKP0Z3SVT5JV>
+                The user runs `codument upgrade-workspace`.
+                </?01M02NT0W64Z5XFKP0Z3SVT5JV>
+                <Then ?01M02NT0W64Z5XFKP0Z3SVT5JW>
+                The system SHALL remove that redundant config file and use the built-in default profile instead.
+                </?01M02NT0W64Z5XFKP0Z3SVT5JW>
+                <Ands [
+                  <And ?01M02NT0W64Z5XFKP0Z3SVT5JX>
+                  The system SHALL preserve the file when it contains custom, docs, memory, or otherwise non-default profile data.
+                  </?01M02NT0W64Z5XFKP0Z3SVT5JX>
+                ]>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/artifact-sync-hook" } (
+      <Requirement #artifact-sync-hook (
+        <Statement ?01M02NT0W64Z5XFKP0Z3SVT5JY>
+        系统 SHALL allow `operation-hooks.xml` to trigger artifact synchronization through an `artifact-sync` node that references an artifact id.
+        </?01M02NT0W64Z5XFKP0Z3SVT5JY>
+        <Suites [
+          <Suite #operation-hook-integration { name = "Artifact sync operation hook integration" } (
+            <Cases [
+              <Case #artifact-sync-node (
+                <Given ?01M02NT0W64Z5XFKP0Z3SVT5JZ>
+                `codument/config/operation-hooks.xml` contains an `artifact-sync` node inside a hook.
+                </?01M02NT0W64Z5XFKP0Z3SVT5JZ>
+                <When ?01M02NT0W64Z5XFKP0Z3SVT5K0>
+                The operation reaches that hook point.
+                </?01M02NT0W64Z5XFKP0Z3SVT5K0>
+                <Then ?01M02NT0W64Z5XFKP0Z3SVT5K1>
+                The system SHALL resolve the referenced artifact from `codument/config/artifacts.xml`.
+                </?01M02NT0W64Z5XFKP0Z3SVT5K1>
+                <Ands [
+                  <And ?01M02NT0W64Z5XFKP0Z3SVT5K2>
+                  The system SHALL execute artifact sync according to the artifact's resources and policy.
+                  </?01M02NT0W64Z5XFKP0Z3SVT5K2>
+                ]>
+              )>
+              <Case #unknown-artifact (
+                <Given ?01M02NT0W64Z5XFKP0Z3SVT5K3>
+                An `artifact-sync` hook references an unknown artifact id.
+                </?01M02NT0W64Z5XFKP0Z3SVT5K3>
+                <When ?01M02NT0W64Z5XFKP0Z3SVT5K4>
+                The hook is validated or executed.
+                </?01M02NT0W64Z5XFKP0Z3SVT5K4>
+                <Then ?01M02NT0W64Z5XFKP0Z3SVT5K5>
+                The system SHALL report a validation error or `BLOCKED` result.
+                </?01M02NT0W64Z5XFKP0Z3SVT5K5>
+              )>
+              <Case #structured-result (
+                <Given ?01M02NT0W64Z5XFKP0Z3SVT5K6>
+                An artifact sync executor completes.
+                </?01M02NT0W64Z5XFKP0Z3SVT5K6>
+                <When ?01M02NT0W64Z5XFKP0Z3SVT5K7>
+                It reports to the parent workflow.
+                </?01M02NT0W64Z5XFKP0Z3SVT5K7>
+                <Then ?01M02NT0W64Z5XFKP0Z3SVT5K8>
+                The result SHALL include artifact id, status, summary, changed outputs, and manifest path when provenance is enabled.
+                </?01M02NT0W64Z5XFKP0Z3SVT5K8>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/artifact-sync-command" } (
+      <Requirement #artifact-sync-command (
+        <Statement ?01M02NT0W64Z5XFKP0Z3SVT5K9>
+        系统 SHALL expose artifact synchronization through `codument-artifact-sync` rather than docs-specific sync commands.
+        </?01M02NT0W64Z5XFKP0Z3SVT5K9>
+        <Suites [
+          <Suite #artifact-sync-entrypoint { name = "Artifact sync entrypoint" } (
+            <Cases [
+              <Case #artifact-sync-skill (
+                <Given ?01M02NT0W64Z5XFKP0Z3SVT5KA>
+                Generated lifecycle skills are built for a supported target.
+                </?01M02NT0W64Z5XFKP0Z3SVT5KA>
+                <When ?01M02NT0W64Z5XFKP0Z3SVT5KB>
+                The system emits standalone Codument skills.
+                </?01M02NT0W64Z5XFKP0Z3SVT5KB>
+                <Then ?01M02NT0W64Z5XFKP0Z3SVT5KC>
+                The system SHALL include `codument-artifact-sync`.
+                </?01M02NT0W64Z5XFKP0Z3SVT5KC>
+                <Ands [
+                  <And ?01M02NT0W64Z5XFKP0Z3SVT5KD>
+                  The system SHALL NOT include `codument-docs-sync-track`.
+                  </?01M02NT0W64Z5XFKP0Z3SVT5KD>
+                ]>
+              )>
+              <Case #artifact-sync-command-wrapper (
+                <Given ?01M02NT0W64Z5XFKP0Z3SVT5KE>
+                The system generates assistant command wrappers for Claude, CodeFlicker, Eidolon, or OpenCode.
+                </?01M02NT0W64Z5XFKP0Z3SVT5KE>
+                <When ?01M02NT0W64Z5XFKP0Z3SVT5KF>
+                The user inspects the generated command files.
+                </?01M02NT0W64Z5XFKP0Z3SVT5KF>
+                <Then ?01M02NT0W64Z5XFKP0Z3SVT5KG>
+                The system SHALL include an `artifact-sync` command wrapper pointing at `codument-artifact-sync`.
+                </?01M02NT0W64Z5XFKP0Z3SVT5KG>
+                <Ands [
+                  <And ?01M02NT0W64Z5XFKP0Z3SVT5KH>
+                  The system SHALL remove the old `docs-sync-track` command wrapper.
+                  </?01M02NT0W64Z5XFKP0Z3SVT5KH>
+                ]>
+              )>
+              <Case #docs-rules-live-in-attractor (
+                <Given ?01M02NT0W64Z5XFKP0Z3SVT5KJ>
+                A docs class artifact needs content selection and docs/modeling versus docs/impl routing rules.
+                </?01M02NT0W64Z5XFKP0Z3SVT5KJ>
+                <When ?01M02NT0W64Z5XFKP0Z3SVT5KK>
+                The artifact sync executor prepares the artifact.
+                </?01M02NT0W64Z5XFKP0Z3SVT5KK>
+                <Then ?01M02NT0W64Z5XFKP0Z3SVT5KM>
+                The system SHALL read those rules from `codument/attractors/docs-knowledge.md` through an attractor profile.
+                </?01M02NT0W64Z5XFKP0Z3SVT5KM>
+                <Ands [
+                  <And ?01M02NT0W64Z5XFKP0Z3SVT5KN>
+                  The artifact-sync skill SHALL handle artifact selection, resource resolution, targets, policy, and execution.
+                  </?01M02NT0W64Z5XFKP0Z3SVT5KN>
+                ]>
+              )>
+              <Case #no-before-knowledge-sync (
+                <Given ?01M02NT0W64Z5XFKP0Z3SVT5KP>
+                `codument/config/operation-hooks.xml` contains an archive hook with `point="before-knowledge-sync"`.
+                </?01M02NT0W64Z5XFKP0Z3SVT5KP>
+                <When ?01M02NT0W64Z5XFKP0Z3SVT5KQ>
+                The system validates operation hooks.
+                </?01M02NT0W64Z5XFKP0Z3SVT5KQ>
+                <Then ?01M02NT0W64Z5XFKP0Z3SVT5KR>
+                The system SHALL report the hook point as unknown.
+                </?01M02NT0W64Z5XFKP0Z3SVT5KR>
+                <Ands [
+                  <And ?01M02NT0W64Z5XFKP0Z3SVT5KS>
+                  The system SHALL use artifact-sync terminology such as `before-artifact-sync` instead.
+                  </?01M02NT0W64Z5XFKP0Z3SVT5KS>
+                ]>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+  ]>
+)>

@@ -56,11 +56,14 @@ describe('codument init', () => {
     const gitignore = fs.readFileSync(path.join(ws, '.gitignore'), 'utf-8');
     expect(gitignore).toContain('codument/**/analysis');
     expect(gitignore).toContain('codument/**/reports');
-    expect(fs.existsSync(path.join(ws, 'codument', 'std', 'actions', 'impl-quick.md'))).toBe(true);
+    expect(fs.existsSync(path.join(ws, 'codument', 'std', 'operations', 'impl-quick.md'))).toBe(true);
     expect(fs.existsSync(path.join(ws, 'codument', 'std', 'commands', 'upgrade-workspace.md'))).toBe(true);
     expect(fs.existsSync(path.join(ws, 'codument', 'std', 'protocols', 'decision-tree.md'))).toBe(true);
     expect(fs.existsSync(path.join(ws, 'codument', 'std', 'methods', 'workflow.md'))).toBe(true);
-    expect(fs.existsSync(path.join(ws, 'codument', 'config', 'action-hooks.xml'))).toBe(true);
+    expect(fs.readFileSync(path.join(ws, 'codument', 'std', 'kinds', 'KindDefinitions', 'Decision', 'manifest.xnl'), 'utf8'))
+      .toContain('documentCardinality = "many"');
+    expect(fs.existsSync(path.join(ws, 'codument', 'config', 'operation-hooks.xnl'))).toBe(true);
+    expect(fs.existsSync(path.join(ws, 'codument', 'config', 'action-hooks.xml'))).toBe(false);
     expect(fs.existsSync(path.join(ws, 'codument', 'tracks', 'pending', 'README.md'))).toBe(true);
     expect(fs.existsSync(path.join(ws, 'codument', 'tracks', 'active', 'README.md'))).toBe(true);
     expect(fs.existsSync(path.join(ws, 'codument', 'tracks', 'archived', 'README.md'))).toBe(true);
@@ -70,9 +73,26 @@ describe('codument init', () => {
       .toBe(decisionMigrationTemplate);
     expect(fs.existsSync(path.join(ws, 'codument', 'std', 'root-agents.md'))).toBe(false);
     const agents = fs.readFileSync(path.join(ws, 'AGENTS.md'), 'utf-8');
+    expect(agents).toContain('在 Codument 工具内部上下文中，`@` 一般表示当前项目的项目级根目录');
     expect(agents).toContain('@/codument/std/AGENTS.md');
     expect(agents).toContain('唯一的 Codument 工作流与路由真源');
+    expect(agents).toContain('产品方向吸引子：`@/codument/attractors/product.md`');
+    expect(agents).toContain('项目实现吸引子：`@/codument/attractors/project.md`');
     expect(agents).not.toContain('快速路由：');
+    const claude = fs.readFileSync(path.join(ws, 'CLAUDE.md'), 'utf-8');
+    expect(claude).toContain('在 Codument 工具内部上下文中，`@` 一般表示当前项目的项目级根目录');
+    expect(claude).toContain('@/codument/std/AGENTS.md');
+    expect(claude.match(/<!-- codument:begin -->/g)).toHaveLength(1);
+    const productAttractor = fs.readFileSync(
+      path.join(ws, 'codument', 'attractors', 'product.md'),
+      'utf-8',
+    );
+    expect(productAttractor).toContain('## 什么是 Attractor');
+    expect(productAttractor).toContain(
+      'Attractor（吸引子）是系统无论如何变化，都会持续向着其靠拢的方向性力量。不是从 A 到 B 的路径规范，而是在目标和路径周围，持续吸引和引导如何走的力量。',
+    );
+    expect(productAttractor.indexOf('## 什么是 Attractor'))
+      .toBeLessThan(productAttractor.indexOf('## 产品愿景'));
     for (const deprecated of [
       'codument-archive',
       'codument-code-quality-score',
@@ -114,5 +134,6 @@ describe('codument init', () => {
     expect(code).toBe(0);
     expect(out).toContain('.agents/skills');
     expect(fs.existsSync(path.join(ws, '.agents', 'skills', 'codument-impl-quick', 'SKILL.md'))).toBe(true);
+    expect(fs.existsSync(path.join(ws, 'CLAUDE.md'))).toBe(false);
   });
 });

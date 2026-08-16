@@ -1,0 +1,117 @@
+<decision #track.add_engineering_registry.legacy.d01 apiVersion="codument.tech/v1alpha1" { kind = "historical-decision" status = "accepted" durable_candidate = false legacy_source = "codument/tracks/archived/2026-06/2026-06-28-0050-add-engineering-registry/decisions.md" } (
+  <question ?m>
+  1. registry 命名
+  </?m>
+  <answer {  } (
+    <raw-answer ?m>
+    - 选择：`codument/engineering/`
+    - 不选择：`codument/design/`、`codument/impl/`、`codument/knowledge/`
+    - 理由：engineering 覆盖实现、维护、操作、排障、参考，语义比 impl 宽；不抢 modeling/decisions/track design 的边界。
+    </?m>
+    <decision-text ?m>
+    - 选择：`codument/engineering/`
+    </?m>
+    <rationale ?m>
+    历史 Markdown 没有独立 rationale 字段；决策上下文与理由保留在 raw-answer。
+    </?m>
+    <evidence ?m>
+    从 legacy decisions.md 保真迁移；完整原始段落保存在 raw-answer。
+    </?m>
+  )>
+)>
+
+<decision #track.add_engineering_registry.legacy.d02 apiVersion="codument.tech/v1alpha1" { kind = "historical-decision" status = "accepted" durable_candidate = false legacy_source = "codument/tracks/archived/2026-06/2026-06-28-0050-add-engineering-registry/decisions.md" } (
+  <question ?m>
+  2. registry 职责边界
+  </?m>
+  <answer {  } (
+    <raw-answer ?m>
+    - `engineering` 管“如何实现/维护/排障”。
+    - `modeling` 管“结构真相”。
+    - `behaviors` 管“可测行为契约”。
+    - `decisions` 管“长期承重决策”。
+    - `memory` 管“可复用经验/事故/模式/摘要”。
+    </?m>
+    <decision-text ?m>
+    - `engineering` 管“如何实现/维护/排障”。
+    - `modeling` 管“结构真相”。
+    - `behaviors` 管“可测行为契约”。
+    - `decisions` 管“长期承重决策”。
+    - `memory` 管“可复用经验/事故/模式/摘要”。
+    </?m>
+    <rationale ?m>
+    历史 Markdown 没有独立 rationale 字段；决策上下文与理由保留在 raw-answer。
+    </?m>
+    <evidence ?m>
+    从 legacy decisions.md 保真迁移；完整原始段落保存在 raw-answer。
+    </?m>
+  )>
+)>
+
+<decision #track.add_engineering_registry.legacy.d03 apiVersion="codument.tech/v1alpha1" { kind = "historical-decision" status = "accepted" durable_candidate = false legacy_source = "codument/tracks/archived/2026-06/2026-06-28-0050-add-engineering-registry/decisions.md" } (
+  <question ?m>
+  3. delta 形态
+  </?m>
+  <answer {  } (
+    <raw-answer ?m>
+    - 复用 modeling 的方式：track 写 `engineering_deltas/` 目标态节点。
+    - archive 用 base/ours/theirs 三方节点级合并。
+    - 不自建 XML patch op。
+    </?m>
+    <decision-text ?m>
+    - 复用 modeling 的方式：track 写 `engineering_deltas/` 目标态节点。
+    - archive 用 base/ours/theirs 三方节点级合并。
+    - 不自建 XML patch op。
+    </?m>
+    <rationale ?m>
+    历史 Markdown 没有独立 rationale 字段；决策上下文与理由保留在 raw-answer。
+    </?m>
+    <evidence ?m>
+    从 legacy decisions.md 保真迁移；完整原始段落保存在 raw-answer。
+    </?m>
+  )>
+)>
+
+<decision #track.add_engineering_registry.legacy.d04 apiVersion="codument.tech/v1alpha1" { kind = "historical-decision" status = "accepted" durable_candidate = false legacy_source = "codument/tracks/archived/2026-06/2026-06-28-0050-add-engineering-registry/decisions.md" } (
+  <question ?m>
+  4. 节点类别
+  </?m>
+  <answer {  } (
+    <raw-answer ?m>
+    - 初始 kind：`overview`、`howto`、`rule`、`example`、`reference`、`troubleshooting`、`runbook`、`code-map`。
+    - 这些 kind 来源于现有 `docs-impl-fractal` 默认类目，并补 `runbook`、`code-map` 表达运维与代码映射。
+    </?m>
+    <decision-text ?m>
+    - 初始 kind：`overview`、`howto`、`rule`、`example`、`reference`、`troubleshooting`、`runbook`、`code-map`。
+    - 这些 kind 来源于现有 `docs-impl-fractal` 默认类目，并补 `runbook`、`code-map` 表达运维与代码映射。
+    </?m>
+    <rationale ?m>
+    历史 Markdown 没有独立 rationale 字段；决策上下文与理由保留在 raw-answer。
+    </?m>
+    <evidence ?m>
+    从 legacy decisions.md 保真迁移；完整原始段落保存在 raw-answer。
+    </?m>
+  )>
+)>
+
+<decision #track.add_engineering_registry.legacy.d05 apiVersion="codument.tech/v1alpha1" { kind = "historical-decision" status = "accepted" durable_candidate = false legacy_source = "codument/tracks/archived/2026-06/2026-06-28-0050-add-engineering-registry/decisions.md" } (
+  <question ?m>
+  5. 默认开关
+  </?m>
+  <answer {  } (
+    <raw-answer ?m>
+    - `codument/config/engineering.xml` 默认关闭。
+    - 显式路径或 `--deltas` 的 validate 可绕过开关，便于测试/手动验证。
+    </?m>
+    <decision-text ?m>
+    - `codument/config/engineering.xml` 默认关闭。
+    - 显式路径或 `--deltas` 的 validate 可绕过开关，便于测试/手动验证。
+    </?m>
+    <rationale ?m>
+    历史 Markdown 没有独立 rationale 字段；决策上下文与理由保留在 raw-answer。
+    </?m>
+    <evidence ?m>
+    从 legacy decisions.md 保真迁移；完整原始段落保存在 raw-answer。
+    </?m>
+  )>
+)>

@@ -1,0 +1,95 @@
+<Track #add-track-planning-artifacts apiVersion="codument.tech/v1alpha1" version="1" { status = "completed" goal = "在新建 track 时生成 analysis/ 持久化上下文文件，提升规划质量" description = "在新建 track 时生成 analysis/ 持久化上下文文件，提升规划质量" commit_mode = "manual" created_at = "2026-03-01T12:53:35Z" updated_at = "2026-03-01T14:49:21Z" } (
+  <Ports { scope = "track" } [
+    <MaterialBundle { role = "input" name = "behavior-deltas" domain = "behavior" path = "vfs://./behavior_deltas/" }>
+    <MaterialBundle { role = "output" name = "docs" domain = "doc" path = "vfs://@/docs/" }>
+    <MaterialBundle { role = "output" name = "behavior" domain = "codument" path = "vfs://@/codument/behaviors/" }>
+  ]>
+  <TaskSpace #space_add-track-planning-artifacts { name = "add-track-planning-artifacts" } (
+    <Description ?01M02JDH8VSRK7FF7F217BJHDY>
+    在新建 track 时生成 analysis/ 持久化上下文文件，提升规划质量
+    </?01M02JDH8VSRK7FF7F217BJHDY>
+    <SubNodes [
+      <TaskGroup #P1 { name = "提示词与文档" status = "DONE" order = 0 child_mode = "dag" } (
+        <Description ?01M02JDH8VSRK7FF7F217BJHDZ>
+        更新 track 提示词并补齐文档说明
+        </?01M02JDH8VSRK7FF7F217BJHDZ>
+        <Gate [
+          <Criterion ?01M02JDH8VSRK7FF7F217BJHE0>
+          提示词更新完成并可读
+          </?01M02JDH8VSRK7FF7F217BJHE0>
+        ]>
+        <SubNodes [
+          <Task { id = "T1.1" name = "更新 track 提示词" status = "DONE" order = 0 priority = "P0" } (
+            <Description ?01M02JDH8VSRK7FF7F217BJHE1>
+            更新 src/prompts/track.md：在创建 track 目录后生成 analysis/ 目录与三个文件，并确保不覆盖已有内容
+            </?01M02JDH8VSRK7FF7F217BJHE1>
+            <Acceptance [
+              <Criterion { id = "T1.1-AC1" checked = true } ?01M02JDH8VSRK7FF7F217BJHE2>
+              新增 analysis 产物步骤与模板内容
+              </?01M02JDH8VSRK7FF7F217BJHE2>
+              <Criterion { id = "T1.1-AC2" checked = true } ?01M02JDH8VSRK7FF7F217BJHE3>
+              明确“仅缺失时创建，不覆盖”规则
+              </?01M02JDH8VSRK7FF7F217BJHE3>
+            ]>
+          )>
+          <Task { id = "T1.2" name = "更新文档示例" status = "DONE" order = 1 priority = "P1" } (
+            <Description ?01M02JDH8VSRK7FF7F217BJHE4>
+            在 std_agents 或相关文档中补充说明 analysis/ 的用途（如需要），保持示例一致
+            </?01M02JDH8VSRK7FF7F217BJHE4>
+            <Acceptance [
+              <Criterion { id = "T1.2-AC1" checked = true } ?01M02JDH8VSRK7FF7F217BJHE5>
+              文档中能找到 analysis/ 的用途说明
+              </?01M02JDH8VSRK7FF7F217BJHE5>
+            ]>
+          )>
+        ]>
+      )>
+      <TaskGroup #P2 { name = "生成器输出" status = "DONE" order = 1 child_mode = "dag" } (
+        <Description ?01M02JDH8VSRK7FF7F217BJHE6>
+        确保各 CLI 工具使用新版本 track 提示词
+        </?01M02JDH8VSRK7FF7F217BJHE6>
+        <SubNodes [
+          <Task { id = "T2.1" name = "重新生成命令文件" status = "DONE" order = 0 priority = "P0" } (
+            <Description ?01M02JDH8VSRK7FF7F217BJHE7>
+            使用现有 generators 重新生成各工具的 codument-track 命令文件（如仓库内跟踪生成物则同步更新）
+            </?01M02JDH8VSRK7FF7F217BJHE7>
+            <Acceptance [
+              <Criterion { id = "T2.1-AC1" checked = true } ?01M02JDH8VSRK7FF7F217BJHE8>
+              OpenCode 的 codument-track.md 包含 analysis 步骤
+              </?01M02JDH8VSRK7FF7F217BJHE8>
+            ]>
+          )>
+        ]>
+      )>
+      <TaskGroup #P3 { name = "验证" status = "DONE" order = 2 child_mode = "dag" } (
+        <Description ?01M02JDH8VSRK7FF7F217BJHE9>
+        验证新 track 创建流程可用
+        </?01M02JDH8VSRK7FF7F217BJHE9>
+        <SubNodes [
+          <Task { id = "T3.1" name = "手动验证" status = "DONE" order = 0 priority = "P1" } (
+            <Description ?01M02JDH8VSRK7FF7F217BJHEA>
+            创建一个示例 track，确认 analysis/ 目录与 3 文件被生成且不覆盖已存在内容
+            </?01M02JDH8VSRK7FF7F217BJHEA>
+            <Acceptance [
+              <Criterion { id = "T3.1-AC1" checked = true } ?01M02JDH8VSRK7FF7F217BJHEB>
+              analysis/ 产物生成正确
+              </?01M02JDH8VSRK7FF7F217BJHEB>
+            ]>
+          )>
+        ]>
+        <Hooks [
+          <Hook { on = "phase:after" } (
+            <HumanConfirm>
+          )>
+        ]>
+      )>
+    ]>
+  )>
+  <Schedule [
+    <Dag { for = "P1" } [
+      <Node { id = "T1.2" } [
+        <After { ref = "T1.1" }>
+      ]>
+    ]>
+  ]>
+)>

@@ -1,0 +1,287 @@
+<BehaviorPatch #track.r_2_0_2_6_-_0_5_-_1_2_-_1_7_5_8_-_r_e_f_a_c_t_o_r_-_t_r_a_c_k_-_s_t_a_t_e_-_s_o_u_r_c_e.behavior_patch.codument-core apiVersion="codument.tech/v1alpha1" version="1" { capability = "codument-core" } (
+  <Mutations [
+    <Upsert { selector = "behavior://codument-core/requirements/项目初始化命令" } (
+      <Requirement { id = "项目初始化命令" } (
+        <Statement ?01M02NT0W0PJGTJN5ETNA4EPJD>
+        系统应当（SHALL）提供 `codument init` 命令，支持：
+        - 检测项目类型（Brownfield/Greenfield）
+        - 交互式收集项目信息
+        - 支持 `--agent=&lt;tool&gt;[,&lt;tool&gt;...]` 非交互指定 AI coding 工具
+        - 生成 `project.md`、`product.md`、`workflow.md`、`tech-stack.md`
+        - 创建 `codument/tracks/`、`codument/specs/`、`codument/archive/` 等工作目录
+        - 创建初始 track
+        - 支持恢复中断的初始化流程
+        - 根据用户选择的 AI coding 工具生成对应产物
+        - 不再创建或依赖 `codument/tracks.md` 作为 track 注册表
+        </?01M02NT0W0PJGTJN5ETNA4EPJD>
+        <Suites [
+          <Suite { name = "项目初始化命令" } (
+            <Cases [
+              <Case { id = "初始化新项目" name = "初始化新项目" } (
+                <Given ?01M02NT0W0PJGTJN5ETNA4EPJE>
+                用户在空目录中
+                </?01M02NT0W0PJGTJN5ETNA4EPJE>
+                <When ?01M02NT0W0PJGTJN5ETNA4EPJF>
+                用户运行 `codument init`
+                </?01M02NT0W0PJGTJN5ETNA4EPJF>
+                <Then ?01M02NT0W0PJGTJN5ETNA4EPJG>
+                系统引导用户完成项目设置
+                目录不存在 codument/ 文件夹
+                系统生成初始 track
+                系统创建 `codument/tracks/` 目录用于查看当前 tracks
+                系统不创建 `codument/tracks.md`
+                </?01M02NT0W0PJGTJN5ETNA4EPJG>
+              )>
+              <Case { id = "初始化现有项目" name = "初始化现有项目" } (
+                <Given ?01M02NT0W0PJGTJN5ETNA4EPJH>
+                用户在现有代码库中
+                </?01M02NT0W0PJGTJN5ETNA4EPJH>
+                <When ?01M02NT0W0PJGTJN5ETNA4EPJJ>
+                用户运行 `codument init`
+                </?01M02NT0W0PJGTJN5ETNA4EPJJ>
+                <Then ?01M02NT0W0PJGTJN5ETNA4EPJK>
+                系统分析项目结构
+                代码库包含源代码文件
+                系统基于分析结果引导设置
+                系统不创建 `codument/tracks.md`
+                </?01M02NT0W0PJGTJN5ETNA4EPJK>
+              )>
+              <Case { id = "初始化时为-codex-生成独立生命周期-skills-而非-prompts" name = "初始化时为 Codex 生成独立生命周期 skills 而非 prompts" } (
+                <Given ?01M02NT0W0PJGTJN5ETNA4EPJM>
+                用户在初始化过程中选择 Codex
+                </?01M02NT0W0PJGTJN5ETNA4EPJM>
+                <When ?01M02NT0W0PJGTJN5ETNA4EPJN>
+                初始化完成
+                </?01M02NT0W0PJGTJN5ETNA4EPJN>
+                <Then ?01M02NT0W0PJGTJN5ETNA4EPJP>
+                系统输出的完成提示指向 `~/.codex/skills/codument-*/`
+                不再声明生成 `~/.codex/prompts/codument-*.md`
+                系统不生成 `~/.codex/skills/codument-workflow/`
+                </?01M02NT0W0PJGTJN5ETNA4EPJP>
+              )>
+              <Case { id = "初始化时为-sparrow-生成工作区-skills" name = "初始化时为 Sparrow 生成工作区 skills" } (
+                <Given ?01M02NT0W0PJGTJN5ETNA4EPJQ>
+                用户在初始化过程中选择 Sparrow
+                </?01M02NT0W0PJGTJN5ETNA4EPJQ>
+                <When ?01M02NT0W0PJGTJN5ETNA4EPJR>
+                初始化完成
+                </?01M02NT0W0PJGTJN5ETNA4EPJR>
+                <Then ?01M02NT0W0PJGTJN5ETNA4EPJS>
+                系统输出的完成提示指向 `.sparrow/skills/codument-*/`
+                这些 skill 目录可被 Sparrow 作为本地资源根自动加载
+                系统不生成 `.sparrow/skill/codument-workflow/`
+                </?01M02NT0W0PJGTJN5ETNA4EPJS>
+              )>
+              <Case { id = "使用-agent-跳过交互式-agent-与项目名称输入" name = "使用 --agent 跳过交互式 agent 与项目名称输入" } (
+                <Given ?01M02NT0W0PJGTJN5ETNA4EPJT>
+                用户运行 `codument init --agent=claude,codex`
+                </?01M02NT0W0PJGTJN5ETNA4EPJT>
+                <When ?01M02NT0W0PJGTJN5ETNA4EPJV>
+                初始化开始
+                </?01M02NT0W0PJGTJN5ETNA4EPJV>
+                <Then ?01M02NT0W0PJGTJN5ETNA4EPJW>
+                系统不再提示用户选择 AI coding 工具
+                目录不存在 `codument/` 文件夹
+                系统不再要求用户输入 project / product 名称
+                系统为 `claude` 与 `codex` 生成对应产物
+                系统不创建 `codument/tracks.md`
+                </?01M02NT0W0PJGTJN5ETNA4EPJW>
+              )>
+              <Case { id = "初始化时支持-codeflicker-target" name = "初始化时支持 CodeFlicker target" } (
+                <Given ?01M02NT0W0PJGTJN5ETNA4EPJX>
+                用户运行 `codument init`
+                </?01M02NT0W0PJGTJN5ETNA4EPJX>
+                <When ?01M02NT0W0PJGTJN5ETNA4EPJY>
+                用户在交互式 target 列表中选择 CodeFlicker，或传入 `--agent=codeflicker`
+                </?01M02NT0W0PJGTJN5ETNA4EPJY>
+                <Then ?01M02NT0W0PJGTJN5ETNA4EPJZ>
+                系统将 Codument 生命周期 skills 写入 `.codeflicker/skills/codument-*/`
+                系统继续生成 `.codeflicker/commands/codument/`
+                command wrapper 引用对应的 `.codeflicker/skills/codument-*/SKILL.md`
+                系统不生成 `.codeflicker/skills/codument-workflow/`
+                </?01M02NT0W0PJGTJN5ETNA4EPJZ>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/创建变更追踪命令" } (
+      <Requirement { id = "创建变更追踪命令" } (
+        <Statement ?01M02NT0W0PJGTJN5ETNA4EPK0>
+        系统应当（SHALL）提供 /codument:track 命令，支持：
+        - 收集 track 描述
+        - 交互式生成 spec.md
+        - 交互式生成 plan.xml
+        - 选择提交模式（auto/manual）
+        - 选择校验模式（`yield-human-confirm` 或 `yield-gap-loop`）
+        - 当校验模式为 `yield-gap-loop` 时，进一步选择校验粒度（`final_phase` 或 `every_phase`）
+        - 创建 track 目录和必要文件
+        - 将 track 元数据写入 plan.xml 的 `&lt;metadata&gt;`，并以 plan.xml 作为 track 状态与元数据的唯一真相源
+        </?01M02NT0W0PJGTJN5ETNA4EPK0>
+        <Suites [
+          <Suite { name = "创建变更追踪命令" } (
+            <Cases [
+              <Case { id = "创建新功能-track-auto-模式" name = "创建新功能 track（auto 模式）" } (
+                <Given ?01M02NT0W0PJGTJN5ETNA4EPK1>
+                用户已初始化 Codument
+                </?01M02NT0W0PJGTJN5ETNA4EPK1>
+                <When ?01M02NT0W0PJGTJN5ETNA4EPK2>
+                用户运行 /codument:track 并提供功能描述
+                </?01M02NT0W0PJGTJN5ETNA4EPK2>
+                <Then ?01M02NT0W0PJGTJN5ETNA4EPK3>
+                系统生成包含 spec.md 和 plan.xml 的 track 目录
+                用户有新功能需求
+                用户选择 auto 提交模式
+                plan.xml 中 commit_mode 设置为 auto
+                plan.xml 的 metadata 包含原 metadata.json 所需的 `track_id`、`type`、`status`、`created_at`、`updated_at`、`description`
+                系统不创建或更新 metadata.json
+                系统不创建或更新 `codument/tracks.md`
+                </?01M02NT0W0PJGTJN5ETNA4EPK3>
+              )>
+              <Case { id = "创建新功能-track-manual-模式" name = "创建新功能 track（manual 模式）" } (
+                <Given ?01M02NT0W0PJGTJN5ETNA4EPK4>
+                用户已初始化 Codument
+                </?01M02NT0W0PJGTJN5ETNA4EPK4>
+                <When ?01M02NT0W0PJGTJN5ETNA4EPK5>
+                用户运行 /codument:track 并提供功能描述
+                </?01M02NT0W0PJGTJN5ETNA4EPK5>
+                <Then ?01M02NT0W0PJGTJN5ETNA4EPK6>
+                系统生成包含 spec.md 和 plan.xml 的 track 目录
+                用户有新功能需求
+                用户选择 manual 提交模式
+                plan.xml 中 commit_mode 设置为 manual
+                plan.xml 的 metadata 包含原 metadata.json 所需的 `track_id`、`type`、`status`、`created_at`、`updated_at`、`description`
+                系统不创建或更新 metadata.json
+                系统不创建或更新 `codument/tracks.md`
+                </?01M02NT0W0PJGTJN5ETNA4EPK6>
+              )>
+              <Case { id = "创建-track-时选择人工确认" name = "创建 track 时选择人工确认" } (
+                <Given ?01M02NT0W0PJGTJN5ETNA4EPK7>
+                用户已初始化 Codument
+                </?01M02NT0W0PJGTJN5ETNA4EPK7>
+                <When ?01M02NT0W0PJGTJN5ETNA4EPK8>
+                用户创建新的 track
+                </?01M02NT0W0PJGTJN5ETNA4EPK8>
+                <Then ?01M02NT0W0PJGTJN5ETNA4EPK9>
+                系统将 `validation_mode` 写入 plan.xml 的 metadata
+                用户选择 `yield-human-confirm`
+                不再继续询问 `validation_granularity`
+                默认仅在最后一个 phase 下插入 `&lt;confirm protocol=&quot;yield-human-confirm&quot; when=&quot;after&quot; status=&quot;TODO&quot; /&gt;`
+                </?01M02NT0W0PJGTJN5ETNA4EPK9>
+              )>
+              <Case { id = "创建-track-时选择-gap-loop-默认粒度" name = "创建 track 时选择 gap-loop 默认粒度" } (
+                <Given ?01M02NT0W0PJGTJN5ETNA4EPKA>
+                用户已初始化 Codument
+                </?01M02NT0W0PJGTJN5ETNA4EPKA>
+                <When ?01M02NT0W0PJGTJN5ETNA4EPKB>
+                用户创建新的 track
+                </?01M02NT0W0PJGTJN5ETNA4EPKB>
+                <Then ?01M02NT0W0PJGTJN5ETNA4EPKC>
+                系统将 `validation_mode=yield-gap-loop` 写入 plan.xml 的 metadata
+                用户选择 `yield-gap-loop`
+                用户未额外指定粒度
+                系统将 `validation_granularity=final_phase` 写入 plan.xml 的 metadata
+                系统将 `gap_loop_round=0` 写入 plan.xml 的 metadata
+                默认仅在最后一个 phase 下插入 `&lt;confirm protocol=&quot;yield-gap-loop&quot; when=&quot;after&quot; status=&quot;TODO&quot; /&gt;`
+                </?01M02NT0W0PJGTJN5ETNA4EPKC>
+              )>
+              <Case { id = "创建-track-时选择每个-phase-都做-gap-loop" name = "创建 track 时选择每个 phase 都做 gap-loop" } (
+                <Given ?01M02NT0W0PJGTJN5ETNA4EPKD>
+                用户已初始化 Codument
+                </?01M02NT0W0PJGTJN5ETNA4EPKD>
+                <When ?01M02NT0W0PJGTJN5ETNA4EPKE>
+                用户创建新的 track
+                </?01M02NT0W0PJGTJN5ETNA4EPKE>
+                <Then ?01M02NT0W0PJGTJN5ETNA4EPKF>
+                系统在每个 phase 下都插入 `&lt;confirm protocol=&quot;yield-gap-loop&quot; when=&quot;after&quot; status=&quot;TODO&quot; /&gt;`
+                用户选择 `yield-gap-loop`
+                用户选择 `validation_granularity=every_phase`
+                </?01M02NT0W0PJGTJN5ETNA4EPKF>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/track-列表与状态真相源" } (
+      <Requirement { id = "track-列表与状态真相源" } (
+        <Statement ?01M02NT0W0PJGTJN5ETNA4EPKG>
+        系统应当（SHALL）仅通过 `codument/tracks/` 目录发现当前活跃 tracks，并仅通过各 track 的 `plan.xml` `&lt;metadata&gt;` 读取 track 状态与元数据。
+        </?01M02NT0W0PJGTJN5ETNA4EPKG>
+        <Suites [
+          <Suite { name = "track-列表与状态真相源" } (
+            <Cases [
+              <Case { id = "列出当前-tracks" name = "列出当前 tracks" } (
+                <Given ?01M02NT0W0PJGTJN5ETNA4EPKH>
+                `codument/tracks/` 下存在多个 track 目录
+                </?01M02NT0W0PJGTJN5ETNA4EPKH>
+                <When ?01M02NT0W0PJGTJN5ETNA4EPKJ>
+                用户运行 `codument list`
+                </?01M02NT0W0PJGTJN5ETNA4EPKJ>
+                <Then ?01M02NT0W0PJGTJN5ETNA4EPKK>
+                系统扫描 `codument/tracks/` 目录
+                每个有效 track 目录包含 `plan.xml`
+                系统读取每个 track 的 `plan.xml` metadata
+                系统不读取 `codument/tracks.md`
+                系统不要求 `metadata.json` 存在
+                </?01M02NT0W0PJGTJN5ETNA4EPKK>
+              )>
+              <Case { id = "获取单个-track" name = "获取单个 track" } (
+                <Given ?01M02NT0W0PJGTJN5ETNA4EPKM>
+                `codument/tracks/&lt;track_id&gt;/plan.xml` 存在
+                </?01M02NT0W0PJGTJN5ETNA4EPKM>
+                <When ?01M02NT0W0PJGTJN5ETNA4EPKN>
+                用户运行 `codument show &lt;track_id&gt;` 或其他命令读取该 track
+                </?01M02NT0W0PJGTJN5ETNA4EPKN>
+                <Then ?01M02NT0W0PJGTJN5ETNA4EPKP>
+                系统从 plan.xml metadata 构造 track 元数据
+                系统不要求 `metadata.json` 存在
+                </?01M02NT0W0PJGTJN5ETNA4EPKP>
+              )>
+              <Case { id = "迁移兼容旧-track" name = "迁移兼容旧 track" } (
+                <Given ?01M02NT0W0PJGTJN5ETNA4EPKQ>
+                旧 track 同时包含 `metadata.json` 与 `plan.xml`
+                </?01M02NT0W0PJGTJN5ETNA4EPKQ>
+                <When ?01M02NT0W0PJGTJN5ETNA4EPKR>
+                系统读取、验证或升级该 track
+                </?01M02NT0W0PJGTJN5ETNA4EPKR>
+                <Then ?01M02NT0W0PJGTJN5ETNA4EPKS>
+                系统应能将 metadata.json 中额外信息合入 plan.xml metadata
+                metadata.json 包含 plan.xml metadata 中尚未存在的字段
+                合并后 plan.xml metadata 是唯一真相源
+                track 状态以 plan.xml metadata.status 为准
+                </?01M02NT0W0PJGTJN5ETNA4EPKS>
+              )>
+              <Case { id = "归档-track" name = "归档 track" } (
+                <Given ?01M02NT0W0PJGTJN5ETNA4EPKT>
+                一个 track 的 plan.xml metadata.status 为 `completed`
+                </?01M02NT0W0PJGTJN5ETNA4EPKT>
+                <When ?01M02NT0W0PJGTJN5ETNA4EPKV>
+                用户运行 `codument archive &lt;track_id&gt;`
+                </?01M02NT0W0PJGTJN5ETNA4EPKV>
+                <Then ?01M02NT0W0PJGTJN5ETNA4EPKW>
+                系统将 `codument/tracks/&lt;track_id&gt;/` 移动到 archive
+                系统不读取或更新 `codument/tracks.md`
+                系统不要求 `metadata.json` 存在
+                </?01M02NT0W0PJGTJN5ETNA4EPKW>
+              )>
+              <Case { id = "验证-track" name = "验证 track" } (
+                <Given ?01M02NT0W0PJGTJN5ETNA4EPKX>
+                `codument/tracks/&lt;track_id&gt;/plan.xml` 存在
+                </?01M02NT0W0PJGTJN5ETNA4EPKX>
+                <When ?01M02NT0W0PJGTJN5ETNA4EPKY>
+                用户运行 `codument validate &lt;track_id&gt; --strict`
+                </?01M02NT0W0PJGTJN5ETNA4EPKY>
+                <Then ?01M02NT0W0PJGTJN5ETNA4EPKZ>
+                系统验证 plan.xml metadata 包含 `track_id`、`type`、`status`、`created_at`、`updated_at`、`description`
+                系统不要求 `metadata.json` 存在
+                </?01M02NT0W0PJGTJN5ETNA4EPKZ>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+  ]>
+)>

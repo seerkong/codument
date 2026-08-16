@@ -18,7 +18,7 @@ const MIGRATE_SKILL = path.resolve(
 );
 const MIGRATE_ACTION = path.resolve(
   __dirname,
-  '../../../src/templates/codument/std/actions/migrate.md',
+  '../../../src/templates/codument/std/operations/migrate.md',
 );
 
 describe('decision migration inventory fixtures', () => {
@@ -76,38 +76,28 @@ describe('decision migration inventory fixtures', () => {
 });
 
 describe('decision migration reference', () => {
-  it('routes decisions and all through the bundled reference and authoritative action', () => {
+  it('routes unified resource upgrades and Decision review through the bundled reference', () => {
     const skill = fs.readFileSync(MIGRATE_SKILL, 'utf-8');
-    const action = fs.readFileSync(MIGRATE_ACTION, 'utf-8');
+    const operation = fs.readFileSync(MIGRATE_ACTION, 'utf-8');
 
-    expect(skill).toContain('[archive | specs | decisions | all]');
+    expect(skill).toContain('codument upgrade-resource <path> --json');
     expect(skill).toContain('references/decision-migration.md');
-    expect(action).toContain('`archive` | `specs` | `decisions` | `all`');
-    expect(action).toContain('what ∈ {decisions, all}');
-    expect(action).toContain('references/decision-migration.md');
-    expect(action).toContain('codument decisions validate');
-    expect(action).toContain('migration manifest');
+    expect(operation).toContain('调用没有参数时升级整个 workspace');
+    expect(operation).toContain('codument upgrade-workspace --json');
+    expect(operation).toContain('codument upgrade-resource <path> --json');
+    expect(operation).toContain('`review-required`');
+    expect(operation).toContain('Decision 保留 forest、嵌套 tree、options、answer feedback');
+    expect(operation).toContain('migration manifest');
   });
 
-  it('provides a near-top table of contents for every main protocol section', () => {
+  it('keeps AI review focused on semantics after the CLI-owned transaction', () => {
     const reference = fs.readFileSync(DECISION_MIGRATION_REFERENCE, 'utf-8');
-    const tocStart = reference.indexOf('## 目录');
-    const firstSectionStart = reference.indexOf('## 1. 不变量');
 
-    expect(tocStart).toBeGreaterThan(0);
-    expect(tocStart).toBeLessThan(firstSectionStart);
-    for (const link of [
-      '[1. 不变量](#1-不变量)',
-      '[2. 建立迁移工作区](#2-建立迁移工作区)',
-      '[3. Inventory 与分类](#3-inventory-与分类)',
-      '[4. 从 archive 恢复完整 XNL](#4-从-archive-恢复完整-xnl)',
-      '[5. Markdown-only 保真转换](#5-markdown-only-保真转换)',
-      '[6. Issue 与 conflict 处理](#6-issue-与-conflict-处理)',
-      '[7. Staging、验证与提交](#7-staging验证与提交)',
-      '[8. Rollback](#8-rollback)',
-      '[9. Verification 与迁移报告](#9-verification-与迁移报告)',
-    ]) {
-      expect(reference.slice(tocStart, firstSectionStart)).toContain(link);
-    }
+    expect(reference).toContain('## 修正原则');
+    expect(reference).toContain('## 循环');
+    expect(reference).toContain('不改 CLI-owned backup/manifest');
+    expect(reference).toContain('codument decisions create <file> <decision-id>');
+    expect(reference).not.toContain('## Staging');
+    expect(reference).not.toContain('## Rollback');
   });
 });

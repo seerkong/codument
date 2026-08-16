@@ -1,19 +1,19 @@
-<decision #track.clean_distribution_and_upgrade.scope {
-  priority = "P0"
-  status = "accepted"
-  durable_candidate = false
-  confidence = 0.99
-  reversibility = "easy"
-}
-(
-  <question ?>What is the release acceptance boundary?</?>
-  <answer { }
-  (
-    <raw-answer ?>Validate fresh init and legacy workspace upgrade in isolated workspaces.</?>
-    <decision-text ?>Distribution correctness is proven by installed files and removed deprecated shells, not the repository's local .agents state.</?>
-    <rationale ?>Release truth is src/templates and upgrade behavior.</?>
-    <evidence ?>Accepted Mission distribution decision.</?>
-  )
-  >
-)
->
+<decision #track.clean_distribution_and_upgrade.scope apiVersion="codument.tech/v1alpha1" { priority = "P0" status = "accepted" durable_candidate = false confidence = 0.99 reversibility = "easy" } (
+  <question ?01M02EGVBGCVQFD5C8HR57C25N>
+  What is the release acceptance boundary?
+  </?01M02EGVBGCVQFD5C8HR57C25N>
+  <answer {  } (
+    <raw-answer ?01M02EGVBGCVQFD5C8HR57C25P>
+    Validate fresh init and legacy workspace upgrade in isolated workspaces.
+    </?01M02EGVBGCVQFD5C8HR57C25P>
+    <decision-text ?01M02EGVBGCVQFD5C8HR57C25Q>
+    Distribution correctness is proven by installed files and removed deprecated shells, not the repository's local .agents state.
+    </?01M02EGVBGCVQFD5C8HR57C25Q>
+    <rationale ?01M02EGVBGCVQFD5C8HR57C25R>
+    Release truth is src/templates and upgrade behavior.
+    </?01M02EGVBGCVQFD5C8HR57C25R>
+    <evidence ?01M02EGVBGCVQFD5C8HR57C25S>
+    Accepted Mission distribution decision.
+    </?01M02EGVBGCVQFD5C8HR57C25S>
+  )>
+)>

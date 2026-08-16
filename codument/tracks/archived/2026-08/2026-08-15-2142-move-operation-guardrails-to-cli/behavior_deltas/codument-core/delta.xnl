@@ -1,0 +1,35 @@
+<BehaviorPatch #track.move-operation-guardrails-to-cli.behavior_patch.codument-core apiVersion="codument.tech/v1alpha1" version="1" { capability = "codument-core" } (
+  <Mutations [
+    <Upsert { selector = "behavior://codument-core/requirements/cli-owned-operation-guardrails" } (
+      <Requirement #cli-owned-operation-guardrails (
+        <Statement ?>Codument SHALL place deterministic resource structure, lifecycle, graph calculation and file-transaction guardrails in CLI commands while operations retain semantic authoring and review.</?>
+        <Suites [
+          <Suite #cli-operation-boundary { name = "CLI-owned operation boundary" } (
+            <Cases [
+              <Case #reject-invalid-structure-without-prompt-prohibition (
+                <Given ?>An AI-authored structured resource contains an invalid current shape.</?>
+                <When ?>The operation runs the corresponding Codument validator.</?>
+                <Then ?>The CLI SHALL reject it with actionable diagnostics without requiring prompts to enumerate legacy forbidden shapes.</?>
+              )>
+              <Case #atomic-lifecycle-transition (
+                <Given ?>A Track or Mission lifecycle state must change.</?>
+                <When ?>The operation requests the transition through the Codument CLI.</?>
+                <Then ?>The CLI SHALL update status, timestamps, revision and lifecycle path consistently or leave the resource unchanged.</?>
+              )>
+              <Case #deterministic-frontier-and-distribution (
+                <Given ?>An operation needs a Decision ready frontier or must distribute an AI-generated artifact staging tree.</?>
+                <When ?>It invokes the corresponding Codument CLI command.</?>
+                <Then ?>The CLI SHALL perform graph and file calculations deterministically while leaving semantic content to the AI.</?>
+              )>
+              <Case #mutating-cli-unavailable (
+                <Given ?>A mutating registry, archive, transition or artifact CLI authority is unavailable.</?>
+                <When ?>An operation reaches that write step.</?>
+                <Then ?>The operation SHALL report BLOCKED instead of replaying the transaction manually from prompt instructions.</?>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+  ]>
+)>

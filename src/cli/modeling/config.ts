@@ -3,9 +3,10 @@ import * as path from 'path';
 import { CODUMENT_DIR } from '../utils';
 import { DEFAULT_THRESHOLDS, type LintThresholds } from './lint';
 import { DEFAULT_POLICY, type MergePolicy, type ConflictType, type Resolve } from './merge';
+import { loadRegistrySettingsXnl, resolveConfigAuthority } from '../config/registry-settings';
 
 /**
- * codument/config/modeling.xml gate + settings.
+ * codument/config/modeling.xnl gate + settings (legacy XML remains readable).
  *
  * Default ON: when the file is absent or omits `enabled`, modeling is enabled.
  * An explicit `enabled="false"` disables modeling behavior for that workspace.
@@ -20,7 +21,7 @@ export interface ModelingConfig {
 }
 
 export function modelingConfigPath(workspaceDir = '.'): string {
-  return path.join(workspaceDir, CODUMENT_DIR, 'config', 'modeling.xml');
+  return path.join(workspaceDir, CODUMENT_DIR, 'config', 'modeling.xnl');
 }
 
 function matchNum(xml: string, re: RegExp): number | undefined {
@@ -37,9 +38,29 @@ export function loadModelingConfig(configPath = modelingConfigPath()): ModelingC
     thresholds: { ...DEFAULT_THRESHOLDS },
     mergePolicy: { ...DEFAULT_POLICY },
   };
-  if (!fs.existsSync(configPath)) return def;
+  const authority = resolveConfigAuthority(configPath);
+  if (!authority) return def;
 
-  const xml = fs.readFileSync(configPath, 'utf-8');
+  if (path.extname(authority).toLowerCase() === '.xnl') {
+    const config = loadRegistrySettingsXnl(authority, 'ModelingConfig');
+    const mergePolicy: MergePolicy = { ...DEFAULT_POLICY };
+    for (const item of config.conflicts) {
+      const type = item.type as ConflictType;
+      const resolve = item.resolve as Resolve;
+      if (type in mergePolicy && VALID_RESOLVE.has(resolve)) mergePolicy[type] = resolve;
+    }
+    return {
+      enabled: config.enabled ?? def.enabled,
+      registryDir: def.registryDir,
+      thresholds: {
+        maxLines: config.maxLines ?? DEFAULT_THRESHOLDS.maxLines,
+        maxNodes: config.maxNodes ?? DEFAULT_THRESHOLDS.maxNodes,
+      },
+      mergePolicy,
+    };
+  }
+
+  const xml = fs.readFileSync(authority, 'utf-8');
   const enabledAttr = /<Modeling[^>]*\benabled="(true|false)"/.exec(xml)?.[1];
   const enabled = enabledAttr === undefined ? def.enabled : enabledAttr === 'true';
   const maxLines = matchNum(xml, /<Lint[^>]*\bmaxLines="(\d+)"/);

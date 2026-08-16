@@ -1,0 +1,138 @@
+<Track #add-modeling-validate apiVersion="codument.tech/v1alpha1" version="1" { status = "completed" goal = "新增 codument modeling validate：三层校验（XNL 语法 + 节点 schema 语义 + 层级/引用一致性），覆盖 registry 与 modeling_deltas 文件，并 vendor xnl-core 的 for-AI 语法指南。" description = "把 modeling 的隐式/割裂校验升级为显式、友好报告的 validate 命令；补齐 id 命名空间↔文件路径 plane/context 的层级一致性校验；复用 XnlDataFormatForAi.md。门控于 config/modeling.xml（默认关）。" type = "feature" commit_mode = "manual" created_at = "2026-06-21T00:00:00Z" updated_at = "2026-06-21T09:30:00Z" } (
+  <Ports { scope = "track" } [
+    <MaterialBundle { role = "input" name = "behavior-deltas" domain = "behavior" path = "vfs://./behavior_deltas/" }>
+    <MaterialBundle { role = "output" name = "behavior" domain = "codument" path = "vfs://@/codument/behaviors/" }>
+  ]>
+  <TaskSpace #space_add-modeling-validate { name = "add-modeling-validate" } (
+    <Description ?01M02JDH99QNDMAQE6D6W0FZ9F>
+    显式 modeling 校验（语法+语义+层级）+ XNL for-AI 指南复用。
+    </?01M02JDH99QNDMAQE6D6W0FZ9F>
+    <SubNodes [
+      <TaskGroup #P1 { name = "XNL 语法权威与规范引用" status = "DONE" order = 0 } (
+        <Description ?01M02JDH99QNDMAQE6D6W0FZ9G>
+        vendor xnl-core for-AI 语法指南为 codument std 权威，modeling 规范引用之。
+        </?01M02JDH99QNDMAQE6D6W0FZ9G>
+        <SubNodes [
+          <Task { id = "T1.1" name = "vendor std/spec/xnl-format.md" status = "DONE" order = 0 priority = "P0" } (
+            <Description ?01M02JDH99QNDMAQE6D6W0FZ9H>
+            拷 xnl-core doc/ai-guide/XnlDataFormatForAi.md → src/templates/codument/std/spec/xnl-format.md，顶部加 provenance（source + xnl-core 版本）；同步 dogfood 副本 codument/std/spec/xnl-format.md。
+            </?01M02JDH99QNDMAQE6D6W0FZ9H>
+            <Acceptance [
+              <Criterion { id = "T1.1-AC1" checked = true } ?01M02JDH99QNDMAQE6D6W0FZ9J>
+              xnl-format.md 含完整语法/EBNF/生成检查清单/常见错误 + provenance 头
+              </?01M02JDH99QNDMAQE6D6W0FZ9J>
+            ]>
+          )>
+          <Task { id = "T1.2" name = "modeling 规范引用 xnl-format.md" status = "DONE" order = 1 priority = "P1" } (
+            <Description ?01M02JDH99QNDMAQE6D6W0FZ9K>
+            modeling-registry.md / modeling-node-schema.md / modeling-delta.md 加"XNL 语法权威见 std/spec/xnl-format.md"，不再内联重述语法（src/templates + dogfood）。
+            </?01M02JDH99QNDMAQE6D6W0FZ9K>
+            <Acceptance [
+              <Criterion { id = "T1.2-AC1" checked = true } ?01M02JDH99QNDMAQE6D6W0FZ9M>
+              三份规范均引用 xnl-format.md
+              </?01M02JDH99QNDMAQE6D6W0FZ9M>
+            ]>
+          )>
+        ]>
+        <Hooks [
+          <Hook { on = "phase:after" } (
+            <AttractorCheck { use = "docs" }>
+          )>
+        ]>
+      )>
+      <TaskGroup #P2 { name = "校验引擎（TDD）" status = "DONE" order = 1 } (
+        <Description ?01M02JDH99QNDMAQE6D6W0FZ9N>
+        三层校验 + idNamespace helper + 不抛加载路径。
+        </?01M02JDH99QNDMAQE6D6W0FZ9N>
+        <SubNodes [
+          <Task { id = "T2.1" name = "写校验测试 + bad-case fixtures" status = "DONE" order = 0 priority = "P0" } (
+            <Description ?01M02JDH99QNDMAQE6D6W0FZ9P>
+            test/resources/modeling-validate/ 造 bad case（语法错/缺最小表征/id↔路径错位/modeling:// 悬空/重复 id/delta 错位）；test/cli/modeling/validate.test.ts 覆盖三层 + delta + 门控。先写、预期红。
+            </?01M02JDH99QNDMAQE6D6W0FZ9P>
+            <Acceptance [
+              <Criterion { id = "T2.1-AC1" checked = true } ?01M02JDH99QNDMAQE6D6W0FZ9Q>
+              测试覆盖 syntax/schema/hierarchy/reference/unique/delta/gate
+              </?01M02JDH99QNDMAQE6D6W0FZ9Q>
+            ]>
+          )>
+          <Task { id = "T2.2" name = "实现 validate.ts + helpers" status = "DONE" order = 1 priority = "P0" } (
+            <Description ?01M02JDH99QNDMAQE6D6W0FZ9R>
+            src/cli/modeling/validate.ts：Layer1 parseXnl try/catch→finding；Layer2 复用 validateModelingNode；Layer3 id↔路径对齐（决策2）、plane 合法性（决策4）、modeling:// 解析（决策3）、重复 id 转 finding。抽 idNamespace(id) helper + 不抛加载路径 loadModelingRegistrySafe。测试转绿。
+            </?01M02JDH99QNDMAQE6D6W0FZ9R>
+            <Acceptance [
+              <Criterion { id = "T2.2-AC1" checked = true } ?01M02JDH99QNDMAQE6D6W0FZ9S>
+              validate 返回结构化 findings；P2 测试全绿
+              </?01M02JDH99QNDMAQE6D6W0FZ9S>
+              <Criterion { id = "T2.2-AC2" checked = true } ?01M02JDH99QNDMAQE6D6W0FZ9T>
+              既有 loadModelingRegistry API 不变（新增 safe 路径隔离）
+              </?01M02JDH99QNDMAQE6D6W0FZ9T>
+            ]>
+          )>
+        ]>
+        <Hooks [
+          <Hook { on = "phase:after" } (
+            <AttractorCheck { use = "coding" }>
+          )>
+        ]>
+      )>
+      <TaskGroup #P3 { name = "CLI 接线与报告" status = "DONE" order = 2 } (
+        <Description ?01M02JDH99QNDMAQE6D6W0FZ9V>
+        modeling validate 子命令（registry + --deltas）+ 友好分组报告 + 门控 + help。
+        </?01M02JDH99QNDMAQE6D6W0FZ9V>
+        <SubNodes [
+          <Task { id = "T3.1" name = "modeling validate 子命令" status = "DONE" order = 0 priority = "P0" } (
+            <Description ?01M02JDH99QNDMAQE6D6W0FZ9W>
+            src/cli/commands/modeling.ts 增 validate：默认校验 codument/modeling，--deltas &lt;track&gt; 校验 modeling_deltas；按 file 分组 + error/warning 计数 + issues-first 退出语义；modelingEnabled() 关则跳过说明。命令形态按决策1。
+            </?01M02JDH99QNDMAQE6D6W0FZ9W>
+            <Acceptance [
+              <Criterion { id = "T3.1-AC1" checked = true } ?01M02JDH99QNDMAQE6D6W0FZ9X>
+              registry 与 --deltas 两模式可用，门控生效
+              </?01M02JDH99QNDMAQE6D6W0FZ9X>
+            ]>
+          )>
+          <Task { id = "T3.2" name = "help 文案" status = "DONE" order = 1 priority = "P2" } (
+            <Description ?01M02JDH99QNDMAQE6D6W0FZ9Y>
+            src/cli/index.ts / modeling usage 增 validate 行。
+            </?01M02JDH99QNDMAQE6D6W0FZ9Y>
+            <Acceptance [
+              <Criterion { id = "T3.2-AC1" checked = true } ?01M02JDH99QNDMAQE6D6W0FZ9Z>
+              help 列出 modeling validate
+              </?01M02JDH99QNDMAQE6D6W0FZ9Z>
+            ]>
+          )>
+        ]>
+        <Hooks [
+          <Hook { on = "phase:after" } (
+            <AttractorCheck { use = "coding" }>
+          )>
+        ]>
+      )>
+      <TaskGroup #P4 { name = "校验收口" status = "DONE" order = 3 } (
+        <Description ?01M02JDH99QNDMAQE6D6W0FZA0>
+        全套校验通过 + track validate。
+        </?01M02JDH99QNDMAQE6D6W0FZA0>
+        <SubNodes [
+          <Task { id = "T4.1" name = "运行校验" status = "DONE" order = 0 priority = "P0" } (
+            <Description ?01M02JDH99QNDMAQE6D6W0FZA1>
+            bun run typecheck + 全套 test 全绿；codument validate add-modeling-validate --strict OK；用 validate 自检 modeling-showcase（应全过）+ bad fixtures（应报错）。
+            </?01M02JDH99QNDMAQE6D6W0FZA1>
+            <Acceptance [
+              <Criterion { id = "T4.1-AC1" checked = true } ?01M02JDH99QNDMAQE6D6W0FZA2>
+              typecheck + tests 通过；validate 对 showcase 0 错、对 bad fixtures 有错
+              </?01M02JDH99QNDMAQE6D6W0FZA2>
+            ]>
+          )>
+        ]>
+        <Hooks [
+          <Hook { on = "phase:after" } (
+            <AttractorCheck { use = "coding" }>
+          )>
+          <Hook { on = "phase:after" } (
+            <GapLoop { max_rounds = 5 on_exhausted = "block" status = "DONE" }>
+          )>
+        ]>
+      )>
+    ]>
+  )>
+  <Schedule>
+)>

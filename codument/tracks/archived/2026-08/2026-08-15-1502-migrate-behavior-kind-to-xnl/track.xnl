@@ -1,0 +1,34 @@
+<Track #migrate-behavior-kind-to-xnl apiVersion="codument.tech/v1alpha1" version="1" {
+  status = "completed"
+  goal = "将 Behavior 单文件 registry authority 从 XML 迁移为 Halfcode-backed XNL。"
+  description = "定义 Behavior Kind/DSL、codec、migration，并让 archive patch bridge 读写 XNL。"
+  question_mode = "decision-tree"
+  question_severity = "auto"
+  commit_mode = "manual"
+  created_at = "2026-08-15T11:52:36.476Z"
+  updated_at = "2026-08-15T12:02:37Z"
+} (
+  <Ports { scope = "track" } [
+    <MaterialBundle { role = "output" name = "behavior-codec" domain = "code" path = "vfs://@/src/cli/behavior/" }>
+    <MaterialBundle { role = "output" name = "behavior-registry" domain = "behavior" path = "vfs://@/codument/behaviors/" }>
+  ]>
+  <TaskSpace #space_migrate-behavior-kind-to-xnl { name = "migrate-behavior-kind-to-xnl" version = "1" } (
+    <SubNodes [
+      <TaskGroup #P1 { name = "Behavior authority" status = "DONE" order = 0 } (
+        <SubNodes [
+          <Task #P1-T1 { name = "定义 Behavior Kind、catalog 与 canonical DSL" status = "DONE" order = 0 }>
+          <Task #P1-T2 { name = "实现 Behavior XML/XNL codec 与 migration" status = "DONE" order = 1 }>
+          <Task #P1-T3 { name = "桥接 archive registry apply 的 XNL 读写" status = "DONE" order = 2 }>
+        ]>
+      )>
+      <TaskGroup #P2 { name = "Dogfood" status = "DONE" order = 1 } (
+        <SubNodes [
+          <Task #P2-T1 { name = "更新 registry 规范与测试" status = "DONE" order = 0 }>
+          <Task #P2-T2 { name = "自升级并用 Halfcode 加载当前 Behavior" status = "DONE" order = 1 }>
+        ]>
+      )>
+    ]>
+  )>
+  <Schedule []>
+  <Hooks []>
+)>

@@ -1,10 +1,8 @@
 <route #orders.checkout_route { kind = "surface:route" } [
   <desc ?>
-
   前端结账路由（shell 命名空间 kind）：/checkout 页，提交触发 place-order action。
   </?>
   <types ?ts_route>
-
   route: /checkout; params: none; guard: authenticated; action: place-order
   </?ts_route>
 ]>

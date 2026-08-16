@@ -1,0 +1,14 @@
+<rule #backend.rules.t.r apiVersion="codument.tech/v1alpha1" { kind = "rule" } (
+  <desc ?01M07XWFHG39BN49EAM4N58YE4>
+  TODO: 描述 r 规则。
+  </?01M07XWFHG39BN49EAM4N58YE4>
+  <rule ?01M07XWFHG39BN49EAM4N58YE5>
+  TODO: 规则正文。
+  </?01M07XWFHG39BN49EAM4N58YE5>
+  <rationale ?01M07XWFHG39BN49EAM4N58YE6>
+  TODO: 为什么这条规则存在。
+  </?01M07XWFHG39BN49EAM4N58YE6>
+  <enforcement ?01M07XWFHG39BN49EAM4N58YE7>
+  TODO: 如何强制/验证。
+  </?01M07XWFHG39BN49EAM4N58YE7>
+)>

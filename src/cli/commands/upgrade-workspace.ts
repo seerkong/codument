@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 import { parseOptions, codumentExists } from '../utils';
+import { migrateWorkspaceResources, type ResourceMigrationResult } from '../migrations';
 import {
   installSkillTemplates,
   installTemplates,
@@ -14,6 +15,37 @@ import {
   writeCliToolsConfig,
   type CLITool,
 } from '../utils/install';
+import type { CommandRuntime } from '../contracts/command';
+import { createCommandRuntime } from '../runtime';
+
+interface WorkspaceSkillReceipt {
+  agent: string;
+  directory: string;
+  written: number;
+  removed: number;
+}
+
+export interface WorkspaceUpgradeReceipt {
+  status: 'upgraded' | 'review-required';
+  backupRoot: string;
+  managedFiles: { written: number; kept: number };
+  skills: WorkspaceSkillReceipt[];
+  cliToolsUpdated: boolean;
+  cleanup: {
+    legacyPathsRemoved: number;
+    legacyOperationHooksMigrated: number;
+    obsoleteDefaultHooksRemoved: number;
+    configReferencesUpdated: number;
+    trackDirectoriesMigrated: { active: number; archived: number };
+    trackDirectoryConflicts: string[];
+    gitignoreRulesAdded: number;
+  };
+  resources: { upgraded: number; removed: number; unchanged: number };
+  reviewRequired: ResourceMigrationResult[];
+  semanticReviewRecommended: ResourceMigrationResult[];
+  agentsBlockRefreshed: true;
+  instructionFilesRefreshed: string[];
+}
 
 /**
  * `codument upgrade-workspace` — refresh the embedded templates in place.
@@ -26,7 +58,10 @@ import {
  *
  * Options: same --agent / --skills-dir as `init`.
  */
-export async function upgradeWorkspaceCommand(args: string[]): Promise<void> {
+export async function upgradeWorkspaceCommand(
+  args: string[],
+  runtime: CommandRuntime = createCommandRuntime(),
+): Promise<void> {
   if (!codumentExists()) {
     console.error('Codument is not initialized. Run codument init first.');
     process.exit(1);
@@ -46,53 +81,121 @@ export async function upgradeWorkspaceCommand(args: string[]): Promise<void> {
   if (shouldWriteCliToolsConfig) {
     writeCliToolsConfig(selectedTools);
   }
-  const migratedLegacyActionHooks = migrateLegacyActionHooks(backupRoot);
+  const migratedLegacyOperationHooks = migrateLegacyOperationHooks(backupRoot);
   const removedObsoleteDefaultHooks = removeObsoleteDefaultAttractorHooks();
   const removedLegacyPaths = removeLegacyWorkspacePaths(backupRoot);
   const migratedConfigRefs = migrateWorkspaceConfigRefs(backupRoot);
   const targets = resolveSkillsTargets(options, selectedTools);
   const [firstTarget, ...additionalTargets] = targets;
 
-  const result = installTemplates({ skillsDir: firstTarget.skillsDir, overwriteStd: true });
+  const result = await installTemplates({
+    skillsDir: firstTarget.skillsDir,
+    overwriteStd: true,
+    resources: runtime.resources,
+    workspace: runtime.workspace(),
+    skills: runtime.workspace(firstTarget.skillsDir),
+  });
   const skillResults = [{ ...firstTarget, skillsWritten: result.skillsWritten, skillsRemoved: result.skillsRemoved }];
   for (const target of additionalTargets) {
-    skillResults.push({ ...target, ...installSkillTemplates(target.skillsDir) });
+    skillResults.push({ ...target, ...await installSkillTemplates(
+      target.skillsDir,
+      runtime.resources,
+      runtime.workspace(target.skillsDir),
+    ) });
   }
-  injectAgentsBlock();
+  const instructionFiles = injectAgentsBlock(selectedTools);
   const gitignoreRulesAdded = ensureCodumentGitignoreRules();
+  const resourceMigration = migrateWorkspaceResources('codument', { backupRoot });
 
-  console.log('Codument workspace upgraded.');
-  console.log(`  backup    : ${backupRoot}`);
-  console.log(`  codument/ : ${result.workspaceWritten} written (std refreshed), ${result.workspaceSkipped} kept`);
-  for (const skillResult of skillResults) {
-    const removed = skillResult.skillsRemoved ? `, ${skillResult.skillsRemoved} deprecated removed` : '';
-    console.log(`  skills    : ${skillResult.skillsWritten} → ${toPortablePath(skillResult.skillsDir)} (agent: ${skillResult.agent}${removed})`);
+  const receipt: WorkspaceUpgradeReceipt = {
+    status: resourceMigration.reviewRequired.length > 0 || lifecycleMigration.conflicts.length > 0
+      ? 'review-required'
+      : 'upgraded',
+    backupRoot,
+    managedFiles: { written: result.workspaceWritten, kept: result.workspaceSkipped },
+    skills: skillResults.map((skillResult) => ({
+      agent: skillResult.agent,
+      directory: toPortablePath(skillResult.skillsDir),
+      written: skillResult.skillsWritten,
+      removed: skillResult.skillsRemoved,
+    })),
+    cliToolsUpdated: shouldWriteCliToolsConfig,
+    cleanup: {
+      legacyPathsRemoved: removedLegacyPaths,
+      legacyOperationHooksMigrated: migratedLegacyOperationHooks,
+      obsoleteDefaultHooksRemoved: removedObsoleteDefaultHooks,
+      configReferencesUpdated: migratedConfigRefs,
+      trackDirectoriesMigrated: {
+        active: lifecycleMigration.active,
+        archived: lifecycleMigration.archived,
+      },
+      trackDirectoryConflicts: lifecycleMigration.conflicts,
+      gitignoreRulesAdded,
+    },
+    resources: {
+      upgraded: resourceMigration.applied,
+      removed: resourceMigration.removed,
+      unchanged: resourceMigration.noop,
+    },
+    reviewRequired: resourceMigration.reviewRequired,
+    semanticReviewRecommended: resourceMigration.semanticReviewRecommended,
+    agentsBlockRefreshed: true,
+    instructionFilesRefreshed: instructionFiles,
+  };
+
+  if (options.json === true) {
+    console.log(JSON.stringify(receipt, null, 2));
+  } else {
+    reportWorkspaceUpgrade(receipt);
   }
-  if (shouldWriteCliToolsConfig) {
+  if (resourceMigration.reviewRequired.length > 0) process.exitCode = 2;
+}
+
+function reportWorkspaceUpgrade(receipt: WorkspaceUpgradeReceipt): void {
+  console.log('Codument workspace upgraded.');
+  console.log(`  backup    : ${receipt.backupRoot}`);
+  console.log(`  codument/ : ${receipt.managedFiles.written} written (managed authority refreshed), ${receipt.managedFiles.kept} kept`);
+  for (const skill of receipt.skills) {
+    const removed = skill.removed ? `, ${skill.removed} deprecated removed` : '';
+    console.log(`  skills    : ${skill.written} → ${skill.directory} (agent: ${skill.agent}${removed})`);
+  }
+  if (receipt.cliToolsUpdated) {
     console.log('  config/cli-tools.json: tools updated');
   }
-  if (removedLegacyPaths > 0) {
-    console.log(`  cleanup   : ${removedLegacyPaths} legacy path(s) removed`);
+  if (receipt.cleanup.legacyPathsRemoved > 0) {
+    console.log(`  cleanup   : ${receipt.cleanup.legacyPathsRemoved} legacy path(s) removed`);
   }
-  if (migratedLegacyActionHooks > 0) {
-    console.log(`  hooks     : ${migratedLegacyActionHooks} legacy hook file(s) migrated`);
+  if (receipt.cleanup.legacyOperationHooksMigrated > 0) {
+    console.log(`  hooks     : ${receipt.cleanup.legacyOperationHooksMigrated} legacy hook file(s) migrated`);
   }
-  if (removedObsoleteDefaultHooks > 0) {
-    console.log(`  hooks     : ${removedObsoleteDefaultHooks} obsolete default attractor hook(s) removed`);
+  if (receipt.cleanup.obsoleteDefaultHooksRemoved > 0) {
+    console.log(`  hooks     : ${receipt.cleanup.obsoleteDefaultHooksRemoved} obsolete default attractor hook(s) removed`);
   }
-  if (migratedConfigRefs > 0) {
-    console.log(`  config    : ${migratedConfigRefs} legacy reference(s) updated`);
+  if (receipt.cleanup.configReferencesUpdated > 0) {
+    console.log(`  config    : ${receipt.cleanup.configReferencesUpdated} legacy reference(s) updated`);
   }
-  if (lifecycleMigration.active > 0 || lifecycleMigration.archived > 0) {
-    console.log(`  tracks    : ${lifecycleMigration.active} active and ${lifecycleMigration.archived} archived path(s) migrated`);
+  const trackMigration = receipt.cleanup.trackDirectoriesMigrated;
+  if (trackMigration.active > 0 || trackMigration.archived > 0) {
+    console.log(`  tracks    : ${trackMigration.active} active and ${trackMigration.archived} archived path(s) migrated`);
   }
-  for (const conflict of lifecycleMigration.conflicts) {
+  for (const conflict of receipt.cleanup.trackDirectoryConflicts) {
     console.log(`  tracks    : migration conflict left in place: ${conflict}`);
   }
-  if (gitignoreRulesAdded > 0) {
-    console.log(`  .gitignore: ${gitignoreRulesAdded} codument rule(s) added`);
+  if (receipt.cleanup.gitignoreRulesAdded > 0) {
+    console.log(`  .gitignore: ${receipt.cleanup.gitignoreRulesAdded} codument rule(s) added`);
   }
-  console.log('  AGENTS.md : managed block refreshed');
+  if (receipt.resources.upgraded > 0 || receipt.resources.removed > 0) {
+    console.log(`  migrate   : ${receipt.resources.upgraded} resource(s) versioned, ${receipt.resources.removed} empty decision file(s) removed`);
+  }
+  for (const review of receipt.reviewRequired) {
+    console.log(`  migrate   : review-required ${review.path}: ${review.diagnostics.join('; ')}`);
+  }
+  for (const review of receipt.semanticReviewRecommended) {
+    console.log(`  migrate   : semantic-review ${review.targetPath ?? review.path} (compare with ${review.backupPath ?? 'backup'})`);
+  }
+  for (const file of receipt.instructionFilesRefreshed) {
+    console.log(`  ${file.padEnd(10)}: managed block refreshed`);
+  }
 }
 
 function safeTimestamp(): string {
@@ -117,7 +220,7 @@ function copyRecursive(src: string, dest: string): void {
 
 function createWorkspaceBackup(): string {
   const backupRoot = path.join('.tmp', 'codument', `upgrade-workspace-${safeTimestamp()}`);
-  const paths = ['codument', 'AGENTS.md'];
+  const paths = ['codument', 'AGENTS.md', 'CLAUDE.md'];
   for (const source of paths) {
     if (fs.existsSync(source)) {
       copyRecursive(source, path.join(backupRoot, source));
@@ -155,7 +258,7 @@ function migrateTrackLifecycleDirectories(): TrackLifecycleMigration {
         continue;
       }
       const source = path.join(tracksRoot, entry.name);
-      if (!fs.existsSync(path.join(source, 'track.xml')) && !fs.existsSync(path.join(source, 'plan.xml'))) {
+      if (!fs.existsSync(path.join(source, 'track.xnl')) && !fs.existsSync(path.join(source, 'track.xml')) && !fs.existsSync(path.join(source, 'plan.xml'))) {
         continue;
       }
       const destination = path.join(activeRoot, entry.name);
@@ -212,11 +315,11 @@ function removeLegacyWorkspacePaths(backupRoot: string): number {
     'codument/std/workflow.md',
     'codument/std/protocols.md',
     'codument/std/root-agents.md',
-    'codument/std/operations',
+    'codument/std/actions',
     'codument/std/sop',
-    'codument/std/actions/init.md',
-    'codument/std/actions/status.md',
     'codument/std/plan-xml-spec.md',
+    'codument/std/spec/track-xml-spec.md',
+    'codument/std/spec/mission-xml-spec.md',
     'codument/std/track-impl-gap-report-1.md',
     'codument/std/docs-modeling-fractal',
     'codument/std/docs-impl-fractal',
@@ -237,33 +340,43 @@ function removeLegacyWorkspacePaths(backupRoot: string): number {
   return removed;
 }
 
-function migrateLegacyActionHooks(backupRoot: string): number {
-  const legacyPath = path.join('codument', 'config', 'operation-hooks.xml');
-  const actionPath = path.join('codument', 'config', 'action-hooks.xml');
-  if (!fs.existsSync(legacyPath) || fs.existsSync(actionPath)) {
-    return 0;
-  }
+function migrateLegacyOperationHooks(backupRoot: string): number {
+  const configDir = path.join('codument', 'config');
+  const currentXnl = path.join(configDir, 'operation-hooks.xnl');
+  if (fs.existsSync(currentXnl)) return 0;
 
-  const original = fs.readFileSync(legacyPath, 'utf-8');
-  const migrated = original
-    .replace(/OperationHooks/g, 'ActionHooks')
-    .replace(/\bOperation\b/g, 'Action')
-    .replace(/\boperation hooks\b/gi, 'action hooks');
+  const legacySources = [
+    path.join(configDir, 'action-hooks.xnl'),
+    path.join(configDir, 'action-hooks.xml'),
+    path.join(configDir, 'operation-hooks.xml'),
+  ];
+  const legacyPath = legacySources.find((candidate) => fs.existsSync(candidate));
+  if (!legacyPath) return 0;
+
+  const migrated = fs.readFileSync(legacyPath, 'utf-8')
+    .replace(/ActionHooks/g, 'OperationHooks')
+    .replace(/\bActions\b/g, 'Operations')
+    .replace(/\bAction\b/g, 'Operation')
+    .replace(/action hooks/gi, 'operation hooks')
+    .replace(/codument\.config\.action_hooks/g, 'codument.config.operation_hooks');
+  const targetPath = legacyPath.endsWith('.xnl')
+    ? currentXnl
+    : path.join(configDir, 'operation-hooks.xml');
   copyRecursive(legacyPath, path.join(backupRoot, legacyPath));
-  fs.mkdirSync(path.dirname(actionPath), { recursive: true });
-  fs.writeFileSync(actionPath, migrated, 'utf-8');
-  fs.rmSync(legacyPath, { force: true });
+  fs.mkdirSync(path.dirname(targetPath), { recursive: true });
+  fs.writeFileSync(targetPath, migrated, 'utf-8');
+  if (legacyPath !== targetPath) fs.rmSync(legacyPath, { force: true });
   return 1;
 }
 
 function removeObsoleteDefaultAttractorHooks(): number {
-  const actionPath = path.join('codument', 'config', 'action-hooks.xml');
-  if (!fs.existsSync(actionPath)) {
+  const operationPath = path.join('codument', 'config', 'operation-hooks.xml');
+  if (!fs.existsSync(operationPath)) {
     return 0;
   }
 
   const obsoletePoints = ['discuss:before', 'impl-quick:before', 'revise-track:before'];
-  const original = fs.readFileSync(actionPath, 'utf-8');
+  const original = fs.readFileSync(operationPath, 'utf-8');
   let updated = original;
   let removed = 0;
 
@@ -283,15 +396,15 @@ function removeObsoleteDefaultAttractorHooks(): number {
     return 0;
   }
 
-  for (const action of ['discuss', 'impl-quick', 'revise-track']) {
-    const emptyAction = new RegExp(
-      `\\s*<Action\\s+name=["']${action}["']\\s*>\\s*<Hooks\\s*>\\s*</Hooks>\\s*</Action>`,
+  for (const operation of ['discuss', 'impl-quick', 'revise-track']) {
+    const emptyOperation = new RegExp(
+      `\\s*<Operation\\s+name=["']${operation}["']\\s*>\\s*<Hooks\\s*>\\s*</Hooks>\\s*</Operation>`,
       'g',
     );
-    updated = updated.replace(emptyAction, '');
+    updated = updated.replace(emptyOperation, '');
   }
 
-  fs.writeFileSync(actionPath, updated, 'utf-8');
+  fs.writeFileSync(operationPath, updated, 'utf-8');
   return removed;
 }
 
@@ -328,7 +441,9 @@ function migrateWorkspaceConfigRefs(backupRoot: string): number {
   ];
   const candidateFiles = [
     'codument/config/attractor-profiles.xml',
-    'codument/config/action-hooks.xml',
+    'codument/config/operation-hooks.xml',
+    'codument/config/attractor-profiles.xnl',
+    'codument/config/operation-hooks.xnl',
   ];
 
   let updatedRefs = 0;

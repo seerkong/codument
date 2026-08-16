@@ -1,0 +1,328 @@
+<BehaviorPatch #track.r_2_0_2_6_-_0_6_-_2_7_-_2_2_3_3_-_r_e_d_e_s_i_g_n_-_m_i_s_s_i_o_n_-_w_o_r_k_f_l_o_w.behavior_patch.codument-core apiVersion="codument.tech/v1alpha1" version="1" { capability = "codument-core" } (
+  <Mutations [
+    <Upsert { selector = "behavior://codument-core/requirements/mission-lifecycle-directories" } (
+      <Requirement #mission-lifecycle-directories (
+        <Statement ?01M02NT0WBVT6KSNTVY28J75K2>
+        系统 SHALL manage missions as first-class long-running work items under `codument/missions/{pending,active,archived}/`, not directly under `codument/missions/&lt;mission-id&gt;/`.
+        </?01M02NT0WBVT6KSNTVY28J75K2>
+        <Suites [
+          <Suite #mission-lifecycle { name = "Mission lifecycle directories" } (
+            <Cases [
+              <Case #plan-mission-pending (
+                <Given ?01M02NT0WBVT6KSNTVY28J75K3>
+                用户使用 `codument-plan-mission` 创建 mission
+                </?01M02NT0WBVT6KSNTVY28J75K3>
+                <When ?01M02NT0WBVT6KSNTVY28J75K4>
+                mission artifacts are written
+                </?01M02NT0WBVT6KSNTVY28J75K4>
+                <Then ?01M02NT0WBVT6KSNTVY28J75K5>
+                系统 SHALL create `codument/missions/pending/&lt;mission-id&gt;/`
+                </?01M02NT0WBVT6KSNTVY28J75K5>
+                <Ands [
+                  <And ?01M02NT0WBVT6KSNTVY28J75K6>
+                  系统 SHALL write `mission.xml`, `proposal.md`, and `design.md` in that directory
+                  </?01M02NT0WBVT6KSNTVY28J75K6>
+                ]>
+              )>
+              <Case #impl-mission-active (
+                <Given ?01M02NT0WBVT6KSNTVY28J75K7>
+                用户开始执行一个 pending mission
+                </?01M02NT0WBVT6KSNTVY28J75K7>
+                <When ?01M02NT0WBVT6KSNTVY28J75K8>
+                `codument-impl-mission` starts the mission
+                </?01M02NT0WBVT6KSNTVY28J75K8>
+                <Then ?01M02NT0WBVT6KSNTVY28J75K9>
+                系统 SHALL move or require the mission under `codument/missions/active/&lt;mission-id&gt;/`
+                </?01M02NT0WBVT6KSNTVY28J75K9>
+                <Ands [
+                  <And ?01M02NT0WBVT6KSNTVY28J75KA>
+                  后续执行 SHALL treat `active/&lt;mission-id&gt;/mission.xml` as the state source
+                  </?01M02NT0WBVT6KSNTVY28J75KA>
+                ]>
+              )>
+              <Case #archive-mission-date-prefix (
+                <Given ?01M02NT0WBVT6KSNTVY28J75KB>
+                一个 mission 已完成、取消、废弃或被替代
+                </?01M02NT0WBVT6KSNTVY28J75KB>
+                <When ?01M02NT0WBVT6KSNTVY28J75KC>
+                用户使用 `codument-archive-mission` 归档
+                </?01M02NT0WBVT6KSNTVY28J75KC>
+                <Then ?01M02NT0WBVT6KSNTVY28J75KD>
+                系统 SHALL move it to `codument/missions/archived/YYYY-MM-DD-&lt;mission-id&gt;/`
+                </?01M02NT0WBVT6KSNTVY28J75KD>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/mission-standard-artifacts" } (
+      <Requirement #mission-standard-artifacts (
+        <Statement ?01M02NT0WBVT6KSNTVY28J75KE>
+        系统 SHALL use `mission.xml`, `proposal.md`, and `design.md` as the standard mission artifacts, and SHALL NOT require `roadmap.md` for new missions.
+        </?01M02NT0WBVT6KSNTVY28J75KE>
+        <Suites [
+          <Suite #mission-artifacts { name = "Mission standard artifacts" } (
+            <Cases [
+              <Case #no-roadmap (
+                <Given ?01M02NT0WBVT6KSNTVY28J75KF>
+                系统创建一个新 mission
+                </?01M02NT0WBVT6KSNTVY28J75KF>
+                <When ?01M02NT0WBVT6KSNTVY28J75KG>
+                standard artifacts are generated
+                </?01M02NT0WBVT6KSNTVY28J75KG>
+                <Then ?01M02NT0WBVT6KSNTVY28J75KH>
+                系统 SHALL NOT create `roadmap.md` as a required artifact
+                </?01M02NT0WBVT6KSNTVY28J75KH>
+                <Ands [
+                  <And ?01M02NT0WBVT6KSNTVY28J75KJ>
+                  路线目标、非目标、成功判据 SHALL be written to `proposal.md`
+                  </?01M02NT0WBVT6KSNTVY28J75KJ>
+                  <And ?01M02NT0WBVT6KSNTVY28J75KK>
+                  控制论 actor 模型、DEPA 边界、重规划规则 SHALL be written to `design.md`
+                  </?01M02NT0WBVT6KSNTVY28J75KK>
+                  <And ?01M02NT0WBVT6KSNTVY28J75KM>
+                  阶段、节点、依赖、状态、候选 track SHALL be written to `mission.xml`
+                  </?01M02NT0WBVT6KSNTVY28J75KM>
+                ]>
+              )>
+              <Case #analysis-reports-not-git-truth (
+                <Given ?01M02NT0WBVT6KSNTVY28J75KN>
+                一个 mission contains `analysis/` and `reports/` directories
+                </?01M02NT0WBVT6KSNTVY28J75KN>
+                <When ?01M02NT0WBVT6KSNTVY28J75KP>
+                mission execution records findings or run reports
+                </?01M02NT0WBVT6KSNTVY28J75KP>
+                <Then ?01M02NT0WBVT6KSNTVY28J75KQ>
+                这些目录 SHALL be treated as execution-time external memory and default to not being committed to git
+                </?01M02NT0WBVT6KSNTVY28J75KQ>
+                <Ands [
+                  <And ?01M02NT0WBVT6KSNTVY28J75KR>
+                  稳定知识 SHALL still be promoted to docs, behaviors, decisions, or memory according to knowledge tiers
+                  </?01M02NT0WBVT6KSNTVY28J75KR>
+                ]>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/mission-xml-spec" } (
+      <Requirement #mission-xml-spec (
+        <Statement ?01M02NT0WBVT6KSNTVY28J75KS>
+        系统 SHALL define `mission.xml` as a Track-like XML state source with a `&lt;Mission&gt;` root, default DAG execution, and explicit support for controlled replanning.
+        </?01M02NT0WBVT6KSNTVY28J75KS>
+        <Suites [
+          <Suite #mission-xml { name = "Mission XML" } (
+            <Cases [
+              <Case #track-like-shape (
+                <Given ?01M02NT0WBVT6KSNTVY28J75KT>
+                一个 mission has a `mission.xml` file
+                </?01M02NT0WBVT6KSNTVY28J75KT>
+                <When ?01M02NT0WBVT6KSNTVY28J75KV>
+                the file is authored or validated
+                </?01M02NT0WBVT6KSNTVY28J75KV>
+                <Then ?01M02NT0WBVT6KSNTVY28J75KW>
+                the root SHALL be `&lt;Mission id=&quot;...&quot; version=&quot;1&quot; xmlns:cdt=&quot;urn:codument:v1&quot;&gt;`
+                </?01M02NT0WBVT6KSNTVY28J75KW>
+                <Ands [
+                  <And ?01M02NT0WBVT6KSNTVY28J75KX>
+                  the file SHALL use Track-like `Metadata`, `Ports`, `TaskSpace`, `Schedule`, and `Hooks` sections
+                  </?01M02NT0WBVT6KSNTVY28J75KX>
+                ]>
+              )>
+              <Case #default-dag (
+                <Given ?01M02NT0WBVT6KSNTVY28J75KY>
+                一个 mission TaskSpace contains top-level mission nodes
+                </?01M02NT0WBVT6KSNTVY28J75KY>
+                <When ?01M02NT0WBVT6KSNTVY28J75KZ>
+                execution order is planned
+                </?01M02NT0WBVT6KSNTVY28J75KZ>
+                <Then ?01M02NT0WBVT6KSNTVY28J75M0>
+                the top-level mission TaskSpace SHALL default to DAG execution
+                </?01M02NT0WBVT6KSNTVY28J75M0>
+                <Ands [
+                  <And ?01M02NT0WBVT6KSNTVY28J75M1>
+                  dependencies SHALL be represented with `Schedule/Dag/Node/After` using the same direct-child dependency rule as track.xml
+                  </?01M02NT0WBVT6KSNTVY28J75M1>
+                ]>
+              )>
+              <Case #revision-on-replan (
+                <Given ?01M02NT0WBVT6KSNTVY28J75M2>
+                an active mission needs nodes or dependencies changed during execution
+                </?01M02NT0WBVT6KSNTVY28J75M2>
+                <When ?01M02NT0WBVT6KSNTVY28J75M3>
+                the mission is replanned
+                </?01M02NT0WBVT6KSNTVY28J75M3>
+                <Then ?01M02NT0WBVT6KSNTVY28J75M4>
+                系统 SHALL update `mission.xml` and increment mission revision metadata
+                </?01M02NT0WBVT6KSNTVY28J75M4>
+                <Ands [
+                  <And ?01M02NT0WBVT6KSNTVY28J75M5>
+                  系统 SHALL write a report explaining the evidence or human decision behind the replan
+                  </?01M02NT0WBVT6KSNTVY28J75M5>
+                ]>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/mission-cybernetic-actors" } (
+      <Requirement #mission-cybernetic-actors (
+        <Statement ?01M02NT0WBVT6KSNTVY28J75M6>
+        系统 SHALL model mission execution as a cybernetic DEPA actor loop over a DAG-shaped desired state.
+        </?01M02NT0WBVT6KSNTVY28J75M6>
+        <Suites [
+          <Suite #mission-actors { name = "Mission cybernetic actors" } (
+            <Cases [
+              <Case #four-actors (
+                <Given ?01M02NT0WBVT6KSNTVY28J75M7>
+                mission execution prompt describes roles
+                </?01M02NT0WBVT6KSNTVY28J75M7>
+                <When ?01M02NT0WBVT6KSNTVY28J75M8>
+                the prompt explains how execution proceeds
+                </?01M02NT0WBVT6KSNTVY28J75M8>
+                <Then ?01M02NT0WBVT6KSNTVY28J75M9>
+                系统 SHALL name and use `MissionPlanner`, `MissionObserver`, `MissionReconciler`, and `MissionApplier` actor concepts
+                </?01M02NT0WBVT6KSNTVY28J75M9>
+                <Ands [
+                  <And ?01M02NT0WBVT6KSNTVY28J75MA>
+                  `MissionPlanner` SHALL produce or revise desired mission graph
+                  </?01M02NT0WBVT6KSNTVY28J75MA>
+                  <And ?01M02NT0WBVT6KSNTVY28J75MB>
+                  `MissionObserver` SHALL observe actual state without mutating it
+                  </?01M02NT0WBVT6KSNTVY28J75MB>
+                  <And ?01M02NT0WBVT6KSNTVY28J75MC>
+                  `MissionReconciler` SHALL compare desired and actual state and decide the next convergence action
+                  </?01M02NT0WBVT6KSNTVY28J75MC>
+                  <And ?01M02NT0WBVT6KSNTVY28J75MD>
+                  `MissionApplier` SHALL be the write actor for bounded convergence actions
+                  </?01M02NT0WBVT6KSNTVY28J75MD>
+                ]>
+              )>
+              <Case #level-triggered (
+                <Given ?01M02NT0WBVT6KSNTVY28J75ME>
+                a mission execution turn resumes after interruption
+                </?01M02NT0WBVT6KSNTVY28J75ME>
+                <When ?01M02NT0WBVT6KSNTVY28J75MF>
+                the next action is chosen
+                </?01M02NT0WBVT6KSNTVY28J75MF>
+                <Then ?01M02NT0WBVT6KSNTVY28J75MG>
+                系统 SHALL read current mission.xml, track states, archive state, reports, and relevant evidence instead of relying on chat history
+                </?01M02NT0WBVT6KSNTVY28J75MG>
+              )>
+              <Case #bounded-action (
+                <Given ?01M02NT0WBVT6KSNTVY28J75MH>
+                mission execution detects a needed convergence action
+                </?01M02NT0WBVT6KSNTVY28J75MH>
+                <When ?01M02NT0WBVT6KSNTVY28J75MJ>
+                MissionApplier acts
+                </?01M02NT0WBVT6KSNTVY28J75MJ>
+                <Then ?01M02NT0WBVT6KSNTVY28J75MK>
+                系统 SHALL perform one bounded action per turn or per explicit execution step
+                </?01M02NT0WBVT6KSNTVY28J75MK>
+                <Ands [
+                  <And ?01M02NT0WBVT6KSNTVY28J75MM>
+                  系统 SHALL avoid silently running unbounded multi-track automation without feedback
+                  </?01M02NT0WBVT6KSNTVY28J75MM>
+                ]>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/mission-operations" } (
+      <Requirement #mission-operations (
+        <Statement ?01M02NT0WBVT6KSNTVY28J75MN>
+        系统 SHALL provide `codument-plan-mission`, `codument-impl-mission`, and `codument-archive-mission` operation prompts and skill shells that reuse track operation experience while preserving mission-specific replanning semantics.
+        </?01M02NT0WBVT6KSNTVY28J75MN>
+        <Suites [
+          <Suite #mission-ops { name = "Mission operations" } (
+            <Cases [
+              <Case #plan-mission-examples (
+                <Given ?01M02NT0WBVT6KSNTVY28J75MP>
+                用户使用 `codument-plan-mission`
+                </?01M02NT0WBVT6KSNTVY28J75MP>
+                <When ?01M02NT0WBVT6KSNTVY28J75MQ>
+                the operation prompt describes output shape
+                </?01M02NT0WBVT6KSNTVY28J75MQ>
+                <Then ?01M02NT0WBVT6KSNTVY28J75MR>
+                the prompt SHALL include examples for `mission.xml`, `proposal.md`, and `design.md`
+                </?01M02NT0WBVT6KSNTVY28J75MR>
+              )>
+              <Case #impl-mission-replan (
+                <Given ?01M02NT0WBVT6KSNTVY28J75MS>
+                an active mission is being executed
+                </?01M02NT0WBVT6KSNTVY28J75MS>
+                <When ?01M02NT0WBVT6KSNTVY28J75MT>
+                new evidence invalidates the current mission DAG or a human changes the goal
+                </?01M02NT0WBVT6KSNTVY28J75MT>
+                <Then ?01M02NT0WBVT6KSNTVY28J75MV>
+                `codument-impl-mission` SHALL allow controlled replanning: adding, deleting, modifying nodes or dependencies
+                </?01M02NT0WBVT6KSNTVY28J75MV>
+                <Ands [
+                  <And ?01M02NT0WBVT6KSNTVY28J75MW>
+                  the operation SHALL require evidence or human decision and write a report
+                  </?01M02NT0WBVT6KSNTVY28J75MW>
+                ]>
+              )>
+              <Case #archive-mission (
+                <Given ?01M02NT0WBVT6KSNTVY28J75MX>
+                a mission is completed, cancelled, abandoned, or superseded
+                </?01M02NT0WBVT6KSNTVY28J75MX>
+                <When ?01M02NT0WBVT6KSNTVY28J75MY>
+                用户使用 `codument-archive-mission`
+                </?01M02NT0WBVT6KSNTVY28J75MY>
+                <Then ?01M02NT0WBVT6KSNTVY28J75MZ>
+                the operation SHALL move the mission into `archived/YYYY-MM-DD-&lt;mission-id&gt;/`
+                </?01M02NT0WBVT6KSNTVY28J75MZ>
+                <Ands [
+                  <And ?01M02NT0WBVT6KSNTVY28J75N0>
+                  the operation SHALL promote durable decisions or memory candidates when configured, following archive-track experience
+                  </?01M02NT0WBVT6KSNTVY28J75N0>
+                ]>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/flow-notation-spec" } (
+      <Requirement #flow-notation-spec (
+        <Statement ?01M02NT0WBVT6KSNTVY28J75N1>
+        系统 SHALL maintain flow notation as a reusable standard spec under `codument/std/spec/flow-notation.md`, and operation prompt guidance SHALL reference that spec instead of duplicating the full notation.
+        </?01M02NT0WBVT6KSNTVY28J75N1>
+        <Suites [
+          <Suite #flow-notation { name = "Flow notation spec" } (
+            <Cases [
+              <Case #spec-location (
+                <Given ?01M02NT0WBVT6KSNTVY28J75N2>
+                Codument templates are deployed
+                </?01M02NT0WBVT6KSNTVY28J75N2>
+                <When ?01M02NT0WBVT6KSNTVY28J75N3>
+                standard specs are inspected
+                </?01M02NT0WBVT6KSNTVY28J75N3>
+                <Then ?01M02NT0WBVT6KSNTVY28J75N4>
+                `codument/std/spec/flow-notation.md` SHALL exist
+                </?01M02NT0WBVT6KSNTVY28J75N4>
+              )>
+              <Case #operation-spec-reference (
+                <Given ?01M02NT0WBVT6KSNTVY28J75N5>
+                `codument/std/operations/_operation-spec.md` exists
+                </?01M02NT0WBVT6KSNTVY28J75N5>
+                <When ?01M02NT0WBVT6KSNTVY28J75N6>
+                an operation prompt author reads it
+                </?01M02NT0WBVT6KSNTVY28J75N6>
+                <Then ?01M02NT0WBVT6KSNTVY28J75N7>
+                the file SHALL point to `codument/std/spec/flow-notation.md` as the authoritative flow notation reference
+                </?01M02NT0WBVT6KSNTVY28J75N7>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+  ]>
+)>

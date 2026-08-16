@@ -1,20 +1,22 @@
-<decision #track.simplify_codument_actions.defaults {
-  priority = "P0"
-  status = "accepted"
-  durable_candidate = false
-  confidence = 0.99
-  reversibility = "moderate"
-}
-(
-  <question ?>What should planning create by default and when should attractor checks run?</?>
-  <recommendation ?>Always create design.md and decisions.xnl; keep durable folders on demand and make fresh attractor checks explicit or high-risk final-phase only.</?>
-  <answer { }
-  (
-    <raw-answer ?>The user confirmed these defaults and requested lower attractor frequency without splitting the coding profile.</?>
-    <decision-text ?>Planning creates design.md and decisions.xnl unconditionally, while decisions/ and memory/ are demand-created. Ordinary actions and phases do not run fresh attractor checks by default.</?>
-    <rationale ?>This preserves durable planning context while avoiding repeated full-context review work.</?>
-    <evidence ?>Mission decisions action_taxonomy, maintain_track, and attractor.</?>
-  )
-  >
-)
->
+<decision #track.simplify_codument_actions.defaults apiVersion="codument.tech/v1alpha1" { priority = "P0" status = "accepted" durable_candidate = false confidence = 0.99 reversibility = "moderate" } (
+  <question ?01M02EGVBE4FPMA727YKFJ9YPR>
+  What should planning create by default and when should attractor checks run?
+  </?01M02EGVBE4FPMA727YKFJ9YPR>
+  <recommendation ?01M02EGVBE4FPMA727YKFJ9YPS>
+  Always create design.md and decisions.xnl; keep durable folders on demand and make fresh attractor checks explicit or high-risk final-phase only.
+  </?01M02EGVBE4FPMA727YKFJ9YPS>
+  <answer {  } (
+    <raw-answer ?01M02EGVBE4FPMA727YKFJ9YPT>
+    The user confirmed these defaults and requested lower attractor frequency without splitting the coding profile.
+    </?01M02EGVBE4FPMA727YKFJ9YPT>
+    <decision-text ?01M02EGVBE4FPMA727YKFJ9YPV>
+    Planning creates design.md and decisions.xnl unconditionally, while decisions/ and memory/ are demand-created. Ordinary actions and phases do not run fresh attractor checks by default.
+    </?01M02EGVBE4FPMA727YKFJ9YPV>
+    <rationale ?01M02EGVBE4FPMA727YKFJ9YPW>
+    This preserves durable planning context while avoiding repeated full-context review work.
+    </?01M02EGVBE4FPMA727YKFJ9YPW>
+    <evidence ?01M02EGVBE4FPMA727YKFJ9YPX>
+    Mission decisions action_taxonomy, maintain_track, and attractor.
+    </?01M02EGVBE4FPMA727YKFJ9YPX>
+  )>
+)>

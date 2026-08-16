@@ -1,0 +1,173 @@
+<BehaviorPatch #track.r_2_0_2_6_-_0_6_-_2_1_-_1_7_3_0_-_a_d_d_-_m_o_d_e_l_i_n_g_-_v_a_l_i_d_a_t_e.behavior_patch.codument-core apiVersion="codument.tech/v1alpha1" version="1" { capability = "codument-core" } (
+  <Mutations [
+    <Upsert { selector = "behavior://codument-core/requirements/modeling-validate" } (
+      <Requirement #modeling-validate (
+        <Statement ?01M02NT0W8V81EVQKC9K65HJKZ>
+        系统 SHALL provide an explicit `codument modeling validate` command that checks every modeling `.xnl` file across three layers — XNL syntax, node-schema semantics, and hierarchy/reference consistency — reporting issues author-friendly (file + line/position + reason) instead of throwing, gated behind `config/modeling.xml` (skipped when modeling is disabled).
+        </?01M02NT0W8V81EVQKC9K65HJKZ>
+        <Suites [
+          <Suite #syntax-layer { name = "Layer 1: XNL syntax" } (
+            <Cases [
+              <Case #parse-and-report (
+                <Given ?01M02NT0W8V81EVQKC9K65HJM0>
+                A modeling `.xnl` file with an XNL syntax error (e.g. mismatched text marker, unclosed block).
+                </?01M02NT0W8V81EVQKC9K65HJM0>
+                <When ?01M02NT0W8V81EVQKC9K65HJM1>
+                `codument modeling validate` runs.
+                </?01M02NT0W8V81EVQKC9K65HJM1>
+                <Then ?01M02NT0W8V81EVQKC9K65HJM2>
+                The system SHALL parse via xnl-core `parseXnl(.., {textBlockStyle:true})` and report `{file, line/position, reason}`, rather than letting an uncaught `XnlParseError` propagate.
+                </?01M02NT0W8V81EVQKC9K65HJM2>
+                <Ands [
+                  <And ?01M02NT0W8V81EVQKC9K65HJM3>
+                  A syntactically valid file SHALL pass this layer with no finding.
+                  </?01M02NT0W8V81EVQKC9K65HJM3>
+                ]>
+              )>
+            ]>
+          )>
+          <Suite #schema-layer { name = "Layer 2: node-schema semantics" } (
+            <Cases [
+              <Case #reuse-validate-node (
+                <Given ?01M02NT0W8V81EVQKC9K65HJM4>
+                A modeling node missing a minimal-required representation (e.g. `entity` without `types`/`fact_grade`/`single_writer`, or an unknown bare kind).
+                </?01M02NT0W8V81EVQKC9K65HJM4>
+                <When ?01M02NT0W8V81EVQKC9K65HJM5>
+                validate runs.
+                </?01M02NT0W8V81EVQKC9K65HJM5>
+                <Then ?01M02NT0W8V81EVQKC9K65HJM6>
+                The system SHALL reuse `validateModelingNode` (kind spectrum, minimal representations, `fact_grade` enum, namespaced id) and surface each violation as a finding.
+                </?01M02NT0W8V81EVQKC9K65HJM6>
+              )>
+            ]>
+          )>
+          <Suite #hierarchy-layer { name = "Layer 3: hierarchy / definition consistency" } (
+            <Cases [
+              <Case #id-path-alignment (
+                <Given ?01M02NT0W8V81EVQKC9K65HJM7>
+                A node whose id namespace does not match its file path `&lt;plane&gt;/&lt;context&gt;` (e.g. `#inventory.stock` inside `domain/orders/index.xnl`).
+                </?01M02NT0W8V81EVQKC9K65HJM7>
+                <When ?01M02NT0W8V81EVQKC9K65HJM8>
+                validate runs.
+                </?01M02NT0W8V81EVQKC9K65HJM8>
+                <Then ?01M02NT0W8V81EVQKC9K65HJM9>
+                The system SHALL flag a hierarchy violation: the id's context segment MUST equal the path context, and if the id carries a plane prefix it MUST equal the path plane.
+                </?01M02NT0W8V81EVQKC9K65HJM9>
+              )>
+              <Case #plane-legality (
+                <Given ?01M02NT0W8V81EVQKC9K65HJMA>
+                The modeling registry root and a file under some plane.
+                </?01M02NT0W8V81EVQKC9K65HJMA>
+                <When ?01M02NT0W8V81EVQKC9K65HJMB>
+                validate runs.
+                </?01M02NT0W8V81EVQKC9K65HJMB>
+                <Then ?01M02NT0W8V81EVQKC9K65HJMC>
+                The system SHALL require a `domain` plane to exist and accept open derived planes, flagging an unknown plane per `config/modeling.xml` policy (default: warning).
+                </?01M02NT0W8V81EVQKC9K65HJMC>
+              )>
+              <Case #reference-resolvable (
+                <Given ?01M02NT0W8V81EVQKC9K65HJMD>
+                A node with a `modeling://` reference (`single_writer`/`depends_on`/`derived_from`/`uses`) pointing to a node absent from the registry index.
+                </?01M02NT0W8V81EVQKC9K65HJMD>
+                <When ?01M02NT0W8V81EVQKC9K65HJME>
+                validate runs over the full registry.
+                </?01M02NT0W8V81EVQKC9K65HJME>
+                <Then ?01M02NT0W8V81EVQKC9K65HJMF>
+                The system SHALL resolve `modeling://` references (scheme self-identifying) against the registry index and report dangling references.
+                </?01M02NT0W8V81EVQKC9K65HJMF>
+                <Ands [
+                  <And ?01M02NT0W8V81EVQKC9K65HJMG>
+                  `behavior://` references SHALL be syntax-checked but their existence MAY be left unverified (no hard dependency on the behaviors registry).
+                  </?01M02NT0W8V81EVQKC9K65HJMG>
+                ]>
+              )>
+              <Case #unique-id (
+                <Given ?01M02NT0W8V81EVQKC9K65HJMH>
+                Two nodes sharing the same id across files.
+                </?01M02NT0W8V81EVQKC9K65HJMH>
+                <When ?01M02NT0W8V81EVQKC9K65HJMJ>
+                validate runs.
+                </?01M02NT0W8V81EVQKC9K65HJMJ>
+                <Then ?01M02NT0W8V81EVQKC9K65HJMK>
+                The system SHALL report the duplicate id with both file locations (as a finding, not an uncaught throw).
+                </?01M02NT0W8V81EVQKC9K65HJMK>
+              )>
+              <Case #delta-files-same-rules (
+                <Given ?01M02NT0W8V81EVQKC9K65HJMM>
+                A track's `modeling_deltas/&lt;plane&gt;/&lt;context&gt;.xnl` target-state file.
+                </?01M02NT0W8V81EVQKC9K65HJMM>
+                <When ?01M02NT0W8V81EVQKC9K65HJMN>
+                validate runs against deltas (e.g. `modeling validate --deltas &lt;track&gt;`).
+                </?01M02NT0W8V81EVQKC9K65HJMN>
+                <Then ?01M02NT0W8V81EVQKC9K65HJMP>
+                The same syntax + schema + hierarchy rules SHALL apply, with the id namespace aligned to the delta file's `&lt;plane&gt;/&lt;context&gt;`.
+                </?01M02NT0W8V81EVQKC9K65HJMP>
+              )>
+            ]>
+          )>
+          <Suite #gating-and-report { name = "Gating and reporting" } (
+            <Cases [
+              <Case #config-gate (
+                <Given ?01M02NT0W8V81EVQKC9K65HJMQ>
+                `config/modeling.xml` with modeling disabled (default).
+                </?01M02NT0W8V81EVQKC9K65HJMQ>
+                <When ?01M02NT0W8V81EVQKC9K65HJMR>
+                `codument modeling validate` runs.
+                </?01M02NT0W8V81EVQKC9K65HJMR>
+                <Then ?01M02NT0W8V81EVQKC9K65HJMS>
+                The system SHALL skip and state modeling is disabled, consistent with `lint`/`track`/`archive` gating.
+                </?01M02NT0W8V81EVQKC9K65HJMS>
+              )>
+              <Case #issues-first-exit (
+                <Given ?01M02NT0W8V81EVQKC9K65HJMT>
+                One or more findings across layers.
+                </?01M02NT0W8V81EVQKC9K65HJMT>
+                <When ?01M02NT0W8V81EVQKC9K65HJMV>
+                validate completes.
+                </?01M02NT0W8V81EVQKC9K65HJMV>
+                <Then ?01M02NT0W8V81EVQKC9K65HJMW>
+                The system SHALL print findings grouped by file with a non-zero summary count (issues-first), and a clean run SHALL report success.
+                </?01M02NT0W8V81EVQKC9K65HJMW>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/xnl-format-guide" } (
+      <Requirement #xnl-format-guide (
+        <Statement ?01M02NT0W8V81EVQKC9K65HJMX>
+        系统 SHALL vendor the xnl-core for-AI format guide into codument std as the authoritative XNL syntax reference for authoring modeling nodes, because the published npm package ships only `dist/` (its `doc/ai-guide/` is not packaged).
+        </?01M02NT0W8V81EVQKC9K65HJMX>
+        <Suites [
+          <Suite #vendored-guide { name = "Vendored XNL format guide" } (
+            <Cases [
+              <Case #guide-present (
+                <Given ?01M02NT0W8V81EVQKC9K65HJMY>
+                An AI author generating modeling XNL needs syntax rules (markers, zero-escape, EBNF, common errors).
+                </?01M02NT0W8V81EVQKC9K65HJMY>
+                <When ?01M02NT0W8V81EVQKC9K65HJMZ>
+                It consults codument std.
+                </?01M02NT0W8V81EVQKC9K65HJMZ>
+                <Then ?01M02NT0W8V81EVQKC9K65HJN0>
+                codument SHALL provide `std/spec/xnl-format.md` vendored from `xnl-core` `doc/ai-guide/XnlDataFormatForAi.md`, with a provenance note (source + version).
+                </?01M02NT0W8V81EVQKC9K65HJN0>
+              )>
+              <Case #modeling-specs-reference (
+                <Given ?01M02NT0W8V81EVQKC9K65HJN1>
+                The modeling specs (`modeling-registry.md` / `modeling-node-schema.md` / `modeling-delta.md`).
+                </?01M02NT0W8V81EVQKC9K65HJN1>
+                <When ?01M02NT0W8V81EVQKC9K65HJN2>
+                They describe XNL writing.
+                </?01M02NT0W8V81EVQKC9K65HJN2>
+                <Then ?01M02NT0W8V81EVQKC9K65HJN3>
+                They SHALL reference `std/spec/xnl-format.md` as the authoritative syntax source instead of re-deriving syntax inline.
+                </?01M02NT0W8V81EVQKC9K65HJN3>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+  ]>
+)>

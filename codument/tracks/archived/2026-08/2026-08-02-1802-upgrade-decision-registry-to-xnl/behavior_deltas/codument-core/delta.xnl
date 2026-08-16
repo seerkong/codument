@@ -1,0 +1,382 @@
+<BehaviorPatch #track.upgrade-decision-registry-to-xnl.behavior_patch.codument-core apiVersion="codument.tech/v1alpha1" version="1" { capability = "codument-core" } (
+  <Mutations [
+    <Upsert { selector = "behavior://codument-core/requirements/codument-must-support-long-term-decisions-registry" } (
+      <Requirement #codument-must-support-long-term-decisions-registry (
+        <Statement ?01M02NT0VJS1MNZZH9RARC6TVZ>
+        系统 SHALL 将 `codument/decisions/**/*.xnl` 作为长期 Decision Registry 的 canonical 真源，并以 stable decision id 提供与物理文件位置无关的 `decision://&lt;id&gt;` 解析。
+        </?01M02NT0VJS1MNZZH9RARC6TVZ>
+        <Suites [
+          <Suite #decision-registry-shape { name = "Full-fidelity XNL decision registry" } (
+            <Cases [
+              <Case #durable-track-decision-is-promoted-as-xnl (
+                <Given ?01M02NT0VJS1MNZZH9RARC6TW0>
+                已完成的 track 或 mission 包含 eligible accepted/resolved durable decision
+                </?01M02NT0VJS1MNZZH9RARC6TW0>
+                <When ?01M02NT0VJS1MNZZH9RARC6TW1>
+                系统归档并提升该 decision
+                </?01M02NT0VJS1MNZZH9RARC6TW1>
+                <Then ?01M02NT0VJS1MNZZH9RARC6TW2>
+                系统 SHALL 把完整 XNL decision AST 合并到 `codument/decisions/**/*.xnl`
+                </?01M02NT0VJS1MNZZH9RARC6TW2>
+                <Ands [
+                  <And ?01M02NT0VJS1MNZZH9RARC6TW3>
+                  系统 SHALL 保留 stable id、attributes、metadata、question、recommendation、options、answer feedback、depends_on、activation、derived_from、未知扩展字段与 nested decision hierarchy
+                  </?01M02NT0VJS1MNZZH9RARC6TW3>
+                  <And ?01M02NT0VJS1MNZZH9RARC6TW4>
+                  系统 MUST NOT 以有损 `decision.md` 摘要作为 canonical durable output
+                  </?01M02NT0VJS1MNZZH9RARC6TW4>
+                ]>
+              )>
+              <Case #decision-uri-is-location-independent (
+                <Given ?01M02NT0VJS1MNZZH9RARC6TW5>
+                一个 durable decision 位于任意 registry XNL owner file 或同名层级目录
+                </?01M02NT0VJS1MNZZH9RARC6TW5>
+                <When ?01M02NT0VJS1MNZZH9RARC6TW6>
+                消费者解析 `decision://&lt;id&gt;`
+                </?01M02NT0VJS1MNZZH9RARC6TW6>
+                <Then ?01M02NT0VJS1MNZZH9RARC6TW7>
+                系统 SHALL 通过全局 stable-id index 定位该 decision
+                </?01M02NT0VJS1MNZZH9RARC6TW7>
+                <Ands [
+                  <And ?01M02NT0VJS1MNZZH9RARC6TW8>
+                  系统 SHALL NOT 要求 URI 包含时间戳、bucket 或 owner file 路径
+                  </?01M02NT0VJS1MNZZH9RARC6TW8>
+                ]>
+              )>
+              <Case #recursive-registry-validation (
+                <Given ?01M02NT0VJS1MNZZH9RARC6TW9>
+                `codument/decisions/` 包含单文件与层级化 XNL registry
+                </?01M02NT0VJS1MNZZH9RARC6TW9>
+                <When ?01M02NT0VJS1MNZZH9RARC6TWA>
+                用户运行 decisions validate、show 或 VFS resolution
+                </?01M02NT0VJS1MNZZH9RARC6TWA>
+                <Then ?01M02NT0VJS1MNZZH9RARC6TWB>
+                系统 SHALL 递归读取所有 registry XNL 文件
+                </?01M02NT0VJS1MNZZH9RARC6TWB>
+                <Ands [
+                  <And ?01M02NT0VJS1MNZZH9RARC6TWC>
+                  系统 SHALL 报告重复 id、无效结构、无效层级与无法解析的 decision references
+                  </?01M02NT0VJS1MNZZH9RARC6TWC>
+                ]>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/decision-source-discovery-and-merge" } (
+      <Requirement #decision-source-discovery-and-merge (
+        <Statement ?01M02NT0VJS1MNZZH9RARC6TWD>
+        系统 SHALL 同时发现 track/mission 根 `decisions.xnl` 与递归 `decisions/**/*.xnl`，并按 stable decision id 执行完整节点级合并和保守冲突检测。
+        </?01M02NT0VJS1MNZZH9RARC6TWD>
+        <Suites [
+          <Suite #source-discovery { name = "Track and mission decision source discovery" } (
+            <Cases [
+              <Case #root-and-directory-both-participate (
+                <Given ?01M02NT0VJS1MNZZH9RARC6TWE>
+                同一 track 或 mission 同时存在根 `decisions.xnl` 和 `decisions/**/*.xnl`
+                </?01M02NT0VJS1MNZZH9RARC6TWE>
+                <When ?01M02NT0VJS1MNZZH9RARC6TWF>
+                archive 收集 durable decision source
+                </?01M02NT0VJS1MNZZH9RARC6TWF>
+                <Then ?01M02NT0VJS1MNZZH9RARC6TWG>
+                两个 source set SHALL 全部参与
+                </?01M02NT0VJS1MNZZH9RARC6TWG>
+                <Ands [
+                  <And ?01M02NT0VJS1MNZZH9RARC6TWH>
+                  `decisions/` 的存在 MUST NOT 压制根 `decisions.xnl`
+                  </?01M02NT0VJS1MNZZH9RARC6TWH>
+                ]>
+              )>
+              <Case #recursive-xnl-discovery (
+                <Given ?01M02NT0VJS1MNZZH9RARC6TWJ>
+                `decisions/` 中的 XNL 按多层子目录组织
+                </?01M02NT0VJS1MNZZH9RARC6TWJ>
+                <When ?01M02NT0VJS1MNZZH9RARC6TWK>
+                archive 或 decisions validation 扫描 source
+                </?01M02NT0VJS1MNZZH9RARC6TWK>
+                <Then ?01M02NT0VJS1MNZZH9RARC6TWM>
+                系统 SHALL 递归发现所有 `*.xnl`
+                </?01M02NT0VJS1MNZZH9RARC6TWM>
+                <Ands [
+                  <And ?01M02NT0VJS1MNZZH9RARC6TWN>
+                  扫描顺序 SHALL 稳定且跨平台可复现
+                  </?01M02NT0VJS1MNZZH9RARC6TWN>
+                ]>
+              )>
+              <Case #legacy-markdown-is-input-only (
+                <Given ?01M02NT0VJS1MNZZH9RARC6TWP>
+                历史 track、mission 或 registry 仍包含 `decisions.md` 或 `decisions/**/*.md`
+                </?01M02NT0VJS1MNZZH9RARC6TWP>
+                <When ?01M02NT0VJS1MNZZH9RARC6TWQ>
+                系统读取或迁移历史 decisions
+                </?01M02NT0VJS1MNZZH9RARC6TWQ>
+                <Then ?01M02NT0VJS1MNZZH9RARC6TWR>
+                系统 MAY 将 Markdown 作为 legacy input
+                </?01M02NT0VJS1MNZZH9RARC6TWR>
+                <Ands [
+                  <And ?01M02NT0VJS1MNZZH9RARC6TWS>
+                  新的 durable promotion MUST NOT 继续生成 Markdown registry 真源
+                  </?01M02NT0VJS1MNZZH9RARC6TWS>
+                ]>
+              )>
+            ]>
+          )>
+          <Suite #node-merge { name = "Stable-id node merge and conflicts" } (
+            <Cases [
+              <Case #same-id-equivalent-is-idempotent (
+                <Given ?01M02NT0VJS1MNZZH9RARC6TWT>
+                多个 source 包含相同 id 且语义等价的 decision node
+                </?01M02NT0VJS1MNZZH9RARC6TWT>
+                <When ?01M02NT0VJS1MNZZH9RARC6TWV>
+                系统合并 sources
+                </?01M02NT0VJS1MNZZH9RARC6TWV>
+                <Then ?01M02NT0VJS1MNZZH9RARC6TWW>
+                系统 SHALL 产生一个 canonical node
+                </?01M02NT0VJS1MNZZH9RARC6TWW>
+                <Ands [
+                  <And ?01M02NT0VJS1MNZZH9RARC6TWX>
+                  重复归档 SHALL 保持幂等
+                  </?01M02NT0VJS1MNZZH9RARC6TWX>
+                ]>
+              )>
+              <Case #same-id-conflict-is-reported (
+                <Given ?01M02NT0VJS1MNZZH9RARC6TWY>
+                多个 source 或 registry current state 对相同 id 的同一字段、parent relation 或删除/修改存在冲突
+                </?01M02NT0VJS1MNZZH9RARC6TWY>
+                <When ?01M02NT0VJS1MNZZH9RARC6TWZ>
+                系统准备 merge
+                </?01M02NT0VJS1MNZZH9RARC6TWZ>
+                <Then ?01M02NT0VJS1MNZZH9RARC6TX0>
+                系统 SHALL 报告 node-level conflict 并停止该 registry commit
+                </?01M02NT0VJS1MNZZH9RARC6TX0>
+                <Ands [
+                  <And ?01M02NT0VJS1MNZZH9RARC6TX1>
+                  系统 MUST NOT 通过创建新的 timestamped duplicate 隐藏冲突
+                  </?01M02NT0VJS1MNZZH9RARC6TX1>
+                  <And ?01M02NT0VJS1MNZZH9RARC6TX2>
+                  系统 MUST NOT 静默选择 ours、theirs 或任一目录顺序中的节点
+                  </?01M02NT0VJS1MNZZH9RARC6TX2>
+                ]>
+              )>
+              <Case #tree-semantics-survive-merge (
+                <Given ?01M02NT0VJS1MNZZH9RARC6TX3>
+                durable decision 位于 nested decision tree 或带 depends_on/activation/derived_from 关系
+                </?01M02NT0VJS1MNZZH9RARC6TX3>
+                <When ?01M02NT0VJS1MNZZH9RARC6TX4>
+                系统提升和合并该 decision
+                </?01M02NT0VJS1MNZZH9RARC6TX4>
+                <Then ?01M02NT0VJS1MNZZH9RARC6TX5>
+                系统 SHALL 保留解释该 decision 所需的层级和关联语义
+                </?01M02NT0VJS1MNZZH9RARC6TX5>
+                <Ands [
+                  <And ?01M02NT0VJS1MNZZH9RARC6TX6>
+                  系统 MUST NOT 在持久化前把 decision tree 展平为无父子关系的 records
+                  </?01M02NT0VJS1MNZZH9RARC6TX6>
+                ]>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/atomic-registry-archive" } (
+      <Requirement #atomic-registry-archive (
+        <Statement ?01M02NT0VJS1MNZZH9RARC6TX7>
+        系统 SHALL 在单一 prepare → validate/conflict-detect → stage → commit/rollback 边界内归档 behavior、modeling、engineering 与 decision registry，并仅在成功后移动 track。
+        </?01M02NT0VJS1MNZZH9RARC6TX7>
+        <Suites [
+          <Suite #transaction { name = "Cross-registry archive transaction" } (
+            <Cases [
+              <Case #prepare-before-write (
+                <Given ?01M02NT0VJS1MNZZH9RARC6TX8>
+                一个 track 同时包含 behavior、modeling、engineering deltas 或 durable decisions
+                </?01M02NT0VJS1MNZZH9RARC6TX8>
+                <When ?01M02NT0VJS1MNZZH9RARC6TX9>
+                archive 开始处理 registry 更新
+                </?01M02NT0VJS1MNZZH9RARC6TX9>
+                <Then ?01M02NT0VJS1MNZZH9RARC6TXA>
+                系统 SHALL 在修改任何 live registry 前完成全部 patch/source 解析、节点合并、schema 校验与冲突检测
+                </?01M02NT0VJS1MNZZH9RARC6TXA>
+              )>
+              <Case #conflict-leaves-no-writes (
+                <Given ?01M02NT0VJS1MNZZH9RARC6TXB>
+                任一 behavior、modeling、engineering 或 decision registry 的 prepare 或 conflict detection 失败
+                </?01M02NT0VJS1MNZZH9RARC6TXB>
+                <When ?01M02NT0VJS1MNZZH9RARC6TXC>
+                archive 返回失败
+                </?01M02NT0VJS1MNZZH9RARC6TXC>
+                <Then ?01M02NT0VJS1MNZZH9RARC6TXD>
+                所有 live registries SHALL 与调用前逐字节等价
+                </?01M02NT0VJS1MNZZH9RARC6TXD>
+                <Ands [
+                  <And ?01M02NT0VJS1MNZZH9RARC6TXE>
+                  active track SHALL 保持原路径且 archive destination SHALL NOT 存在
+                  </?01M02NT0VJS1MNZZH9RARC6TXE>
+                ]>
+              )>
+              <Case #commit-failure-rolls-back (
+                <Given ?01M02NT0VJS1MNZZH9RARC6TXF>
+                全部 prepare 成功，但 commit 在替换部分 registries 后发生写入或 rename 失败
+                </?01M02NT0VJS1MNZZH9RARC6TXF>
+                <When ?01M02NT0VJS1MNZZH9RARC6TXG>
+                事务执行 rollback
+                </?01M02NT0VJS1MNZZH9RARC6TXG>
+                <Then ?01M02NT0VJS1MNZZH9RARC6TXH>
+                系统 SHALL 恢复所有已经替换的 registry，并清理事务 staging
+                </?01M02NT0VJS1MNZZH9RARC6TXH>
+                <Ands [
+                  <And ?01M02NT0VJS1MNZZH9RARC6TXJ>
+                  track SHALL NOT 被移动
+                  </?01M02NT0VJS1MNZZH9RARC6TXJ>
+                ]>
+              )>
+              <Case #success-commits-all (
+                <Given ?01M02NT0VJS1MNZZH9RARC6TXK>
+                全部 deltas 与 durable decisions 有效且 commit 无失败
+                </?01M02NT0VJS1MNZZH9RARC6TXK>
+                <When ?01M02NT0VJS1MNZZH9RARC6TXM>
+                archive 完成
+                </?01M02NT0VJS1MNZZH9RARC6TXM>
+                <Then ?01M02NT0VJS1MNZZH9RARC6TXN>
+                所有适用 registry 更新 SHALL 一并可见
+                </?01M02NT0VJS1MNZZH9RARC6TXN>
+                <Ands [
+                  <And ?01M02NT0VJS1MNZZH9RARC6TXP>
+                  track SHALL 在 registry commit 成功后移动到唯一 archive destination
+                  </?01M02NT0VJS1MNZZH9RARC6TXP>
+                ]>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/historical-decision-migration" } (
+      <Requirement #historical-decision-migration (
+        <Statement ?01M02NT0VJS1MNZZH9RARC6TXQ>
+        系统 SHALL 通过 `codument-migrate decisions` 安全迁移历史 Decision Registry，优先从 archive 恢复完整 XNL，并对 Markdown-only 内容执行保真、可追溯、可回滚的转换。
+        </?01M02NT0VJS1MNZZH9RARC6TXQ>
+        <Suites [
+          <Suite #migrate-skill { name = "Decision migration skill packaging and routing" } (
+            <Cases [
+              <Case #skill-supports-decisions (
+                <Given ?01M02NT0VJS1MNZZH9RARC6TXR>
+                用户使用已安装或升级的 `codument-migrate` skill
+                </?01M02NT0VJS1MNZZH9RARC6TXR>
+                <When ?01M02NT0VJS1MNZZH9RARC6TXS>
+                用户请求迁移 `decisions` 或 `all`
+                </?01M02NT0VJS1MNZZH9RARC6TXS>
+                <Then ?01M02NT0VJS1MNZZH9RARC6TXT>
+                skill SHALL 路由到 bundled `references/decision-migration.md`
+                </?01M02NT0VJS1MNZZH9RARC6TXT>
+                <Ands [
+                  <And ?01M02NT0VJS1MNZZH9RARC6TXV>
+                  authoritative migrate action SHALL 支持 `archive | specs | decisions | all`
+                  </?01M02NT0VJS1MNZZH9RARC6TXV>
+                ]>
+              )>
+              <Case #reference-is-packaged (
+                <Given ?01M02NT0VJS1MNZZH9RARC6TXW>
+                template manifest 被 build 生成并安装到新或现有 workspace
+                </?01M02NT0VJS1MNZZH9RARC6TXW>
+                <When ?01M02NT0VJS1MNZZH9RARC6TXX>
+                init 或 upgrade-workspace 安装 `codument-migrate`
+                </?01M02NT0VJS1MNZZH9RARC6TXX>
+                <Then ?01M02NT0VJS1MNZZH9RARC6TXY>
+                `skills/codument-migrate/references/decision-migration.md` SHALL 存在
+                </?01M02NT0VJS1MNZZH9RARC6TXY>
+                <Ands [
+                  <And ?01M02NT0VJS1MNZZH9RARC6TXZ>
+                  template tests SHALL 验证 reference 被打包且 SKILL.md 正确引用它
+                  </?01M02NT0VJS1MNZZH9RARC6TXZ>
+                ]>
+              )>
+            ]>
+          )>
+          <Suite #migration-safety { name = "Historical decision recovery and safety" } (
+            <Cases [
+              <Case #recover-full-node-from-archive (
+                <Given ?01M02NT0VJS1MNZZH9RARC6TY0>
+                legacy `decision.md` 包含 decision id 和 `Source: archive://...`，且 archive 中存在匹配的 XNL node
+                </?01M02NT0VJS1MNZZH9RARC6TY0>
+                <When ?01M02NT0VJS1MNZZH9RARC6TY1>
+                decision migration 处理该记录
+                </?01M02NT0VJS1MNZZH9RARC6TY1>
+                <Then ?01M02NT0VJS1MNZZH9RARC6TY2>
+                系统 SHALL 从 archive 恢复并合并完整 XNL node
+                </?01M02NT0VJS1MNZZH9RARC6TY2>
+                <Ands [
+                  <And ?01M02NT0VJS1MNZZH9RARC6TY3>
+                  系统 MUST NOT 仅按 Markdown 摘要字段重建该 node
+                  </?01M02NT0VJS1MNZZH9RARC6TY3>
+                ]>
+              )>
+              <Case #convert-markdown-only-with-provenance (
+                <Given ?01M02NT0VJS1MNZZH9RARC6TY4>
+                legacy decision 只有 Markdown 原文且没有可恢复的完整 XNL source
+                </?01M02NT0VJS1MNZZH9RARC6TY4>
+                <When ?01M02NT0VJS1MNZZH9RARC6TY5>
+                decision migration 转换该记录
+                </?01M02NT0VJS1MNZZH9RARC6TY5>
+                <Then ?01M02NT0VJS1MNZZH9RARC6TY6>
+                系统 SHALL 只映射可确定字段并保留 raw content、source provenance 与 migration issues
+                </?01M02NT0VJS1MNZZH9RARC6TY6>
+                <Ands [
+                  <And ?01M02NT0VJS1MNZZH9RARC6TY7>
+                  系统 MUST NOT 臆造 question、options、hierarchy、activation 或其他缺失事实
+                  </?01M02NT0VJS1MNZZH9RARC6TY7>
+                ]>
+              )>
+              <Case #migration-backup-manifest-and-conflicts (
+                <Given ?01M02NT0VJS1MNZZH9RARC6TY8>
+                历史 decisions 即将迁移到 canonical XNL registry
+                </?01M02NT0VJS1MNZZH9RARC6TY8>
+                <When ?01M02NT0VJS1MNZZH9RARC6TY9>
+                迁移开始和提交
+                </?01M02NT0VJS1MNZZH9RARC6TY9>
+                <Then ?01M02NT0VJS1MNZZH9RARC6TYA>
+                系统 SHALL 先 inventory 并建立 backup/migration manifest
+                </?01M02NT0VJS1MNZZH9RARC6TYA>
+                <Ands [
+                  <And ?01M02NT0VJS1MNZZH9RARC6TYB>
+                  目标 registry SHALL 在 staging 中通过 syntax、schema、duplicate-id 与 reference validation 后再替换
+                  </?01M02NT0VJS1MNZZH9RARC6TYB>
+                  <And ?01M02NT0VJS1MNZZH9RARC6TYC>
+                  ambiguous、missing-source 或 conflicting 记录 SHALL 被保留并报告，不得静默覆盖或删除
+                  </?01M02NT0VJS1MNZZH9RARC6TYC>
+                ]>
+              )>
+            ]>
+          )>
+          <Suite #dogfood { name = "Repository decision migration dogfood" } (
+            <Cases [
+              <Case #upgrade-current-decision-registry (
+                <Given ?01M02NT0VJS1MNZZH9RARC6TYD>
+                本仓库 `codument/decisions/` 包含七条可从 archive 恢复的摘要和一条 Markdown-only 历史记录
+                </?01M02NT0VJS1MNZZH9RARC6TYD>
+                <When ?01M02NT0VJS1MNZZH9RARC6TYE>
+                实现完成后运行 dogfood migration
+                </?01M02NT0VJS1MNZZH9RARC6TYE>
+                <Then ?01M02NT0VJS1MNZZH9RARC6TYF>
+                八条历史 decision identity SHALL 全部具有明确迁移结果或显式 issue
+                </?01M02NT0VJS1MNZZH9RARC6TYF>
+                <Ands [
+                  <And ?01M02NT0VJS1MNZZH9RARC6TYG>
+                  可恢复记录 SHALL 与 archive source 保持 AST/语义一致
+                  </?01M02NT0VJS1MNZZH9RARC6TYG>
+                  <And ?01M02NT0VJS1MNZZH9RARC6TYH>
+                  Markdown-only 记录 SHALL 保留原文 provenance
+                  </?01M02NT0VJS1MNZZH9RARC6TYH>
+                  <And ?01M02NT0VJS1MNZZH9RARC6TYJ>
+                  迁移后 canonical registry SHALL 不再依赖有损 `decision.md` 输出
+                  </?01M02NT0VJS1MNZZH9RARC6TYJ>
+                ]>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+  ]>
+)>

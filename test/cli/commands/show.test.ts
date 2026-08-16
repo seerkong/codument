@@ -63,11 +63,11 @@ describe('codument show', () => {
     writeFile(path.join(ws, 'codument', 'state.json'), '{}');
     writeFile(path.join(trackDir, 'proposal.md'), '# Proposal\n');
     writeTrackXml(trackDir, trackId);
-    writeFile(path.join(trackDir, 'behavior_deltas', 'provider.deepseek', 'delta.xml'), `<behavior-patch capability="provider.deepseek" version="1">
-  <upsert selector="behavior://provider.deepseek/requirements/cache-support">
-    <requirement id="cache-support" />
-  </upsert>
-</behavior-patch>
+    writeFile(path.join(trackDir, 'behavior_deltas', 'provider.deepseek', 'delta.xnl'), `<BehaviorPatch #track.add-xml-delta.behavior_patch.provider.deepseek apiVersion="codument.tech/v1alpha1" version="1" { capability = "provider.deepseek" } (
+  <Mutations [
+    <Upsert { selector = "behavior://provider.deepseek/requirements/cache-support" } (<Requirement #cache-support>)>
+  ]>
+)>
 `);
 
     const proc = Bun.spawn([
@@ -89,11 +89,11 @@ describe('codument show', () => {
     const err = await new Response(proc.stderr).text();
     expect(err).toBe('');
     expect(exitCode).toBe(0);
-    expect(out).toContain('behavior_deltas/provider.deepseek/delta.xml');
+    expect(out).toContain('behavior_deltas/provider.deepseek/delta.xnl');
     expect(out).not.toContain('✗ spec.md');
   });
 
-  it('includes behavior deltas in track JSON output', async () => {
+  it('lists files in track JSON and includes contents only when requested', async () => {
     const repoRoot = path.resolve(__dirname, '../../..');
     const cliEntry = path.join(repoRoot, 'src/cli/index.ts');
     const ws = makeTempDir('codument-show-track-json-ws-');
@@ -131,7 +131,14 @@ describe('codument show', () => {
     expect(err).toBe('');
     expect(exitCode).toBe(0);
     const payload = JSON.parse(out);
-    expect(payload.files['behavior_deltas/provider.deepseek/delta.xml']).toContain('<behavior-patch capability="provider.deepseek" version="1">');
+    expect(payload.files).toContain('behavior_deltas/provider.deepseek/delta.xml');
+    expect(payload.contents).toBeUndefined();
+
+    const expanded = await runCli(ws, ['show', trackId, '--json', '--include-content']);
+    expect(expanded.exitCode).toBe(0);
+    const expandedPayload = JSON.parse(expanded.stdout);
+    expect(expandedPayload.contents['behavior_deltas/provider.deepseek/delta.xml'])
+      .toContain('<behavior-patch capability="provider.deepseek" version="1">');
   });
 
   it('resolves decision URIs through the global stable-id index, independent of owner path', async () => {

@@ -1,0 +1,30 @@
+<BehaviorPatch #track.add-unified-resource-upgrade.behavior_patch.codument-core apiVersion="codument.tech/v1alpha1" version="1" { capability = "codument-core" } (
+  <Mutations [
+    <Upsert { selector = "behavior://codument-core/requirements/unified-resource-upgrade" } (
+      <Requirement #unified-resource-upgrade (
+        <Statement ?>Codument SHALL provide one deterministic single-resource upgrade command and SHALL report resources requiring semantic AI review without modifying them.</?>
+        <Suites [
+          <Suite #upgrade-resource { name = "Single resource upgrade" } (
+            <Cases [
+              <Case #deterministic-upgrade (
+                <Given ?>a legacy structured resource has one registered migration path</?>
+                <When ?>the user runs codument upgrade-resource for that path</?>
+                <Then ?>the CLI SHALL backup, transform, verify, and atomically replace the resource</?>
+              )>
+              <Case #semantic-review (
+                <Given ?>a legacy Decision Markdown or ambiguous structured resource cannot be converted faithfully</?>
+                <When ?>the resource is inspected for upgrade</?>
+                <Then ?>the CLI SHALL return review-required with the source, target contract, suggested target, and diagnostics while leaving the source unchanged</?>
+              )>
+              <Case #business-decision-owner (
+                <Given ?>a durable decision is authored under a recursive business-semantic decisions path</?>
+                <When ?>the owner track or mission is archived</?>
+                <Then ?>Codument SHALL preserve that relative owner path and SHALL NOT fall back to registry.xnl</?>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+  ]>
+)>

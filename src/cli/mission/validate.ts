@@ -16,6 +16,8 @@ const ACTOR_ROLES = new Set([
 
 /** Metadata.Status vocabulary (mission-xml-spec §5). */
 const MISSION_STATUS = new Set(['pending', 'active', 'completed', 'cancelled', 'superseded', 'archived']);
+const QUESTION_MODE = new Set(['decision-tree']);
+const QUESTION_SEVERITY = new Set(['auto', 'light', 'normal', 'deep']);
 /** TaskGroup/Task status vocabulary (mission-xml-spec §6, mission-specific). */
 const MISSION_NODE_STATUS = new Set([
   'NOT_STARTED', 'ACTIVE', 'DONE', 'BLOCKED', 'ABANDONED', 'SUPERSED',
@@ -57,15 +59,45 @@ function persistedPathAttributes(node: SpecXmlNode): string[] {
   });
 }
 
-function validateMissionMetadata(root: SpecXmlNode, findings: MissionValidationFinding[]): void {
+function validateMissionMetadata(root: SpecXmlNode, findings: MissionValidationFinding[], currentXnl: boolean): void {
   const metadata = firstChild(root, 'Metadata') ?? root;
   const status = firstChild(metadata, 'Status');
+  if (currentXnl) {
+    for (const field of ['Status', 'Goal', 'Description', 'CreatedAt', 'UpdatedAt']) {
+      const value = firstChild(metadata, field)?.text?.trim();
+      if (!value) {
+        findings.push({
+          severity: 'error',
+          rule: `mission.root.${field.replace(/([A-Z])/g, (match) => `-${match.toLowerCase()}`).replace(/^-/, '')}`,
+          message: `<Mission> 缺少非空 ${field} 根属性`,
+        });
+      }
+    }
+  }
   if (status && status.text && !MISSION_STATUS.has(status.text.trim())) {
     findings.push({
       severity: 'error',
       rule: 'mission.metadata.status',
-      message: `<Metadata><Status>${status.text.trim()}</Status> 非法（pending|active|completed|cancelled|superseded|archived）`,
+      message: `<Mission> status="${status.text.trim()}" 非法（pending|active|completed|cancelled|superseded|archived）`,
     });
+  }
+  const questionMode = firstChild(metadata, 'QuestionMode')?.text?.trim();
+  if (questionMode && !QUESTION_MODE.has(questionMode)) {
+    findings.push({ severity: 'error', rule: 'mission.root.question-mode', message: `<Mission> question_mode="${questionMode}" 非法（decision-tree）` });
+  }
+  const questionSeverity = firstChild(metadata, 'QuestionSeverity')?.text?.trim();
+  if (questionSeverity && !QUESTION_SEVERITY.has(questionSeverity)) {
+    findings.push({ severity: 'error', rule: 'mission.root.question-severity', message: `<Mission> question_severity="${questionSeverity}" 非法（auto|light|normal|deep）` });
+  }
+  for (const field of ['CreatedAt', 'UpdatedAt']) {
+    const value = firstChild(metadata, field)?.text?.trim();
+    if (value && Number.isNaN(Date.parse(value))) {
+      findings.push({
+        severity: 'error',
+        rule: `mission.root.${field === 'CreatedAt' ? 'created-at' : 'updated-at'}`,
+        message: `<Mission> ${field} 必须是 ISO 8601 时间`,
+      });
+    }
   }
 }
 
@@ -74,6 +106,14 @@ function validateMissionTaskSpace(root: SpecXmlNode, findings: MissionValidation
   if (!taskSpace) {
     findings.push({ severity: 'error', rule: 'mission.taskspace.missing', message: '缺少 <TaskSpace>' });
     return;
+  }
+  const firstLevel = firstChild(taskSpace, 'SubNodes') ?? taskSpace;
+  if (childrenByTag(firstLevel, 'TaskGroup').length === 0) {
+    findings.push({
+      severity: 'error',
+      rule: 'mission.taskspace.phase-missing',
+      message: '<TaskSpace> 第一层至少需要一个 <TaskGroup>',
+    });
   }
   const seen = new Set<string>();
   for (const n of descendants(taskSpace, (x) => x.tag === 'TaskGroup' || x.tag === 'Task')) {
@@ -247,10 +287,9 @@ function validateMissionHooks(root: SpecXmlNode, findings: MissionValidationFind
 /**
  * Validates the ActorSet/ProjectRef extension independently from Track XML.
  * Older missions remain readable: absence of the new extension is a warning
- * until a plan/revise action materializes the default structure.
+ * until a plan/revise operation materializes the default structure.
  */
 export function validateMissionXml(content: string): MissionValidationFinding[] {
-  const findings: MissionValidationFinding[] = [];
   let root: SpecXmlNode;
   try {
     root = parseSpecXmlContent(content);
@@ -260,6 +299,11 @@ export function validateMissionXml(content: string): MissionValidationFinding[] 
       message: `Mission XML syntax error: ${error instanceof Error ? error.message : String(error)}`,
     }];
   }
+  return validateMissionNode(root);
+}
+
+export function validateMissionNode(root: SpecXmlNode, options: { currentXnl?: boolean } = {}): MissionValidationFinding[] {
+  const findings: MissionValidationFinding[] = [];
 
   if (root.tag !== 'Mission') {
     return [{ severity: 'error', message: `Mission root must be <Mission>, received <${root.tag}>` }];
@@ -271,7 +315,7 @@ export function validateMissionXml(content: string): MissionValidationFinding[] 
 
   // Structural validation runs for every mission, including legacy ones, so the
   // state/schedule/hook rules are never silently skipped by the early return below.
-  validateMissionMetadata(root, findings);
+  validateMissionMetadata(root, findings, options.currentXnl === true);
   validateMissionTaskSpace(root, findings);
   validateMissionSchedule(root, findings);
   validateMissionHooks(root, findings);

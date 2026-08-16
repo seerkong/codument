@@ -2,10 +2,12 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import { execFileSync } from 'child_process';
-import type { XnlNode } from 'xnl-core';
+import { wordToString, type DataElementNode, type XnlNode } from 'xnl-core';
 import {
+  ACTIVE_TRACKS_DIR,
   ARCHIVED_TRACKS_DIR,
   BEHAVIORS_DIR,
+  CONFIG_DIR,
   DECISIONS_DIR,
   MEMORY_DIR,
   SPECS_DIR,
@@ -37,14 +39,15 @@ import {
 } from '../modeling/registry';
 import { mergeModeling, type MergeConflict as ModelingMergeConflict } from '../modeling/merge';
 import { validateModelingTree } from '../modeling/validate';
-import { applySpecXmlPatchToRegistry } from '../utils/spec-xml';
+import { applyBehaviorPatchToRegistry, applySpecXmlPatchToRegistry, parseSpecXmlContent } from '../utils/spec-xml';
 import { buildArchiveDestination, formatLocalMinutePrefix, resolveTrackUpdatedDate } from '../utils/track-time';
 import { applyDecisionSources, collectDecisionSourceFiles } from '../decisions/registry';
 import { discoverXnlRegistryFiles } from '../xnl/registry';
-import {
-  readXnlDecisionRecords,
-  type XnlDecisionRecord,
-} from './decisions';
+import { parseTrackResource, resolveTrackAuthority } from '../track/resource';
+import { parseMissionResource } from '../mission/resource';
+import { markMissionArchived } from '../resources/lifecycle';
+import { readXnlDecisionRecords } from './decisions';
+import { parseConfigRoot } from '../config/resource';
 
 export interface ArchiveEffects {
   moveTrack(source: string, destination: string): void;
@@ -110,6 +113,7 @@ export async function archiveCommand(
   }
 
   assertValidArchiveDecisions(trackDir);
+  assertNoLegacyDecisionMarkdown(trackDir);
   const engineeringPlan = prepareEngineeringDeltaMerge(trackDir);
   const modelingPlan = prepareModelingDeltaMerge(trackDir);
   const decisionSources = collectDecisionSourceFiles(trackDir);
@@ -200,25 +204,152 @@ export async function archiveCommand(
     console.log(`✓ Updated decision registry: ${updatedDecisionFiles.join(', ')}`);
   }
 
-  const promotedDecision = decisionSources.length === 0
-    ? promoteDecisionRecord(archiveDir, archiveId, trackId, updatedDate)
-    : null;
-  if (promotedDecision) {
-    console.log(`✓ Promoted decision record: ${promotedDecision}`);
-  }
-
   const summaryPath = generateArchiveSummary(archiveDir, trackId);
   if (summaryPath) {
     console.log(`✓ Generated archive summary: ${summaryPath}`);
   }
 
-  // Promote memory candidates the track explicitly provided (no-op when none exist).
-  const promotedMemory = promoteMemoryRecords(archiveDir, archiveId, trackId, updatedDate);
+  // Memory promotion requires both an enabled profile and explicit candidates.
+  const promotedMemory = isMemoryProfileEnabled()
+    ? promoteMemoryRecords(archiveDir, archiveId, trackId, updatedDate)
+    : [];
   if (promotedMemory.length > 0) {
     console.log(`✓ Promoted memory records: ${promotedMemory.join(', ')}`);
   }
 
   console.log(`\n✓ Track "${trackId}" archived successfully!\n`);
+}
+
+export async function archiveMissionCommand(args: string[]): Promise<void> {
+  if (!codumentExists()) throw new Error('Codument is not initialized. Run codument init first.');
+  const { positional, options } = parseOptions(args);
+  const missionId = positional[0];
+  if (!missionId || positional.length !== 1) throw new Error('Usage: codument mission archive <mission-id> [--yes]');
+  const yes = options.yes === true || options.y === true;
+  const located = locateMissionForArchive(missionId);
+  const root = parseMissionResource(path.join(located.dir, 'mission.xnl'));
+  const status = missionMetadata(root, 'Status') ?? located.stage;
+  if (!['completed', 'cancelled', 'superseded'].includes(status) && !yes) {
+    throw new Error(`Mission '${missionId}' has status '${status}'. Re-run with --yes to archive it explicitly.`);
+  }
+  const unresolvedLinks = missionTrackLinkIssues(root);
+  if (unresolvedLinks.length > 0 && !yes) {
+    throw new Error(`Mission has active or missing bound tracks: ${unresolvedLinks.join(', ')}. Re-run with --yes to preserve them and continue.`);
+  }
+  assertValidArchiveDecisions(located.dir);
+  assertNoLegacyDecisionMarkdown(located.dir);
+
+  const destination = missionArchiveDestination(missionId);
+  fs.mkdirSync(path.dirname(destination), { recursive: true });
+  const decisionSources = collectDecisionSourceFiles(located.dir);
+  const transaction = createRegistryStagingTransaction();
+  let receipt: ReturnType<typeof commitRegistryStages> | undefined;
+  let moved = false;
+  try {
+    const decisionUpdate = decisionSources.length > 0
+      ? stageRegistry(transaction, 'decision', DECISIONS_DIR, (stagedDir) =>
+        applyDecisionSources(stagedDir, located.dir, decisionSources))
+      : null;
+    receipt = commitRegistryStages(transaction, [decisionUpdate?.stage]);
+    fs.renameSync(located.dir, destination);
+    moved = true;
+    markMissionArchived(path.join(destination, 'mission.xnl'));
+    finalizeRegistryCommit(receipt);
+  } catch (error) {
+    if (moved && fs.existsSync(destination) && !fs.existsSync(located.dir)) fs.renameSync(destination, located.dir);
+    if (receipt && !receipt.settled) rollbackRegistryCommit(receipt, error);
+    throw error;
+  } finally {
+    if (!receipt) cleanupRegistryStagingTransaction(transaction);
+  }
+  const promoted = isMemoryProfileEnabled()
+    ? promoteMemoryRecords(destination, path.basename(destination), missionId, new Date())
+    : [];
+  console.log(`✓ Mission '${missionId}' archived to ${destination}`);
+  if (unresolvedLinks.length > 0) console.log(`  preserved linked-track issues: ${unresolvedLinks.join(', ')}`);
+  if (promoted.length > 0) console.log(`  promoted memory: ${promoted.join(', ')}`);
+}
+
+function locateMissionForArchive(id: string): { dir: string; stage: 'active' | 'pending' } {
+  for (const stage of ['active', 'pending'] as const) {
+    const dir = path.join('codument', 'missions', stage, id);
+    if (fs.existsSync(path.join(dir, 'mission.xnl'))) return { dir, stage };
+  }
+  throw new Error(`Mission '${id}' was not found in active or pending.`);
+}
+
+function missionMetadata(root: import('../utils/spec-xml').SpecXmlNode, tag: string): string | undefined {
+  return root.children.find((node) => node.tag === 'Metadata')?.children
+    .find((node) => node.tag === tag)?.text?.trim();
+}
+
+function missionTrackLinkIssues(root: import('../utils/spec-xml').SpecXmlNode): string[] {
+  const links: import('../utils/spec-xml').SpecXmlNode[] = [];
+  const visit = (node: import('../utils/spec-xml').SpecXmlNode): void => {
+    if (node.tag === 'cdt:TrackLink' && node.attrs.state === 'bound') links.push(node);
+    for (const child of node.children) visit(child);
+  };
+  visit(root);
+  return links.flatMap((link) => {
+    const id = link.attrs.id;
+    if (!id) return ['(missing-id)'];
+    if (fs.existsSync(path.join(ACTIVE_TRACKS_DIR, id, 'track.xnl'))) return [`${id}:active`];
+    const archived = findArchivedTrack(id);
+    return archived ? [] : [`${id}:missing`];
+  });
+}
+
+function findArchivedTrack(id: string): boolean {
+  const visit = (dir: string): boolean => {
+    if (!fs.existsSync(dir)) return false;
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const candidate = path.join(dir, entry.name);
+      if (entry.isDirectory() && visit(candidate)) return true;
+      if (entry.isFile() && entry.name === 'track.xnl' && path.basename(path.dirname(candidate)).endsWith(`-${id}`)) return true;
+    }
+    return false;
+  };
+  return visit(ARCHIVED_TRACKS_DIR);
+}
+
+function missionArchiveDestination(id: string): string {
+  const date = new Date();
+  const day = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  const root = path.join('codument', 'missions', 'archived');
+  let destination = path.join(root, `${day}-${id}`);
+  let suffix = 2;
+  while (fs.existsSync(destination)) destination = path.join(root, `${day}-${id}-${suffix++}`);
+  return destination;
+}
+
+function isMemoryProfileEnabled(): boolean {
+  const xnl = path.join(CONFIG_DIR, 'attractor-profiles.xnl');
+  if (fs.existsSync(xnl)) {
+    try {
+      const root = parseConfigRoot(xnl, 'AttractorProfiles');
+      const profiles = root.extend?.children.Profiles;
+      if (!isDataElementNode(profiles)) return false;
+      const memory = (profiles.body ?? []).find((node) => isDataElementNode(node) && wordToString(node.id) === 'memory');
+      return isDataElementNode(memory) && memory.attributes?.enabled === true;
+    } catch {
+      return false;
+    }
+  }
+
+  const xml = path.join(CONFIG_DIR, 'attractor-profiles.xml');
+  if (!fs.existsSync(xml)) return false;
+  try {
+    const root = parseSpecXmlContent(fs.readFileSync(xml, 'utf8'));
+    const memory = root.children.find((node) => node.tag === 'Profile' && node.attrs.name === 'memory');
+    return memory?.attrs.enabled === 'true';
+  } catch {
+    return false;
+  }
+}
+
+function isDataElementNode(node: XnlNode | undefined): node is DataElementNode {
+  return Boolean(node && typeof node === 'object' && !Array.isArray(node)
+    && 'kind' in node && node.kind === 'DataElement');
 }
 
 function assertValidArchiveDecisions(trackDir: string): void {
@@ -233,6 +364,29 @@ function assertValidArchiveDecisions(trackDir: string): void {
   }
 }
 
+function assertNoLegacyDecisionMarkdown(trackDir: string): void {
+  const legacyFiles: string[] = [];
+  const decisionsDir = path.join(trackDir, 'decisions');
+  const visit = (dir: string): void => {
+    if (!fs.existsSync(dir)) return;
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const entryPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) visit(entryPath);
+      else if (entry.isFile() && (
+        ['decision.md', 'decisions.md'].includes(entry.name.toLowerCase())
+        || (entryPath.startsWith(`${decisionsDir}${path.sep}`) && entry.name.endsWith('.md'))
+      )) {
+        legacyFiles.push(path.relative(trackDir, entryPath));
+      }
+    }
+  };
+  visit(trackDir);
+  if (legacyFiles.length === 0) return;
+  throw new Error(
+    `Legacy Decision Markdown requires upgrade-resource and AI review before archive: ${legacyFiles.sort().join(', ')}`,
+  );
+}
+
 interface StagedSpecUpdate {
   stage: StagedRegistry | null;
   updated: string[];
@@ -242,12 +396,12 @@ function stageArchivedSpecDeltas(
   transaction: RegistryStagingTransaction,
   trackDir: string,
 ): StagedSpecUpdate {
-  const behaviorPatches = collectXmlPatches(trackDir, ['behavior_deltas', 'behavior-deltas']);
+  const behaviorPatches = collectBehaviorPatches(trackDir, ['behavior_deltas', 'behavior-deltas']);
   if (behaviorPatches.length > 0) {
     const staged = stageRegistry(transaction, 'behavior', BEHAVIORS_DIR, (stagedDir) => {
       const updated = new Set<string>();
       for (const patchPath of behaviorPatches) {
-        for (const capability of applySpecXmlPatchToRegistry(fs.readFileSync(patchPath, 'utf-8'), stagedDir)) {
+        for (const capability of applyBehaviorPatchToRegistry(fs.readFileSync(patchPath, 'utf-8'), stagedDir)) {
           updated.add(capability);
         }
       }
@@ -396,7 +550,7 @@ function prepareModelingDeltaMerge(trackDir: string): PreparedRegistryMerge | nu
     for (const conflict of conflicts) {
       console.error(`  - ${conflict.id}: ${conflict.type}`);
     }
-    console.error('Resolve conflicts manually or adjust codument/config/modeling.xml MergePolicy.');
+    console.error('Resolve conflicts manually or adjust codument/config/modeling.xnl MergePolicy.');
     process.exit(1);
   }
 
@@ -406,6 +560,9 @@ function prepareModelingDeltaMerge(trackDir: string): PreparedRegistryMerge | nu
 function materializeModelingBase(trackDir: string, registryDir: string): string {
   const commit = readModelingBaseCommit(trackDir);
   if (!commit) {
+    if (loadModelingRegistry(registryDir).files.size > 0) {
+      throw new Error('Track has modeling deltas but no modeling_base_commit; recreate or migrate the Track baseline before archive.');
+    }
     return registryDir;
   }
 
@@ -443,12 +600,7 @@ function materializeModelingBase(trackDir: string, registryDir: string): string 
 }
 
 function readModelingBaseCommit(trackDir: string): string | null {
-  const trackXml = path.join(trackDir, 'track.xml');
-  if (!fs.existsSync(trackXml)) {
-    return null;
-  }
-  const content = fs.readFileSync(trackXml, 'utf-8');
-  return content.match(/<ModelingBaseCommit>([^<]+)<\/ModelingBaseCommit>/)?.[1]?.trim() || null;
+  return readTrackMetadataField(trackDir, 'ModelingBaseCommit');
 }
 
 function prepareEngineeringDeltaMerge(trackDir: string): PreparedRegistryMerge | null {
@@ -490,7 +642,7 @@ function prepareEngineeringDeltaMerge(trackDir: string): PreparedRegistryMerge |
     for (const conflict of conflicts) {
       console.error(`  - ${conflict.id}: ${conflict.type}`);
     }
-    console.error('Resolve conflicts manually or adjust codument/config/engineering.xml MergePolicy.');
+    console.error('Resolve conflicts manually or adjust codument/config/engineering.xnl MergePolicy.');
     process.exit(1);
   }
 
@@ -500,6 +652,9 @@ function prepareEngineeringDeltaMerge(trackDir: string): PreparedRegistryMerge |
 function materializeEngineeringBase(trackDir: string, registryDir: string): string {
   const commit = readEngineeringBaseCommit(trackDir);
   if (!commit) {
+    if (loadEngineeringRegistry(registryDir).files.size > 0) {
+      throw new Error('Track has engineering deltas but no engineering_base_commit; recreate or migrate the Track baseline before archive.');
+    }
     return registryDir;
   }
 
@@ -537,12 +692,15 @@ function materializeEngineeringBase(trackDir: string, registryDir: string): stri
 }
 
 function readEngineeringBaseCommit(trackDir: string): string | null {
-  const trackXml = path.join(trackDir, 'track.xml');
-  if (!fs.existsSync(trackXml)) {
-    return null;
-  }
-  const content = fs.readFileSync(trackXml, 'utf-8');
-  return content.match(/<EngineeringBaseCommit>([^<]+)<\/EngineeringBaseCommit>/)?.[1]?.trim() || null;
+  return readTrackMetadataField(trackDir, 'EngineeringBaseCommit');
+}
+
+function readTrackMetadataField(trackDir: string, field: string): string | null {
+  const authority = resolveTrackAuthority(trackDir);
+  if (!authority) return null;
+  const root = parseTrackResource(authority.file);
+  const metadata = root.children.find((child) => child.tag === 'Metadata');
+  return metadata?.children.find((child) => child.tag === field)?.text?.trim() || null;
 }
 
 function collectXmlPatches(archiveDir: string, rootNames: string[]): string[] {
@@ -569,6 +727,20 @@ function collectXmlPatches(archiveDir: string, rootNames: string[]): string[] {
   return results.sort();
 }
 
+function collectBehaviorPatches(archiveDir: string, rootNames: string[]): string[] {
+  const results: string[] = [];
+  const visit = (dir: string) => {
+    if (!fs.existsSync(dir)) return;
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const entryPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) visit(entryPath);
+      else if (entry.isFile() && /\.(xnl|xml)$/i.test(entry.name)) results.push(entryPath);
+    }
+  };
+  for (const rootName of rootNames) visit(path.join(archiveDir, rootName));
+  return results.sort();
+}
+
 function ensureDir(dir: string): void {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
@@ -590,109 +762,6 @@ function writePromotedArtifact(
     fs.writeFileSync(filePath, content, 'utf-8');
   }
   return filePath;
-}
-
-function decisionUriForSlug(slug: string): string {
-  return `decision://${slug}`;
-}
-
-function durableXnlDecisionRecords(file: string): XnlDecisionRecord[] {
-  return readXnlDecisionRecords(file).filter(record =>
-    record.durableCandidate &&
-    record.status !== undefined &&
-    ['accepted', 'resolved'].includes(record.status)
-  );
-}
-
-function formatXnlDecisionArtifact(record: XnlDecisionRecord, archiveId: string): string {
-  const lines = [
-    `# Decision: ${record.id}`,
-    '',
-    `Decision URI: ${decisionUriForSlug(record.id)}`,
-    `Source: archive://${archiveId}`,
-    '',
-    `Status: ${record.status ?? ''}`,
-    `Durable candidate: ${record.durableCandidate ? 'yes' : 'no'}`,
-  ];
-  if (record.evidence) lines.push(`Evidence: ${record.evidence}`);
-  if (record.confidence) lines.push(`Confidence: ${record.confidence}`);
-  if (record.reversibility) lines.push(`Reversibility: ${record.reversibility}`);
-  lines.push('');
-  return lines.join('\n');
-}
-
-function promoteDecisionRecord(archiveDir: string, archiveId: string, trackId: string, updatedDate: Date): string | null {
-  const decisionsDir = path.join(archiveDir, 'decisions');
-  if (!fs.existsSync(decisionsDir) || !fs.statSync(decisionsDir).isDirectory()) {
-    const xnlPath = path.join(archiveDir, 'decisions.xnl');
-    if (fs.existsSync(xnlPath)) {
-      let promoted: string | null = null;
-      for (const record of durableXnlDecisionRecords(xnlPath)) {
-        promoted = writePromotedArtifact(
-          DECISIONS_DIR,
-          'decision.md',
-          record.id,
-          updatedDate,
-          formatXnlDecisionArtifact(record, archiveId),
-        );
-      }
-      return promoted;
-    }
-
-    // legacy fallback: single decisions.md file
-    const legacyPath = path.join(archiveDir, 'decisions.md');
-    if (!fs.existsSync(legacyPath)) {
-      return null;
-    }
-    const source = fs.readFileSync(legacyPath, 'utf-8').trim();
-    if (!source || source === '# Decisions') {
-      return null;
-    }
-    if (!hasDurableDecision(source)) {
-      return null;
-    }
-    const content = [
-      `# Decision: ${trackId}`,
-      '',
-      `Decision URI: ${decisionUriForSlug(trackId)}`,
-      `Source: archive://${archiveId}`,
-      '',
-      source,
-      '',
-    ].join('\n');
-    return writePromotedArtifact(DECISIONS_DIR, 'decision.md', trackId, updatedDate, content);
-  }
-
-  const decisionFiles = fs.readdirSync(decisionsDir)
-    .filter(f => f.endsWith('.md') && f !== 'summary.md');
-
-  if (decisionFiles.length === 0) {
-    return null;
-  }
-
-  let promoted: string | null = null;
-  for (const fileName of decisionFiles) {
-    const source = fs.readFileSync(path.join(decisionsDir, fileName), 'utf-8').trim();
-    if (!source) {
-      continue;
-    }
-    if (!hasDurableDecision(source)) {
-      continue;
-    }
-    const slug = path.basename(fileName, '.md');
-    const content = [
-      `# Decision: ${slug}`,
-      '',
-      `Decision URI: ${decisionUriForSlug(slug)}`,
-      `Source: archive://${archiveId}`,
-      '',
-      source,
-      '',
-    ].join('\n');
-    promoted = writePromotedArtifact(DECISIONS_DIR, 'decision.md', slug, updatedDate, content);
-  }
-
-  return promoted;
 }
 
 function generateArchiveSummary(archiveDir: string, trackId: string): string | null {
@@ -753,12 +822,6 @@ function generateArchiveSummary(archiveDir: string, trackId: string): string | n
   const summaryPath = path.join(archiveDir, 'summary.md');
   fs.writeFileSync(summaryPath, lines.join('\n'), 'utf-8');
   return summaryPath;
-}
-
-function hasDurableDecision(source: string): boolean {
-  return /\bdurable\b/i.test(source)
-    || /长期(项目)?决策/.test(source)
-    || /未来仍(然)?(需要|要|应当|必须)遵守/.test(source);
 }
 
 function promoteMemoryRecords(archiveDir: string, archiveId: string, trackId: string, updatedDate: Date): string[] {

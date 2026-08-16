@@ -1,0 +1,25 @@
+<BehaviorPatch #track.restore-operation-terminology-and-cli-first.behavior_patch.codument-core apiVersion="codument.tech/v1alpha1" version="1" { capability = "codument-core" } (
+  <Mutations [
+    <Upsert { selector = "behavior://codument-core/requirements/operation-authority" } (
+      <Requirement #operation-authority (
+        <Statement ?>Codument SHALL 使用 operation 作为控制面工作流单元的当前术语，并以 std/operations、OperationHooks 和 operation-hooks.xnl 作为唯一当前 authority。</?>
+        <Suites [
+          <Suite #cli-first { name = "CLI-first operation" } (
+            <Cases [
+              <Case #delegate-deterministic-work (
+                <Given ?>某 operation 的确定性能力已有 Codument CLI 子命令</?>
+                <When ?>agent 执行该 operation</?>
+                <Then ?>agent SHALL 先调用 CLI，并在成功后停止重复执行同一确定性逻辑</?>
+              )>
+              <Case #explicit-fallback (
+                <Given ?>CLI 不可用、返回 review-required 或明确声明能力不支持</?>
+                <When ?>operation 需要继续</?>
+                <Then ?>agent SHALL 只进入与回执匹配的 AI review 或手工 fallback</?>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+  ]>
+)>

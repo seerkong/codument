@@ -12,9 +12,16 @@ function tmpWorkspace(): string {
   return ws;
 }
 
-function writeDecisionFile(file: string, content: string): void {
+function writeDecisionFile(file: string, content: string, addCurrentVersion = true): void {
   fs.mkdirSync(path.dirname(file), { recursive: true });
-  fs.writeFileSync(file, content, 'utf-8');
+  const normalized = addCurrentVersion && path.extname(file) === '.xnl'
+    ? content.replace(/^<decision (#[^\s{>]+)([^\n]*)$/gm, (line, id, suffix) => (
+      suffix.includes('apiVersion=')
+        ? line
+        : `<decision ${id} apiVersion="codument.tech/v1alpha1"${suffix}`
+    ))
+    : content;
+  fs.writeFileSync(file, normalized, 'utf-8');
 }
 
 async function runDecisions(ws: string, args: string[]) {
@@ -29,7 +36,84 @@ async function runDecisions(ws: string, args: string[]) {
   return { code, out, err };
 }
 
+async function runDecisionCommand(ws: string, command: string, args: string[]) {
+  const proc = Bun.spawn(['bun', 'run', cli, 'decisions', command, ...args], {
+    cwd: ws,
+    stdout: 'pipe',
+    stderr: 'pipe',
+  });
+  return {
+    code: await proc.exited,
+    out: await new Response(proc.stdout).text(),
+    err: await new Response(proc.stderr).text(),
+  };
+}
+
+describe('codument decisions create', () => {
+  it('creates a versioned pending root with options and appends nested decisions', async () => {
+    const ws = tmpWorkspace();
+    const file = path.join(ws, 'codument', 'tracks', 'active', 'sample', 'decisions.xnl');
+
+    let result = await runDecisionCommand(ws, 'create', [file, 'track.sample.storage']);
+    expect(result.code).toBe(0);
+    let xnl = fs.readFileSync(file, 'utf8');
+    expect(xnl).toContain('<decision #track.sample.storage apiVersion="codument.tech/v1alpha1"');
+    expect(xnl).toMatch(/<options \{\s*\} \[/);
+    expect(xnl).toContain('recommended = true');
+
+    result = await runDecisionCommand(ws, 'create', [file, 'track.sample.storage.encryption', '--parent', 'track.sample.storage']);
+    expect(result.code).toBe(0);
+    xnl = fs.readFileSync(file, 'utf8');
+    expect(xnl.match(/apiVersion="codument.tech\/v1alpha1"/g)).toHaveLength(1);
+    expect(xnl).toContain('<decision #track.sample.storage.encryption {');
+
+    const validated = await runDecisions(ws, [file]);
+    expect(validated.code).toBe(0);
+    expect(validated.out).toContain('decision is still pending');
+  });
+
+  it('rejects non-XNL targets, duplicate ids, and missing parents', async () => {
+    const ws = tmpWorkspace();
+    const file = path.join(ws, 'decisions.xnl');
+    expect((await runDecisionCommand(ws, 'create', [path.join(ws, 'decisions.md'), 'track.bad'])).code).toBe(1);
+    expect((await runDecisionCommand(ws, 'create', [file, 'track.good'])).code).toBe(0);
+    expect((await runDecisionCommand(ws, 'create', [file, 'track.good'])).code).toBe(1);
+    expect((await runDecisionCommand(ws, 'create', [file, 'track.child', '--parent', 'track.missing'])).code).toBe(1);
+  });
+});
+
+describe('codument decisions frontier', () => {
+  it('returns only pending decisions whose dependencies and parent are resolved', async () => {
+    const ws = tmpWorkspace();
+    const file = path.join(ws, 'decisions.xnl');
+    writeDecisionFile(file, `<decision #root { status = "accepted" priority = "P1" } [
+  <decision #ready { status = "pending" priority = "P0" depends_on = ["root"] }>
+]>
+<decision #blocker { status = "pending" priority = "P1" }>
+<decision #waiting { status = "pending" priority = "P0" depends_on = ["blocker"] }>
+<decision #other { status = "pending" priority = "P2" }>`);
+
+    const result = await runDecisionCommand(ws, 'frontier', [file, '--json']);
+    expect(result.code).toBe(0);
+    expect(JSON.parse(result.out).map((entry: { id: string }) => entry.id)).toEqual(['ready', 'blocker', 'other']);
+  });
+});
+
 describe('codument decisions validate', () => {
+  it('requires the Halfcode-backed Decision Kind version on every forest root', async () => {
+    const ws = tmpWorkspace();
+    const file = path.join(ws, 'decisions.xnl');
+    writeDecisionFile(file, `<decision #track.version.missing { status = "accepted" }>`, false);
+    let result = await runDecisions(ws, [file]);
+    expect(result.code).toBe(1);
+    expect(result.out).toContain('top-level decision is missing apiVersion (expected codument.tech/v1alpha1)');
+
+    writeDecisionFile(file, `<decision #track.version.unsupported apiVersion="codument.tech/v9" { status = "accepted" }>`, false);
+    result = await runDecisions(ws, [file]);
+    expect(result.code).toBe(1);
+    expect(result.out).toContain("unsupported decision apiVersion 'codument.tech/v9'");
+  });
+
   it('passes accepted decisions with durable metadata', async () => {
     const ws = tmpWorkspace();
     const file = path.join(ws, 'decisions.md');

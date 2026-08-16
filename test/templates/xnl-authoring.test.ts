@@ -37,4 +37,17 @@ describe('XNL authoring guidance', () => {
     expect(xnlFormat).toContain('<decision #track.foo.child');
     expect(xnlFormat).not.toContain('<decision-tree');
   });
+
+  it('keeps canonical XNL examples free of ordinary metadata attributes', () => {
+    const xnlFormat = read('src/templates/codument/std/spec/xnl-format.md');
+
+    expect(xnlFormat).toContain('<item #x { count=3 active=true note="hi" }>');
+    expect(xnlFormat).toContain('<SetVariable #SetVariable-a {');
+    expect(xnlFormat).toContain('<no_body_node2 { a=[1] b={c=3} }>');
+    expect(xnlFormat).not.toContain('<item id="x"');
+    expect(xnlFormat).not.toContain('<SetVariable id=');
+    expect(xnlFormat).not.toContain('<div id=');
+    expect(xnlFormat).not.toContain('<my_text id=');
+    expect(xnlFormat).not.toContain('<no_body_node2 a=');
+  });
 });

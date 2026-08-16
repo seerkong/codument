@@ -1,0 +1,39 @@
+<BehaviorPatch #track.r_2_0_2_6_-_0_7_-_2_5_-_1_5_0_0_-_r_e_s_t_r_u_c_t_u_r_e_-_t_r_a_c_k_-_l_i_f_e_c_y_c_l_e_-_d_i_r_e_c_t_o_r_i_e_s.behavior_patch.track-lifecycle-layout apiVersion="codument.tech/v1alpha1" version="1" { capability = "track-lifecycle-layout" } (
+  <Mutations [
+    <Upsert { selector = "behavior://track-lifecycle-layout/requirements/unified-lifecycle-directories" } (
+      <Requirement #unified-lifecycle-directories (
+        <Statement ?01M02NT0WFMHB62JC90GN13S3J>
+        Codument SHALL store pending, active, and archived tracks below codument/tracks and SHALL migrate legacy workspace paths during upgrade without overwriting conflicts.
+        </?01M02NT0WFMHB62JC90GN13S3J>
+        <Suites [
+          <Suite #workspace-upgrade { name = "workspace upgrade" } (
+            <Cases [
+              <Case #moves-legacy-layout (
+                <Given ?01M02NT0WFMHB62JC90GN13S3K>
+                a workspace contains direct legacy active tracks and a legacy codument/archive tree
+                </?01M02NT0WFMHB62JC90GN13S3K>
+                <When ?01M02NT0WFMHB62JC90GN13S3M>
+                the user runs codument upgrade-workspace
+                </?01M02NT0WFMHB62JC90GN13S3M>
+                <Then ?01M02NT0WFMHB62JC90GN13S3N>
+                the tracks SHALL move into tracks/active and tracks/archived after backup creation
+                </?01M02NT0WFMHB62JC90GN13S3N>
+              )>
+              <Case #preserves-conflicts (
+                <Given ?01M02NT0WFMHB62JC90GN13S3P>
+                a lifecycle destination already exists
+                </?01M02NT0WFMHB62JC90GN13S3P>
+                <When ?01M02NT0WFMHB62JC90GN13S3Q>
+                the user runs codument upgrade-workspace
+                </?01M02NT0WFMHB62JC90GN13S3Q>
+                <Then ?01M02NT0WFMHB62JC90GN13S3R>
+                the command SHALL preserve the legacy source and report the conflict
+                </?01M02NT0WFMHB62JC90GN13S3R>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+  ]>
+)>

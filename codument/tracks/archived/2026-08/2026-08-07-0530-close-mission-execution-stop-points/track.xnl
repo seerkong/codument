@@ -1,0 +1,39 @@
+<Track #close-mission-execution-stop-points apiVersion="codument.tech/v1alpha1" version="1" { status = "completed" goal = "消除 mission 自主迭代的中途停点：候选 track 创建即激活、规划期问答预算不构成执行期停点、子流程失败/续跑以自主默认处理。" description = "打通 plan-track pending 门禁与 impl-track active 选择之间的 mission 桥接，收紧 impl-mission 返回条件，明确执行期 severity 继承，收敛 delegated 措辞，并同步行为契约与回归测试。" question_mode = "decision-tree" question_severity = "auto" commit_mode = "manual" created_at = "2026-08-07T00:00:00Z" updated_at = "2026-08-07T02:30:00Z" } (
+  <Ports { scope = "track" } [
+    <MaterialBundle { role = "input" name = "templates" domain = "code" path = "vfs://@/src/templates/" }>
+    <MaterialBundle { role = "input" name = "behavior" domain = "behavior" path = "vfs://@/codument/behaviors/" }>
+    <MaterialBundle { role = "output" name = "templates" domain = "code" path = "vfs://@/src/templates/" }>
+    <MaterialBundle { role = "output" name = "tests" domain = "test" path = "vfs://@/test/" }>
+  ]>
+  <TaskSpace #space_close-mission-execution-stop-points { name = "close-mission-execution-stop-points" } (
+    <SubNodes [
+      <TaskGroup #P1 { name = "mission 主循环桥接" status = "DONE" order = 0 } (
+        <SubNodes [
+          <Task #P1-T1 { name = "impl-mission：候选 track 创建即激活 + 返回条件收紧" status = "DONE" order = 0 }>
+          <Task #P1-T2 { name = "plan-track：mission/auto 调用方直接落 active" status = "DONE" order = 1 }>
+          <Task #P1-T3 { name = "mission-xml-spec：§8.1 候选激活语义" status = "DONE" order = 2 }>
+        ]>
+      )>
+      <TaskGroup #P2 { name = "执行期提问轴" status = "DONE" order = 1 } (
+        <SubNodes [
+          <Task #P2-T1 { name = "questioning：执行期 severity 继承规则" status = "DONE" order = 0 }>
+          <Task #P2-T2 { name = "plan-mission：默认 severity 建议 auto" status = "DONE" order = 1 }>
+        ]>
+      )>
+      <TaskGroup #P3 { name = "子流程自主默认" status = "DONE" order = 2 } (
+        <SubNodes [
+          <Task #P3-T1 { name = "impl-track：候选激活/auto 续跑/失败分支不默认提问" status = "DONE" order = 0 }>
+          <Task #P3-T2 { name = "dag-execution：delegated 措辞收敛" status = "DONE" order = 1 }>
+          <Task #P3-T3 { name = "archive-track：mission 语境未完成 track 交还 mission" status = "DONE" order = 2 }>
+        ]>
+      )>
+      <TaskGroup #P4 { name = "行为契约与回归" status = "DONE" order = 3 } (
+        <SubNodes [
+          <Task #P4-T1 { name = "behavior 契约：mission-cybernetic-actors 新增 case" status = "DONE" order = 0 }>
+          <Task #P4-T2 { name = "回归测试：mission-continuity 扩展 + stop-points 测试" status = "DONE" order = 1 }>
+          <Task #P4-T3 { name = "manifest 重生成 + dogfood 同步 + bun run check" status = "DONE" order = 2 }>
+        ]>
+      )>
+    ]>
+  )>
+)>

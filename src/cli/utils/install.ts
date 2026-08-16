@@ -1,6 +1,12 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { TEMPLATE_FILES } from '../../templates/manifest';
+import {
+  createPackagedResourceEffect,
+  walkResourceFiles,
+  type ResourceEffect,
+  type ResourceEntry,
+} from '../effects/resource';
+import { createWorkspaceEffect, type WorkspaceEffect } from '../effects/workspace';
 
 /**
  * Pure text-copy install of the embedded templates (src/templates/) into a
@@ -50,7 +56,12 @@ const DEPRECATED_SKILLS = [
 
 const AGENTS_MANAGED_BODY = `# Codument Instructions
 
+在 Codument 工具内部上下文中，\`@\` 一般表示当前项目的项目级根目录。
+
 涉及 Codument 工作（包括 planning、track、mission、行为或架构变更，以及范围不明确的请求）前，打开并遵循 \`@/codument/std/AGENTS.md\`。它是唯一的 Codument 工作流与路由真源。
+
+产品方向吸引子：\`@/codument/attractors/product.md\`
+项目实现吸引子：\`@/codument/attractors/project.md\`
 
 保留本受管块，'codument upgrade-workspace' 会刷新它。`;
 
@@ -158,19 +169,18 @@ export function ensureCodumentGitignoreRules(file = '.gitignore'): number {
   return missing.length;
 }
 
-function writeFile(dest: string, content: string): void {
-  fs.mkdirSync(path.dirname(dest), { recursive: true });
-  fs.writeFileSync(dest, content.endsWith('\n') ? content : `${content}\n`, 'utf-8');
+async function writeFile(effect: WorkspaceEffect, dest: string, content: string): Promise<void> {
+  await effect.writeText(dest, content.endsWith('\n') ? content : `${content}\n`);
 }
 
-function resetManagedSkillDirs(skillsDir: string): void {
+async function resetManagedSkillDirs(skills: WorkspaceEffect, files: readonly ResourceEntry[]): Promise<void> {
   const names = new Set<string>();
-  for (const file of TEMPLATE_FILES) {
+  for (const file of files) {
     const match = /^skills\/([^/]+)\//.exec(file.path);
     if (match) names.add(match[1]);
   }
   for (const name of names) {
-    fs.rmSync(path.join(skillsDir, name), { recursive: true, force: true });
+    await skills.remove(name);
   }
 }
 
@@ -188,31 +198,40 @@ export interface SkillInstallResult {
 
 export interface InstallOptions {
   skillsDir: string;
-  /** Overwrite the codument/std/** subtree (true for upgrade-workspace; false for init which preserves existing files). */
+  /** Overwrite Codument-managed authorities (std/** and the root ResourcePackage manifest). */
   overwriteStd: boolean;
   /** Overwrite every codument/** file regardless (init --force). */
   force?: boolean;
+  resources?: ResourceEffect;
+  workspace?: WorkspaceEffect;
+  skills?: WorkspaceEffect;
 }
 
 /**
  * Copy embedded templates into the project.
  * - skills/**           → always overwritten (generated shells).
- * - codument/std/**     → overwritten when overwriteStd|force, else written only if missing.
+ * - managed authority  → codument/std/** and codument/manifest.xnl; overwritten when overwriteStd|force.
  * - other codument/**   → written only if missing (preserves user content), unless force.
  */
-export function installTemplates(opts: InstallOptions): InstallResult {
+export async function installTemplates(opts: InstallOptions): Promise<InstallResult> {
+  const resources = opts.resources ?? createPackagedResourceEffect();
+  const workspace = opts.workspace ?? createWorkspaceEffect();
+  const skills = opts.skills ?? createWorkspaceEffect(opts.skillsDir);
+  const files = await walkResourceFiles(resources);
   const result: InstallResult = {
     workspaceWritten: 0,
     workspaceSkipped: 0,
     skillsWritten: 0,
-    skillsRemoved: cleanupDeprecatedSkills(opts.skillsDir),
+    skillsRemoved: await cleanupDeprecatedSkills(opts.skillsDir, skills),
   };
-  resetManagedSkillDirs(opts.skillsDir);
+  await resetManagedSkillDirs(skills, files);
 
-  for (const file of TEMPLATE_FILES) {
+  for (const file of files) {
+    const content = await resources.readText(file.path);
+    if (content === undefined) throw new Error(`Packaged resource disappeared while installing: ${file.path}`);
     if (file.path.startsWith('skills/')) {
-      const dest = path.join(opts.skillsDir, file.path.slice('skills/'.length));
-      writeFile(dest, file.content);
+      const dest = file.path.slice('skills/'.length);
+      await writeFile(skills, dest, content);
       result.skillsWritten++;
       continue;
     }
@@ -222,58 +241,75 @@ export function installTemplates(opts: InstallOptions): InstallResult {
     }
 
     const dest = file.path; // relative to cwd (= workspace)
-    const isStd = file.path.startsWith('codument/std/');
-    const overwrite = opts.force || (isStd && opts.overwriteStd);
+    const isManagedAuthority = file.path.startsWith('codument/std/')
+      || file.path === 'codument/manifest.xnl';
+    const overwrite = opts.force || (isManagedAuthority && opts.overwriteStd);
 
-    if (!overwrite && fs.existsSync(dest)) {
+    if (!overwrite && file.path.startsWith('codument/config/') && file.path.endsWith('.xnl')) {
+      const legacyXml = dest.slice(0, -'.xnl'.length) + '.xml';
+      if (await workspace.exists(legacyXml) && !await workspace.exists(dest)) {
+        result.workspaceSkipped++;
+        continue;
+      }
+    }
+
+    if (!overwrite && await workspace.exists(dest)) {
       result.workspaceSkipped++;
       continue;
     }
-    writeFile(dest, file.content);
+    await writeFile(workspace, dest, content);
     result.workspaceWritten++;
   }
 
   return result;
 }
 
-export function installSkillTemplates(skillsDir: string): SkillInstallResult {
-  const result: SkillInstallResult = { skillsWritten: 0, skillsRemoved: cleanupDeprecatedSkills(skillsDir) };
-  resetManagedSkillDirs(skillsDir);
-  for (const file of TEMPLATE_FILES) {
+export async function installSkillTemplates(
+  skillsDir: string,
+  resources: ResourceEffect = createPackagedResourceEffect(),
+  skills: WorkspaceEffect = createWorkspaceEffect(skillsDir),
+): Promise<SkillInstallResult> {
+  const files = await walkResourceFiles(resources);
+  const result: SkillInstallResult = { skillsWritten: 0, skillsRemoved: await cleanupDeprecatedSkills(skillsDir, skills) };
+  await resetManagedSkillDirs(skills, files);
+  for (const file of files) {
     if (!file.path.startsWith('skills/')) {
       continue;
     }
-    const dest = path.join(skillsDir, file.path.slice('skills/'.length));
-    writeFile(dest, file.content);
+    const content = await resources.readText(file.path);
+    if (content === undefined) throw new Error(`Packaged resource disappeared while installing: ${file.path}`);
+    const dest = file.path.slice('skills/'.length);
+    await writeFile(skills, dest, content);
     result.skillsWritten++;
   }
   return result;
 }
 
-export function cleanupDeprecatedSkills(skillsDir: string): number {
+export async function cleanupDeprecatedSkills(
+  skillsDir: string,
+  skills: WorkspaceEffect = createWorkspaceEffect(skillsDir),
+): Promise<number> {
   let removed = 0;
   for (const skill of DEPRECATED_SKILLS) {
-    const dir = path.join(skillsDir, skill);
-    if (!fs.existsSync(dir)) {
+    if (!await skills.exists(skill)) {
       continue;
     }
-    fs.rmSync(dir, { recursive: true, force: true });
+    await skills.remove(skill);
     removed++;
   }
   return removed;
 }
 
 /**
- * Inject / refresh the codument managed pointer block in the project-root AGENTS.md.
+ * Inject / refresh the Codument managed pointer block in one project instruction file.
  * Matches the managed block case-insensitively and across legacy marker words
  * (codument:begin/end and CODUMENT:START/END), replacing the first occurrence and
  * removing any duplicates so re-running never stacks blocks.
  */
 const MANAGED_BLOCK_RE = /<!--\s*codument:(?:begin|start)\s*-->[\s\S]*?<!--\s*codument:end\s*-->/gi;
 
-export function injectAgentsBlock(): void {
+function injectManagedInstructionBlock(file: string): void {
   const block = `${AGENTS_BEGIN}\n\n${AGENTS_MANAGED_BODY}\n\n${AGENTS_END}`;
-  const file = 'AGENTS.md';
 
   if (!fs.existsSync(file)) {
     fs.writeFileSync(file, `${block}\n`, 'utf-8');
@@ -300,4 +336,15 @@ export function injectAgentsBlock(): void {
   // No (recognizable) existing block — prepend.
   const updated = existing.trim().length > 0 ? `${block}\n\n${existing}` : `${block}\n`;
   fs.writeFileSync(file, updated, 'utf-8');
+}
+
+/**
+ * AGENTS.md is the common project entry. Claude additionally reads CLAUDE.md,
+ * so selected Claude installations receive the same managed pointer block there.
+ */
+export function injectAgentsBlock(agents: readonly CLITool[] = []): string[] {
+  const files = ['AGENTS.md'];
+  if (agents.includes('claude')) files.push('CLAUDE.md');
+  for (const file of files) injectManagedInstructionBlock(file);
+  return files;
 }

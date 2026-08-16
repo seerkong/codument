@@ -1,0 +1,249 @@
+<Track #update-decisions-xnl apiVersion="codument.tech/v1alpha1" version="1" { status = "completed" goal = "将 Codument 过程决策载体从 decisions.md 迁移为 decisions.xnl" description = "设计并实现 decisions.xnl DSL、校验、归档提升与 std/template 口径迁移。" question_mode = "decision-tree" question_severity = "light" commit_mode = "manual" created_at = "2026-07-11T18:11:31Z" updated_at = "2026-07-12T04:10:48Z" } (
+  <Ports { scope = "track" } [
+    <MaterialBundle { role = "input" name = "behavior-deltas" domain = "behavior" path = "vfs://./behavior_deltas/" }>
+    <MaterialBundle { role = "state" name = "decisions" domain = "decision" path = "vfs://./decisions.xnl" }>
+    <MaterialBundle { role = "state" name = "analysis" domain = "track" path = "vfs://./analysis/" }>
+    <MaterialBundle { role = "output" name = "behavior" domain = "codument" path = "vfs://@/codument/behaviors/" }>
+  ]>
+  <TaskSpace #space_update-decisions-xnl { name = "update-decisions-xnl" } (
+    <Description ?01M02JDH8KKNTFEY5CVVTWSX8Q>
+    将 Codument 过程决策载体改为 decisions.xnl，并保留 legacy decisions.md 兼容。
+    </?01M02JDH8KKNTFEY5CVVTWSX8Q>
+    <SubNodes [
+      <TaskGroup #P1 { name = "DSL review gate" status = "DONE" order = 0 } (
+        <Description ?01M02JDH8KKNTFEY5CVVTWSX8R>
+        先评审 decisions.xnl DSL，确认 XNL 并列根与嵌套决策树设计。
+        </?01M02JDH8KKNTFEY5CVVTWSX8R>
+        <Gate [
+          <Criterion ?01M02JDH8KKNTFEY5CVVTWSX8S>
+          用户 review `design.md` 中的 DSL 草案
+          </?01M02JDH8KKNTFEY5CVVTWSX8S>
+          <Criterion ?01M02JDH8KKNTFEY5CVVTWSX8T>
+          `decisions.xnl` 中阻塞 review 的 decision 被接受或修订
+          </?01M02JDH8KKNTFEY5CVVTWSX8T>
+        ]>
+        <SubNodes [
+          <Task { id = "T1.1" name = "Review decisions.xnl DSL" status = "DONE" order = 0 priority = "P0" } (
+            <Description ?01M02JDH8KKNTFEY5CVVTWSX8V>
+            确认节点类型、属性块、并列根、嵌套 decision tree 与 legacy fallback 范围。
+            </?01M02JDH8KKNTFEY5CVVTWSX8V>
+            <Acceptance [
+              <Criterion { id = "T1.1-AC1" checked = true } ?01M02JDH8KKNTFEY5CVVTWSX8W>
+              用户明确接受或修订 DSL 草案
+              </?01M02JDH8KKNTFEY5CVVTWSX8W>
+            ]>
+          )>
+        ]>
+        <Hooks [
+          <Hook { on = "phase:after" } (
+            <HumanConfirm>
+          )>
+          <Hook { on = "phase:after" } (
+            <AttractorCheck { use = "coding" }>
+          )>
+        ]>
+      )>
+      <TaskGroup #P2 { name = "CLI decisions.xnl support" status = "DONE" order = 1 } (
+        <Description ?01M02JDH8KKNTFEY5CVVTWSX8X>
+        实现 decisions.xnl 解析、校验与 track-id resolution。
+        </?01M02JDH8KKNTFEY5CVVTWSX8X>
+        <Gate [
+          <Criterion ?01M02JDH8KKNTFEY5CVVTWSX8Y>
+          `codument decisions validate` 支持 .xnl 文件
+          </?01M02JDH8KKNTFEY5CVVTWSX8Y>
+          <Criterion ?01M02JDH8KKNTFEY5CVVTWSX8Z>
+          track-id 优先解析 decisions.xnl，缺失时 fallback decisions.md
+          </?01M02JDH8KKNTFEY5CVVTWSX8Z>
+        ]>
+        <SubNodes [
+          <Task { id = "T2.1" name = "Add XNL validation model tests" status = "DONE" order = 0 priority = "P0" } (
+            <Description ?01M02JDH8KKNTFEY5CVVTWSX90>
+            覆盖 pending/blocking/durable candidate/嵌套 decision-tree/多顶层节点。
+            </?01M02JDH8KKNTFEY5CVVTWSX90>
+          )>
+          <Task { id = "T2.2" name = "Implement XNL parser path" status = "DONE" order = 1 priority = "P0" } (
+            <Description ?01M02JDH8KKNTFEY5CVVTWSX91>
+            在 decisions command 中按扩展名选择 XNL 或 legacy Markdown parser。
+            </?01M02JDH8KKNTFEY5CVVTWSX91>
+          )>
+          <Task { id = "T2.3" name = "Keep legacy Markdown fallback" status = "DONE" order = 2 priority = "P1" } (
+            <Description ?01M02JDH8KKNTFEY5CVVTWSX92>
+            保留 decisions.md 显式路径与 track-id fallback 行为。
+            </?01M02JDH8KKNTFEY5CVVTWSX92>
+          )>
+        ]>
+        <Hooks [
+          <Hook { on = "phase:after" } (
+            <AttractorCheck { use = "coding" }>
+          )>
+        ]>
+      )>
+      <TaskGroup #P3 { name = "Archive and std migration" status = "DONE" order = 2 } (
+        <Description ?01M02JDH8KKNTFEY5CVVTWSX93>
+        让 archive/std/templates 使用 decisions.xnl 口径，并更新测试。
+        </?01M02JDH8KKNTFEY5CVVTWSX93>
+        <Gate [
+          <Criterion ?01M02JDH8KKNTFEY5CVVTWSX94>
+          archive 可识别 XNL durable candidate
+          </?01M02JDH8KKNTFEY5CVVTWSX94>
+          <Criterion ?01M02JDH8KKNTFEY5CVVTWSX95>
+          std/templates 不再把新建默认写成 decisions.md
+          </?01M02JDH8KKNTFEY5CVVTWSX95>
+          <Criterion ?01M02JDH8KKNTFEY5CVVTWSX96>
+          模板 manifest 已刷新
+          </?01M02JDH8KKNTFEY5CVVTWSX96>
+        ]>
+        <SubNodes [
+          <Task { id = "T3.1" name = "Support archive durable XNL decisions" status = "DONE" order = 0 priority = "P0" } (
+            <Description ?01M02JDH8KKNTFEY5CVVTWSX97>
+            从 decisions.xnl 读取 durable_candidate=true 且 accepted/resolved 的决策并提升。
+            </?01M02JDH8KKNTFEY5CVVTWSX97>
+          )>
+          <Task { id = "T3.2" name = "Update std operations and skill templates" status = "DONE" order = 1 priority = "P0" } (
+            <Description ?01M02JDH8KKNTFEY5CVVTWSX98>
+            迁移 plan-track、plan-mission、decision-tree、impl、verify、archive、artifact-sync 相关文档。
+            </?01M02JDH8KKNTFEY5CVVTWSX98>
+          )>
+          <Task { id = "T3.3" name = "Regenerate template manifest and dogfood upgrade" status = "DONE" order = 2 priority = "P1" } (
+            <Description ?01M02JDH8KKNTFEY5CVVTWSX99>
+            刷新 `src/templates/manifest.ts`，build 后运行 upgrade-workspace 吃自己狗粮。
+            </?01M02JDH8KKNTFEY5CVVTWSX99>
+          )>
+        ]>
+        <Hooks [
+          <Hook { on = "phase:after" } (
+            <AttractorCheck { use = "coding" }>
+          )>
+        ]>
+      )>
+      <TaskGroup #P4 { name = "Verification" status = "DONE" order = 3 } (
+        <Description ?01M02JDH8KKNTFEY5CVVTWSX9A>
+        运行聚焦测试、typecheck、模板同步测试和 codument validate。
+        </?01M02JDH8KKNTFEY5CVVTWSX9A>
+        <Gate [
+          <Criterion ?01M02JDH8KKNTFEY5CVVTWSX9B>
+          decisions command tests pass
+          </?01M02JDH8KKNTFEY5CVVTWSX9B>
+          <Criterion ?01M02JDH8KKNTFEY5CVVTWSX9C>
+          archive tests pass
+          </?01M02JDH8KKNTFEY5CVVTWSX9C>
+          <Criterion ?01M02JDH8KKNTFEY5CVVTWSX9D>
+          template manifest tests pass
+          </?01M02JDH8KKNTFEY5CVVTWSX9D>
+          <Criterion ?01M02JDH8KKNTFEY5CVVTWSX9E>
+          typecheck pass
+          </?01M02JDH8KKNTFEY5CVVTWSX9E>
+        ]>
+        <SubNodes [
+          <Task { id = "T4.1" name = "Run focused tests" status = "DONE" order = 0 priority = "P0" } (
+            <Description ?01M02JDH8KKNTFEY5CVVTWSX9F>
+            覆盖 decisions、archive、templates 和 help regressions。
+            </?01M02JDH8KKNTFEY5CVVTWSX9F>
+          )>
+          <Task { id = "T4.2" name = "Run typecheck and validate" status = "DONE" order = 1 priority = "P0" } (
+            <Description ?01M02JDH8KKNTFEY5CVVTWSX9G>
+            运行 TypeScript 检查与 `codument validate update-decisions-xnl --strict`。
+            </?01M02JDH8KKNTFEY5CVVTWSX9G>
+          )>
+        ]>
+        <Hooks [
+          <Hook { on = "phase:after" } (
+            <AttractorCheck { use = "coding" }>
+          )>
+        ]>
+      )>
+      <TaskGroup #P5 { name = "Option wrapper DSL correction" status = "DONE" order = 4 } (
+        <Description ?01M02JDH8KKNTFEY5CVVTWSX9H>
+        修正备选方案的 XNL 承载方式，保留决策树 [] 的专属语义，并补齐推荐项与选项说明。
+        </?01M02JDH8KKNTFEY5CVVTWSX9H>
+        <Gate [
+          <Criterion ?01M02JDH8KKNTFEY5CVVTWSX9J>
+          design.md 明确 &lt;options&gt; / &lt;option&gt; 与决策树 [] 的边界
+          </?01M02JDH8KKNTFEY5CVVTWSX9J>
+          <Criterion ?01M02JDH8KKNTFEY5CVVTWSX9K>
+          每个带选项的待决策点包含完整选项集合和唯一 recommended=true
+          </?01M02JDH8KKNTFEY5CVVTWSX9K>
+          <Criterion ?01M02JDH8KKNTFEY5CVVTWSX9M>
+          提示词、模板、示例和校验规则口径一致
+          </?01M02JDH8KKNTFEY5CVVTWSX9M>
+          <Criterion ?01M02JDH8KKNTFEY5CVVTWSX9N>
+          build、upgrade-workspace 与 focused tests 通过
+          </?01M02JDH8KKNTFEY5CVVTWSX9N>
+        ]>
+        <SubNodes [
+          <Task { id = "T5.1" name = "Revise option DSL documents" status = "DONE" order = 0 priority = "P0" } (
+            <Description ?01M02JDH8KKNTFEY5CVVTWSX9P>
+            更新 proposal、design、behavior delta、XNL spec、questioning、plan-track 和 decision-tree skill，规定 options wrapper、option details 与 recommended marker。
+            </?01M02JDH8KKNTFEY5CVVTWSX9P>
+          )>
+          <Task { id = "T5.2" name = "Migrate decision records" status = "DONE" order = 1 priority = "P0" } (
+            <Description ?01M02JDH8KKNTFEY5CVVTWSX9Q>
+            补齐当前 decisions.xnl 中各决策点的全部备选方案、标题、详细说明、取舍与推荐项。
+            </?01M02JDH8KKNTFEY5CVVTWSX9Q>
+          )>
+          <Task { id = "T5.3" name = "Validate option structure" status = "DONE" order = 2 priority = "P0" } (
+            <Description ?01M02JDH8KKNTFEY5CVVTWSX9R>
+            让 decisions validator 检查 options wrapper、option key、title、description 和唯一 recommended=true，并保持 nested decision tree 校验。
+            </?01M02JDH8KKNTFEY5CVVTWSX9R>
+          )>
+          <Task { id = "T5.4" name = "Sync templates and verify" status = "DONE" order = 3 priority = "P1" } (
+            <Description ?01M02JDH8KKNTFEY5CVVTWSX9S>
+            刷新模板 manifest，运行 focused tests、build、upgrade-workspace 和 strict validation，排查提示词遗漏。
+            </?01M02JDH8KKNTFEY5CVVTWSX9S>
+          )>
+        ]>
+        <Hooks [
+          <Hook { on = "phase:after" } (
+            <AttractorCheck { use = "coding" }>
+          )>
+        ]>
+      )>
+      <TaskGroup #P6 { name = "Answer feedback wrapper correction" status = "DONE" order = 5 } (
+        <Description ?01M02JDH8KKNTFEY5CVVTWSX9T>
+        把原始回答与整理后的决策反馈从直接 answer 节点重构为 answer 容器下的结构化槽位。
+        </?01M02JDH8KKNTFEY5CVVTWSX9T>
+        <Gate [
+          <Criterion ?01M02JDH8KKNTFEY5CVVTWSX9V>
+          design.md 明确 answer/raw-answer/decision-text/rationale/evidence 的层级和语义
+          </?01M02JDH8KKNTFEY5CVVTWSX9V>
+          <Criterion ?01M02JDH8KKNTFEY5CVVTWSX9W>
+          当前 decisions.xnl 与 analysis/decision-tree.xnl 不丢失回答、理由和证据
+          </?01M02JDH8KKNTFEY5CVVTWSX9W>
+          <Criterion ?01M02JDH8KKNTFEY5CVVTWSX9X>
+          新结构可解析，旧直接 answer 文本仍可读取
+          </?01M02JDH8KKNTFEY5CVVTWSX9X>
+          <Criterion ?01M02JDH8KKNTFEY5CVVTWSX9Y>
+          提示词、模板、CLI、测试和工作区升级全部同步
+          </?01M02JDH8KKNTFEY5CVVTWSX9Y>
+        ]>
+        <SubNodes [
+          <Task { id = "T6.1" name = "Revise answer feedback DSL" status = "DONE" order = 0 priority = "P0" } (
+            <Description ?01M02JDH8MMM1V3HHMGRAV300R>
+            更新 proposal、design、behavior delta、XNL spec、questioning、plan-track 和 decision-tree skill。
+            </?01M02JDH8MMM1V3HHMGRAV300R>
+          )>
+          <Task { id = "T6.2" name = "Migrate answer feedback records" status = "DONE" order = 1 priority = "P0" } (
+            <Description ?01M02JDH8MMM1V3HHMGRAV300S>
+            将当前 decisions.xnl 与 analysis/decision-tree.xnl 的直接 answer/decision-text/rationale/evidence 改为 answer 容器结构。
+            </?01M02JDH8MMM1V3HHMGRAV300S>
+          )>
+          <Task { id = "T6.3" name = "Support nested answer parsing" status = "DONE" order = 2 priority = "P0" } (
+            <Description ?01M02JDH8MMM1V3HHMGRAV300T>
+            读取 answer 下的 raw-answer、decision-text、rationale、evidence，并保留旧直接 answer 文本兼容。
+            </?01M02JDH8MMM1V3HHMGRAV300T>
+          )>
+          <Task { id = "T6.4" name = "Sync templates and verify" status = "DONE" order = 3 priority = "P1" } (
+            <Description ?01M02JDH8MMM1V3HHMGRAV300V>
+            刷新 manifest，运行测试、build、upgrade-workspace 和 strict validation。
+            </?01M02JDH8MMM1V3HHMGRAV300V>
+          )>
+        ]>
+        <Hooks [
+          <Hook { on = "phase:after" } (
+            <AttractorCheck { use = "coding" }>
+          )>
+        ]>
+      )>
+    ]>
+  )>
+)>

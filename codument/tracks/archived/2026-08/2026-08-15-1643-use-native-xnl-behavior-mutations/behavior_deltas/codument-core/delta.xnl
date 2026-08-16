@@ -1,0 +1,16 @@
+<BehaviorPatch #track.use-native-xnl-behavior-mutations.behavior_patch.codument-core apiVersion="codument.tech/v1alpha1" version="1" { capability = "codument-core" } (
+  <Mutations [
+    <Upsert { selector = "behavior://codument-core/requirements/native-behavior-mutations" } (
+      <Requirement #native-behavior-mutations (
+        <Statement ?>Canonical Behavior XNL SHALL execute BehaviorPatch DSL through xnl-core native mutation batches.</?>
+        <Cases [
+          <Case #atomic-native-apply (
+            <Given ?>A BehaviorPatch containing Upsert, Delete, or Move operations</?>
+            <When ?>Codument applies the patch to an XNL Behavior registry</?>
+            <Then ?>Codument SHALL compile a native mutation batch, dry-run it atomically, and write only a semantically equivalent accepted result</?>
+          )>
+        ]>
+      )>
+    )>
+  ]>
+)>

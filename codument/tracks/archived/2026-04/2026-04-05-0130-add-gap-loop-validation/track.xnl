@@ -1,0 +1,270 @@
+<Track #add-gap-loop-validation apiVersion="codument.tech/v1alpha1" version="1" { status = "completed" goal = "删除 yield-ai-confirm，引入 yield-gap-loop 与 /codument:gap-loop，并将 track 创建、顺序执行和波次执行统一接入新的目标偏差闭环" description = "删除 yield-ai-confirm，引入 yield-gap-loop 与 /codument:gap-loop，并将 track 创建、顺序执行和波次执行统一接入新的目标偏差闭环" commit_mode = "manual" created_at = "2026-04-03T12:00:00Z" updated_at = "2026-04-04T17:30:00Z" } (
+  <Ports { scope = "track" } [
+    <MaterialBundle { role = "input" name = "behavior-deltas" domain = "behavior" path = "vfs://./behavior_deltas/" }>
+    <MaterialBundle { role = "output" name = "docs" domain = "doc" path = "vfs://@/docs/" }>
+    <MaterialBundle { role = "output" name = "behavior" domain = "codument" path = "vfs://@/codument/behaviors/" }>
+  ]>
+  <TaskSpace #space_add-gap-loop-validation { name = "add-gap-loop-validation" } (
+    <Description ?01M02JDH91SJSKS12NMYNYZWG4>
+    删除 yield-ai-confirm，引入 yield-gap-loop 与 /codument:gap-loop，并将 track 创建、顺序执行和波次执行统一接入新的目标偏差闭环
+    </?01M02JDH91SJSKS12NMYNYZWG4>
+    <SubNodes [
+      <TaskGroup #P1 { name = "协议与 schema 更新" status = "DONE" order = 0 } (
+        <Description ?01M02JDH91SJSKS12NMYNYZWG5>
+        删除旧 AI review 协议，定义 yield-gap-loop 与 plan.xml 新字段
+        </?01M02JDH91SJSKS12NMYNYZWG5>
+        <Gate [
+          <Criterion ?01M02JDH91SJSKS12NMYNYZWG6>
+          plan-xml-spec 与 protocols 副本同步完成
+          </?01M02JDH91SJSKS12NMYNYZWG6>
+          <Criterion ?01M02JDH91SJSKS12NMYNYZWG7>
+          yield-ai-confirm 在规范文档中已移除
+          </?01M02JDH91SJSKS12NMYNYZWG7>
+        ]>
+        <SubNodes [
+          <Task { id = "T1.1" name = "更新 plan-xml-spec.md 与运行时副本" status = "DONE" order = 0 priority = "P0" } (
+            <Description ?01M02JDH91SJSKS12NMYNYZWG8>
+            修改 src/prompts/plan-xml-spec.md 与 codument/std/plan-xml-spec.md：
+                        - confirm 可用协议改为 `yield-human-confirm`、`yield-gap-loop`
+                        - 删除 `yield-ai-confirm` 与 `ai-agent` 相关说明和示例
+                        - 在 metadata 说明中新增 `validation_mode`
+                        - 在 gap-loop 模式下说明 `validation_granularity`
+                        - 更新默认 confirm 生成建议与示例 XML
+            </?01M02JDH91SJSKS12NMYNYZWG8>
+            <Acceptance [
+              <Criterion { id = "T1.1-AC1" checked = true } ?01M02JDH91SJSKS12NMYNYZWG9>
+              plan-xml-spec.md 不再包含 yield-ai-confirm
+              </?01M02JDH91SJSKS12NMYNYZWG9>
+              <Criterion { id = "T1.1-AC2" checked = true } ?01M02JDH91SJSKS12NMYNYZWGA>
+              plan-xml-spec.md 包含 yield-gap-loop 说明
+              </?01M02JDH91SJSKS12NMYNYZWGA>
+              <Criterion { id = "T1.1-AC3" checked = true } ?01M02JDH91SJSKS12NMYNYZWGB>
+              src/prompts 与 codument/std 两份副本一致
+              </?01M02JDH91SJSKS12NMYNYZWGB>
+            ]>
+          )>
+          <Task { id = "T1.2" name = "更新 protocols.md 与运行时副本" status = "DONE" order = 1 priority = "P0" } (
+            <Description ?01M02JDH91SJSKS12NMYNYZWGC>
+            修改 src/prompts/protocols.md 与 codument/std/protocols.md：
+                        - 保留 `yield-human-confirm`
+                        - 删除 `yield-ai-confirm`
+                        - 新增 `yield-gap-loop` 协议，明确父层让出/重启 fresh agent/按状态复检的语义
+            </?01M02JDH91SJSKS12NMYNYZWGC>
+            <Acceptance [
+              <Criterion { id = "T1.2-AC1" checked = true } ?01M02JDH91SJSKS12NMYNYZWGD>
+              protocols.md 中不再定义 yield-ai-confirm
+              </?01M02JDH91SJSKS12NMYNYZWGD>
+              <Criterion { id = "T1.2-AC2" checked = true } ?01M02JDH91SJSKS12NMYNYZWGE>
+              protocols.md 中包含 yield-gap-loop 的完整协议描述
+              </?01M02JDH91SJSKS12NMYNYZWGE>
+            ]>
+          )>
+        ]>
+      )>
+      <TaskGroup #P2 { name = "Gap Loop 命令与返回契约" status = "DONE" order = 1 } (
+        <Description ?01M02JDH91SJSKS12NMYNYZWGF>
+        新增 /codument:gap-loop 核心提示词、命令注册和结构化返回格式
+        </?01M02JDH91SJSKS12NMYNYZWGF>
+        <Gate [
+          <Criterion ?01M02JDH91SJSKS12NMYNYZWGG>
+          gap-loop 命令已注册到全部支持的 AI coding 工具生成器
+          </?01M02JDH91SJSKS12NMYNYZWGG>
+          <Criterion ?01M02JDH91SJSKS12NMYNYZWGH>
+          返回 XML 结构在提示词中明确固定
+          </?01M02JDH91SJSKS12NMYNYZWGH>
+        ]>
+        <SubNodes [
+          <Task { id = "T2.1" name = "新增 gap-loop.md 提示词" status = "DONE" order = 0 priority = "P0" } (
+            <Description ?01M02JDH91SJSKS12NMYNYZWGJ>
+            创建 src/prompts/gap-loop.md：
+                        - 支持 track-id、可重复 `--background`、可选 `--phase`
+                        - 固定读取 track 的 proposal/spec/design/plan
+                        - 固定读取 track 下 reports/ 作为背景上下文
+                        - review 当前实现与未提交改动
+                        - 先生成 gap report，再修正
+                        - 最终只返回结构化 XML，状态仅允许 NO_GAP/FIX_APPLIED/BLOCKED
+            </?01M02JDH91SJSKS12NMYNYZWGJ>
+            <Acceptance [
+              <Criterion { id = "T2.1-AC1" checked = true } ?01M02JDH91SJSKS12NMYNYZWGK>
+              gap-loop.md 包含 reports/ 自动读取规则
+              </?01M02JDH91SJSKS12NMYNYZWGK>
+              <Criterion { id = "T2.1-AC2" checked = true } ?01M02JDH91SJSKS12NMYNYZWGM>
+              gap-loop.md 明确先写报告再修正
+              </?01M02JDH91SJSKS12NMYNYZWGM>
+              <Criterion { id = "T2.1-AC3" checked = true } ?01M02JDH91SJSKS12NMYNYZWGN>
+              gap-loop.md 明确最终只输出结构化 XML
+              </?01M02JDH91SJSKS12NMYNYZWGN>
+            ]>
+          )>
+          <Task { id = "T2.2" name = "注册 gap-loop 提示词与命令生成器" status = "DONE" order = 1 priority = "P0" } (
+            <Description ?01M02JDH91SJSKS12NMYNYZWGP>
+            修改 src/prompts/index.ts 与各 CLI 生成器：
+                        - 注册 gap-loop 提示词
+                        - 为 Codex、Claude、Gemini、Eidolon、OpenCode 生成 `/codument:gap-loop`
+                        - 各工具 wrapper 明确“每轮 gap loop 必须 fresh-spawn 新子代理，不能复用旧 gap agent”
+            </?01M02JDH91SJSKS12NMYNYZWGP>
+            <Acceptance [
+              <Criterion { id = "T2.2-AC1" checked = true } ?01M02JDH91SJSKS12NMYNYZWGQ>
+              所有生成器都输出 gap-loop 命令
+              </?01M02JDH91SJSKS12NMYNYZWGQ>
+              <Criterion { id = "T2.2-AC2" checked = true } ?01M02JDH91SJSKS12NMYNYZWGR>
+              wrapper 明确 fresh-subagent 约束
+              </?01M02JDH91SJSKS12NMYNYZWGR>
+            ]>
+          )>
+        ]>
+      )>
+      <TaskGroup #P3 { name = "Track 创建流程更新" status = "DONE" order = 2 } (
+        <Description ?01M02JDH91SJSKS12NMYNYZWGS>
+        更新 /codument:track，使新 track 创建时可选择 validation 模式与粒度
+        </?01M02JDH91SJSKS12NMYNYZWGS>
+        <Gate [
+          <Criterion ?01M02JDH91SJSKS12NMYNYZWGT>
+          track 创建流程能生成 yield-human-confirm 或 yield-gap-loop
+          </?01M02JDH91SJSKS12NMYNYZWGT>
+        ]>
+        <SubNodes [
+          <Task { id = "T3.1" name = "更新 track.md 提问流程" status = "DONE" order = 0 priority = "P0" } (
+            <Description ?01M02JDH91SJSKS12NMYNYZWGV>
+            修改 src/prompts/track.md：
+                        - 在创建流程中始终收集 commit_mode
+                        - 在创建流程中始终收集 validation_mode
+                        - 当 validation_mode=yield-gap-loop 时继续询问 validation_granularity
+                        - 默认 validation_granularity=final_phase
+                        - 生成 plan.xml 时按选择插入对应 confirm
+            </?01M02JDH91SJSKS12NMYNYZWGV>
+            <Acceptance [
+              <Criterion { id = "T3.1-AC1" checked = true } ?01M02JDH91SJSKS12NMYNYZWGW>
+              创建流程总是询问 validation_mode
+              </?01M02JDH91SJSKS12NMYNYZWGW>
+              <Criterion { id = "T3.1-AC2" checked = true } ?01M02JDH91SJSKS12NMYNYZWGX>
+              仅在 gap-loop 模式下询问 validation_granularity
+              </?01M02JDH91SJSKS12NMYNYZWGX>
+              <Criterion { id = "T3.1-AC3" checked = true } ?01M02JDH91SJSKS12NMYNYZWGY>
+              默认仅最后一个 phase 插入 yield-gap-loop confirm
+              </?01M02JDH91SJSKS12NMYNYZWGY>
+            ]>
+          )>
+        ]>
+      )>
+      <TaskGroup #P4 { name = "执行编排更新" status = "DONE" order = 3 } (
+        <Description ?01M02JDH91SJSKS12NMYNYZWGZ>
+        让顺序执行与波次执行都能在 phase 结束后按 yield-gap-loop 语义交回父层并复检
+        </?01M02JDH91SJSKS12NMYNYZWGZ>
+        <Gate [
+          <Criterion ?01M02JDH91SJSKS12NMYNYZWH0>
+          顺序执行与波次执行提示词都支持 yield-gap-loop
+          </?01M02JDH91SJSKS12NMYNYZWH0>
+        ]>
+        <SubNodes [
+          <Task { id = "T4.1" name = "更新 implement.md" status = "DONE" order = 0 priority = "P0" } (
+            <Description ?01M02JDH91SJSKS12NMYNYZWH1>
+            修改 src/prompts/implement.md：
+                        - 阶段完成确认支持 `yield-gap-loop`
+                        - 当前实现 agent 到达确认点时只结束当前轮并交回父层
+                        - 父层根据 gap-loop XML 结果决定 DONE / 复检 / BLOCKED
+            </?01M02JDH91SJSKS12NMYNYZWH1>
+            <Acceptance [
+              <Criterion { id = "T4.1-AC1" checked = true } ?01M02JDH91SJSKS12NMYNYZWH2>
+              implement.md 不再引用 yield-ai-confirm
+              </?01M02JDH91SJSKS12NMYNYZWH2>
+              <Criterion { id = "T4.1-AC2" checked = true } ?01M02JDH91SJSKS12NMYNYZWH3>
+              implement.md 包含 yield-gap-loop 父层编排逻辑
+              </?01M02JDH91SJSKS12NMYNYZWH3>
+            ]>
+          )>
+          <Task { id = "T4.2" name = "更新 execute-wave.md" status = "DONE" order = 1 priority = "P0" } (
+            <Description ?01M02JDH91SJSKS12NMYNYZWH4>
+            修改 src/prompts/execute-wave.md：
+                        - 阶段确认支持 `yield-gap-loop`
+                        - wave 模式下 phase 结束后也按 fresh-spawn gap-loop 子代理的方式处理
+                        - 删除 yield-ai-confirm 相关描述
+            </?01M02JDH91SJSKS12NMYNYZWH4>
+            <Acceptance [
+              <Criterion { id = "T4.2-AC1" checked = true } ?01M02JDH91SJSKS12NMYNYZWH5>
+              execute-wave.md 不再引用 yield-ai-confirm
+              </?01M02JDH91SJSKS12NMYNYZWH5>
+              <Criterion { id = "T4.2-AC2" checked = true } ?01M02JDH91SJSKS12NMYNYZWH6>
+              execute-wave.md 包含 yield-gap-loop 的复检语义
+              </?01M02JDH91SJSKS12NMYNYZWH6>
+            ]>
+          )>
+        ]>
+      )>
+      <TaskGroup #P5 { name = "文档与回归更新" status = "DONE" order = 4 } (
+        <Description ?01M02JDH91SJSKS12NMYNYZWH7>
+        同步 AGENTS/workflow/README，并移除旧 AI review 产物
+        </?01M02JDH91SJSKS12NMYNYZWH7>
+        <Gate [
+          <Criterion ?01M02JDH91SJSKS12NMYNYZWH8>
+          所有公开文档与生成器输出都已切换到 yield-gap-loop
+          </?01M02JDH91SJSKS12NMYNYZWH8>
+          <Criterion ?01M02JDH91SJSKS12NMYNYZWH9>
+          yield-ai-confirm 已从代码与文档中移除
+          </?01M02JDH91SJSKS12NMYNYZWH9>
+          <Criterion ?01M02JDH91SJSKS12NMYNYZWHA>
+          codument-core 真相规范已同步到 gap-loop 能力
+          </?01M02JDH91SJSKS12NMYNYZWHA>
+        ]>
+        <SubNodes [
+          <Task { id = "T5.1" name = "更新标准文档与 README" status = "DONE" order = 0 priority = "P1" } (
+            <Description ?01M02JDH91SJSKS12NMYNYZWHB>
+            更新 codument/std/AGENTS.md、codument/std/workflow.md、src/prompts/std_agents.md、README.md、README-cn.md：
+                        - 只保留 yield-human-confirm 与 yield-gap-loop
+                        - 说明 /codument:gap-loop 的用途、参数和返回约束
+                        - 说明 track 创建时 validation_mode 与粒度选择
+            </?01M02JDH91SJSKS12NMYNYZWHB>
+            <Acceptance [
+              <Criterion { id = "T5.1-AC1" checked = true } ?01M02JDH91SJSKS12NMYNYZWHC>
+              标准文档不再引用 yield-ai-confirm
+              </?01M02JDH91SJSKS12NMYNYZWHC>
+              <Criterion { id = "T5.1-AC2" checked = true } ?01M02JDH91SJSKS12NMYNYZWHD>
+              README 中包含 gap-loop 命令说明
+              </?01M02JDH91SJSKS12NMYNYZWHD>
+            ]>
+          )>
+          <Task { id = "T5.2" name = "移除旧 AI review 产物并补测试" status = "DONE" order = 1 priority = "P1" } (
+            <Description ?01M02JDH91SJSKS12NMYNYZWHE>
+            移除不再使用的 `src/prompts/subagent/codument-code-review.md`，并补充与生成器/文档相关的测试或校验，确保：
+                        - 不再生成引用 yield-ai-confirm 的命令
+                        - 新命令 gap-loop 被正确输出
+            </?01M02JDH91SJSKS12NMYNYZWHE>
+            <Acceptance [
+              <Criterion { id = "T5.2-AC1" checked = true } ?01M02JDH91SJSKS12NMYNYZWHF>
+              代码库中无新的 yield-ai-confirm 引用残留
+              </?01M02JDH91SJSKS12NMYNYZWHF>
+              <Criterion { id = "T5.2-AC2" checked = true } ?01M02JDH91SJSKS12NMYNYZWHG>
+              gap-loop 命令生成测试通过
+              </?01M02JDH91SJSKS12NMYNYZWHG>
+            ]>
+          )>
+          <Task { id = "T5.3" name = "同步 codument-core 真相规范与当前 track 工件" status = "DONE" order = 2 priority = "P0" } (
+            <Description ?01M02JDH91SJSKS12NMYNYZWHH>
+            补齐 `codument/specs/codument-core/spec.md` 与当前 track 的 plan 元数据，确保：
+                        - gap-loop 命令、结构化 XML 返回与阶段确认语义被写入真相规范
+                        - 创建 track 时的 `validation_mode` / `validation_granularity` 被纳入真相规范
+                        - 当前 track 的 `plan.xml` 记录 `validation_mode`、`validation_granularity`，并在最后一个 phase 上标明已完成的 `yield-gap-loop` confirm
+            </?01M02JDH91SJSKS12NMYNYZWHH>
+            <Acceptance [
+              <Criterion { id = "T5.3-AC1" checked = true } ?01M02JDH91SJSKS12NMYNYZWHJ>
+              codument-core 规范包含 gap-loop 命令与结构化返回要求
+              </?01M02JDH91SJSKS12NMYNYZWHJ>
+              <Criterion { id = "T5.3-AC2" checked = true } ?01M02JDH91SJSKS12NMYNYZWHK>
+              codument-core 规范包含 track 创建时的 validation 模式与粒度要求
+              </?01M02JDH91SJSKS12NMYNYZWHK>
+              <Criterion { id = "T5.3-AC3" checked = true } ?01M02JDH91SJSKS12NMYNYZWHM>
+              当前 track 的 plan.xml 已反映新的 validation 元数据与最终 confirm 状态
+              </?01M02JDH91SJSKS12NMYNYZWHM>
+            ]>
+          )>
+        ]>
+        <Hooks [
+          <Hook { on = "phase:after" } (
+            <GapLoop { max_rounds = 5 on_exhausted = "block" }>
+          )>
+        ]>
+      )>
+    ]>
+  )>
+  <Schedule>
+)>

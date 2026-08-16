@@ -1,0 +1,78 @@
+<Track #align-template-instructions-with-resource-cli apiVersion="codument.tech/v1alpha1" version="1" { status = "completed" goal = "让 templates 中的当前 authoring 和 operation 指令与 Halfcode Kind、XNL 和资源 CLI 一致" description = "修正旧语法、人工生命周期写回和兼容知识越界，并用 std lint 防止回归" question_mode = "decision-tree" question_severity = "auto" commit_mode = "manual" created_at = "2026-08-15T19:05:37.115Z" updated_at = "2026-08-15T19:51:03.657Z" gap_round = 5 } (
+  <Ports { scope = "track" } [
+    <MaterialBundle #templates { role = "output" name = "template-instructions" domain = "docs" path = "vfs://@/src/templates/" }>
+    <MaterialBundle #lint { role = "output" name = "std-lint" domain = "code" path = "vfs://@/src/cli/commands/std.ts" }>
+    <MaterialBundle #tests { role = "output" name = "regression-tests" domain = "test" path = "vfs://@/test/" }>
+  ]>
+  <TaskSpace #space_align-template-instructions-with-resource-cli { name = "align-template-instructions-with-resource-cli" version = "1" child_mode = "dag" } (
+    <SubNodes [
+      <TaskGroup #P1 { name = "Gap review and current XNL wording" status = "DONE" priority = "P0" order = 0 } (
+        <SubNodes [
+          <Task #P1-T1 { name = "记录 templates gap-loop 证据" status = "DONE" priority = "P0" order = 0 }>
+          <Task #P1-T2 { name = "修正 XNL 属性、节点和示例口径" status = "DONE" priority = "P0" order = 1 }>
+          <Task #P1-T3 { name = "将普通文档的历史迁移说明移出当前 authoring" status = "DONE" priority = "P1" order = 2 }>
+        ]>
+      )>
+      <TaskGroup #P2 { name = "CLI lifecycle instruction alignment" status = "DONE" priority = "P0" order = 1 } (
+        <SubNodes [
+          <Task #P2-T1 { name = "让 impl-track 全部状态写回调用 CLI" status = "DONE" priority = "P0" order = 0 }>
+          <Task #P2-T2 { name = "让 impl-mission 激活绑定重规划调用 CLI" status = "DONE" priority = "P0" order = 1 }>
+          <Task #P2-T3 { name = "对齐 skill shells 与目录说明" status = "DONE" priority = "P1" order = 2 }>
+        ]>
+      )>
+      <TaskGroup #P3 { name = "Regression guardrails" status = "DONE" priority = "P0" order = 2 } (
+        <SubNodes [
+          <Task #P3-T1 { name = "增加 Decision versioned scaffold" status = "DONE" priority = "P0" order = 0 }>
+          <Task #P3-T2 { name = "让 Track scaffold 记录 registry merge base" status = "DONE" priority = "P0" order = 1 }>
+          <Task #P3-T3 { name = "扩展 std lint 规则" status = "DONE" priority = "P0" order = 2 }>
+          <Task #P3-T4 { name = "增加模板和 CLI 回归测试" status = "DONE" priority = "P0" order = 3 }>
+          <Task #P3-T5 { name = "构建并 dogfood workspace" status = "DONE" priority = "P0" order = 4 }>
+        ]>
+      )>
+      <TaskGroup #P4 { name = "Second gap-loop corrections" status = "DONE" priority = "P0" order = 3 } (
+        <SubNodes [
+          <Task #P4-T1 { name = "让 pending 与 GapLoop 生命周期调用 CLI" status = "DONE" priority = "P0" order = 0 }>
+          <Task #P4-T2 { name = "修正 XNL 正例中的普通 metadata 属性" status = "DONE" priority = "P0" order = 1 }>
+          <Task #P4-T3 { name = "更新 kernel pointer 与项目 SOP 结构口径" status = "DONE" priority = "P1" order = 2 }>
+          <Task #P4-T4 { name = "扩展漏网项 lint 与模板测试" status = "DONE" priority = "P0" order = 3 }>
+          <Task #P4-T5 { name = "第三轮复检与最终 dogfood" status = "DONE" priority = "P0" order = 4 }>
+        ]>
+      )>
+      <TaskGroup #P5 { name = "Third gap-loop corrections" status = "DONE" priority = "P0" order = 4 } (
+        <SubNodes [
+          <Task #P5-T1 { name = "收紧 BehaviorPatch 单 authority 分片规则" status = "DONE" priority = "P0" order = 0 }>
+          <Task #P5-T2 { name = "让 Track spec 的状态与 gap round 明确调用 CLI" status = "DONE" priority = "P0" order = 1 }>
+          <Task #P5-T3 { name = "修正剩余 XNL metadata 正例与版本来源说明" status = "DONE" priority = "P0" order = 2 }>
+          <Task #P5-T4 { name = "第四轮复检并最终构建 dogfood" status = "DONE" priority = "P0" order = 3 }>
+        ]>
+      )>
+      <TaskGroup #P6 { name = "Fourth gap-loop corrections" status = "DONE" priority = "P0" order = 5 } (
+        <SubNodes [
+          <Task #P6-T1 { name = "让 DAG status 回写调用 task transition" status = "DONE" priority = "P0" order = 0 }>
+          <Task #P6-T2 { name = "标明条件 Decision 示例版本来自 CLI scaffold" status = "DONE" priority = "P0" order = 1 }>
+          <Task #P6-T3 { name = "第五轮复检与最终 dogfood" status = "DONE" priority = "P0" order = 2 }>
+        ]>
+      )>
+    ]>
+  )>
+  <Schedule [
+    <Dag { for = "space_align-template-instructions-with-resource-cli" } [
+      <Node #P1>
+      <Node #P2>
+      <Node #P3 [
+        <After { ref = "P1" }>
+        <After { ref = "P2" }>
+      ]>
+      <Node #P4 [
+        <After { ref = "P3" }>
+      ]>
+      <Node #P5 [
+        <After { ref = "P4" }>
+      ]>
+      <Node #P6 [
+        <After { ref = "P5" }>
+      ]>
+    ]>
+  ]>
+  <Hooks []>
+)>

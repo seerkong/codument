@@ -1,0 +1,32 @@
+<decision #track.add_unified_resource_upgrade.command apiVersion="codument.tech/v1alpha1" { priority = "P0" status = "accepted" durable_candidate = true confidence = 1.0 reversibility = "easy" } (
+  <question ?>单资源升级是否使用统一高层命令，同时保留 migrate 四阶段诊断接口？</?>
+  <recommendation ?>新增 `codument upgrade-resource &lt;path&gt;`，内部复用现有 migration registry。</?>
+  <answer { } (
+    <raw-answer ?>同意使用 codument upgrade-resource &lt;path&gt;，现有 migrate 四阶段命令保留为底层诊断接口。</?>
+    <decision-text ?>提供一条自动 inspect、plan、backup、apply、verify 的单资源升级命令。</?>
+    <rationale ?>普通升级不应要求用户手工编排四阶段，但诊断和 AI 修订仍需要分阶段接口。</?>
+    <evidence ?>用户在本次 mission 续跑前明确确认该方案。</?>
+  )>
+)>
+
+<decision #track.add_unified_resource_upgrade.decision_owner apiVersion="codument.tech/v1alpha1" { priority = "P0" status = "accepted" durable_candidate = true confidence = 1.0 reversibility = "moderate" } (
+  <question ?>长期 Decision Registry 如何确定业务 owner，并处理缺少 owner 的根 durable decision？</?>
+  <recommendation ?>递归业务路径原样晋升；根 durable decision 缺 owner 时交 AI；取消 registry.xnl fallback。</?>
+  <answer { } (
+    <raw-answer ?>同意递归业务路径原样晋升，根 durable decision 缺少归属时交给 AI，彻底取消 registry.xnl fallback。</?>
+    <decision-text ?>长期 Decision 使用业务语义 XNL 目录树；CLI 不再把未知归属写进 registry.xnl。</?>
+    <rationale ?>通用聚合文件丢失维护语义，而 AI 可以基于完整上下文选择稳定业务 owner。</?>
+    <evidence ?>历史 Track 设计已要求 owner-or-topic/subtopic 结构，用户再次确认该不变量。</?>
+  )>
+)>
+
+<decision #track.add_unified_resource_upgrade.remove_legacy_markdown apiVersion="codument.tech/v1alpha1" { priority = "P0" status = "accepted" durable_candidate = true confidence = 1.0 reversibility = "moderate" } (
+  <question ?>legacy decision.md/decisions.md 的清理范围是否包括 archived Track？</?>
+  <recommendation ?>包括 archived Track；先保真迁入 XNL 与备份，再移除 Markdown。</?>
+  <answer { } (
+    <raw-answer ?>包括。</?>
+    <decision-text ?>项目 Codument 资产中不再保留 Decision Markdown，包括历史 archive。</?>
+    <rationale ?>只有彻底移除兼容 authoring 才能避免旧格式继续被误用。</?>
+    <evidence ?>用户明确确认 archived Track 也在迁移范围内。</?>
+  )>
+)>

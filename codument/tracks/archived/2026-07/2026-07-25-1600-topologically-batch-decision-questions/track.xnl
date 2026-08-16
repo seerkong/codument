@@ -1,0 +1,13 @@
+<Track #topologically-batch-decision-questions apiVersion="codument.tech/v1alpha1" version="1" { status = "completed" goal = "Use topological frontiers for planning question batches." description = "Define and apply batched decision-tree questioning for tracks and missions." question_mode = "decision-tree" question_severity = "auto" commit_mode = "manual" created_at = "2026-07-25T00:00:00Z" updated_at = "2026-07-25T13:00:00Z" } (
+  <TaskSpace #topological-question-space { name = "topological decision questions" } (
+    <SubNodes [
+      <TaskGroup #P1 { name = "Protocol" status = "DONE" } (
+        <SubNodes [
+          <Task #T1 { name = "Define topological decision frontier" status = "DONE" priority = "P0" }>
+          <Task #T2 { name = "Apply shared protocol to planning actions" status = "DONE" priority = "P0" }>
+          <Task #T3 { name = "Add template regression tests" status = "DONE" priority = "P0" }>
+        ]>
+      )>
+    ]>
+  )>
+)>

@@ -1,0 +1,28 @@
+<BehaviorPatch #track.r_2_0_2_6_-_0_7_-_2_6_-_0_3_3_0_-_a_d_d_-_c_o_n_d_i_t_i_o_n_a_l_-_d_e_c_i_s_i_o_n_-_a_c_t_i_v_a_t_i_o_n.behavior_patch.decision-questioning apiVersion="codument.tech/v1alpha1" version="1" { capability = "decision-questioning" } (
+  <Mutations [
+    <Upsert { selector = "behavior://decision-questioning/requirements/conditional-activation" } (
+      <Requirement #conditional-activation (
+        <Statement ?01M02NT0WPKDAQV218R67WGFCR>
+        Planning SHALL materialize a new decision only when its declared multi-decision activation condition is satisfied, then include it in the next topological question batch.
+        </?01M02NT0WPKDAQV218R67WGFCR>
+        <Suites [
+          <Suite #combined-roots { name = "combined roots" } (
+            <Cases [
+              <Case #creates-peer-decision (
+                <Given ?01M02NT0WPKDAQV218R67WGFCS>
+                two independent root decisions select a combination that activates a new concern
+                </?01M02NT0WPKDAQV218R67WGFCS>
+                <When ?01M02NT0WPKDAQV218R67WGFCT>
+                the planner evaluates the completed answer batch
+                </?01M02NT0WPKDAQV218R67WGFCT>
+                <Then ?01M02NT0WPKDAQV218R67WGFCV>
+                the new concern SHALL be recorded as a same-level pending decision with provenance and dependencies
+                </?01M02NT0WPKDAQV218R67WGFCV>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+  ]>
+)>

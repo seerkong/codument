@@ -1,0 +1,65 @@
+<BehaviorPatch #track.r_2_0_2_6_-_0_3_-_0_1_-_2_2_4_9_-_a_d_d_-_t_r_a_c_k_-_p_l_a_n_n_i_n_g_-_a_r_t_i_f_a_c_t_s.behavior_patch.codument-core apiVersion="codument.tech/v1alpha1" version="1" { capability = "codument-core" } (
+  <Mutations [
+    <Upsert { selector = "behavior://codument-core/requirements/track-创建时生成-analysis-产物" } (
+      <Requirement { id = "track-创建时生成-analysis-产物" } (
+        <Statement ?01M02NT0VQD4JKYV4AY6Z9NXWW>
+        系统应当（SHALL）在创建新的 track 目录后，自动在该 track 目录下生成用于持久化上下文理解与进展的 analysis 产物。
+        </?01M02NT0VQD4JKYV4AY6Z9NXWW>
+        <Suites [
+          <Suite { name = "track-创建时生成-analysis-产物" } (
+            <Cases [
+              <Case { id = "创建新-track-时生成-analysis-目录与文件" name = "创建新 track 时生成 analysis 目录与文件" } (
+                <Given ?01M02NT0VQD4JKYV4AY6Z9NXWX>
+                `codument/` 已初始化且用户创建一个新的 track
+                </?01M02NT0VQD4JKYV4AY6Z9NXWX>
+                <When ?01M02NT0VQD4JKYV4AY6Z9NXWY>
+                AI 助手完成 `codument/tracks/&lt;track_id&gt;/` 目录创建
+                </?01M02NT0VQD4JKYV4AY6Z9NXWY>
+                <Then ?01M02NT0VQD4JKYV4AY6Z9NXWZ>
+                系统在 `codument/tracks/&lt;track_id&gt;/analysis/` 创建以下文件：
+                以上文件包含可用的模板内容，用于后续持续更新
+                </?01M02NT0VQD4JKYV4AY6Z9NXWZ>
+              )>
+              <Case { id = "analysis-文件已存在时不覆盖用户内容" name = "analysis 文件已存在时不覆盖用户内容" } (
+                <Given ?01M02NT0VQD4JKYV4AY6Z9NXX0>
+                `codument/tracks/&lt;track_id&gt;/analysis/` 中部分或全部文件已存在
+                </?01M02NT0VQD4JKYV4AY6Z9NXX0>
+                <When ?01M02NT0VQD4JKYV4AY6Z9NXX1>
+                AI 助手重新执行 track 创建/补齐流程
+                </?01M02NT0VQD4JKYV4AY6Z9NXX1>
+                <Then ?01M02NT0VQD4JKYV4AY6Z9NXX2>
+                系统不应覆盖已存在文件的内容
+                仅在缺失时创建对应文件
+                </?01M02NT0VQD4JKYV4AY6Z9NXX2>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/analysis-产物不依赖隐藏目录" } (
+      <Requirement { id = "analysis-产物不依赖隐藏目录" } (
+        <Statement ?01M02NT0VQD4JKYV4AY6Z9NXX3>
+        系统应当（SHALL）保证 analysis 产物内容不引用以 `.` 开头的隐藏目录中的文件路径。
+        </?01M02NT0VQD4JKYV4AY6Z9NXX3>
+        <Suites [
+          <Suite { name = "analysis-产物不依赖隐藏目录" } (
+            <Cases [
+              <Case { id = "analysis-文件内容不包含隐藏目录引用" name = "analysis 文件内容不包含隐藏目录引用" } (
+                <Given ?01M02NT0VQD4JKYV4AY6Z9NXX4>
+                AI 助手生成 analysis 文件
+                </?01M02NT0VQD4JKYV4AY6Z9NXX4>
+                <When ?01M02NT0VQD4JKYV4AY6Z9NXX5>
+                用户审查生成内容
+                </?01M02NT0VQD4JKYV4AY6Z9NXX5>
+                <Then ?01M02NT0VQD4JKYV4AY6Z9NXX6>
+                analysis 文件中不应出现形如 `.xxx/yyy.md` 的引用
+                </?01M02NT0VQD4JKYV4AY6Z9NXX6>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+  ]>
+)>

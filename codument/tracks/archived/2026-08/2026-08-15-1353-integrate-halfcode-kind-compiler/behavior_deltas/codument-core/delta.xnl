@@ -1,0 +1,50 @@
+<BehaviorPatch #track.integrate-halfcode-kind-compiler.behavior_patch.codument-core apiVersion="codument.tech/v1alpha1" version="1" { capability = "codument-core" } (
+  <Mutations [
+    <Upsert { selector = "behavior://codument-core/requirements/halfcode-kind-authority" } (
+      <Requirement #halfcode-kind-authority (
+        <Statement ?01M02NT0V8NGAA9DM0KYE1N28P>
+        Codument SHALL 以 Halfcode 验证的 XNL KindDefinition package 作为结构化资源版本与 cardinality authority，并从其生成 CLI runtime projection。
+        </?01M02NT0V8NGAA9DM0KYE1N28P>
+        <Suites [
+          <Suite #kind-authority { name = "Halfcode-backed Codument Kinds" } (
+            <Cases [
+              <Case #scaffold-current-version (
+                <Given ?01M02NT0V8NGAA9DM0KYE1N28Q>
+                CLI 内嵌由当前 Kind package 生成的 projection
+                </?01M02NT0V8NGAA9DM0KYE1N28Q>
+                <When ?01M02NT0V8NGAA9DM0KYE1N28R>
+                创建 Track 或 Mission 骨架
+                </?01M02NT0V8NGAA9DM0KYE1N28R>
+                <Then ?01M02NT0V8NGAA9DM0KYE1N28S>
+                骨架 apiVersion SHALL 等于对应 Kind currentApiVersion
+                </?01M02NT0V8NGAA9DM0KYE1N28S>
+              )>
+              <Case #decision-forest-contract (
+                <Given ?01M02NT0V8NGAA9DM0KYE1N28T>
+                Decision KindDefinition 声明多根 cardinality
+                </?01M02NT0V8NGAA9DM0KYE1N28T>
+                <When ?01M02NT0V8NGAA9DM0KYE1N28V>
+                生成并校验 projection
+                </?01M02NT0V8NGAA9DM0KYE1N28V>
+                <Then ?01M02NT0V8NGAA9DM0KYE1N28W>
+                projection SHALL 保留 single-file many 契约
+                </?01M02NT0V8NGAA9DM0KYE1N28W>
+              )>
+              <Case #reject-projection-drift (
+                <Given ?01M02NT0V8NGAA9DM0KYE1N28X>
+                checked-in projection 与 XNL authority 不一致
+                </?01M02NT0V8NGAA9DM0KYE1N28X>
+                <When ?01M02NT0V8NGAA9DM0KYE1N28Y>
+                运行 generation check
+                </?01M02NT0V8NGAA9DM0KYE1N28Y>
+                <Then ?01M02NT0V8NGAA9DM0KYE1N28Z>
+                构建 SHALL 失败并要求重新生成
+                </?01M02NT0V8NGAA9DM0KYE1N28Z>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+  ]>
+)>

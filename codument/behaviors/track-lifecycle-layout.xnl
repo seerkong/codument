@@ -1,0 +1,37 @@
+<Behavior #track-lifecycle-layout apiVersion="codument.tech/v1alpha1" version="1" (
+  <Requirements [
+    <Requirement #unified-lifecycle-directories (
+      <Statement ?01M02MPHMZ9J1FY0X362YTQHYV>
+      Codument SHALL store pending, active, and archived tracks below codument/tracks and SHALL migrate legacy workspace paths during upgrade without overwriting conflicts.
+      </?01M02MPHMZ9J1FY0X362YTQHYV>
+      <Suites [
+        <Suite #workspace-upgrade { name = "workspace upgrade" } (
+          <Cases [
+            <Case #moves-legacy-layout (
+              <Given ?01M02MPHMZ9J1FY0X362YTQHYW>
+              a workspace contains direct legacy active tracks and a legacy codument/archive tree
+              </?01M02MPHMZ9J1FY0X362YTQHYW>
+              <When ?01M02MPHMZ9J1FY0X362YTQHYX>
+              the user runs codument upgrade-workspace
+              </?01M02MPHMZ9J1FY0X362YTQHYX>
+              <Then ?01M02MPHMZ9J1FY0X362YTQHYY>
+              the tracks SHALL move into tracks/active and tracks/archived after backup creation
+              </?01M02MPHMZ9J1FY0X362YTQHYY>
+            )>
+            <Case #preserves-conflicts (
+              <Given ?01M02MPHMZ9J1FY0X362YTQHYZ>
+              a lifecycle destination already exists
+              </?01M02MPHMZ9J1FY0X362YTQHYZ>
+              <When ?01M02MPHMZ9J1FY0X362YTQHZ0>
+              the user runs codument upgrade-workspace
+              </?01M02MPHMZ9J1FY0X362YTQHZ0>
+              <Then ?01M02MPHMZ9J1FY0X362YTQHZ1>
+              the command SHALL preserve the legacy source and report the conflict
+              </?01M02MPHMZ9J1FY0X362YTQHZ1>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+  ]>
+)>

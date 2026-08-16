@@ -15,7 +15,7 @@ describe('decision registry authoring templates', () => {
   it('requires a full-fidelity recursive XNL registry and combined source discovery', () => {
     const registry = template('std/spec/decision-registry.md');
     const xnl = template('std/spec/xnl-format.md');
-    const archive = template('std/actions/archive-track.md');
+    const archive = template('std/operations/archive-track.md');
 
     expect(registry).toContain('根 `decisions.xnl`');
     expect(registry).toContain('递归 `decisions/**/*.xnl`');
@@ -26,7 +26,8 @@ describe('decision registry authoring templates', () => {
 
     expect(xnl).toContain('两类来源同时存在时都必须参与');
     expect(xnl).toContain('不得先投影为摘要 DTO 或 `decision.md` 再重建');
-    expect(archive).toContain('把完整 XNL AST 按 stable id 合并进 `codument/decisions/**/*.xnl`');
+    expect(archive).toContain('CLI 负责 behavior/modeling/engineering/decision registry transaction');
+    expect(archive).toContain('保留完整 tree closure 与 provenance');
   });
 
   it('keeps decision identity independent of owner paths and excludes compatibility views', () => {
@@ -44,20 +45,22 @@ describe('decision registry authoring templates', () => {
     expect(knowledgeTiers).toContain('物理 owner file 不是 identity');
     expect(knowledgeTiers).toContain('历史 `decision.md` 与 archive `summary.md`');
     expect(knowledgeTiers).toContain('不参与 merge、index 或真源冲突裁决');
-    expect(archiveCommand).toContain('Archive summaries and legacy Markdown are not decision merge/index inputs');
+    expect(archiveCommand).toContain('merges eligible full-fidelity decisions');
+    expect(archiveCommand).toContain('The `codument-archive-track` operation, not this CLI command');
   });
 
   it('authors new durable decisions as XNL and forbids canonical decision.md promotion', () => {
-    const planTrack = template('std/actions/plan-track.md');
-    const planMission = template('std/actions/plan-mission.md');
-    const archive = template('std/actions/archive-track.md');
+    const planTrack = template('std/operations/plan-track.md');
+    const planMission = template('std/operations/plan-mission.md');
+    const archive = template('std/operations/archive-track.md');
     const registry = template('std/spec/decision-registry.md');
 
-    expect(planTrack).toContain('不要为新 track 创建');
-    expect(planTrack).toContain('而不是生成 canonical `decision.md`');
-    expect(planMission).toContain('根 `decisions.xnl` 无条件创建');
+    expect(planTrack).toContain('codument decisions create <track-dir>/decisions.xnl <decision-id>');
+    expect(planTrack).toContain('codument decisions validate <file>');
+    expect(planMission).toContain('codument decisions create <mission-dir>/decisions.xnl <decision-id>');
+    expect(planMission).toContain('无 decision 时不落空文件');
     expect(registry).toContain('新 durable decision 必须以完整 XNL AST 持久化');
-    expect(archive).toContain('legacy Markdown 不参与 canonical decision merge');
+    expect(archive).toContain('`codument upgrade-resource <path>`');
 
     for (const content of [planTrack, planMission, archive, registry]) {
       expect(content).not.toContain(

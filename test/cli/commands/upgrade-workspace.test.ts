@@ -25,13 +25,103 @@ function writeFile(file: string, content: string): void {
 }
 
 describe('codument upgrade-workspace', () => {
+  it('returns a structured JSON receipt for in-agent review orchestration', async () => {
+    const ws = tmpWorkspace();
+    const legacyDecision = path.join(
+      ws,
+      'codument',
+      'tracks',
+      'active',
+      'legacy-decision',
+      'decisions.md',
+    );
+
+    writeFile(path.join(ws, 'codument', 'std', 'AGENTS.md'), '# old std\n');
+    writeFile(
+      path.join(ws, 'codument', 'config', 'cli-tools.json'),
+      JSON.stringify({ tools: ['codex'] }, null, 2),
+    );
+    writeFile(legacyDecision, '# Decision\n\nUse the current migration strategy.\n');
+
+    const proc = Bun.spawn([
+      'bun',
+      'run',
+      cli,
+      '--workspace-dir',
+      ws,
+      'upgrade-workspace',
+      '--json',
+    ], {
+      cwd: repoRoot,
+      stdout: 'pipe',
+      stderr: 'pipe',
+    });
+
+    const code = await proc.exited;
+    const out = await new Response(proc.stdout).text();
+    const err = await new Response(proc.stderr).text();
+    const receipt = JSON.parse(out) as {
+      status: string;
+      backupRoot: string;
+      managedFiles: { written: number; kept: number };
+      skills: Array<{ agent: string; directory: string }>;
+      resources: { upgraded: number; removed: number; unchanged: number };
+      reviewRequired: Array<{ path: string; diagnostics: string[] }>;
+      semanticReviewRecommended: unknown[];
+      cleanup: { trackDirectoryConflicts: string[] };
+      instructionFilesRefreshed: string[];
+    };
+
+    expect(err).toBe('');
+    expect(code).toBe(2);
+    expect(receipt.status).toBe('review-required');
+    expect(receipt.backupRoot).toContain('.tmp/codument/upgrade-workspace-');
+    expect(receipt.managedFiles.written).toBeGreaterThan(0);
+    expect(receipt.skills).toEqual([
+      expect.objectContaining({ agent: 'codex', directory: '.agents/skills' }),
+    ]);
+    expect(receipt.resources.unchanged).toBeGreaterThanOrEqual(0);
+    expect(receipt.reviewRequired).toEqual([
+      expect.objectContaining({
+        path: expect.stringContaining('decisions.md'),
+        diagnostics: expect.arrayContaining([
+          expect.stringContaining('semantic AI review'),
+        ]),
+      }),
+    ]);
+    expect(receipt.semanticReviewRecommended).toBeArray();
+    expect(receipt.cleanup.trackDirectoryConflicts).toEqual([]);
+    expect(receipt.instructionFilesRefreshed).toEqual(['AGENTS.md']);
+  });
+
+  it('documents JSON output in side-effect-free help', async () => {
+    const ws = tmpWorkspace();
+    const proc = Bun.spawn([
+      'bun',
+      'run',
+      cli,
+      '--workspace-dir',
+      ws,
+      'upgrade-workspace',
+      '--help',
+    ], { cwd: repoRoot, stdout: 'pipe', stderr: 'pipe' });
+
+    const code = await proc.exited;
+    const out = await new Response(proc.stdout).text();
+
+    expect(code).toBe(0);
+    expect(out).toContain('--json');
+    expect(fs.existsSync(path.join(ws, 'codument'))).toBe(false);
+  });
+
   it('removes obsolete built-in attractor hooks while preserving custom hooks', async () => {
     const ws = tmpWorkspace();
     const skillsDir = path.join(ws, '.skills');
-    const actionHooks = path.join(ws, 'codument', 'config', 'action-hooks.xml');
+    const legacyActionHooks = path.join(ws, 'codument', 'config', 'action-hooks.xml');
+    const operationHooks = path.join(ws, 'codument', 'config', 'operation-hooks.xnl');
 
     writeFile(path.join(ws, 'codument', 'std', 'AGENTS.md'), '# old std\n');
-    writeFile(actionHooks, `<ActionHooks version="1" xmlns:cdt="urn:codument:v1">
+    writeFile(legacyActionHooks, `<ActionHooks version="1" xmlns:cdt="urn:codument:v1">
   <Action name="discuss"><Hooks>
     <Hook on="discuss:before"><cdt:AttractorCheck use="coding"/></Hook>
     <Hook on="discuss:after"><cdt:HumanConfirm/></Hook>
@@ -57,11 +147,14 @@ describe('codument upgrade-workspace', () => {
     expect(code).toBe(0);
     expect(out).toContain('3 obsolete default attractor hook(s) removed');
 
-    const hooks = fs.readFileSync(actionHooks, 'utf-8');
-    expect(hooks).not.toContain('<Action name="impl-quick">');
-    expect(hooks).not.toContain('<cdt:AttractorCheck use="coding"/>');
-    expect(hooks).toContain('<Hook on="discuss:after"><cdt:HumanConfirm/></Hook>');
-    expect(hooks).toContain('<Hook on="revise-track:before"><cdt:AttractorCheck use="docs"/></Hook>');
+    const hooks = fs.readFileSync(operationHooks, 'utf-8');
+    expect(fs.existsSync(legacyActionHooks)).toBe(false);
+    expect(hooks).not.toContain('<Operation #impl-quick');
+    expect(hooks).not.toContain('use = "coding"');
+    expect(hooks).toContain('on = "discuss:after"');
+    expect(hooks).toContain('<HumanConfirm>');
+    expect(hooks).toContain('on = "revise-track:before"');
+    expect(hooks).toContain('use = "docs"');
   });
 
   it('moves standard attractors under std/attractors and preserves project attractors', async () => {
@@ -71,14 +164,17 @@ describe('codument upgrade-workspace', () => {
     writeFile(path.join(ws, 'codument', 'std', 'AGENTS.md'), '# old std\n');
     writeFile(path.join(ws, 'codument', 'std', 'docs-modeling-fractal', 'index.md'), '# old modeling fractal\n');
     writeFile(path.join(ws, 'codument', 'std', 'docs-impl-fractal', 'index.md'), '# old impl fractal\n');
-    writeFile(path.join(ws, 'codument', 'std', 'operations', 'init.md'), '# old init operation\n');
-    writeFile(path.join(ws, 'codument', 'std', 'operations', 'status.md'), '# old status operation\n');
+    writeFile(path.join(ws, 'codument', 'std', 'actions', 'init.md'), '# old init action\n');
+    writeFile(path.join(ws, 'codument', 'std', 'actions', 'status.md'), '# old status action\n');
     writeFile(path.join(ws, 'codument', 'std', 'root-agents.md'), '# old root AGENTS template\n');
+    writeFile(path.join(ws, 'codument', 'std', 'spec', 'track-xml-spec.md'), '# old Track XML spec\n');
+    writeFile(path.join(ws, 'codument', 'std', 'spec', 'mission-xml-spec.md'), '# old Mission XML spec\n');
     writeFile(path.join(ws, 'codument', 'config', 'operation-hooks.xml'), `<OperationHooks version="1">
   <Operation name="plan-track"><Hooks/></Operation>
 </OperationHooks>
 `);
     writeFile(path.join(ws, 'codument', 'config', 'cli-tools.json'), JSON.stringify({ tools: ['claude'] }, null, 2));
+    writeFile(path.join(ws, 'codument', 'manifest.xnl'), '<ResourcePackage #stale>\n');
     writeFile(path.join(ws, 'codument', 'config', 'attractor-profiles.xml'), `<AttractorProfiles version="1">
   <Profile name="docs" enabled="true">
     <Attractor ref="vfs://@/codument/std/docs-modeling-fractal/index.md"/>
@@ -110,6 +206,14 @@ describe('codument upgrade-workspace', () => {
     writeFile(path.join(skillsDir, 'codument-plan-track', 'shared', 'workflow-routing.md'), 'stale managed file\n');
     writeFile(path.join(skillsDir, decisionMigrationReference), '# stale decision migration reference\n');
     writeFile(path.join(ws, 'AGENTS.md'), '# Existing project notes\n');
+    writeFile(path.join(ws, 'CLAUDE.md'), `# Existing Claude notes
+
+<!-- codument:begin -->
+
+# Old Codument pointer
+
+<!-- codument:end -->
+`);
     writeFile(path.join(ws, '.gitignore'), 'node_modules\ncodument/**/analysis\n');
 
     const proc = Bun.spawn([
@@ -139,13 +243,17 @@ describe('codument upgrade-workspace', () => {
     expect(fs.existsSync(path.join(ws, 'codument', 'attractors', 'knowledge-tiers.md'))).toBe(false);
     expect(fs.existsSync(path.join(ws, 'codument', 'attractors', 'model-driven-docs.md'))).toBe(false);
     expect(fs.existsSync(path.join(ws, 'codument', 'attractors', 'project-memory.md'))).toBe(false);
-    expect(fs.existsSync(path.join(ws, 'codument', 'std', 'operations'))).toBe(false);
+    expect(fs.existsSync(path.join(ws, 'codument', 'std', 'actions'))).toBe(false);
     expect(fs.existsSync(path.join(ws, 'codument', 'std', 'root-agents.md'))).toBe(false);
+    expect(fs.existsSync(path.join(ws, 'codument', 'std', 'spec', 'track-xml-spec.md'))).toBe(false);
+    expect(fs.existsSync(path.join(ws, 'codument', 'std', 'spec', 'track-xnl-spec.md'))).toBe(true);
+    expect(fs.existsSync(path.join(ws, 'codument', 'std', 'spec', 'mission-xml-spec.md'))).toBe(false);
+    expect(fs.existsSync(path.join(ws, 'codument', 'std', 'spec', 'mission-xnl-spec.md'))).toBe(true);
     expect(fs.existsSync(path.join(ws, 'codument', 'config', 'operation-hooks.xml'))).toBe(false);
-    expect(fs.existsSync(path.join(ws, 'codument', 'std', 'actions', 'plan-track.md'))).toBe(true);
-    expect(fs.existsSync(path.join(ws, 'codument', 'config', 'action-hooks.xml'))).toBe(true);
-    expect(fs.readFileSync(path.join(ws, 'codument', 'config', 'action-hooks.xml'), 'utf-8')).toContain('<ActionHooks version="1">');
-    expect(fs.readFileSync(path.join(ws, 'codument', 'config', 'action-hooks.xml'), 'utf-8')).toContain('<Action name="plan-track">');
+    expect(fs.existsSync(path.join(ws, 'codument', 'std', 'operations', 'plan-track.md'))).toBe(true);
+    expect(fs.existsSync(path.join(ws, 'codument', 'config', 'action-hooks.xml'))).toBe(false);
+    expect(fs.readFileSync(path.join(ws, 'codument', 'config', 'operation-hooks.xnl'), 'utf-8')).toContain('<OperationHooks #codument.config.operation_hooks');
+    expect(fs.readFileSync(path.join(ws, 'codument', 'config', 'operation-hooks.xnl'), 'utf-8')).toContain('<Operation #plan-track');
     expect(fs.existsSync(path.join(ws, 'codument', 'std', 'docs-modeling-fractal'))).toBe(false);
     expect(fs.existsSync(path.join(ws, 'codument', 'std', 'docs-impl-fractal'))).toBe(false);
 
@@ -155,18 +263,32 @@ describe('codument upgrade-workspace', () => {
     expect(fs.existsSync(path.join(ws, 'codument', 'std', 'attractors', 'depa-attractor.md'))).toBe(true);
     expect(fs.existsSync(path.join(ws, 'codument', 'std', 'skill', 'docs-modeling-fractal', 'index.md'))).toBe(true);
     expect(fs.existsSync(path.join(ws, 'codument', 'std', 'skill', 'docs-engineering-fractal', 'index.md'))).toBe(true);
+    expect(fs.readFileSync(path.join(ws, 'codument', 'std', 'kinds', 'KindDefinitions', 'Track', 'manifest.xnl'), 'utf8'))
+      .toContain('currentApiVersion = "codument.tech/v1alpha1"');
+    const resourcePackage = fs.readFileSync(path.join(ws, 'codument', 'manifest.xnl'), 'utf8');
+    expect(resourcePackage).toContain('<Catalog #active_tracks');
+    expect(resourcePackage).toContain('<Catalog #active_missions');
 
-    const profiles = fs.readFileSync(path.join(ws, 'codument', 'config', 'attractor-profiles.xml'), 'utf-8');
+    const profiles = fs.readFileSync(path.join(ws, 'codument', 'config', 'attractor-profiles.xnl'), 'utf-8');
     expect(profiles).toContain('vfs://@/codument/std/skill/docs-modeling-fractal/index.md');
     expect(profiles).toContain('vfs://@/codument/std/skill/docs-engineering-fractal/index.md');
     expect(profiles).not.toContain('vfs://@/codument/std/docs-modeling-fractal/index.md');
     expect(profiles).not.toContain('vfs://@/codument/std/docs-impl-fractal/index.md');
 
     const agents = fs.readFileSync(path.join(ws, 'AGENTS.md'), 'utf-8');
+    expect(agents).toContain('在 Codument 工具内部上下文中，`@` 一般表示当前项目的项目级根目录');
     expect(agents).toContain('@/codument/std/AGENTS.md');
     expect(agents).toContain('唯一的 Codument 工作流与路由真源');
+    expect(agents).toContain('产品方向吸引子：`@/codument/attractors/product.md`');
+    expect(agents).toContain('项目实现吸引子：`@/codument/attractors/project.md`');
     expect(agents).not.toContain('快速路由：');
     expect(agents).toContain('# Existing project notes');
+    const claude = fs.readFileSync(path.join(ws, 'CLAUDE.md'), 'utf-8');
+    expect(claude).toContain('在 Codument 工具内部上下文中，`@` 一般表示当前项目的项目级根目录');
+    expect(claude).toContain('产品方向吸引子：`@/codument/attractors/product.md`');
+    expect(claude).toContain('# Existing Claude notes');
+    expect(claude).not.toContain('# Old Codument pointer');
+    expect(claude.match(/<!-- codument:begin -->/g)).toHaveLength(1);
 
     const gitignore = fs.readFileSync(path.join(ws, '.gitignore'), 'utf-8');
     expect(gitignore.match(/codument\/\*\*\/analysis/g)?.length).toBe(1);
@@ -245,8 +367,10 @@ describe('codument upgrade-workspace', () => {
     expect(err).toBe('');
     expect(code).toBe(0);
     expect(out).toContain('1 active and 1 archived path(s) migrated');
-    expect(fs.existsSync(path.join(ws, 'codument', 'tracks', 'active', 'legacy-active', 'track.xml'))).toBe(true);
-    expect(fs.existsSync(path.join(ws, 'codument', 'tracks', 'archived', '2026-05', '2026-05-30-1432-legacy-archived', 'track.xml'))).toBe(true);
+    expect(fs.existsSync(path.join(ws, 'codument', 'tracks', 'active', 'legacy-active', 'track.xnl'))).toBe(true);
+    expect(fs.readFileSync(path.join(ws, 'codument', 'tracks', 'active', 'legacy-active', 'track.xnl'), 'utf8'))
+      .toContain('apiVersion="codument.tech/v1alpha1"');
+    expect(fs.existsSync(path.join(ws, 'codument', 'tracks', 'archived', '2026-05', '2026-05-30-1432-legacy-archived', 'track.xnl'))).toBe(true);
     expect(fs.existsSync(activeTrack)).toBe(false);
     expect(fs.existsSync(path.join(ws, 'codument', 'archive'))).toBe(false);
 
@@ -274,7 +398,9 @@ describe('codument upgrade-workspace', () => {
 
     expect(code).toBe(0);
     expect(out).toContain('migration conflict left in place');
-    expect(fs.readFileSync(legacy, 'utf-8')).toContain('legacy');
-    expect(fs.readFileSync(destination, 'utf-8')).toContain('new');
+    expect(fs.existsSync(legacy)).toBe(false);
+    expect(fs.readFileSync(path.join(path.dirname(legacy), 'track.xnl'), 'utf-8')).toContain('#legacy');
+    expect(fs.existsSync(destination)).toBe(false);
+    expect(fs.readFileSync(path.join(path.dirname(destination), 'track.xnl'), 'utf-8')).toContain('#new');
   });
 });

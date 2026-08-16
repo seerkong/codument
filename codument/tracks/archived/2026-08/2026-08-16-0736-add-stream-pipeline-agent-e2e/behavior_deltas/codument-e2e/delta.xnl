@@ -1,0 +1,25 @@
+<BehaviorPatch #track.add-stream-pipeline-agent-e2e.behavior_patch.codument-e2e apiVersion="codument.tech/v1alpha1" version="1" { capability = "codument-e2e" } (
+  <Mutations [
+    <Upsert { selector = "behavior://codument-e2e/requirements/raw-request-real-agent" } (
+      <Requirement #raw-request-real-agent (
+        <Statement ?>系统 SHALL 能在初始化 Codument 后，将 case 内原始需求交给真实 coding agent 完成开发，并独立验证过程和产物。</?>
+        <Suites [
+          <Suite #stream-pipeline-ai-agent (
+            <Cases [
+              <Case #preserve-request (
+                <Given ?>case 保存原始 stream-pipeline-ai-agent.md</?>
+                <When ?>runner 准备临时工作区并启动 Agent</?>
+                <Then ?>工作区副本与原文件一致，且完整正文进入 Agent 输入</?>
+              )>
+              <Case #verify-result (
+                <Given ?>真实 Agent 已结束 Codument 开发流程</?>
+                <When ?>独立 verifier 运行</?>
+                <Then ?>Codument Track、Python 结构、RxPY 主线和 pytest 必须全部通过</?>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+  ]>
+)>

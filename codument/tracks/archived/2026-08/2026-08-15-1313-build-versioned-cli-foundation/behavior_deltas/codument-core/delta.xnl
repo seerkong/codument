@@ -1,0 +1,85 @@
+<BehaviorPatch #track.build-versioned-cli-foundation.behavior_patch.codument-core apiVersion="codument.tech/v1alpha1" version="1" { capability = "codument-core" } (
+  <Mutations [
+    <Upsert { selector = "behavior://codument-core/requirements/cli-command-registry" } (
+      <Requirement #cli-command-registry (
+        <Statement ?01M02NT0V2YHB9JXQ2RACWPV3A>
+        Codument SHALL use one command registry as the authority for command discovery, recursive help, and dispatch.
+        </?01M02NT0V2YHB9JXQ2RACWPV3A>
+        <Suites [
+          <Suite #registry { name = "CLI command registry" } (
+            <Cases [
+              <Case #help-before-handler (
+                <Given ?01M02NT0V2YHB9JXQ2RACWPV3B>
+                任意已注册命令或子命令携带 -h 或 --help
+                </?01M02NT0V2YHB9JXQ2RACWPV3B>
+                <When ?01M02NT0V2YHB9JXQ2RACWPV3C>
+                CLI 分发请求
+                </?01M02NT0V2YHB9JXQ2RACWPV3C>
+                <Then ?01M02NT0V2YHB9JXQ2RACWPV3D>
+                系统 SHALL 在 handler 和任何副作用前返回该命令帮助
+                </?01M02NT0V2YHB9JXQ2RACWPV3D>
+              )>
+              <Case #coverage-from-registry (
+                <Given ?01M02NT0V2YHB9JXQ2RACWPV3E>
+                注册表新增命令路径
+                </?01M02NT0V2YHB9JXQ2RACWPV3E>
+                <When ?01M02NT0V2YHB9JXQ2RACWPV3F>
+                help 回归测试执行
+                </?01M02NT0V2YHB9JXQ2RACWPV3F>
+                <Then ?01M02NT0V2YHB9JXQ2RACWPV3G>
+                测试 SHALL 自动枚举该路径而无需扫描 switch 源码
+                </?01M02NT0V2YHB9JXQ2RACWPV3G>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/versioned-kind-scaffold" } (
+      <Requirement #versioned-kind-scaffold (
+        <Statement ?01M02NT0V2YHB9JXQ2RACWPV3H>
+        Codument SHALL generate new Track and Mission structural skeletons from the CLI-owned current Kind version.
+        </?01M02NT0V2YHB9JXQ2RACWPV3H>
+        <Suites [
+          <Suite #create { name = "Versioned Kind scaffold" } (
+            <Cases [
+              <Case #minimal-input (
+                <Given ?01M02NT0V2YHB9JXQ2RACWPV3J>
+                合法资源 ID 与 pending 或 active stage
+                </?01M02NT0V2YHB9JXQ2RACWPV3J>
+                <When ?01M02NT0V2YHB9JXQ2RACWPV3K>
+                用户创建 Track 或 Mission
+                </?01M02NT0V2YHB9JXQ2RACWPV3K>
+                <Then ?01M02NT0V2YHB9JXQ2RACWPV3M>
+                CLI SHALL 只以这两个业务输入生成当前 apiVersion 骨架
+                </?01M02NT0V2YHB9JXQ2RACWPV3M>
+              )>
+              <Case #no-empty-decisions (
+                <Given ?01M02NT0V2YHB9JXQ2RACWPV3N>
+                新 Track 或 Mission 尚无 decision
+                </?01M02NT0V2YHB9JXQ2RACWPV3N>
+                <When ?01M02NT0V2YHB9JXQ2RACWPV3P>
+                CLI 创建骨架
+                </?01M02NT0V2YHB9JXQ2RACWPV3P>
+                <Then ?01M02NT0V2YHB9JXQ2RACWPV3Q>
+                CLI SHALL NOT 创建空 decisions.xnl
+                </?01M02NT0V2YHB9JXQ2RACWPV3Q>
+              )>
+              <Case #no-overwrite (
+                <Given ?01M02NT0V2YHB9JXQ2RACWPV3R>
+                目标资源目录已经存在
+                </?01M02NT0V2YHB9JXQ2RACWPV3R>
+                <When ?01M02NT0V2YHB9JXQ2RACWPV3S>
+                再次 scaffold
+                </?01M02NT0V2YHB9JXQ2RACWPV3S>
+                <Then ?01M02NT0V2YHB9JXQ2RACWPV3T>
+                CLI SHALL 拒绝覆盖
+                </?01M02NT0V2YHB9JXQ2RACWPV3T>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+  ]>
+)>

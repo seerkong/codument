@@ -1,0 +1,131 @@
+<decision #track.close_mission_execution_stop_points.candidate_activation apiVersion="codument.tech/v1alpha1" { kind = "planning-decision" priority = "P0" status = "accepted" blocks = ["impl-mission" "plan-track" "mission-spec" "behavior" "tests"] frontier = false durable_candidate = true confidence = 0.95 reversibility = "moderate" } (
+  <question ?01M02EGV9CG8A0MA6KDE4VFY8X>
+  mission 执行中 plan-track 产出的候选 track 是否必须停在 pending 等待用户批准？
+  </?01M02EGV9CG8A0MA6KDE4VFY8X>
+  <options {  } [
+    <option { key = "create-then-activate" recommended = true } (
+      <title ?01M02EGV9CG8A0MA6KDE4VFY8Y>
+      创建即激活
+      </?01M02EGV9CG8A0MA6KDE4VFY8Y>
+      <description ?01M02EGV9CG8A0MA6KDE4VFY8Z>
+      auto/连续执行模式下，candidate TrackLink 创建真实 track 后立即激活到 active/、回写 bound + bind report，继续 mission 循环；显式确认 gate 才停。
+      </?01M02EGV9CG8A0MA6KDE4VFY8Z>
+      <tradeoff ?01M02EGV9CG8A0MA6KDE4VFY90>
+      用户审阅机会减少，但 mission 可连续推进；非 auto 场景仍保持 pending/批准。
+      </?01M02EGV9CG8A0MA6KDE4VFY90>
+    )>
+    <option { key = "pending-wait-approval" recommended = false } (
+      <title ?01M02EGV9CG8A0MA6KDE4VFY91>
+      保持 pending 等待批准
+      </?01M02EGV9CG8A0MA6KDE4VFY91>
+      <description ?01M02EGV9CG8A0MA6KDE4VFY92>
+      plan-track 一律落 pending，mission 在批准前停下等待用户。
+      </?01M02EGV9CG8A0MA6KDE4VFY92>
+      <tradeoff ?01M02EGV9CG8A0MA6KDE4VFY93>
+      符合单 track 人审习惯，但与 mission 自主迭代目标冲突，且 impl-track 只认 active 会直接停。
+      </?01M02EGV9CG8A0MA6KDE4VFY93>
+    )>
+  ]>
+  <answer { status = "accepted" } (
+    <raw-answer ?01M02EGV9CG8A0MA6KDE4VFY94>
+    同意方案：mission/auto 语境创建即激活，不等待批准；用户直接对话场景保持 pending 批准语义。
+    </?01M02EGV9CG8A0MA6KDE4VFY94>
+    <decision-text ?01M02EGV9CG8A0MA6KDE4VFY95>
+    candidate TrackLink 的创建→激活是 mission logical action 的一部分：auto/连续执行模式创建即激活、回写 bound + report 并继续；只有显式确认 gate 才停在激活点。
+    </?01M02EGV9CG8A0MA6KDE4VFY95>
+    <rationale ?01M02EGV9CG8A0MA6KDE4VFY96>
+    impl-track 只扫描 active/，pending 会形成结构性断点；mission 的职责是跨 track 长时间自主收敛。
+    </?01M02EGV9CG8A0MA6KDE4VFY96>
+    <evidence ?01M02EGV9CG8A0MA6KDE4VFY97>
+    用户明确要求"执行 mission 自主迭代，不要中途停下"；plan-track.md:146/580 的批准门禁与 impl-track.md:61/84 的 active-only 选择共同构成当前最大停点。
+    </?01M02EGV9CG8A0MA6KDE4VFY97>
+  )>
+)>
+
+<decision #track.close_mission_execution_stop_points.execution_severity apiVersion="codument.tech/v1alpha1" { kind = "planning-decision" priority = "P1" status = "accepted" blocks = ["questioning" "plan-mission" "impl-mission" "tests"] frontier = false durable_candidate = true confidence = 0.92 reversibility = "easy" } (
+  <question ?01M02EGV9CG8A0MA6KDE4VFY98>
+  规划期的问答预算（light/normal/deep）是否应在执行期继续生效？
+  </?01M02EGV9CG8A0MA6KDE4VFY98>
+  <options {  } [
+    <option { key = "inheritance-auto" recommended = true } (
+      <title ?01M02EGV9CG8A0MA6KDE4VFY99>
+      执行期继承为 auto
+      </?01M02EGV9CG8A0MA6KDE4VFY99>
+      <description ?01M02EGV9CG8A0MA6KDE4VFY9A>
+      问答预算只作用于规划期；进入 impl-mission/impl-track 连续执行后，未决决策按 auto 语义记录假设+保守默认继续，除非显式配置确认 gate。
+      </?01M02EGV9CG8A0MA6KDE4VFY9A>
+      <tradeoff ?01M02EGV9CG8A0MA6KDE4VFY9B>
+      执行期不再为规划残留问题停问；plan-mission 默认 severity 建议 auto。
+      </?01M02EGV9CG8A0MA6KDE4VFY9B>
+    )>
+    <option { key = "keep-budget" recommended = false } (
+      <title ?01M02EGV9CG8A0MA6KDE4VFY9C>
+      预算贯穿执行期
+      </?01M02EGV9CG8A0MA6KDE4VFY9C>
+      <description ?01M02EGV9CG8A0MA6KDE4VFY9D>
+      light/normal/deep 的问答预算在执行期继续生效，未决决策到达 ready frontier 就停下问。
+      </?01M02EGV9CG8A0MA6KDE4VFY9D>
+      <tradeoff ?01M02EGV9CG8A0MA6KDE4VFY9E>
+      与"自主迭代不要停"的直接诉求冲突。
+      </?01M02EGV9CG8A0MA6KDE4VFY9E>
+    )>
+  ]>
+  <answer { status = "accepted" } (
+    <raw-answer ?01M02EGV9CG8A0MA6KDE4VFY9F>
+    规划期预算不构成执行期停点；执行期未决决策按 auto 处理，除非显式 gate。
+    </?01M02EGV9CG8A0MA6KDE4VFY9F>
+    <decision-text ?01M02EGV9CG8A0MA6KDE4VFY9G>
+    执行期 severity 继承：问答预算只约束规划期；impl 阶段未决决策默认按 auto 语义处理（写假设+保守默认后继续），显式 HumanConfirm/更高 severity gate 除外。
+    </?01M02EGV9CG8A0MA6KDE4VFY9G>
+    <rationale ?01M02EGV9CG8A0MA6KDE4VFY9H>
+    用户反复纠正的核心就是"不要停下来确认"；规划期没问完的问题不应阻塞长周期自主执行。
+    </?01M02EGV9CG8A0MA6KDE4VFY9H>
+    <evidence ?01M02EGV9CG8A0MA6KDE4VFY9J>
+    questioning.md:15 默认 light、impl-mission.md:32 非 auto 即停、dogfood mission QuestionSeverity=light 的三重叠加。
+    </?01M02EGV9CG8A0MA6KDE4VFY9J>
+  )>
+)>
+
+<decision #track.close_mission_execution_stop_points.subflow_autonomy apiVersion="codument.tech/v1alpha1" { kind = "planning-decision" priority = "P2" status = "accepted" blocks = ["impl-track" "dag-execution" "archive-track" "tests"] frontier = false durable_candidate = true confidence = 0.9 reversibility = "easy" } (
+  <question ?01M02EGV9CG8A0MA6KDE4VFY9K>
+  mission 子 track 的失败/续跑/委派边界应默认问用户还是自主处理？
+  </?01M02EGV9CG8A0MA6KDE4VFY9K>
+  <options {  } [
+    <option { key = "return-to-applier" recommended = true } (
+      <title ?01M02EGV9CG8A0MA6KDE4VFY9M>
+      自主默认 + 返回 MissionApplier
+      </?01M02EGV9CG8A0MA6KDE4VFY9M>
+      <description ?01M02EGV9CG8A0MA6KDE4VFY9N>
+      失败先自动修复；不可修复时返回结构化结果给 mission 裁决；续跑 auto 默认继续；delegated 措辞改为"完成即返回结果"。
+      </?01M02EGV9CG8A0MA6KDE4VFY9N>
+      <tradeoff ?01M02EGV9CG8A0MA6KDE4VFY9P>
+      mission 内少问；用户直接对话场景保留提问分支。
+      </?01M02EGV9CG8A0MA6KDE4VFY9P>
+    )>
+    <option { key = "ask-every-failure" recommended = false } (
+      <title ?01M02EGV9CG8A0MA6KDE4VFY9Q>
+      维持提问分支
+      </?01M02EGV9CG8A0MA6KDE4VFY9Q>
+      <description ?01M02EGV9CG8A0MA6KDE4VFY9R>
+      所有失败/续跑都 ask-single-question-closed 停下。
+      </?01M02EGV9CG8A0MA6KDE4VFY9R>
+      <tradeoff ?01M02EGV9CG8A0MA6KDE4VFY9S>
+      与自主迭代目标冲突，是当前主要残余停点。
+      </?01M02EGV9CG8A0MA6KDE4VFY9S>
+    )>
+  ]>
+  <answer { status = "accepted" } (
+    <raw-answer ?01M02EGV9CG8A0MA6KDE4VFY9T>
+    mission 子 track 语境自主默认：失败自动修复或返回结构化结果，续跑 auto 默认继续，委派措辞收敛。
+    </?01M02EGV9CG8A0MA6KDE4VFY9T>
+    <decision-text ?01M02EGV9CG8A0MA6KDE4VFY9V>
+    impl-track §8.0 增加 mission 语境：不默认提问，返回 BLOCKED 结果给 MissionApplier；§3.0 auto 默认继续 ACTIVE 任务；§6.2/dag-execution 去"完成即停"措辞；archive-track mission 语境交还 mission 裁决。
+    </?01M02EGV9CG8A0MA6KDE4VFY9V>
+    <rationale ?01M02EGV9CG8A0MA6KDE4VFY9W>
+    失败分支、续跑检测与委派边界是 impl-track 中最常见的隐式停点。
+    </?01M02EGV9CG8A0MA6KDE4VFY9W>
+    <evidence ?01M02EGV9CG8A0MA6KDE4VFY9X>
+    impl-track.md:109-133（续跑提问）、:411-432（失败分支提问）、:388/395（gap-loop BLOCKED 等用户）、dag-execution.md:40（完成即停）。
+    </?01M02EGV9CG8A0MA6KDE4VFY9X>
+  )>
+)>

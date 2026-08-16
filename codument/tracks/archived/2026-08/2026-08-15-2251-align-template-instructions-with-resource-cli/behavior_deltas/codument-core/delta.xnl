@@ -1,0 +1,30 @@
+<BehaviorPatch #track.align-template-instructions-with-resource-cli.behavior_patch.codument-core apiVersion="codument.tech/v1alpha1" version="1" { capability = "codument-core" } (
+  <Mutations [
+    <Upsert { selector = "behavior://codument-core/requirements/current-template-authority" } (
+      <Requirement #current-template-authority (
+        <Statement ?>Codument SHALL keep current template authoring aligned with the active Kind/XNL syntax and route deterministic resource mutations through the owning CLI command.</?>
+        <Suites [
+          <Suite #template-authority-alignment { name = "Template authority alignment" } (
+            <Cases [
+              <Case #current-xnl-only (
+                <Given ?>A normal operation, method, README, or skill teaches current structured-resource authoring.</?>
+                <When ?>The installed template is used to create or update a resource.</?>
+                <Then ?>It SHALL use the current unprefixed XNL nodes and snake_case attributes, while legacy syntax remains confined to explicit migration or compatibility material.</?>
+              )>
+              <Case #cli-owned-lifecycle-write (
+                <Given ?>A Track or Mission root, task, TrackLink, revision, timestamp, or gap round must change.</?>
+                <When ?>An operation applies the deterministic mutation.</?>
+                <Then ?>It SHALL call the registered Codument lifecycle command instead of instructing the agent to edit those fields directly.</?>
+              )>
+              <Case #template-regression-lint (
+                <Given ?>Legacy current-authoring vocabulary is reintroduced into a normal standard prompt.</?>
+                <When ?>The template lint suite runs.</?>
+                <Then ?>It SHALL fail with a rule identifying the incompatible vocabulary.</?>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+  ]>
+)>

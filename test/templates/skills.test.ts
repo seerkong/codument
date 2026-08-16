@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'bun:test';
 import * as fs from 'fs';
 import * as path from 'path';
-import { TEMPLATE_FILES } from '../../src/templates/manifest';
+import { SourceResourceEffect, walkResourceFiles } from '../../src/cli/effects/resource';
 
 const ROOT = path.resolve(__dirname, '..', '..');
+const RESOURCES = new SourceResourceEffect(path.join(ROOT, 'src', 'templates'));
 
 const SKILLS = ['codument-maintain-track'];
 
@@ -24,14 +25,14 @@ const DEPRECATED_SKILLS = [
   'codument-track',
 ];
 
-const NON_ACTION_SKILLS = new Set<string>();
+const NON_OPERATION_SKILLS = new Set<string>();
 
-const ACTION_EXCLUDES = new Set(['README.md', '_action-spec.md']);
+const OPERATION_EXCLUDES = new Set(['README.md', '_operation-spec.md']);
 
-function actionNames(): Set<string> {
-  const dir = path.join(ROOT, 'src', 'templates', 'codument', 'std', 'actions');
+function operationNames(): Set<string> {
+  const dir = path.join(ROOT, 'src', 'templates', 'codument', 'std', 'operations');
   return new Set(fs.readdirSync(dir)
-    .filter((file) => file.endsWith('.md') && !ACTION_EXCLUDES.has(file))
+    .filter((file) => file.endsWith('.md') && !OPERATION_EXCLUDES.has(file))
     .map((file) => file.replace(/\.md$/, '')));
 }
 
@@ -42,14 +43,14 @@ function skillNames(): string[] {
     .sort();
 }
 
-function actionRefs(content: string): string[] {
-  return [...content.matchAll(/@\/codument\/std\/actions\/([A-Za-z0-9_-]+)\.md/g)]
+function operationRefs(content: string): string[] {
+  return [...content.matchAll(/@\/codument\/std\/operations\/([A-Za-z0-9_-]+)\.md/g)]
     .map((match) => match[1]);
 }
 
 describe('codument skill templates', () => {
-  it('ships expected codument skills in the template manifest', () => {
-    const paths = new Set(TEMPLATE_FILES.map((f) => f.path));
+  it('ships expected codument skills in packaged resources', async () => {
+    const paths = new Set((await walkResourceFiles(RESOURCES)).map((file) => file.path));
     for (const skill of SKILLS) {
       expect(paths.has(`skills/${skill}/SKILL.md`)).toBe(true);
     }
@@ -66,43 +67,43 @@ describe('codument skill templates', () => {
     }
   });
 
-  it('does not ship deprecated codument action skills', () => {
-    const paths = new Set(TEMPLATE_FILES.map((f) => f.path));
+  it('does not ship deprecated codument operation skills', async () => {
+    const paths = new Set((await walkResourceFiles(RESOURCES)).map((file) => file.path));
     for (const skill of DEPRECATED_SKILLS) {
       expect(paths.has(`skills/${skill}/SKILL.md`)).toBe(false);
       expect(fs.existsSync(path.join(ROOT, 'src', 'templates', 'skills', skill, 'SKILL.md'))).toBe(false);
     }
   });
 
-  it('maps every action body to at least one skill shell, with no dangling action refs', () => {
-    const actions = actionNames();
+  it('maps every operation body to at least one skill shell, with no dangling operation refs', () => {
+    const operations = operationNames();
     const covered = new Map<string, string[]>();
-    for (const action of actions) {
-      covered.set(action, []);
+    for (const operation of operations) {
+      covered.set(operation, []);
     }
 
     for (const skill of skillNames()) {
-      if (NON_ACTION_SKILLS.has(skill)) {
+      if (NON_OPERATION_SKILLS.has(skill)) {
         continue;
       }
 
       const file = path.join(ROOT, 'src', 'templates', 'skills', skill, 'SKILL.md');
-      const refs = actionRefs(fs.readFileSync(file, 'utf-8'));
+      const refs = operationRefs(fs.readFileSync(file, 'utf-8'));
       expect(refs.length).toBeGreaterThan(0);
       for (const ref of refs) {
-        expect(actions.has(ref)).toBe(true);
+        expect(operations.has(ref)).toBe(true);
         covered.get(ref)?.push(skill);
       }
     }
 
-    for (const [action, skills] of covered) {
-      expect(skills, `${action} has no skill shell`).not.toHaveLength(0);
+    for (const [operation, skills] of covered) {
+      expect(skills, `${operation} has no skill shell`).not.toHaveLength(0);
     }
   });
 
   it('keeps codument-discuss conversation-first instead of fixed report generation', () => {
-    const action = fs.readFileSync(
-      path.join(ROOT, 'src', 'templates', 'codument', 'std', 'actions', 'discuss.md'),
+    const operation = fs.readFileSync(
+      path.join(ROOT, 'src', 'templates', 'codument', 'std', 'operations', 'discuss.md'),
       'utf-8'
     );
     const skill = fs.readFileSync(
@@ -110,14 +111,14 @@ describe('codument skill templates', () => {
       'utf-8'
     );
 
-    expect(action).toContain('这是一次**对话**');
-    expect(action).toContain('必须与用户进行讨论、提问、确认或澄清');
-    expect(action).toContain('findings.md');
-    expect(action).toContain('knowledge.md');
-    expect(action).not.toContain('`context.md`：');
-    expect(action).not.toContain('`decision-tree.md`：');
-    expect(action).not.toContain('`recommendation.md`：');
-    expect(action).not.toContain('analysis_files:');
+    expect(operation).toContain('这是一次**对话**');
+    expect(operation).toContain('必须与用户进行讨论、提问、确认或澄清');
+    expect(operation).toContain('findings.md');
+    expect(operation).toContain('knowledge.md');
+    expect(operation).not.toContain('`context.md`：');
+    expect(operation).not.toContain('`decision-tree.md`：');
+    expect(operation).not.toContain('`recommendation.md`：');
+    expect(operation).not.toContain('analysis_files:');
 
     expect(skill).toContain('人机讨论入口');
     expect(skill).toContain('与用户对话澄清');

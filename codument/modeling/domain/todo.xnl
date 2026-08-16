@@ -1,0 +1,16 @@
+<object #domain.todo.user apiVersion="codument.tech/v1alpha1" { kind = "entity" fact_grade = "authoritative_fact" single_writer = "modeling://domain/todo/user_store" } (
+  <desc ?01M07XWFHM3W1BVZXP555ZX64S>
+  TODO: 描述 user 实体的职责和不变量。
+  </?01M07XWFHM3W1BVZXP555ZX64S>
+  <types ?ts>
+  interface User {
+    id: string
+  }
+  </?ts>
+  <invariants ?01M07XWFHM3W1BVZXP555ZX64T>
+  TODO: 描述不变量。
+  </?01M07XWFHM3W1BVZXP555ZX64T>
+  <fact-source ?01M07XWFHM3W1BVZXP555ZX64V>
+  TODO: 描述唯一写入者。
+  </?01M07XWFHM3W1BVZXP555ZX64V>
+)>

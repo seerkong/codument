@@ -1,0 +1,43 @@
+<Track #migrate-track-kind-to-xnl apiVersion="codument.tech/v1alpha1" version="1" { status = "completed" goal = "将 Track 的创建、读取、校验与迁移 authority 从 XML 切换到 Halfcode-backed XNL。" description = "引入 canonical Track DSL、workspace ResourcePackage 与 legacy XML converter，并在当前项目 dogfood。" question_mode = "decision-tree" question_severity = "auto" commit_mode = "manual" created_at = "2026-08-15T10:54:35.569Z" updated_at = "2026-08-15T11:21:51Z" } (
+  <Ports { scope = "track" } [
+    <MaterialBundle { role = "input" name = "legacy-track" domain = "code" path = "vfs://@/src/cli/" }>
+    <MaterialBundle { role = "output" name = "track-codec" domain = "code" path = "vfs://@/src/cli/track/" }>
+    <MaterialBundle { role = "output" name = "workspace-package" domain = "code" path = "vfs://@/src/templates/codument/manifest.xnl" }>
+    <MaterialBundle { role = "output" name = "templates" domain = "docs" path = "vfs://@/src/templates/codument/std/" }>
+    <MaterialBundle { role = "output" name = "tests" domain = "test" path = "vfs://@/test/" }>
+  ]>
+  <TaskSpace #space_migrate-track-kind-to-xnl { name = "migrate-track-kind-to-xnl" child_mode = "dag" } (
+    <SubNodes [
+      <TaskGroup #P1 { name = "Track XNL codec" status = "DONE" order = 0 } (
+        <SubNodes [
+          <Task #P1-T1 { name = "锁定 canonical DSL 与 round-trip fixtures" status = "DONE" order = 0 }>
+          <Task #P1-T2 { name = "实现 XNL/XML normalized reader 与 serializer" status = "DONE" order = 1 }>
+          <Task #P1-T3 { name = "迁移 validator/status/archive file resolution" status = "DONE" order = 2 }>
+        ]>
+      )>
+      <TaskGroup #P2 { name = "Scaffold and migration" status = "DONE" order = 1 } (
+        <SubNodes [
+          <Task #P2-T1 { name = "切换 Track scaffold 并安装 workspace ResourcePackage" status = "DONE" order = 0 }>
+          <Task #P2-T2 { name = "实现 legacy track.xml deterministic converter" status = "DONE" order = 1 }>
+          <Task #P2-T3 { name = "接入 upgrade-workspace 与冲突边界" status = "DONE" order = 2 }>
+        ]>
+      )>
+      <TaskGroup #P3 { name = "Authoring and dogfood" status = "DONE" order = 2 } (
+        <SubNodes [
+          <Task #P3-T1 { name = "更新 Track 规范、action 与 skill 提示词" status = "DONE" order = 0 }>
+          <Task #P3-T2 { name = "全量验证并迁移当前 workspace" status = "DONE" order = 1 }>
+        ]>
+      )>
+    ]>
+  )>
+  <Schedule [
+    <Dag { for = "space_migrate-track-kind-to-xnl" } [
+      <Node #P2 [
+        <After { ref = "P1" }>
+      ]>
+      <Node #P3 [
+        <After { ref = "P2" }>
+      ]>
+    ]>
+  ]>
+)>

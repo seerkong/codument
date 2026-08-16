@@ -1,0 +1,28 @@
+<Track #add-stream-pipeline-agent-e2e apiVersion="codument.tech/v1alpha1" version="1" { status = "completed" goal = "增加由原始需求驱动的真实 Codument coding-agent E2E" description = "在独立临时工作区初始化 Codument，把 stream-pipeline-ai-agent 原始需求交给真实 coding agent，并独立验证 Codument 过程与 Python 产物。" question_mode = "decision-tree" question_severity = "auto" commit_mode = "manual" created_at = "2026-08-16T04:00:06.505Z" updated_at = "2026-08-16T04:36:57.249Z" modeling_base_commit = "f4a7e810e35e05b7565233808a8bcb9687a05942" engineering_base_commit = "f4a7e810e35e05b7565233808a8bcb9687a05942" } (
+  <Ports { scope = "track" }>
+  <TaskSpace #space_add-stream-pipeline-agent-e2e { name = "add-stream-pipeline-agent-e2e" version = "1" child_mode = "dag" } (
+    <SubNodes [
+      <TaskGroup #P1 { name = "Case and harness" status = "DONE" order = 0 } (
+        <SubNodes [
+          <Task #P1-T1 { name = "复制原始需求并新增单次真实 Agent runner" status = "DONE" order = 0 }>
+          <Task #P1-T2 { name = "增加 Codument 与 Python 产物独立验收" status = "DONE" order = 1 }>
+        ]>
+      )>
+      <TaskGroup #P2 { name = "Verification" status = "DONE" order = 1 } (
+        <SubNodes [
+          <Task #P2-T1 { name = "增加 harness smoke 与静态回归测试" status = "DONE" order = 0 }>
+          <Task #P2-T2 { name = "使用真实 Codex 完整运行并检查结果" status = "DONE" order = 1 }>
+        ]>
+      )>
+    ]>
+  )>
+  <Schedule [
+    <Dag { for = "space_add-stream-pipeline-agent-e2e" } [
+      <Node #P1>
+      <Node #P2 [
+        <After { ref = "P1" }>
+      ]>
+    ]>
+  ]>
+  <Hooks []>
+)>

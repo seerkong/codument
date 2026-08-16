@@ -11,7 +11,9 @@ import {
 import {
   discoverXnlRegistryFiles,
   readStableNodeId,
+  serializeXnlFile,
 } from '../xnl/registry';
+import { getKindDefinition, supportsApiVersion } from '../kinds/registry';
 
 export interface DecisionFinding {
   severity: 'error' | 'warning';
@@ -690,6 +692,39 @@ function validateXnlDecisionSourceSet(sources: DecisionSourceSpec[]): DecisionFi
       continue;
     }
 
+    const contract = getKindDefinition('decision');
+    for (const node of nodes) {
+      if (!isDataElement(node) || node.tag !== contract.resourceKind) {
+        findings.push({
+          file: source.label,
+          severity: 'error',
+          decision: '(file)',
+          layer: 'schema',
+          message: `decision forest top-level roots must use <${contract.resourceKind}>`,
+        });
+        continue;
+      }
+      const id = readNodeId(node) ?? '<decision>';
+      const apiVersion = node.metadata?.apiVersion;
+      if (typeof apiVersion !== 'string' || !apiVersion.trim()) {
+        findings.push({
+          file: source.label,
+          severity: 'error',
+          decision: id,
+          layer: 'schema',
+          message: `top-level decision is missing apiVersion (expected ${contract.currentApiVersion})`,
+        });
+      } else if (!supportsApiVersion('decision', apiVersion)) {
+        findings.push({
+          file: source.label,
+          severity: 'error',
+          decision: id,
+          layer: 'schema',
+          message: `unsupported decision apiVersion '${apiVersion}' (expected ${contract.currentApiVersion})`,
+        });
+      }
+    }
+
     const fileRefs: DecisionNodeRef[] = [];
     for (const node of nodes) {
       collectDecisionNodeRefs(node, source.label, fileRefs, findings);
@@ -828,6 +863,16 @@ interface ResolvedDecisionTarget {
   legacyFile?: string;
 }
 
+interface DecisionFrontierEntry {
+  id: string;
+  priority: string;
+  question?: string;
+  recommendation?: string;
+  depends_on: string[];
+  parent?: string;
+  source: string;
+}
+
 function portableJoin(...segments: string[]): string {
   return segments.join('/');
 }
@@ -871,7 +916,9 @@ function targetForDirectory(dir: string): ResolvedDecisionTarget {
     return { display: dir, sources: registrySources(dir) };
   }
   if (
-    fs.existsSync(path.join(dir, 'track.xml'))
+    fs.existsSync(path.join(dir, 'track.xnl'))
+    || fs.existsSync(path.join(dir, 'track.xml'))
+    || fs.existsSync(path.join(dir, 'mission.xnl'))
     || fs.existsSync(path.join(dir, 'mission.xml'))
     || fs.existsSync(path.join(dir, 'decisions.xnl'))
     || fs.existsSync(path.join(dir, 'decisions'))
@@ -921,6 +968,50 @@ function validateTarget(target: ResolvedDecisionTarget): DecisionFinding[] {
   return validateDecisionsFile(target.legacyFile!);
 }
 
+function decisionFrontier(target: ResolvedDecisionTarget): DecisionFrontierEntry[] {
+  if (!target.sources) throw new Error('Decision frontier requires XNL decision sources.');
+  const entries: Array<DecisionFrontierEntry & { status?: string }> = [];
+  const statusById = new Map<string, string>();
+  const visit = (node: XnlNode, source: string, parent?: string): void => {
+    if (!isDataElement(node) || node.tag !== 'decision') return;
+    const id = readNodeId(node);
+    if (!id) return;
+    const status = propText(node, 'status')?.toLowerCase();
+    const dependsOn = frontierStringList(prop(node, 'depends_on') ?? prop(node, 'depends-on'));
+    entries.push({
+      id,
+      status,
+      priority: propText(node, 'priority') ?? 'P2',
+      question: propText(node, 'question'),
+      recommendation: propText(node, 'recommendation'),
+      depends_on: dependsOn,
+      parent,
+      source,
+    });
+    if (status) statusById.set(id, status);
+    for (const child of node.body ?? []) visit(child, source, id);
+  };
+  for (const source of target.sources) {
+    const parsed = parseXnl(fs.readFileSync(source.file, 'utf8'), { textBlockStyle: true });
+    for (const node of parsed.nodes) visit(node, source.label);
+  }
+  const resolved = (id: string): boolean => RESOLVED_DECISION_STATUS.has(statusById.get(id) ?? '');
+  const rank = new Map([['P0', 0], ['P1', 1], ['P2', 2]]);
+  return entries
+    .filter((entry) => entry.status === 'pending')
+    .filter((entry) => !entry.parent || resolved(entry.parent))
+    .filter((entry) => entry.depends_on.every(resolved))
+    .sort((left, right) => (rank.get(left.priority) ?? 3) - (rank.get(right.priority) ?? 3)
+      || left.id.localeCompare(right.id))
+    .map(({ status: _status, ...entry }) => entry);
+}
+
+function frontierStringList(value: unknown): string[] {
+  if (Array.isArray(value)) return value.filter((item): item is string => typeof item === 'string');
+  if (typeof value === 'string' && value.trim()) return [value.trim()];
+  return [];
+}
+
 function report(findings: DecisionFinding[], file: string): void {
   if (findings.length === 0) {
     console.log(`✓ decisions validate: no issues in ${file}`);
@@ -938,10 +1029,82 @@ function report(findings: DecisionFinding[], file: string): void {
   if (errors > 0) process.exit(1);
 }
 
+function createDecision(rest: string[]): void {
+  const { positional, options } = parseOptions(rest);
+  const [rawFile, decisionId] = positional;
+  const parentId = options.parent;
+  if (!rawFile || !decisionId || positional.length !== 2 || (parentId !== undefined && typeof parentId !== 'string')) {
+    throw new Error('Usage: codument decisions create <file> <decision-id> [--parent <decision-id>]');
+  }
+  if (path.extname(rawFile).toLowerCase() !== '.xnl') {
+    throw new Error('Decision scaffold target must be an .xnl file.');
+  }
+  if (!/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(decisionId)) {
+    throw new Error(`Invalid Decision id '${decisionId}'.`);
+  }
+
+  const file = path.resolve(rawFile);
+  const nodes = fs.existsSync(file)
+    ? parseXnl(fs.readFileSync(file, 'utf8'), { textBlockStyle: true }).nodes
+    : [];
+  const existing: DataElementNode[] = [];
+  for (const node of nodes) collectDecisionNodes(node, existing);
+  if (existing.some((node) => readNodeId(node) === decisionId)) {
+    throw new Error(`Decision '${decisionId}' already exists in ${rawFile}.`);
+  }
+
+  const definition = getKindDefinition('decision');
+  if (!definition) throw new Error('Decision KindDefinition is unavailable.');
+  const scaffold = parseXnl(decisionSkeleton(decisionId, definition.currentApiVersion), { textBlockStyle: true }).nodes[0];
+  if (!isDataElement(scaffold)) throw new Error('Decision scaffold did not produce a data element.');
+
+  if (typeof parentId === 'string') {
+    const parent = existing.find((node) => readNodeId(node) === parentId);
+    if (!parent) throw new Error(`Decision parent '${parentId}' was not found in ${rawFile}.`);
+    delete scaffold.metadata.apiVersion;
+    parent.body = [...(parent.body ?? []), scaffold];
+  } else {
+    nodes.push(scaffold);
+  }
+
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(file, serializeXnlFile(nodes), 'utf8');
+  console.log(`Decision '${decisionId}' created in ${rawFile}${parentId ? ` under '${parentId}'` : ''}`);
+  console.log(`  apiVersion: ${definition.currentApiVersion}`);
+}
+
+function decisionSkeleton(id: string, apiVersion: string): string {
+  return `<decision #${id} apiVersion="${apiVersion}" {
+  status = "pending"
+  priority = "P1"
+  blocks = []
+  durable_candidate = false
+} (
+  <question ?>待补充决策问题。</?>
+  <recommendation ?>待补充推荐方案。</?>
+  <options { } [
+    <option { key = "A" recommended = true } (
+      <title ?>待补充推荐选项。</?>
+      <description ?>说明该选项的方案、收益与适用条件。</?>
+      <tradeoff ?>说明该选项的代价与风险。</?>
+    )>
+    <option { key = "B" recommended = false } (
+      <title ?>待补充备选项。</?>
+      <description ?>说明该选项的方案、收益与适用条件。</?>
+      <tradeoff ?>说明该选项的代价与风险。</?>
+    )>
+  ]>
+)>
+`;
+}
+
 export async function decisionsCommand(args: string[]) {
   const sub = args[0];
   const rest = args.slice(1);
   switch (sub) {
+    case 'create':
+      createDecision(rest);
+      return;
     case 'validate': {
       const json = rest.includes('--json');
       const { positional } = parseOptions(rest);
@@ -955,9 +1118,26 @@ export async function decisionsCommand(args: string[]) {
       }
       return;
     }
+    case 'frontier': {
+      const { positional, options } = parseOptions(rest);
+      const target = resolveTarget(positional[0]);
+      const findings = validateTarget(target);
+      const errors = findings.filter((finding) => finding.severity === 'error');
+      if (errors.length > 0) {
+        if (options.json === true) console.log(JSON.stringify({ frontier: [], findings }, null, 2));
+        else report(findings, target.display);
+        process.exitCode = 1;
+        return;
+      }
+      const frontier = decisionFrontier(target);
+      if (options.json === true) console.log(JSON.stringify(frontier, null, 2));
+      else if (frontier.length === 0) console.log(`✓ decisions frontier: no ready pending decisions in ${target.display}`);
+      else for (const entry of frontier) console.log(`${entry.priority} ${entry.id}${entry.question ? `: ${entry.question}` : ''}`);
+      return;
+    }
     default:
       console.error(`Unknown decisions subcommand: ${sub ?? '(none)'}`);
-      console.log('Usage: codument decisions validate [file|track-id]');
+      console.log('Usage: codument decisions create|validate|frontier ...');
       process.exit(1);
   }
 }

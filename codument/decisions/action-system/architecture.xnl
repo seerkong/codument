@@ -1,0 +1,114 @@
+<decision #mission.evolve_codument_action_system.modeling apiVersion="codument.tech/v1alpha1" { priority = "P0" status = "accepted" durable_candidate = true confidence = 0.99 reversibility = "moderate" } (
+  <question ?01M02EGV97YG72X9R5AXD1HF0C>
+  Modeling 默认启用和归档语义如何定义？
+  </?01M02EGV97YG72X9R5AXD1HF0C>
+  <recommendation ?01M02EGV97YG72X9R5AXD1HF0D>
+  fresh init 与 loader 默认启用，按结构变化生成 delta，并接入跨 registry 原子归档。
+  </?01M02EGV97YG72X9R5AXD1HF0D>
+  <answer {  } (
+    <raw-answer ?01M02EGV97YG72X9R5AXD1HF0E>
+    同意 modeling 默认 true；普通 track 不强制 delta；空 registry 合法；第一次 delta 归档时创建并合并。
+    </?01M02EGV97YG72X9R5AXD1HF0E>
+    <decision-text ?01M02EGV97YG72X9R5AXD1HF0F>
+    Modeling 默认启用但按结构变化触发；显式 false 保留；archive 对 behavior/modeling/engineering 先统一 prepare/校验/冲突检测，再原子写入，失败不移动 track。
+    </?01M02EGV97YG72X9R5AXD1HF0F>
+    <rationale ?01M02EGV97YG72X9R5AXD1HF0G>
+    避免默认开启制造文档负担，同时修复 modeling delta 无真实提升路径和多 registry 半归档风险。
+    </?01M02EGV97YG72X9R5AXD1HF0G>
+    <evidence ?01M02EGV97YG72X9R5AXD1HF0H>
+    用户确认 modeling 默认启用方案；现有 mergeModeling 只被测试调用，archive CLI 仅接入 engineering。
+    </?01M02EGV97YG72X9R5AXD1HF0H>
+  )>
+)>
+
+<decision #mission.evolve_codument_action_system.actor_sets apiVersion="codument.tech/v1alpha1" { priority = "P0" status = "accepted" durable_candidate = true confidence = 0.99 reversibility = "moderate" } (
+  <question ?01M02EGV97YG72X9R5AXD1HF0R>
+  Mission 四 Actor 如何表达具体控制循环？
+  </?01M02EGV97YG72X9R5AXD1HF0R>
+  <recommendation ?01M02EGV97YG72X9R5AXD1HF0S>
+  在 mission.xml 中使用默认 ActorSet + TaskGroup 局部覆盖，并提供单项目和多项目飞轮示例。
+  </?01M02EGV97YG72X9R5AXD1HF0S>
+  <answer {  } (
+    <raw-answer ?01M02EGV97YG72X9R5AXD1HF0T>
+    同意默认 ActorSet + TaskGroup 局部覆盖；四 Actor 采用结构化 ActorSet，不再在 design.md 重复。
+    </?01M02EGV97YG72X9R5AXD1HF0T>
+    <decision-text ?01M02EGV97YG72X9R5AXD1HF0V>
+    mission.xml 是 ActorSet 绑定真源；支持一个 mission 多组四 Actor；design.md 不复制标准 Actor 定义。
+    </?01M02EGV97YG72X9R5AXD1HF0V>
+    <rationale ?01M02EGV97YG72X9R5AXD1HF0W>
+    ActorSet 必须能被执行器恢复和按阶段切换，不能只存在于 prose。
+    </?01M02EGV97YG72X9R5AXD1HF0W>
+    <evidence ?01M02EGV97YG72X9R5AXD1HF0X>
+    用户给出 dg-cell-mvi 与 Workbench 基座/上层应用反馈飞轮实例。
+    </?01M02EGV97YG72X9R5AXD1HF0X>
+  )>
+)>
+
+<decision #mission.evolve_codument_action_system.project_binding apiVersion="codument.tech/v1alpha1" { priority = "P0" status = "accepted" durable_candidate = true confidence = 0.99 reversibility = "easy" } (
+  <question ?01M02EGV97YG72X9R5AXD1HF0Y>
+  跨项目 Mission 如何绑定不同开发者机器上的 workspace？
+  </?01M02EGV97YG72X9R5AXD1HF0Y>
+  <recommendation ?01M02EGV97YG72X9R5AXD1HF0Z>
+  持久化逻辑 ProjectRef，WorkspaceBinding 仅存在于当前 session runtime。
+  </?01M02EGV97YG72X9R5AXD1HF0Z>
+  <answer {  } (
+    <raw-answer ?01M02EGV97YG72X9R5AXD1HF10>
+    不同意项目内 workspaces.xml；路径不能进入 Git 管理文件。同意 ProjectRef + session-local WorkspaceBinding。
+    </?01M02EGV97YG72X9R5AXD1HF10>
+    <decision-text ?01M02EGV97YG72X9R5AXD1HF11>
+    Mission 只保存逻辑项目身份；impl-mission 在 session 中临时解析 workspace。路径不写入 mission、track、report、decision 或 config。
+    </?01M02EGV97YG72X9R5AXD1HF11>
+    <rationale ?01M02EGV97YG72X9R5AXD1HF12>
+    跨项目是少数场景且开发者目录不同，机器路径不是项目事实。
+    </?01M02EGV97YG72X9R5AXD1HF12>
+    <evidence ?01M02EGV97YG72X9R5AXD1HF13>
+    用户明确拒绝 codument/config/workspaces.xml 并接受 session runtime 绑定。
+    </?01M02EGV97YG72X9R5AXD1HF13>
+  )>
+)>
+
+<decision #mission.evolve_codument_action_system.action_taxonomy apiVersion="codument.tech/v1alpha1" { priority = "P0" status = "accepted" durable_candidate = true confidence = 0.99 reversibility = "moderate" } (
+  <question ?01M02EGV97YG72X9R5AXD1HF14>
+  operation 到 action 的改名范围和 std 分类如何确定？
+  </?01M02EGV97YG72X9R5AXD1HF14>
+  <recommendation ?01M02EGV97YG72X9R5AXD1HF15>
+  全面改名，并以 actions/commands/protocols/methods/spec/attractors/compat/skill 建立唯一 owner。
+  </?01M02EGV97YG72X9R5AXD1HF15>
+  <answer {  } (
+    <raw-answer ?01M02EGV97YG72X9R5AXD1HF16>
+    operations → actions 应当连文件、字符串、配置和运行时术语一起彻底改；增加 std/commands。
+    </?01M02EGV97YG72X9R5AXD1HF16>
+    <decision-text ?01M02EGV97YG72X9R5AXD1HF17>
+    新产品表面只使用 action；旧 operation 只允许存在于迁移 adapter、fixture、compat 和历史证据。std 按内容职责分类。
+    </?01M02EGV97YG72X9R5AXD1HF17>
+    <rationale ?01M02EGV97YG72X9R5AXD1HF18>
+    避免新旧术语长期并存，并把通用规则从 action 中提取为可复用 owner 文档。
+    </?01M02EGV97YG72X9R5AXD1HF18>
+    <evidence ?01M02EGV97YG72X9R5AXD1HF19>
+    用户明确要求全面改名并同意新的 std taxonomy。
+    </?01M02EGV97YG72X9R5AXD1HF19>
+  )>
+)>
+
+<decision #mission.evolve_codument_action_system.source_owner apiVersion="codument.tech/v1alpha1" { priority = "P0" status = "accepted" durable_candidate = true confidence = 0.99 reversibility = "moderate" } (
+  <question ?01M02EGV97YG72X9R5AXD1HF1W>
+  发布模板与当前工作区 Codument 文件的真源边界是什么？
+  </?01M02EGV97YG72X9R5AXD1HF1W>
+  <recommendation ?01M02EGV97YG72X9R5AXD1HF1X>
+  只修改 src/templates 发布真源，dogfood 工作区通过 build + upgrade-workspace 刷新。
+  </?01M02EGV97YG72X9R5AXD1HF1X>
+  <answer {  } (
+    <raw-answer ?01M02EGV97YG72X9R5AXD1HF1Y>
+    应当改 src/ 下的 codument，才能让修改后发布生效。
+    </?01M02EGV97YG72X9R5AXD1HF1Y>
+    <decision-text ?01M02EGV97YG72X9R5AXD1HF1Z>
+    `src/templates/**` 是发布 owner；`codument/std/**` 是生成投影，不手工双写；manifest 也只由生成脚本刷新。
+    </?01M02EGV97YG72X9R5AXD1HF1Z>
+    <rationale ?01M02EGV97YG72X9R5AXD1HF20>
+    防止模板与当前工作区形成两个可写真源。
+    </?01M02EGV97YG72X9R5AXD1HF20>
+    <evidence ?01M02EGV97YG72X9R5AXD1HF21>
+    安装逻辑从 src/templates/manifest.ts 复制模板，upgrade-workspace 覆盖 codument/std。
+    </?01M02EGV97YG72X9R5AXD1HF21>
+  )>
+)>

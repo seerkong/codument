@@ -8,11 +8,11 @@ function first(src: string) {
 
 describe('engineering node schema validation', () => {
   it('passes a complete howto', () => {
-    const errors = validateEngineeringNode(first(`<howto #global.howto.orders.add_endpoint { kind = "howto" } [
+    const errors = validateEngineeringNode(first(`<howto #global.howto.orders.add_endpoint { kind = "howto" } (
       <when-to-use ?>新增 endpoint。</?>
       <steps ?>写代码。</?>
       <verification ?>跑测试。</?>
-    ]>`));
+    )>`));
     expect(errors).toEqual([]);
   });
 
@@ -35,6 +35,24 @@ describe('engineering node schema validation', () => {
       <steps ?>写代码。</?>
       <verification ?>跑测试。</?>
     ]>`));
+    expect(errors).toEqual([]);
+  });
+
+  it('keeps accepting legacy body sections during migration', () => {
+    const errors = validateEngineeringNode(first(`<howto #global.howto.orders.legacy_body { kind = "howto" } [
+      <when-to-use ?>新增 endpoint。</?>
+      <steps ?>写代码。</?>
+      <verification ?>跑测试。</?>
+    ]>`));
+    expect(errors).toEqual([]);
+  });
+
+  it('accepts canonical rule slots from extend', () => {
+    const errors = validateEngineeringNode(first(`<rule #global.rule.xnl.singleton_slots { kind = "rule" } (
+      <rule ?>单例表征放在 extend。</?>
+      <rationale ?>保留唯一语义。</?>
+      <enforcement ?>由 schema 校验。</?>
+    )>`));
     expect(errors).toEqual([]);
   });
 });

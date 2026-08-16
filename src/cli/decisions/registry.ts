@@ -91,7 +91,10 @@ export function collectDecisionSourceFiles(trackDir: string): DecisionSourceFile
     const parsed = parseXnl(fs.readFileSync(root, 'utf-8'), { textBlockStyle: true }).nodes;
     const selected = selectedRoots(parsed);
     if (selected.length > 0) {
-      sources.push({ source: root, ownerFile: 'registry.xnl', nodes: selected });
+      const ids = selected.flatMap(decisionRefs).map(({ id }) => id);
+      throw new Error(
+        `Durable root decisions require AI review and a business-semantic owner path under decisions/**: ${ids.join(', ')}`,
+      );
     }
   }
 

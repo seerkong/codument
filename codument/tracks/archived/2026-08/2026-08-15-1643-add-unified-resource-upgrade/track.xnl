@@ -1,0 +1,50 @@
+<Track #add-unified-resource-upgrade apiVersion="codument.tech/v1alpha1" version="1" {
+  status = "completed"
+  goal = "提供统一单资源升级入口，并把 Decision 历史资产收敛到业务语义 XNL 目录树。"
+  description = "扩展 migration registry、AI review inventory、Decision owner policy，并在当前仓库完成全量 dogfood。"
+  question_mode = "decision-tree"
+  question_severity = "auto"
+  commit_mode = "manual"
+  created_at = "2026-08-15T13:13:27Z"
+  updated_at = "2026-08-15T13:43:26Z"
+} (
+  <Ports { scope = "track" } [
+    <MaterialBundle { role = "input" name = "migration-engine" domain = "code" path = "vfs://@/src/cli/migrations/" }>
+    <MaterialBundle { role = "input" name = "legacy-resources" domain = "codument" path = "vfs://@/codument/" }>
+    <MaterialBundle { role = "output" name = "upgrade-resource-cli" domain = "code" path = "vfs://@/src/cli/commands/upgrade-resource.ts" }>
+    <MaterialBundle { role = "output" name = "decision-registry" domain = "codument" path = "vfs://@/codument/decisions/" }>
+    <MaterialBundle { role = "output" name = "tests" domain = "test" path = "vfs://@/test/" }>
+  ]>
+  <TaskSpace #space_add-unified-resource-upgrade { name = "add-unified-resource-upgrade" child_mode = "dag" } (
+    <SubNodes [
+      <TaskGroup #P1 { name = "统一升级入口" status = "DONE" order = 0 } (
+        <SubNodes [
+          <Task #P1-T1 { name = "定义 upgrade-resource 回执与资源 inventory" status = "DONE" order = 0 }>
+          <Task #P1-T2 { name = "实现统一命令并扩展历史资源迁移注册" status = "DONE" order = 1 }>
+        ]>
+      )>
+      <TaskGroup #P2 { name = "Decision 语义归属与迁移" status = "DONE" order = 1 } (
+        <SubNodes [
+          <Task #P2-T1 { name = "移除 registry.xnl fallback 并报告缺 owner durable roots" status = "DONE" order = 0 }>
+          <Task #P2-T2 { name = "将全部 legacy Decision Markdown 保真迁入业务 XNL 目录" status = "DONE" order = 1 }>
+        ]>
+      )>
+      <TaskGroup #P3 { name = "文档、dogfood 与验证" status = "DONE" order = 2 } (
+        <SubNodes [
+          <Task #P3-T1 { name = "同步行为契约、规范、skills 与回归测试" status = "DONE" order = 0 }>
+          <Task #P3-T2 { name = "构建并运行 upgrade-resource/upgrade-workspace dogfood" status = "DONE" order = 1 }>
+        ]>
+      )>
+    ]>
+  )>
+  <Schedule [
+    <Dag { for = "space_add-unified-resource-upgrade" } [
+      <Node #P2 [
+        <After { ref = "P1" }>
+      ]>
+      <Node #P3 [
+        <After { ref = "P2" }>
+      ]>
+    ]>
+  ]>
+)>

@@ -1,0 +1,265 @@
+<Track #redesign-mission-workflow apiVersion="codument.tech/v1alpha1" version="1" { status = "completed" goal = "重新设计 Codument mission 工作流，使 mission 成为支持长周期自动化的控制论 + DEPA actor 编排对象。" description = "新增 mission.xml 规范、pending/active/archived 目录结构、mission 三个 lifecycle operation、mission actor 执行协议，并提升 flow notation 为标准 spec。" commit_mode = "manual" created_at = "2026-06-27T13:56:11Z" updated_at = "2026-06-27T14:33:33Z" } (
+  <Ports { scope = "track" } [
+    <MaterialBundle { role = "input" name = "behavior-deltas" domain = "behavior" path = "vfs://./behavior_deltas/" }>
+    <MaterialBundle { role = "output" name = "behavior" domain = "codument" path = "vfs://@/codument/behaviors/" }>
+  ]>
+  <TaskSpace #space_redesign-mission-workflow { name = "redesign-mission-workflow" child_mode = "dag" } (
+    <Description ?01M02JDH9CKJ2RVEZK9HBMEKDK>
+    重新设计 Codument mission 工作流。
+    </?01M02JDH9CKJ2RVEZK9HBMEKDK>
+    <SubNodes [
+      <TaskGroup #P1 { name = "Mission 规范与目录结构" status = "DONE" order = 0 } (
+        <Description ?01M02JDH9CKJ2RVEZK9HBMEKDM>
+        定义 mission 生命周期目录、标准制品、mission.xml 规范和 git ignore 策略。
+        </?01M02JDH9CKJ2RVEZK9HBMEKDM>
+        <SubNodes [
+          <Task { id = "T1.1" name = "更新 missions README" status = "DONE" order = 0 priority = "P0" } (
+            <Description ?01M02JDH9CKJ2RVEZK9HBMEKDN>
+            把 missions README 从 roadmap.md 中心改为 pending/active/archived 生命周期说明。
+            </?01M02JDH9CKJ2RVEZK9HBMEKDN>
+            <Acceptance [
+              <Criterion { id = "T1.1-AC1" checked = true } ?01M02JDH9CKJ2RVEZK9HBMEKDP>
+              README 定义 pending/active/archived 三段结构
+              </?01M02JDH9CKJ2RVEZK9HBMEKDP>
+              <Criterion { id = "T1.1-AC2" checked = true } ?01M02JDH9CKJ2RVEZK9HBMEKDQ>
+              README 明确新 mission 不使用 roadmap.md
+              </?01M02JDH9CKJ2RVEZK9HBMEKDQ>
+              <Criterion { id = "T1.1-AC3" checked = true } ?01M02JDH9CKJ2RVEZK9HBMEKDR>
+              README 说明 analysis/ 与 reports/ 默认不进 git
+              </?01M02JDH9CKJ2RVEZK9HBMEKDR>
+            ]>
+          )>
+          <Task { id = "T1.2" name = "新增 mission-xml-spec" status = "DONE" order = 1 priority = "P0" } (
+            <Description ?01M02JDH9CKJ2RVEZK9HBMEKDS>
+            新增 std/spec/mission-xml-spec.md，复用 track.xml 三轴模型并定义 mission 默认 DAG 与重规划规则。
+            </?01M02JDH9CKJ2RVEZK9HBMEKDS>
+            <Acceptance [
+              <Criterion { id = "T1.2-AC1" checked = true } ?01M02JDH9CKJ2RVEZK9HBMEKDT>
+              spec 定义 &lt;Mission&gt; 根与 Metadata/Ports/TaskSpace/Schedule/Hooks
+              </?01M02JDH9CKJ2RVEZK9HBMEKDT>
+              <Criterion { id = "T1.2-AC2" checked = true } ?01M02JDH9CKJ2RVEZK9HBMEKDV>
+              spec 定义 top-level TaskSpace 默认 DAG
+              </?01M02JDH9CKJ2RVEZK9HBMEKDV>
+              <Criterion { id = "T1.2-AC3" checked = true } ?01M02JDH9CKJ2RVEZK9HBMEKDW>
+              spec 定义 active mission 受控重规划和 Revision 规则
+              </?01M02JDH9CKJ2RVEZK9HBMEKDW>
+            ]>
+          )>
+          <Task { id = "T1.3" name = "更新 git ignore 策略" status = "DONE" order = 2 priority = "P1" } (
+            <Description ?01M02JDH9CKJ2RVEZK9HBMEKDX>
+            确保 mission analysis/reports 执行期目录默认不提交。
+            </?01M02JDH9CKJ2RVEZK9HBMEKDX>
+            <Acceptance [
+              <Criterion { id = "T1.3-AC1" checked = true } ?01M02JDH9CKJ2RVEZK9HBMEKDY>
+              .gitignore 或模板规则覆盖 codument/missions/*/*/analysis/
+              </?01M02JDH9CKJ2RVEZK9HBMEKDY>
+              <Criterion { id = "T1.3-AC2" checked = true } ?01M02JDH9CKJ2RVEZK9HBMEKDZ>
+              .gitignore 或模板规则覆盖 codument/missions/*/*/reports/
+              </?01M02JDH9CKJ2RVEZK9HBMEKDZ>
+            ]>
+          )>
+        ]>
+      )>
+      <TaskGroup #P2 { name = "Flow notation 标准化" status = "DONE" order = 1 } (
+        <Description ?01M02JDH9CKJ2RVEZK9HBMEKE0>
+        把流程标记块规范从 operation 私有说明提升到 std/spec。
+        </?01M02JDH9CKJ2RVEZK9HBMEKE0>
+        <SubNodes [
+          <Task { id = "T2.1" name = "新增 flow-notation spec" status = "DONE" order = 0 priority = "P0" } (
+            <Description ?01M02JDH9CKJ2RVEZK9HBMEKE1>
+            将 depa cybernetic skill creator 的 flow notation 吸收为 codument/std/spec/flow-notation.md。
+            </?01M02JDH9CKJ2RVEZK9HBMEKE1>
+            <Acceptance [
+              <Criterion { id = "T2.1-AC1" checked = true } ?01M02JDH9CKJ2RVEZK9HBMEKE2>
+              flow-notation.md 包含 @delimiter/@node/@marker 开头约定
+              </?01M02JDH9CKJ2RVEZK9HBMEKE2>
+              <Criterion { id = "T2.1-AC2" checked = true } ?01M02JDH9CKJ2RVEZK9HBMEKE3>
+              flow-notation.md 定义 switch/case/sequence/step/if/loop/return/exit/goto/fail/spawn/call
+              </?01M02JDH9CKJ2RVEZK9HBMEKE3>
+            ]>
+          )>
+          <Task { id = "T2.2" name = "改造 _operation-spec" status = "DONE" order = 1 priority = "P1" } (
+            <Description ?01M02JDH9CKJ2RVEZK9HBMEKE4>
+            让 _operation-spec.md 只保留 operation prompt 约定，并引用 std/spec/flow-notation.md。
+            </?01M02JDH9CKJ2RVEZK9HBMEKE4>
+            <Acceptance [
+              <Criterion { id = "T2.2-AC1" checked = true } ?01M02JDH9CKJ2RVEZK9HBMEKE5>
+              _operation-spec.md 不再重复完整 flow notation
+              </?01M02JDH9CKJ2RVEZK9HBMEKE5>
+              <Criterion { id = "T2.2-AC2" checked = true } ?01M02JDH9CKJ2RVEZK9HBMEKE6>
+              _operation-spec.md 明确 flow notation 权威位置
+              </?01M02JDH9CKJ2RVEZK9HBMEKE6>
+            ]>
+          )>
+        ]>
+      )>
+      <TaskGroup #P3 { name = "Mission lifecycle operations" status = "DONE" order = 2 } (
+        <Description ?01M02JDH9CKJ2RVEZK9HBMEKE7>
+        新增 plan/impl/archive mission 三个 operation prompt 和 skill 壳。
+        </?01M02JDH9CKJ2RVEZK9HBMEKE7>
+        <SubNodes [
+          <Task { id = "T3.1" name = "新增 codument-plan-mission" status = "DONE" order = 0 priority = "P0" } (
+            <Description ?01M02JDH9CKJ2RVEZK9HBMEKE8>
+            参考 plan-track，创建 mission 三件套并内置 mission.xml/proposal.md/design.md 示例。
+            </?01M02JDH9CKJ2RVEZK9HBMEKE8>
+            <Acceptance [
+              <Criterion { id = "T3.1-AC1" checked = true } ?01M02JDH9CKJ2RVEZK9HBMEKE9>
+              plan-mission 创建 pending/&lt;mission-id&gt;/
+              </?01M02JDH9CKJ2RVEZK9HBMEKE9>
+              <Criterion { id = "T3.1-AC2" checked = true } ?01M02JDH9CKJ2RVEZK9HBMEKEA>
+              plan-mission prompt 内含 mission.xml 示例
+              </?01M02JDH9CKJ2RVEZK9HBMEKEA>
+              <Criterion { id = "T3.1-AC3" checked = true } ?01M02JDH9CKJ2RVEZK9HBMEKEB>
+              plan-mission prompt 内含 proposal.md 和 design.md 示例
+              </?01M02JDH9CKJ2RVEZK9HBMEKEB>
+            ]>
+          )>
+          <Task { id = "T3.2" name = "新增 codument-impl-mission" status = "DONE" order = 1 priority = "P0" } (
+            <Description ?01M02JDH9CKJ2RVEZK9HBMEKEC>
+            参考 impl-track，按 mission.xml DAG 执行，并用 MissionPlanner/Observer/Reconciler/Applier 处理反馈和重规划。
+            </?01M02JDH9CKJ2RVEZK9HBMEKEC>
+            <Acceptance [
+              <Criterion { id = "T3.2-AC1" checked = true } ?01M02JDH9CKJ2RVEZK9HBMEKED>
+              impl-mission 从 active mission.xml 续跑
+              </?01M02JDH9CKJ2RVEZK9HBMEKED>
+              <Criterion { id = "T3.2-AC2" checked = true } ?01M02JDH9CKJ2RVEZK9HBMEKEE>
+              impl-mission 使用四个 mission actor 概念
+              </?01M02JDH9CKJ2RVEZK9HBMEKEE>
+              <Criterion { id = "T3.2-AC3" checked = true } ?01M02JDH9CKJ2RVEZK9HBMEKEF>
+              impl-mission 支持基于 evidence 或 human decision 的受控重规划
+              </?01M02JDH9CKJ2RVEZK9HBMEKEF>
+            ]>
+          )>
+          <Task { id = "T3.3" name = "新增 codument-archive-mission" status = "DONE" order = 2 priority = "P0" } (
+            <Description ?01M02JDH9CKJ2RVEZK9HBMEKEG>
+            参考 archive-track，归档 active mission 并提升 durable decisions/memory。
+            </?01M02JDH9CKJ2RVEZK9HBMEKEG>
+            <Acceptance [
+              <Criterion { id = "T3.3-AC1" checked = true } ?01M02JDH9CKJ2RVEZK9HBMEKEH>
+              archive-mission 归档到 archived/YYYY-MM-DD-&lt;mission-id&gt;/
+              </?01M02JDH9CKJ2RVEZK9HBMEKEH>
+              <Criterion { id = "T3.3-AC2" checked = true } ?01M02JDH9CKJ2RVEZK9HBMEKEJ>
+              archive-mission 说明完成/取消/废弃/替代状态处理
+              </?01M02JDH9CKJ2RVEZK9HBMEKEJ>
+              <Criterion { id = "T3.3-AC3" checked = true } ?01M02JDH9CKJ2RVEZK9HBMEKEK>
+              archive-mission 复用 decisions/memory 提升经验
+              </?01M02JDH9CKJ2RVEZK9HBMEKEK>
+            ]>
+          )>
+          <Task { id = "T3.4" name = "新增 mission skill 壳" status = "DONE" order = 3 priority = "P1" } (
+            <Description ?01M02JDH9CKJ2RVEZK9HBMEKEM>
+            新增 codument-plan-mission/codument-impl-mission/codument-archive-mission skill shell，并更新 skills README。
+            </?01M02JDH9CKJ2RVEZK9HBMEKEM>
+            <Acceptance [
+              <Criterion { id = "T3.4-AC1" checked = true } ?01M02JDH9CKJ2RVEZK9HBMEKEN>
+              三个 skill 壳指向对应 operations body
+              </?01M02JDH9CKJ2RVEZK9HBMEKEN>
+              <Criterion { id = "T3.4-AC2" checked = true } ?01M02JDH9CKJ2RVEZK9HBMEKEP>
+              src/templates/skills/README.md 包含 mission skill 映射
+              </?01M02JDH9CKJ2RVEZK9HBMEKEP>
+            ]>
+          )>
+        ]>
+      )>
+      <TaskGroup #P4 { name = "Template routing and validation" status = "DONE" order = 3 } (
+        <Description ?01M02JDH9CKJ2RVEZK9HBMEKEQ>
+        更新模板路由、manifest、AGENTS 和测试，确保新 mission 能部署。
+        </?01M02JDH9CKJ2RVEZK9HBMEKEQ>
+        <SubNodes [
+          <Task { id = "T4.1" name = "更新 std 路由文档" status = "DONE" order = 0 priority = "P1" } (
+            <Description ?01M02JDH9CKJ2RVEZK9HBMEKER>
+            更新 std/AGENTS.md、std/operations/README.md 和相关引用。
+            </?01M02JDH9CKJ2RVEZK9HBMEKER>
+            <Acceptance [
+              <Criterion { id = "T4.1-AC1" checked = true } ?01M02JDH9CKJ2RVEZK9HBMEKES>
+              AGENTS 路由包含 mission planning / implementation / archive
+              </?01M02JDH9CKJ2RVEZK9HBMEKES>
+              <Criterion { id = "T4.1-AC2" checked = true } ?01M02JDH9CKJ2RVEZK9HBMEKET>
+              operations README 包含 mission operations
+              </?01M02JDH9CKJ2RVEZK9HBMEKET>
+            ]>
+          )>
+          <Task { id = "T4.2" name = "更新 manifest" status = "DONE" order = 1 priority = "P0" } (
+            <Description ?01M02JDH9CKJ2RVEZK9HBMEKEV>
+            重新生成 src/templates/manifest.ts，确保新增模板部署。
+            </?01M02JDH9CKJ2RVEZK9HBMEKEV>
+            <Acceptance [
+              <Criterion { id = "T4.2-AC1" checked = true } ?01M02JDH9CKJ2RVEZK9HBMEKEW>
+              manifest 包含 mission spec / operations / skills
+              </?01M02JDH9CKJ2RVEZK9HBMEKEW>
+              <Criterion { id = "T4.2-AC2" checked = true } ?01M02JDH9CKJ2RVEZK9HBMEKEX>
+              manifest test 通过
+              </?01M02JDH9CKJ2RVEZK9HBMEKEX>
+            ]>
+          )>
+          <Task { id = "T4.3" name = "构建并升级 dogfood workspace" status = "DONE" order = 2 priority = "P0" } (
+            <Description ?01M02JDH9CKJ2RVEZK9HBMEKEY>
+            构建本项目并使用 codument upgrade-workspace 刷新 codument/ 和 agent skills。
+            </?01M02JDH9CKJ2RVEZK9HBMEKEY>
+            <Acceptance [
+              <Criterion { id = "T4.3-AC1" checked = true } ?01M02JDH9CKJ2RVEZK9HBMEKEZ>
+              bun run build 通过
+              </?01M02JDH9CKJ2RVEZK9HBMEKEZ>
+              <Criterion { id = "T4.3-AC2" checked = true } ?01M02JDH9CKJ2RVEZK9HBMEKF0>
+              upgrade-workspace 刷新 dogfood codument/
+              </?01M02JDH9CKJ2RVEZK9HBMEKF0>
+            ]>
+          )>
+        ]>
+      )>
+      <TaskGroup #P5 { name = "Verification" status = "DONE" order = 4 } (
+        <Description ?01M02JDH9CKJ2RVEZK9HBMEKF1>
+        运行测试、类型检查和 codument validate。
+        </?01M02JDH9CKJ2RVEZK9HBMEKF1>
+        <SubNodes [
+          <Task { id = "T5.1" name = "运行项目检查" status = "DONE" order = 0 priority = "P0" } (
+            <Description ?01M02JDH9CKJ2RVEZK9HBMEKF2>
+            运行 typecheck/test/check，确保模板与现有行为不回归。
+            </?01M02JDH9CKJ2RVEZK9HBMEKF2>
+            <Acceptance [
+              <Criterion { id = "T5.1-AC1" checked = true } ?01M02JDH9CKJ2RVEZK9HBMEKF3>
+              bun run typecheck 通过
+              </?01M02JDH9CKJ2RVEZK9HBMEKF3>
+              <Criterion { id = "T5.1-AC2" checked = true } ?01M02JDH9CKJ2RVEZK9HBMEKF4>
+              bun test 通过
+              </?01M02JDH9CKJ2RVEZK9HBMEKF4>
+            ]>
+          )>
+          <Task { id = "T5.2" name = "验证 track 结构" status = "DONE" order = 1 priority = "P0" } (
+            <Description ?01M02JDH9CKJ2RVEZK9HBMEKF5>
+            运行 codument validate redesign-mission-workflow --strict 或等价本地命令。
+            </?01M02JDH9CKJ2RVEZK9HBMEKF5>
+            <Acceptance [
+              <Criterion { id = "T5.2-AC1" checked = true } ?01M02JDH9CKJ2RVEZK9HBMEKF6>
+              track.xml 与 behavior delta 校验通过
+              </?01M02JDH9CKJ2RVEZK9HBMEKF6>
+            ]>
+          )>
+        ]>
+        <Hooks [
+          <Hook { on = "phase:after" } (
+            <HumanConfirm>
+          )>
+          <Hook { on = "phase:after" } (
+            <AttractorCheck { use = "coding" }>
+          )>
+        ]>
+      )>
+    ]>
+  )>
+  <Schedule [
+    <Dag { for = "space_redesign-mission-workflow" } [
+      <Node #P3 [
+        <After { ref = "P1" }>
+        <After { ref = "P2" }>
+      ]>
+      <Node #P4 [
+        <After { ref = "P3" }>
+      ]>
+      <Node #P5 [
+        <After { ref = "P4" }>
+      ]>
+    ]>
+    <Parallel { max_concurrent = 2 spot_check = true }>
+  ]>
+)>

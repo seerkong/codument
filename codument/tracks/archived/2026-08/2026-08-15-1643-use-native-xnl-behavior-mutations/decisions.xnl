@@ -1,0 +1,17 @@
+<decision #track.use_native_xnl_behavior_mutations.backend apiVersion="codument.tech/v1alpha1" {
+  kind = "architecture-decision"
+  priority = "P0"
+  status = "accepted"
+  durable_candidate = false
+  confidence = 0.98
+  reversibility = "moderate"
+} (
+  <question ?>BehaviorPatch 是否保留业务 DSL，同时把底层执行切换为 xnl-core mutation？</?>
+  <recommendation ?>保留 Upsert/Delete/Move；用 diffNodes 编译并由 dryRunMutations 原子执行。</?>
+  <answer { } (
+    <raw-answer ?>用户明确同意保留现有 DSL，并要求底层换成 XNL 内置 mutation 机制。</?>
+    <decision-text ?>DSL 保持稳定，canonical XNL registry 的实际提交只接受原生 mutation batch 的预演结果。</?>
+    <rationale ?>避免把 xnl-core path 暴露给作者，同时复用其 identity、diff、原子性和结构诊断。</?>
+    <evidence ?>用户指定参考 /Users/kongweixian/lang/xnl.ts 的 diffNodes、applyMutations 等能力。</?>
+  )>
+)>

@@ -1,6 +1,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { getSpecXmlStats, loadSpecXml, parseSpecXmlContent, type SpecXmlNode } from './spec-xml';
+import { parseTrackResource, resolveTrackAuthority, type TrackAuthority } from '../track/resource';
+import { parseBehaviorXnlContent } from '../behavior/resource';
 
 // Workspace directory (can be changed via --workspace-dir)
 let workspaceDir = process.cwd();
@@ -69,7 +71,7 @@ export interface Spec {
   path: string;
   requirements: number;
   scenarios: number;
-  format?: 'markdown' | 'xml';
+  format?: 'markdown' | 'xml' | 'xnl';
 }
 
 function getPlanTrackStatus(planPath: string): TrackMetadata['status'] | undefined {
@@ -176,7 +178,7 @@ export function codumentExists(): boolean {
 }
 
 /**
- * Get track directory IDs that contain a track.xml.
+ * Get track directory IDs that contain one Track authority file.
  */
 export function getTrackIds(): string[] {
   if (!fs.existsSync(ACTIVE_TRACKS_DIR)) {
@@ -186,10 +188,10 @@ export function getTrackIds(): string[] {
   return fs.readdirSync(ACTIVE_TRACKS_DIR, { withFileTypes: true })
     .filter(dirent => dirent.isDirectory())
     .map(dirent => dirent.name)
-    .filter(trackId => fs.existsSync(path.join(ACTIVE_TRACKS_DIR, trackId, 'track.xml')));
+    .filter(trackId => Boolean(resolveTrackAuthority(path.join(ACTIVE_TRACKS_DIR, trackId))));
 }
 
-// ---- track.xml readers (new XML standard) ----------------------------------
+// ---- Track resource readers ------------------------------------------------
 
 const SPARROW_DONE = new Set(['DONE']);
 const SPARROW_ACTIVE = new Set(['ACTIVE', 'DELEGATED', 'FORWARDED']);
@@ -203,13 +205,27 @@ export function getPendingTrackDir(trackId: string): string {
   return path.join(PENDING_TRACKS_DIR, trackId);
 }
 
-function trackXmlPath(trackId: string): string {
-  return path.join(getActiveTrackDir(trackId), 'track.xml');
+export function resolveLifecycleTrackDir(trackId: string): string | undefined {
+  for (const parent of [ACTIVE_TRACKS_DIR, PENDING_TRACKS_DIR, TRACKS_DIR]) {
+    const dir = path.join(parent, trackId);
+    if (resolveTrackAuthority(dir)) return dir;
+  }
+  return undefined;
+}
+
+export function getTrackAuthority(trackDir: string): TrackAuthority | undefined {
+  return resolveTrackAuthority(trackDir);
+}
+
+function trackResourcePath(trackId: string): string {
+  const authority = resolveTrackAuthority(getActiveTrackDir(trackId));
+  if (!authority) throw new Error(`Track '${trackId}' has no track.xnl or legacy track.xml authority`);
+  return authority.file;
 }
 
 function parseTrackRoot(file: string): SpecXmlNode | null {
   try {
-    const root = parseSpecXmlContent(fs.readFileSync(file, 'utf-8'));
+    const root = parseTrackResource(file);
     return root.tag === 'Track' ? root : null;
   } catch {
     return null;
@@ -230,7 +246,7 @@ function findAll(node: SpecXmlNode, pred: (n: SpecXmlNode) => boolean, acc: Spec
   return acc;
 }
 
-/** Read track.xml <Metadata> into TrackMetadata (track.xml has no `type`; defaults to feature). */
+/** Read normalized Track metadata (XNL authority or legacy XML fallback). */
 export function parseTrackMetadata(file: string, trackIdFallback?: string): TrackMetadata | null {
   const root = parseTrackRoot(file);
   if (!root) return null;
@@ -315,7 +331,7 @@ export function walkTrackTasks(file: string): TrackTaskInfo[] {
 export function getTracks(): Track[] {
   const tracks: Track[] = [];
   for (const trackId of getTrackIds()) {
-    const file = trackXmlPath(trackId);
+    const file = trackResourcePath(trackId);
     const metadata = parseTrackMetadata(file, trackId);
     if (metadata) {
       tracks.push({ id: trackId, metadata, taskSummary: parseTrackSummary(file) });
@@ -325,62 +341,45 @@ export function getTracks(): Track[] {
 }
 
 /**
- * Get all specs from specs directory
+ * Get all behavior registries, preferring canonical behaviors/ over legacy specs/.
  */
 export function getSpecs(): Spec[] {
-  if (!fs.existsSync(SPECS_DIR)) {
-    return [];
-  }
-
-  const specs: Spec[] = [];
-
-  for (const entry of fs.readdirSync(SPECS_DIR, { withFileTypes: true })) {
-    const specId = entry.isFile() && entry.name.endsWith('.xml')
-      ? entry.name.slice(0, -'.xml'.length)
-      : entry.name;
-    const entryPath = path.join(SPECS_DIR, entry.name);
-    const markdownSpecPath = path.join(entryPath, 'spec.md');
-    const folderXmlPath = path.join(entryPath, 'index.xml');
-
-    if (entry.isDirectory() && fs.existsSync(markdownSpecPath)) {
-      const content = fs.readFileSync(markdownSpecPath, 'utf-8');
-      const requirements = (content.match(/^### Requirement:/gm) || []).length;
-      const scenarios = (content.match(/^#### Scenario:/gm) || []).length;
-
-      specs.push({
-        id: specId,
-        path: markdownSpecPath,
-        requirements,
-        scenarios,
-        format: 'markdown',
-      });
-      continue;
-    }
-
-    if ((entry.isFile() && entry.name.endsWith('.xml')) || (entry.isDirectory() && fs.existsSync(folderXmlPath))) {
+  const specs = new Map<string, Spec>();
+  const scan = (root: string, canonical: boolean): void => {
+    if (!fs.existsSync(root)) return;
+    for (const entry of fs.readdirSync(root, { withFileTypes: true })) {
+      const extension = path.extname(entry.name);
+      const specId = entry.isFile() && ['.xnl', '.xml'].includes(extension)
+        ? path.basename(entry.name, extension)
+        : entry.name;
+      if (!canonical && specs.has(specId)) continue;
+      const entryPath = path.join(root, entry.name);
+      const markdownSpecPath = path.join(entryPath, 'spec.md');
+      const folderXmlPath = path.join(entryPath, 'index.xml');
       try {
-        const xmlPath = entry.isFile() ? entryPath : entryPath;
-        const stats = getSpecXmlStats(loadSpecXml(xmlPath));
-        specs.push({
-          id: specId,
-          path: entry.isFile() ? entryPath : folderXmlPath,
-          requirements: stats.requirements,
-          scenarios: stats.scenarios,
-          format: 'xml',
-        });
+        if (entry.isFile() && extension === '.xnl') {
+          const stats = getSpecXmlStats(parseBehaviorXnlContent(fs.readFileSync(entryPath, 'utf8')));
+          specs.set(specId, { id: specId, path: entryPath, ...stats, format: 'xnl' });
+        } else if (entry.isDirectory() && fs.existsSync(markdownSpecPath)) {
+          const content = fs.readFileSync(markdownSpecPath, 'utf-8');
+          specs.set(specId, {
+            id: specId, path: markdownSpecPath,
+            requirements: (content.match(/^### Requirement:/gm) || []).length,
+            scenarios: (content.match(/^#### Scenario:/gm) || []).length,
+            format: 'markdown',
+          });
+        } else if ((entry.isFile() && extension === '.xml') || (entry.isDirectory() && fs.existsSync(folderXmlPath))) {
+          const stats = getSpecXmlStats(loadSpecXml(entryPath));
+          specs.set(specId, { id: specId, path: entry.isFile() ? entryPath : folderXmlPath, ...stats, format: 'xml' });
+        }
       } catch {
-        specs.push({
-          id: specId,
-          path: entry.isFile() ? entryPath : folderXmlPath,
-          requirements: 0,
-          scenarios: 0,
-          format: 'xml',
-        });
+        specs.set(specId, { id: specId, path: entryPath, requirements: 0, scenarios: 0, format: extension === '.xnl' ? 'xnl' : 'xml' });
       }
     }
-  }
-
-  return specs;
+  };
+  scan(BEHAVIORS_DIR, true);
+  scan(SPECS_DIR, false);
+  return [...specs.values()].sort((left, right) => left.id.localeCompare(right.id));
 }
 
 /**
@@ -470,13 +469,12 @@ export function parsePlanSummary(planPath: string): TaskSummary | undefined {
 }
 
 /**
- * Get track by ID (reads track.xml).
+ * Get track by ID (reads track.xnl or legacy track.xml).
  */
 export function getTrack(trackId: string): Track | null {
-  const file = trackXmlPath(trackId);
-  if (!fs.existsSync(file)) {
-    return null;
-  }
+  const authority = resolveTrackAuthority(getActiveTrackDir(trackId));
+  if (!authority) return null;
+  const file = authority.file;
   const metadata = parseTrackMetadata(file, trackId);
   if (!metadata) {
     return null;

@@ -1,0 +1,84 @@
+<BehaviorPatch #track.r_2_0_2_6_-_0_6_-_2_1_-_1_8_0_0_-_i_m_p_r_o_v_e_-_m_o_d_e_l_i_n_g_-_a_u_t_h_o_r_i_n_g_-_g_u_i_d_a_n_c_e.behavior_patch.codument-core apiVersion="codument.tech/v1alpha1" version="1" { capability = "codument-core" } (
+  <Mutations [
+    <Upsert { selector = "behavior://codument-core/requirements/modeling-authoring-form" } (
+      <Requirement #modeling-authoring-form (
+        <Statement ?01M02NT0W91S2K46C8Z15JGTNF>
+        系统 SHALL guide and validate the XNL *form* of modeling nodes so that LLM authors produce spec-conformant nodes — component IO blocks as bare tags, shell-kind nodes as plain element tags plus a `kind` attribute — while the validate engine accepts the common role-tagged IO variant for compatibility. Derived from E2E dogfood where a real model (codex gpt-5.5) wrote conceptually-correct modeling but tripped on these two XNL-form ambiguities across 3/3 and 1/3 topics.
+        </?01M02NT0W91S2K46C8Z15JGTNF>
+        <Suites [
+          <Suite #component-io-form { name = "Component IO block form" } (
+            <Cases [
+              <Case #bare-io-tags-canonical (
+                <Given ?01M02NT0W91S2K46C8Z15JGTNG>
+                A modeling `component` node needing runtime/input/config/output blocks.
+                </?01M02NT0W91S2K46C8Z15JGTNG>
+                <When ?01M02NT0W91S2K46C8Z15JGTNH>
+                An author writes it per spec.
+                </?01M02NT0W91S2K46C8Z15JGTNH>
+                <Then ?01M02NT0W91S2K46C8Z15JGTNJ>
+                The canonical form SHALL be bare tags `&lt;runtime&gt;` / `&lt;input&gt;` / `&lt;config&gt;` / `&lt;output&gt;`, and `modeling-node-schema.md` + `xnl-format.md` SHALL state this explicitly with Good/Bad examples.
+                </?01M02NT0W91S2K46C8Z15JGTNJ>
+              )>
+              <Case #role-tagged-io-accepted (
+                <Given ?01M02NT0W91S2K46C8Z15JGTNK>
+                A `component` whose IO blocks are written as `&lt;types role="runtime"&gt;` (and input/config/output) instead of bare tags.
+                </?01M02NT0W91S2K46C8Z15JGTNK>
+                <When ?01M02NT0W91S2K46C8Z15JGTNM>
+                `modeling validate` runs.
+                </?01M02NT0W91S2K46C8Z15JGTNM>
+                <Then ?01M02NT0W91S2K46C8Z15JGTNN>
+                The schema layer SHALL accept a role-tagged block as satisfying the corresponding runtime/input/config/output requirement (compatibility), without raising the "requires a &lt;slot&gt; block" error.
+                </?01M02NT0W91S2K46C8Z15JGTNN>
+                <Ands [
+                  <And ?01M02NT0W91S2K46C8Z15JGTNP>
+                  Bare tags remain the canonical, spec-recommended form; role-tagged is accepted-but-discouraged.
+                  </?01M02NT0W91S2K46C8Z15JGTNP>
+                ]>
+              )>
+            ]>
+          )>
+          <Suite #shell-kind-form { name = "Shell-kind node form" } (
+            <Cases [
+              <Case #plain-tag-plus-kind-attr (
+                <Given ?01M02NT0W91S2K46C8Z15JGTNQ>
+                A shell-kind modeling node (e.g. a backend endpoint or a surface route).
+                </?01M02NT0W91S2K46C8Z15JGTNQ>
+                <When ?01M02NT0W91S2K46C8Z15JGTNR>
+                An author writes its XNL element.
+                </?01M02NT0W91S2K46C8Z15JGTNR>
+                <Then ?01M02NT0W91S2K46C8Z15JGTNS>
+                The element tag SHALL be a plain word (e.g. `&lt;endpoint&gt;`, `&lt;route&gt;`) carrying the namespaced kind in the `kind` attribute (`kind="backend:endpoint"`); the element tag name MUST NOT contain a colon (XNL element tags cannot).
+                </?01M02NT0W91S2K46C8Z15JGTNS>
+                <Ands [
+                  <And ?01M02NT0W91S2K46C8Z15JGTNT>
+                  `modeling-node-schema.md` + `xnl-format.md` SHALL show Good (`&lt;endpoint kind="backend:endpoint"&gt;`) vs Bad (`&lt;backend:endpoint …&gt;` → XNL syntax error) examples.
+                  </?01M02NT0W91S2K46C8Z15JGTNT>
+                ]>
+              )>
+            ]>
+          )>
+          <Suite #selfcheck-in-flow { name = "Modeling self-check in track / implement" } (
+            <Cases [
+              <Case #validate-after-generate (
+                <Given ?01M02NT0W91S2K46C8Z15JGTNV>
+                A track-creation or implement step that generates/edits `modeling_deltas` while modeling is enabled.
+                </?01M02NT0W91S2K46C8Z15JGTNV>
+                <When ?01M02NT0W91S2K46C8Z15JGTNW>
+                The deltas are written.
+                </?01M02NT0W91S2K46C8Z15JGTNW>
+                <Then ?01M02NT0W91S2K46C8Z15JGTNX>
+                The workflow SHALL run `codument modeling validate --deltas &lt;track&gt;` and surface + repair findings before proceeding.
+                </?01M02NT0W91S2K46C8Z15JGTNX>
+                <Ands [
+                  <And ?01M02NT0W91S2K46C8Z15JGTNY>
+                  This step SHALL be gated on `config/modeling.xml` (skipped when modeling is disabled), consistent with other modeling behavior.
+                  </?01M02NT0W91S2K46C8Z15JGTNY>
+                ]>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+  ]>
+)>

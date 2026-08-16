@@ -6,7 +6,7 @@ import { loadEngineeringRegistry, isDataElement, readNodeId } from './registry';
  * Fractal-split lint: flag oversized engineering XNL files as candidates for
  * same-name-folder split (multi-file). Heuristic, advisory — the actual split is
  * applied by the model per folder-manifest.md. Thresholds are configurable
- * (defaults below; overridable via codument/config/engineering.xml in P4).
+ * (defaults below; overridable via codument/config/engineering.xnl in P4).
  */
 
 export interface LintThresholds {

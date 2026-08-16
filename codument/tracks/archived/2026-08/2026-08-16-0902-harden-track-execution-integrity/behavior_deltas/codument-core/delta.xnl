@@ -1,0 +1,77 @@
+<BehaviorPatch #track.harden-track-execution-integrity.behavior_patch.codument-core apiVersion="codument.tech/v1alpha1" version="1" { capability = "codument-core" } (
+  <Mutations [
+    <Upsert { selector = "behavior://codument-core/requirements/verified-track-task-completion" } (
+      <Requirement #verified-track-task-completion (
+        <Statement ?>系统 SHALL 只在 CLI 执行的验证命令成功后原子完成 Track task，并保持任务、Acceptance、Gate 与 Track 根完成态一致。</?>
+        <Suites [
+          <Suite #task-completion-integrity (
+            <Cases [
+              <Case #failed-verification-preserves-state (
+                <Given ?>Track task 处于 ACTIVE，且 Acceptance 未勾选。</?>
+                <When ?>task complete 的验证命令退出非 0 或无法启动。</?>
+                <Then ?>系统 SHALL 保持原任务状态和 Criterion 不变，并返回失败。</?>
+              )>
+              <Case #successful-verification-completes-task (
+                <Given ?>Track task 的验证命令可成功执行。</?>
+                <When ?>用户运行 task complete。</?>
+                <Then ?>系统 SHALL 原子写入 DONE 并同步该节点的验收 Criterion。</?>
+              )>
+              <Case #completed-requires-checked-criteria (
+                <Given ?>Track 的任务都处于终态，但仍有 Acceptance 或 Gate 未勾选。</?>
+                <When ?>用户完成 Track 或运行 strict validation。</?>
+                <Then ?>系统 SHALL 拒绝 completed 一致性声明并指出未满足的 Criterion。</?>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/compact-track-execution-context" } (
+      <Requirement #compact-track-execution-context (
+        <Statement ?>系统 SHALL 为 Agent 提供紧凑的 Track 状态、ready task 与复用验证证据的执行界面。</?>
+        <Suites [
+          <Suite #compact-observe-and-verify (
+            <Cases [
+              <Case #summary-json-by-default (
+                <Given ?>Agent 只需要观察 Track 状态。</?>
+                <When ?>Agent 运行 show --json。</?>
+                <Then ?>输出 SHALL 默认省略文件正文，并允许用 include-content 显式请求。</?>
+              )>
+              <Case #ready-leaf-query (
+                <Given ?>Track 包含递归任务和 DAG 依赖。</?>
+                <When ?>Agent 查询 ready task。</?>
+                <Then ?>系统 SHALL 返回依赖已满足的未完成叶任务摘要。</?>
+              )>
+              <Case #reuse-verification-evidence (
+                <Given ?>多个验收目标可由同一测试命令证明。</?>
+                <When ?>fresh verifier 执行逐项裁决。</?>
+                <Then ?>verifier SHALL 只运行一次唯一命令，并将同一证据映射到相关目标。</?>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+    <Upsert { selector = "behavior://codument-core/requirements/real-agent-e2e-cli-provenance" } (
+      <Requirement #real-agent-e2e-cli-provenance (
+        <Statement ?>真实 Agent E2E SHALL 默认构建和使用当前 Codument workspace 二进制，并记录可复现的 CLI provenance。</?>
+        <Suites [
+          <Suite #current-cli-under-test (
+            <Cases [
+              <Case #default-current-build (
+                <Given ?>调用方未显式覆盖 CODUMENT。</?>
+                <When ?>真实 Agent E2E 启动。</?>
+                <Then ?>runner SHALL 构建当前仓库 dist/codument，并记录路径、版本、SHA-256、Git SHA 与构建来源。</?>
+              )>
+              <Case #explicit-cli-override (
+                <Given ?>调用方显式设置 CODUMENT。</?>
+                <When ?>真实 Agent E2E 启动。</?>
+                <Then ?>runner SHALL 使用该 CLI 并把 provenance 标记为 override。</?>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+  ]>
+)>

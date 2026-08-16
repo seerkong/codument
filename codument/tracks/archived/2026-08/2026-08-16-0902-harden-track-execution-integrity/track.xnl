@@ -1,0 +1,125 @@
+<Track #harden-track-execution-integrity apiVersion="codument.tech/v1alpha1" version="1" { status = "completed" goal = "让 Track 完成状态由可复现验证支撑，并减少 Agent 执行中的冗余上下文和状态操作。" description = "增加验证后原子完成、验收一致性门、紧凑查询、verify 证据复用和 E2E CLI provenance。" question_mode = "decision-tree" question_severity = "auto" commit_mode = "manual" created_at = "2026-08-16T05:43:06.785Z" updated_at = "2026-08-16T06:02:47.899Z" modeling_base_commit = "f4a7e810e35e05b7565233808a8bcb9687a05942" engineering_base_commit = "f4a7e810e35e05b7565233808a8bcb9687a05942" } (
+  <Ports { scope = "track" } [
+    <MaterialBundle #source { role = "output" name = "source" domain = "code" path = "vfs://@/src/" }>
+    <MaterialBundle #tests { role = "output" name = "tests" domain = "test" path = "vfs://@/test/" }>
+    <MaterialBundle #e2e { role = "output" name = "e2e" domain = "test" path = "vfs://@/e2e/project-implementation/" }>
+  ]>
+  <TaskSpace #space_harden-track-execution-integrity { name = "harden-track-execution-integrity" version = "1" child_mode = "dag" } (
+    <SubNodes [
+      <TaskGroup #P1 { name = "Lifecycle truth boundary" status = "DONE" priority = "P0" order = 0 } (
+        <Description ?01M04HNTR8FKDABCHNQ913REAC>
+        让验证、Criterion 与 lifecycle 状态在 CLI 内形成一致的原子边界。
+        </?01M04HNTR8FKDABCHNQ913REAC>
+        <SubNodes [
+          <Task #P1-T1 { name = "增加验证后原子完成命令" status = "DONE" priority = "P0" order = 0 } (
+            <Description ?01M04HNTR8FKDABCHNQ913READ>
+            实现 track task complete，并拒绝通用 transition 绕过验证写入 DONE。
+            </?01M04HNTR8FKDABCHNQ913READ>
+            <Acceptance [
+              <Criterion #P1-T1-AC1 { checked = true } ?01M04HNTR8FKDABCHNQ913REAE>
+              验证命令退出非 0 或无法启动时，任务状态和 Criterion 均保持不变。
+              </?01M04HNTR8FKDABCHNQ913REAE>
+              <Criterion #P1-T1-AC2 { checked = true } ?01M04HNTR8FKDABCHNQ913REAF>
+              验证退出 0 后，任务原子进入 DONE，CLI help 和 JSON receipt 可用。
+              </?01M04HNTR8FKDABCHNQ913REAF>
+            ]>
+          )>
+          <Task #P1-T2 { name = "修复 Criterion 遍历与完成一致性门" status = "DONE" priority = "P0" order = 1 } (
+            <Description ?01M04HNTR8FKDABCHNQ913REAG>
+            支持 TextElement Criterion、TaskGroup Gate、父组汇总和 completed strict gate。
+            </?01M04HNTR8FKDABCHNQ913REAG>
+            <Acceptance [
+              <Criterion #P1-T2-AC1 { checked = true } ?01M04HNTR8FKDABCHNQ913REAH>
+              真实 XNL Acceptance/Gate 会被正确更新，父 TaskGroup 只在可证明时自动汇总。
+              </?01M04HNTR8FKDABCHNQ913REAH>
+              <Criterion #P1-T2-AC2 { checked = true } ?01M04HNTR8FKDABCHNQ913REAJ>
+              completed transition 和 strict validation 均拒绝未勾选 Acceptance/Gate。
+              </?01M04HNTR8FKDABCHNQ913REAJ>
+            ]>
+          )>
+        ]>
+        <Gate [
+          <Criterion #P1-G1 { checked = true } ?01M04HNTR8FKDABCHNQ913REAK>
+          生命周期集成回归证明失败验证不会产生 DONE，完成态不存在 unchecked criterion。
+          </?01M04HNTR8FKDABCHNQ913REAK>
+        ]>
+      )>
+      <TaskGroup #P2 { name = "Compact execution interface" status = "DONE" priority = "P1" order = 1 } (
+        <Description ?01M04HNTR8FKDABCHNQ913REAM>
+        减少 Agent 为观察和推进 Track 所需的正文加载、命令数量和重复验证。
+        </?01M04HNTR8FKDABCHNQ913REAM>
+        <SubNodes [
+          <Task #P2-T1 { name = "增加紧凑 show 和 ready 查询" status = "DONE" priority = "P1" order = 0 } (
+            <Acceptance [
+              <Criterion #P2-T1-AC1 { checked = true } ?01M04HNTR8FKDABCHNQ913REAN>
+              show --json 默认不内嵌文件正文，--include-content 保留原能力。
+              </?01M04HNTR8FKDABCHNQ913REAN>
+              <Criterion #P2-T1-AC2 { checked = true } ?01M04HNTR8FKDABCHNQ913REAP>
+              track ready 能紧凑返回依赖已满足的叶任务。
+              </?01M04HNTR8FKDABCHNQ913REAP>
+            ]>
+          )>
+          <Task #P2-T2 { name = "让 verify 复用唯一证据命令" status = "DONE" priority = "P1" order = 1 } (
+            <Acceptance [
+              <Criterion #P2-T2-AC1 { checked = true } ?01M04HNTR8FKDABCHNQ913REAQ>
+              verify operation 明确先建立 evidence plan，再执行唯一命令并映射逐项裁决。
+              </?01M04HNTR8FKDABCHNQ913REAQ>
+              <Criterion #P2-T2-AC2 { checked = true } ?01M04HNTR8FKDABCHNQ913REAR>
+              模板回归测试防止恢复为每条 criterion 重复运行同一检查。
+              </?01M04HNTR8FKDABCHNQ913REAR>
+            ]>
+          )>
+        ]>
+        <Gate [
+          <Criterion #P2-G1 { checked = true } ?01M04HNTR8FKDABCHNQ913REAS>
+          CLI 查询和 verify 指令在保持完整裁决的同时减少重复内容与重复执行。
+          </?01M04HNTR8FKDABCHNQ913REAS>
+        ]>
+      )>
+      <TaskGroup #P3 { name = "E2E provenance and regression" status = "DONE" priority = "P1" order = 2 } (
+        <Description ?01M04HNTR8FKDABCHNQ913REAT>
+        保证真实 Agent E2E 测试的是当前 workspace 构建产物，并完成全量回归。
+        </?01M04HNTR8FKDABCHNQ913REAT>
+        <SubNodes [
+          <Task #P3-T1 { name = "记录并固定 E2E Codument 构建来源" status = "DONE" priority = "P1" order = 0 } (
+            <Acceptance [
+              <Criterion #P3-T1-AC1 { checked = true } ?01M04HNTR8FKDABCHNQ913REAV>
+              默认 runner 构建并使用当前 dist/codument，显式 CODUMENT override 仍受支持。
+              </?01M04HNTR8FKDABCHNQ913REAV>
+              <Criterion #P3-T1-AC2 { checked = true } ?01M04HNTR8FKDABCHNQ913REAW>
+              日志记录绝对路径、版本、SHA-256、Git SHA 和来源。
+              </?01M04HNTR8FKDABCHNQ913REAW>
+            ]>
+          )>
+          <Task #P3-T2 { name = "运行定向与全量验证" status = "DONE" priority = "P0" order = 1 } (
+            <Acceptance [
+              <Criterion #P3-T2-AC1 { checked = true } ?01M04HNTR8FKDABCHNQ913REAX>
+              lifecycle、show、validate、template 和 E2E shell 测试全部通过。
+              </?01M04HNTR8FKDABCHNQ913REAX>
+              <Criterion #P3-T2-AC2 { checked = true } ?01M04HNTR8FKDABCHNQ913REAY>
+              typecheck、std lint、全量 bun test 和 git diff --check 通过。
+              </?01M04HNTR8FKDABCHNQ913REAY>
+            ]>
+          )>
+        ]>
+        <Gate [
+          <Criterion #P3-G1 { checked = true } ?01M04HNTR8FKDABCHNQ913REAZ>
+          构建产物、CLI help、严格校验与完整测试共同证明 Track 可收口。
+          </?01M04HNTR8FKDABCHNQ913REAZ>
+        ]>
+      )>
+    ]>
+  )>
+  <Schedule [
+    <Dag { for = "space_harden-track-execution-integrity" } [
+      <Node #P1>
+      <Node #P2 [
+        <After { ref = "P1" }>
+      ]>
+      <Node #P3 [
+        <After { ref = "P2" }>
+      ]>
+    ]>
+  ]>
+  <Hooks []>
+)>

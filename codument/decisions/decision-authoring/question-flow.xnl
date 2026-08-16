@@ -1,0 +1,35 @@
+<decision #track.topological_decision_questions.frontier_batches apiVersion="codument.tech/v1alpha1" { status = "accepted" blocks = [] durable_candidate = true } (
+  <question ?01M0004E2HCGV6D5H4MA93N74B>
+  How should planning ask a decision forest with multiple roots?
+  </?01M0004E2HCGV6D5H4MA93N74B>
+  <answer ?01M0004E2HCGV6D5H4MA93N74C>
+  Ask every independently answerable root or unlocked child in one bounded topological batch, then recompute after the response.
+  </?01M0004E2HCGV6D5H4MA93N74C>
+  <evidence ?01M0004E2HCGV6D5H4MA93N74D>
+  The requested protocol must avoid serialising unrelated decision directions while retaining dependency order.
+  </?01M0004E2HCGV6D5H4MA93N74D>
+  <confidence ?01M0004E2HCGV6D5H4MA93N74E>
+  0.99
+  </?01M0004E2HCGV6D5H4MA93N74E>
+  <reversibility ?01M0004E2HCGV6D5H4MA93N74F>
+  moderate
+  </?01M0004E2HCGV6D5H4MA93N74F>
+)>
+
+<decision #track.conditional_decision_activation.graph_nodes apiVersion="codument.tech/v1alpha1" { status = "accepted" blocks = [] durable_candidate = true } (
+  <question ?01M0004E2HCGV6D5H4MA93N752>
+  How should a combination of decisions create a new planning question?
+  </?01M0004E2HCGV6D5H4MA93N752>
+  <answer ?01M0004E2HCGV6D5H4MA93N753>
+  Materialize a same-level conditional decision with explicit prerequisites, activation predicate, and provenance.
+  </?01M0004E2HCGV6D5H4MA93N753>
+  <evidence ?01M0004E2HCGV6D5H4MA93N754>
+  A static nested tree cannot represent a question that depends on choices from multiple independent roots.
+  </?01M0004E2HCGV6D5H4MA93N754>
+  <confidence ?01M0004E2HCGV6D5H4MA93N755>
+  0.99
+  </?01M0004E2HCGV6D5H4MA93N755>
+  <reversibility ?01M0004E2HCGV6D5H4MA93N756>
+  moderate
+  </?01M0004E2HCGV6D5H4MA93N756>
+)>

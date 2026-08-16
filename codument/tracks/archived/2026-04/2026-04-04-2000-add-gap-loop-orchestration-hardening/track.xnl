@@ -1,0 +1,71 @@
+<Track #add-gap-loop-orchestration-hardening apiVersion="codument.tech/v1alpha1" version="1" { status = "completed" goal = "补齐 gap-loop 父层循环规则、首轮怀疑机制、轮次元数据与共享提示词的角色分层结构。" description = "补齐 gap-loop 父层循环规则、首轮怀疑机制、轮次元数据与共享提示词的角色分层结构。" commit_mode = "manual" created_at = "2026-04-04T00:00:00Z" updated_at = "2026-04-04T12:00:00Z" "cdt:gap_round" = 0 } (
+  <Ports { scope = "track" } [
+    <MaterialBundle { role = "input" name = "behavior-deltas" domain = "behavior" path = "vfs://./behavior_deltas/" }>
+    <MaterialBundle { role = "output" name = "docs" domain = "doc" path = "vfs://@/docs/" }>
+    <MaterialBundle { role = "output" name = "behavior" domain = "codument" path = "vfs://@/codument/behaviors/" }>
+  ]>
+  <TaskSpace #space_add-gap-loop-orchestration-hardening { name = "add-gap-loop-orchestration-hardening" } (
+    <Description ?01M02JDH8YAARPR06N4QZRXKV1>
+    补齐 gap-loop 父层循环规则、首轮怀疑机制、轮次元数据与共享提示词的角色分层结构。
+    </?01M02JDH8YAARPR06N4QZRXKV1>
+    <SubNodes [
+      <TaskGroup #P1 { name = "规范与协议收紧" status = "DONE" order = 0 } (
+        <Description ?01M02JDH8YAARPR06N4QZRXKV2>
+        把 gap-loop 父层循环规则与轮次元数据固化到规范、协议和共享提示词中。
+        </?01M02JDH8YAARPR06N4QZRXKV2>
+        <SubNodes [
+          <Task { id = "T1.1" name = "更新真相规范与 plan 规范" status = "DONE" order = 0 priority = "P0" } (
+            <Description ?01M02JDH8YAARPR06N4QZRXKV3>
+            修改 codument-core spec、plan-xml-spec 与 track 创建提示词，增加 gap_loop_round 与首轮无历史报告的二次验证规则。
+            </?01M02JDH8YAARPR06N4QZRXKV3>
+          )>
+          <Task { id = "T1.2" name = "更新协议文档" status = "DONE" order = 1 priority = "P0" } (
+            <Description ?01M02JDH8YAARPR06N4QZRXKV4>
+            修改 protocols，明确 FIX_APPLIED 必须继续循环、首轮无历史报告 NO_GAP 需要再次 fresh 验证。
+            </?01M02JDH8YAARPR06N4QZRXKV4>
+          )>
+        ]>
+      )>
+      <TaskGroup #P2 { name = "共享提示词重构" status = "DONE" order = 1 } (
+        <Description ?01M02JDH8YAARPR06N4QZRXKV5>
+        把 gap-loop.md 改成更清晰的角色化结构。
+        </?01M02JDH8YAARPR06N4QZRXKV5>
+        <SubNodes [
+          <Task { id = "T2.1" name = "重构 gap-loop.md 为总纲 + 双角色章节" status = "DONE" order = 0 priority = "P0" } (
+            <Description ?01M02JDH8YAARPR06N4QZRXKV6>
+            先写总纲、角色判定与公共规则，再分别说明父层编排者与 fresh 子代理的阅读内容。
+            </?01M02JDH8YAARPR06N4QZRXKV6>
+          )>
+          <Task { id = "T2.2" name = "同步实现与波次执行提示词" status = "DONE" order = 1 priority = "P0" } (
+            <Description ?01M02JDH8YAARPR06N4QZRXKV7>
+            修改 implement.md 与 execute-wave.md，按新的父层循环规则处理 gap-loop。
+            </?01M02JDH8YAARPR06N4QZRXKV7>
+          )>
+        ]>
+      )>
+      <TaskGroup #P3 { name = "生成器与回归测试" status = "DONE" order = 2 } (
+        <Description ?01M02JDH8YAARPR06N4QZRXKV8>
+        让各工具产物与测试同步新的 gap-loop 规则。
+        </?01M02JDH8YAARPR06N4QZRXKV8>
+        <SubNodes [
+          <Task { id = "T3.1" name = "同步工具 wrapper 规则" status = "DONE" order = 0 priority = "P1" } (
+            <Description ?01M02JDH8YAARPR06N4QZRXKV9>
+            为 Claude、Eidolon、OpenCode、Codex、Sparrow 产物同步新的父层循环与上层协议优先规则。
+            </?01M02JDH8YAARPR06N4QZRXKV9>
+          )>
+          <Task { id = "T3.2" name = "补齐测试并验证构建" status = "DONE" order = 1 priority = "P0" } (
+            <Description ?01M02JDH8YAARPR06N4QZRXKVA>
+            更新相关生成器测试并执行 bun test / bun run build。
+            </?01M02JDH8YAARPR06N4QZRXKVA>
+          )>
+        ]>
+        <Hooks [
+          <Hook { on = "phase:after" } (
+            <GapLoop { max_rounds = 5 on_exhausted = "block" }>
+          )>
+        ]>
+      )>
+    ]>
+  )>
+  <Schedule>
+)>

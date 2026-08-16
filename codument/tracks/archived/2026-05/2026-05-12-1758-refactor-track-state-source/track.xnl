@@ -1,0 +1,120 @@
+<Track #refactor-track-state-source apiVersion="codument.tech/v1alpha1" version="1" { status = "completed" goal = "将 track 状态与元数据统一收敛到 plan.xml metadata，移除 tracks.md 与 metadata.json 的运行时依赖" description = "合并 metadata.json 中比 plan.xml 多的信息到 plan.xml metadata，并以 codument/tracks/ 目录作为 active tracks 列表来源。" commit_mode = "manual" created_at = "2026-05-12T08:07:03Z" updated_at = "2026-05-12T09:58:40Z" } (
+  <Ports { scope = "track" } [
+    <MaterialBundle { role = "input" name = "behavior-deltas" domain = "behavior" path = "vfs://./behavior_deltas/" }>
+    <MaterialBundle { role = "output" name = "docs" domain = "doc" path = "vfs://@/docs/" }>
+    <MaterialBundle { role = "output" name = "behavior" domain = "codument" path = "vfs://@/codument/behaviors/" }>
+  ]>
+  <TaskSpace #space_refactor-track-state-source { name = "refactor-track-state-source" } (
+    <Description ?01M02JDH93JJENAT9HNNGRJM10>
+    合并 metadata.json 中比 plan.xml 多的信息到 plan.xml metadata，并以 codument/tracks/ 目录作为 active tracks 列表来源。
+    </?01M02JDH93JJENAT9HNNGRJM10>
+    <SubNodes [
+      <TaskGroup #P1 { name = "CLI 真相源收敛" status = "DONE" order = 0 } (
+        <Description ?01M02JDH93JJENAT9HNNGRJM11>
+        让 CLI 读取、验证、归档 track 时以 plan.xml metadata 为唯一真相源
+        </?01M02JDH93JJENAT9HNNGRJM11>
+        <SubNodes [
+          <Task { id = "T1.1" name = "新增 plan.xml metadata 解析与旧 metadata 合并" status = "DONE" order = 0 priority = "P0" } (
+            <Description ?01M02JDH93JJENAT9HNNGRJM12>
+            在 utils 中解析 plan.xml metadata，支持从旧 metadata.json 将缺失字段合并写回 plan.xml；status 冲突时以 plan.xml 为准。
+            </?01M02JDH93JJENAT9HNNGRJM12>
+            <Acceptance [
+              <Criterion { id = "T1.1-AC1" checked = true } ?01M02JDH93JJENAT9HNNGRJM13>
+              getTrack/getTracks 可在没有 metadata.json 时读取 track
+              </?01M02JDH93JJENAT9HNNGRJM13>
+              <Criterion { id = "T1.1-AC2" checked = true } ?01M02JDH93JJENAT9HNNGRJM14>
+              旧 metadata.json 中缺失于 plan.xml 的字段可合入 plan.xml metadata
+              </?01M02JDH93JJENAT9HNNGRJM14>
+            ]>
+          )>
+          <Task { id = "T1.2" name = "移除命令层 tracks.md 与 metadata.json 依赖" status = "DONE" order = 1 priority = "P0" } (
+            <Description ?01M02JDH93JJENAT9HNNGRJM15>
+            更新 init/archive/validate/show/list 等命令，init 不创建 tracks.md，archive 不更新 tracks.md，validate 不要求 metadata.json。
+            </?01M02JDH93JJENAT9HNNGRJM15>
+            <Acceptance [
+              <Criterion { id = "T1.2-AC1" checked = true } ?01M02JDH93JJENAT9HNNGRJM16>
+              新初始化流程不生成 tracks.md
+              </?01M02JDH93JJENAT9HNNGRJM16>
+              <Criterion { id = "T1.2-AC2" checked = true } ?01M02JDH93JJENAT9HNNGRJM17>
+              validate 校验 plan.xml metadata 必需字段
+              </?01M02JDH93JJENAT9HNNGRJM17>
+              <Criterion { id = "T1.2-AC3" checked = true } ?01M02JDH93JJENAT9HNNGRJM18>
+              archive 对无 metadata.json/无 tracks.md track 可工作
+              </?01M02JDH93JJENAT9HNNGRJM18>
+            ]>
+          )>
+          <Task { id = "T1.3" name = "补充 CLI 测试" status = "DONE" order = 2 priority = "P0" } (
+            <Description ?01M02JDH93JJENAT9HNNGRJM19>
+            覆盖无 metadata.json 的 track 读取、旧 metadata 合并、plan.xml status 优先、validate 新规则。
+            </?01M02JDH93JJENAT9HNNGRJM19>
+            <Acceptance [
+              <Criterion { id = "T1.3-AC1" checked = true } ?01M02JDH93JJENAT9HNNGRJM1A>
+              相关测试在 bun test 下通过
+              </?01M02JDH93JJENAT9HNNGRJM1A>
+            ]>
+          )>
+        ]>
+      )>
+      <TaskGroup #P2 { name = "文档与提示词同步" status = "DONE" order = 1 } (
+        <Description ?01M02JDH93JJENAT9HNNGRJM1B>
+        让 Codument 标准文档、prompt 与 skill 不再指导维护 tracks.md 或 metadata.json
+        </?01M02JDH93JJENAT9HNNGRJM1B>
+        <SubNodes [
+          <Task { id = "T2.1" name = "更新 plan.xml 与 AGENTS 标准文档" status = "DONE" order = 0 priority = "P0" } (
+            <Description ?01M02JDH93JJENAT9HNNGRJM1C>
+            在 plan XML 规范中加入 type/description 等字段，更新 AGENTS 与 workflow 中关于 track 列表和状态来源的描述。
+            </?01M02JDH93JJENAT9HNNGRJM1C>
+            <Acceptance [
+              <Criterion { id = "T2.1-AC1" checked = true } ?01M02JDH93JJENAT9HNNGRJM1D>
+              标准文档明确 plan.xml metadata 是唯一状态真相源
+              </?01M02JDH93JJENAT9HNNGRJM1D>
+            ]>
+          )>
+          <Task { id = "T2.2" name = "更新 prompts 与 skill references" status = "DONE" order = 1 priority = "P0" } (
+            <Description ?01M02JDH93JJENAT9HNNGRJM1E>
+            替换 prompt/skill 中读取或更新 tracks.md、创建或依赖 metadata.json 的步骤。
+            </?01M02JDH93JJENAT9HNNGRJM1E>
+            <Acceptance [
+              <Criterion { id = "T2.2-AC1" checked = true } ?01M02JDH93JJENAT9HNNGRJM1F>
+              运行搜索确认关键旧指令已移除或标注为旧兼容
+              </?01M02JDH93JJENAT9HNNGRJM1F>
+            ]>
+          )>
+        ]>
+      )>
+      <TaskGroup #P3 { name = "验证与收口" status = "DONE" order = 2 } (
+        <Description ?01M02JDH93JJENAT9HNNGRJM1G>
+        验证改造结果并更新 track 状态
+        </?01M02JDH93JJENAT9HNNGRJM1G>
+        <SubNodes [
+          <Task { id = "T3.1" name = "运行 targeted 验证" status = "DONE" order = 0 priority = "P0" } (
+            <Description ?01M02JDH93JJENAT9HNNGRJM1H>
+            运行 typecheck 和相关测试，修正失败。
+            </?01M02JDH93JJENAT9HNNGRJM1H>
+            <Acceptance [
+              <Criterion { id = "T3.1-AC1" checked = true } ?01M02JDH93JJENAT9HNNGRJM1J>
+              bun test 与 typecheck 通过，或记录明确 blocker
+              </?01M02JDH93JJENAT9HNNGRJM1J>
+            ]>
+          )>
+          <Task { id = "T3.2" name = "完成 track 状态更新" status = "DONE" order = 1 priority = "P1" } (
+            <Description ?01M02JDH93JJENAT9HNNGRJM1K>
+            将 plan.xml metadata.updated_at 与 status 更新为最终状态。
+            </?01M02JDH93JJENAT9HNNGRJM1K>
+            <Acceptance [
+              <Criterion { id = "T3.2-AC1" checked = true } ?01M02JDH93JJENAT9HNNGRJM1M>
+              plan.xml metadata.status 反映最终完成状态
+              </?01M02JDH93JJENAT9HNNGRJM1M>
+            ]>
+          )>
+        ]>
+        <Hooks [
+          <Hook { on = "phase:after" } (
+            <HumanConfirm>
+          )>
+        ]>
+      )>
+    ]>
+  )>
+  <Schedule>
+)>

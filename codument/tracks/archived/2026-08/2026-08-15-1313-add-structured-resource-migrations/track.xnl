@@ -1,0 +1,40 @@
+<Track #add-structured-resource-migrations apiVersion="codument.tech/v1alpha1" version="1" { status = "completed" goal = "建立确定性优先、AI review fallback 的 XML/XNL 版本迁移基座。" description = "提供 inspect、plan、apply、verify，并让 upgrade-workspace 复用统一迁移 authority。" question_mode = "decision-tree" question_severity = "auto" commit_mode = "manual" created_at = "2026-08-15T09:30:00Z" updated_at = "2026-08-15T10:13:07Z" } (
+  <Ports { scope = "track" } [
+    <MaterialBundle { role = "input" name = "workspace-assets" domain = "codument" path = "vfs://@/codument/" }>
+    <MaterialBundle { role = "input" name = "cli" domain = "code" path = "vfs://@/src/cli/" }>
+    <MaterialBundle { role = "output" name = "migration-cli" domain = "code" path = "vfs://@/src/cli/migrations/" }>
+    <MaterialBundle { role = "output" name = "tests" domain = "test" path = "vfs://@/test/" }>
+  ]>
+  <TaskSpace #space_add-structured-resource-migrations { name = "add-structured-resource-migrations" child_mode = "dag" } (
+    <SubNodes [
+      <TaskGroup #P1 { name = "迁移契约与检测" status = "DONE" order = 0 } (
+        <SubNodes [
+          <Task #P1-T1 { name = "添加 inspect/plan/fingerprint 回归" status = "DONE" order = 0 }>
+          <Task #P1-T2 { name = "实现 migration registry 与结构检测" status = "DONE" order = 1 }>
+        ]>
+      )>
+      <TaskGroup #P2 { name = "转换与 fallback" status = "DONE" order = 1 } (
+        <SubNodes [
+          <Task #P2-T1 { name = "实现 XML/XNL AST transformer 与 verify" status = "DONE" order = 0 }>
+          <Task #P2-T2 { name = "实现 staging、backup 与 review-required 回执" status = "DONE" order = 1 }>
+        ]>
+      )>
+      <TaskGroup #P3 { name = "workspace 集成" status = "DONE" order = 2 } (
+        <SubNodes [
+          <Task #P3-T1 { name = "接入 upgrade-workspace 与 migrate prompt" status = "DONE" order = 0 }>
+          <Task #P3-T2 { name = "dogfood 历史资产并运行全量验证" status = "DONE" order = 1 }>
+        ]>
+      )>
+    ]>
+  )>
+  <Schedule [
+    <Dag { for = "space_add-structured-resource-migrations" } [
+      <Node #P2 [
+        <After { ref = "P1" }>
+      ]>
+      <Node #P3 [
+        <After { ref = "P2" }>
+      ]>
+    ]>
+  ]>
+)>

@@ -1,0 +1,260 @@
+<Track #add-artifact-sync-config apiVersion="codument.tech/v1alpha1" version="1" { status = "completed" goal = "Add codument/config/artifacts.xml and artifact-sync hooks for compact AI-guided artifact synchronization." description = "Add codument/config/artifacts.xml and artifact-sync hooks for compact AI-guided artifact synchronization." commit_mode = "manual" created_at = "2026-06-06T07:11:30Z" updated_at = "2026-06-07T00:00:00Z" "cdt:gap_round" = 14 } (
+  <Ports { scope = "track" } [
+    <MaterialBundle { role = "input" name = "behavior-deltas" domain = "behavior" path = "vfs://./behavior_deltas/" }>
+    <MaterialBundle { role = "output" name = "docs" domain = "doc" path = "vfs://@/docs/" }>
+    <MaterialBundle { role = "output" name = "behavior" domain = "codument" path = "vfs://@/codument/behaviors/" }>
+  ]>
+  <TaskSpace #space_add-artifact-sync-config { name = "add-artifact-sync-config" } (
+    <Description ?01M02JDH961EQ6PM824GS6FQ1A>
+    Add codument/config/artifacts.xml and artifact-sync hooks for compact AI-guided artifact synchronization.
+    </?01M02JDH961EQ6PM824GS6FQ1A>
+    <SubNodes [
+      <TaskGroup #P1 { name = "Spec and DSL documentation" status = "DONE" order = 0 } (
+        <Description ?01M02JDH961EQ6PM824GS6FQ1B>
+        Define the artifact sync DSL and operation hook contract.
+        </?01M02JDH961EQ6PM824GS6FQ1B>
+        <SubNodes [
+          <Task { id = "T1.1" name = "Apply codument-core spec delta" status = "DONE" order = 0 priority = "P0" } (
+            <Description ?01M02JDH961EQ6PM824GS6FQ1C>
+            Merge requirements for artifacts.xml, resources, artifact node shape, policy, and artifact-sync hook behavior.
+            </?01M02JDH961EQ6PM824GS6FQ1C>
+            <Acceptance [
+              <Criterion { id = "T1.1-AC1" checked = true } ?01M02JDH961EQ6PM824GS6FQ1D>
+              Spec defines `codument/config/artifacts.xml` root and missing-file behavior
+              </?01M02JDH961EQ6PM824GS6FQ1D>
+              <Criterion { id = "T1.1-AC2" checked = true } ?01M02JDH961EQ6PM824GS6FQ1E>
+              Spec restricts resources to workflow, skill, attractor-profile, and agent
+              </?01M02JDH961EQ6PM824GS6FQ1E>
+              <Criterion { id = "T1.1-AC3" checked = true } ?01M02JDH961EQ6PM824GS6FQ1F>
+              Spec restricts artifact children to uses, targets, and policy
+              </?01M02JDH961EQ6PM824GS6FQ1F>
+            ]>
+          )>
+          <Task { id = "T1.2" name = "Document artifacts.xml DSL" status = "DONE" order = 1 priority = "P0" } (
+            <Description ?01M02JDH961EQ6PM824GS6FQ1G>
+            Update standard plan/protocol docs with compact examples and policy options.
+            </?01M02JDH961EQ6PM824GS6FQ1G>
+            <Acceptance [
+              <Criterion { id = "T1.2-AC1" checked = true } ?01M02JDH961EQ6PM824GS6FQ1H>
+              Docs show `artifact-config` with resources and artifacts
+              </?01M02JDH961EQ6PM824GS6FQ1H>
+              <Criterion { id = "T1.2-AC2" checked = true } ?01M02JDH961EQ6PM824GS6FQ1J>
+              Docs explain that skill files are rule resources, not artifacts
+              </?01M02JDH961EQ6PM824GS6FQ1J>
+              <Criterion { id = "T1.2-AC3" checked = true } ?01M02JDH961EQ6PM824GS6FQ1K>
+              Docs define dry-run, conflict, and provenance policy options
+              </?01M02JDH961EQ6PM824GS6FQ1K>
+            ]>
+          )>
+          <Task { id = "T1.3" name = "Document artifact-sync hook" status = "DONE" order = 2 priority = "P0" } (
+            <Description ?01M02JDH961EQ6PM824GS6FQ1M>
+            Extend operation hook documentation to include `&lt;artifact-sync artifact=&quot;...&quot; /&gt;` and result-policy reuse.
+            </?01M02JDH961EQ6PM824GS6FQ1M>
+            <Acceptance [
+              <Criterion { id = "T1.3-AC1" checked = true } ?01M02JDH961EQ6PM824GS6FQ1N>
+              operation-hooks examples include artifact-sync
+              </?01M02JDH961EQ6PM824GS6FQ1N>
+              <Criterion { id = "T1.3-AC2" checked = true } ?01M02JDH961EQ6PM824GS6FQ1P>
+              artifact-sync status and executor semantics are documented
+              </?01M02JDH961EQ6PM824GS6FQ1P>
+              <Criterion { id = "T1.3-AC3" checked = true } ?01M02JDH961EQ6PM824GS6FQ1Q>
+              Missing or unknown artifact references produce validation errors or BLOCKED results
+              </?01M02JDH961EQ6PM824GS6FQ1Q>
+            ]>
+          )>
+        ]>
+      )>
+      <TaskGroup #P2 { name = "Validation and config support" status = "DONE" order = 1 } (
+        <Description ?01M02JDH961EQ6PM824GS6FQ1R>
+        Add parser and validation support for artifact sync configuration.
+        </?01M02JDH961EQ6PM824GS6FQ1R>
+        <SubNodes [
+          <Task { id = "T2.1" name = "Add artifact config helpers" status = "DONE" order = 0 priority = "P1" } (
+            <Description ?01M02JDH961EQ6PM824GS6FQ1S>
+            Add helpers for `codument/config/artifacts.xml` path resolution and lightweight config loading where needed.
+            </?01M02JDH961EQ6PM824GS6FQ1S>
+            <Acceptance [
+              <Criterion { id = "T2.1-AC1" checked = true } ?01M02JDH961EQ6PM824GS6FQ1T>
+              Helper exposes artifacts config path
+              </?01M02JDH961EQ6PM824GS6FQ1T>
+              <Criterion { id = "T2.1-AC2" checked = true } ?01M02JDH961EQ6PM824GS6FQ1V>
+              Missing artifacts.xml remains valid
+              </?01M02JDH961EQ6PM824GS6FQ1V>
+            ]>
+          )>
+          <Task { id = "T2.2" name = "Validate artifacts.xml shape" status = "DONE" order = 1 priority = "P0" } (
+            <Description ?01M02JDH961EQ6PM824GS6FQ1W>
+            Extend validate to reject unsupported resource types, unsupported artifact children, duplicate ids, and malformed policy values.
+            </?01M02JDH961EQ6PM824GS6FQ1W>
+            <Acceptance [
+              <Criterion { id = "T2.2-AC1" checked = true } ?01M02JDH961EQ6PM824GS6FQ1X>
+              Only workflow, skill, attractor-profile, and agent resources are accepted
+              </?01M02JDH961EQ6PM824GS6FQ1X>
+              <Criterion { id = "T2.2-AC2" checked = true } ?01M02JDH961EQ6PM824GS6FQ1Y>
+              Only uses, targets, and policy children are accepted under artifact
+              </?01M02JDH961EQ6PM824GS6FQ1Y>
+              <Criterion { id = "T2.2-AC3" checked = true } ?01M02JDH961EQ6PM824GS6FQ1Z>
+              Invalid dry-run, conflict, provenance, target kind, or executor values are reported
+              </?01M02JDH961EQ6PM824GS6FQ1Z>
+              <Criterion { id = "T2.2-AC4" checked = true } ?01M02JDH961EQ6PM824GS6FQ20>
+              Missing workflow or skill resource ref files are reported
+              </?01M02JDH961EQ6PM824GS6FQ20>
+            ]>
+          )>
+          <Task { id = "T2.3" name = "Validate artifact-sync hooks" status = "DONE" order = 2 priority = "P0" } (
+            <Description ?01M02JDH961EQ6PM824GS6FQ21>
+            Extend operation hook validation to accept artifact-sync nodes and verify referenced artifact ids.
+            </?01M02JDH961EQ6PM824GS6FQ21>
+            <Acceptance [
+              <Criterion { id = "T2.3-AC1" checked = true } ?01M02JDH961EQ6PM824GS6FQ22>
+              Valid artifact-sync nodes pass validation
+              </?01M02JDH961EQ6PM824GS6FQ22>
+              <Criterion { id = "T2.3-AC2" checked = true } ?01M02JDH961EQ6PM824GS6FQ23>
+              Unknown artifact references are reported
+              </?01M02JDH961EQ6PM824GS6FQ23>
+              <Criterion { id = "T2.3-AC3" checked = true } ?01M02JDH961EQ6PM824GS6FQ24>
+              Nested result-policy and confirm behavior remains valid
+              </?01M02JDH961EQ6PM824GS6FQ24>
+            ]>
+          )>
+          <Task { id = "T2.4" name = "Migrate feature targets to artifacts" status = "DONE" order = 3 priority = "P0" } (
+            <Description ?01M02JDH961EQ6PM824GS6FQ25>
+            Generate explicit artifacts.xml entries from enabled legacy feature config and move knowledgeSync targets into artifact targets.
+            </?01M02JDH961EQ6PM824GS6FQ25>
+            <Acceptance [
+              <Criterion { id = "T2.4-AC1" checked = true } ?01M02JDH961EQ6PM824GS6FQ26>
+              upgrade-workspace creates artifacts.xml when knowledgeSync or projectMemory is enabled and artifacts.xml is missing
+              </?01M02JDH961EQ6PM824GS6FQ26>
+              <Criterion { id = "T2.4-AC2" checked = true } ?01M02JDH961EQ6PM824GS6FQ27>
+              Legacy knowledgeSync targets become multiple target entries under one docs knowledge artifact
+              </?01M02JDH961EQ6PM824GS6FQ27>
+              <Criterion { id = "T2.4-AC3" checked = true } ?01M02JDH961EQ6PM824GS6FQ28>
+              Generated docs artifact explicitly uses a docs attractor profile that contains codument/attractors/docs-knowledge.md
+              </?01M02JDH961EQ6PM824GS6FQ28>
+              <Criterion { id = "T2.4-AC4" checked = true } ?01M02JDH961EQ6PM824GS6FQ29>
+              Existing artifacts.xml is preserved without deleting legacy targets
+              </?01M02JDH961EQ6PM824GS6FQ29>
+              <Criterion { id = "T2.4-AC5" checked = true } ?01M02JDH961EQ6PM824GS6FQ2A>
+              Generated docs and memory artifacts get docs-knowledge and project-memory guidance through attractor profiles, not direct attractor-profile resource attributes
+              </?01M02JDH961EQ6PM824GS6FQ2A>
+              <Criterion { id = "T2.4-AC6" checked = true } ?01M02JDH961EQ6PM824GS6FQ2B>
+              New or migrated feature.json keeps only enabled switches and does not retain empty knowledgeSync targets
+              </?01M02JDH961EQ6PM824GS6FQ2B>
+              <Criterion { id = "T2.4-AC7" checked = true } ?01M02JDH961EQ6PM824GS6FQ2C>
+              upgrade-workspace does not create attractor-profiles.json unless a persistent non-default profile is needed or the user already has one
+              </?01M02JDH961EQ6PM824GS6FQ2C>
+              <Criterion { id = "T2.4-AC8" checked = true } ?01M02JDH961EQ6PM824GS6FQ2D>
+              upgrade-workspace removes redundant default-only attractor-profiles.json from old generated workspaces
+              </?01M02JDH961EQ6PM824GS6FQ2D>
+              <Criterion { id = "T2.4-AC9" checked = true } ?01M02JDH961EQ6PM824GS6FQ2E>
+              upgrade-workspace creates a default operation-hooks.xml artifact-sync hook when enabled feature config creates default artifacts
+              </?01M02JDH961EQ6PM824GS6FQ2E>
+              <Criterion { id = "T2.4-AC10" checked = true } ?01M02JDH961EQ6PM824GS6FQ2F>
+              upgrade-workspace creates docs-modeling-fractal and docs-impl-fractal under codument/attractors when knowledgeSync is enabled
+              </?01M02JDH961EQ6PM824GS6FQ2F>
+              <Criterion { id = "T2.4-AC11" checked = true } ?01M02JDH961EQ6PM824GS6FQ2G>
+              Generated artifact targets use base-dir with relative-dir or relative-file instead of path/output-path
+              </?01M02JDH961EQ6PM824GS6FQ2G>
+              <Criterion { id = "T2.4-AC12" checked = true } ?01M02JDH961EQ6PM824GS6FQ2H>
+              Generated docs knowledge artifact targets are directory targets so docs attractors can write multiple files
+              </?01M02JDH961EQ6PM824GS6FQ2H>
+              <Criterion { id = "T2.4-AC13" checked = true } ?01M02JDH961EQ6PM824GS6FQ2J>
+              upgrade-workspace migrates old path/output-path target locations to the new target location attributes
+              </?01M02JDH961EQ6PM824GS6FQ2J>
+            ]>
+          )>
+        ]>
+      )>
+      <TaskGroup #P3 { name = "Prompt and skill integration" status = "DONE" order = 2 } (
+        <Description ?01M02JDH961EQ6PM824GS6FQ2K>
+        Teach Codument operations and generated skills how to reason about artifact sync.
+        </?01M02JDH961EQ6PM824GS6FQ2K>
+        <SubNodes [
+          <Task { id = "T3.1" name = "Update lifecycle prompts" status = "DONE" order = 0 priority = "P1" } (
+            <Description ?01M02JDH961EQ6PM824GS6FQ2M>
+            Update archive, artifact-sync, track, validate, and related prompts to describe artifact sync and avoid implicit execution.
+            </?01M02JDH961EQ6PM824GS6FQ2M>
+            <Acceptance [
+              <Criterion { id = "T3.1-AC1" checked = true } ?01M02JDH961EQ6PM824GS6FQ2N>
+              Prompts mention `codument/config/artifacts.xml` where relevant
+              </?01M02JDH961EQ6PM824GS6FQ2N>
+              <Criterion { id = "T3.1-AC2" checked = true } ?01M02JDH961EQ6PM824GS6FQ2P>
+              Prompts state artifact sync only runs when explicit artifact-sync hook exists
+              </?01M02JDH961EQ6PM824GS6FQ2P>
+              <Criterion { id = "T3.1-AC3" checked = true } ?01M02JDH961EQ6PM824GS6FQ2Q>
+              Prompts direct project-specific instructions to `codument/workflows/` resources
+              </?01M02JDH961EQ6PM824GS6FQ2Q>
+              <Criterion { id = "T3.1-AC4" checked = true } ?01M02JDH961EQ6PM824GS6FQ2R>
+              Validate prompt documents missing `workflow` or `skill` resource ref files
+              </?01M02JDH961EQ6PM824GS6FQ2R>
+            ]>
+          )>
+          <Task { id = "T3.2" name = "Update generated lifecycle skills" status = "DONE" order = 1 priority = "P1" } (
+            <Description ?01M02JDH961EQ6PM824GS6FQ2S>
+            Ensure generated Codument skills include artifacts.xml and artifact-sync guidance.
+            </?01M02JDH961EQ6PM824GS6FQ2S>
+            <Acceptance [
+              <Criterion { id = "T3.2-AC1" checked = true } ?01M02JDH961EQ6PM824GS6FQ2T>
+              Generated skills include artifact sync guidance
+              </?01M02JDH961EQ6PM824GS6FQ2T>
+              <Criterion { id = "T3.2-AC2" checked = true } ?01M02JDH961EQ6PM824GS6FQ2V>
+              Skill generation tests cover the new prompt content
+              </?01M02JDH961EQ6PM824GS6FQ2V>
+              <Criterion { id = "T3.2-AC3" checked = true } ?01M02JDH961EQ6PM824GS6FQ2W>
+              Generated skills include `codument-artifact-sync` and do not include `codument-docs-sync-track`
+              </?01M02JDH961EQ6PM824GS6FQ2W>
+              <Criterion { id = "T3.2-AC4" checked = true } ?01M02JDH961EQ6PM824GS6FQ2X>
+              Generated assistant command wrappers include artifact-sync and remove docs-sync-track
+              </?01M02JDH961EQ6PM824GS6FQ2X>
+              <Criterion { id = "T3.2-AC5" checked = true } ?01M02JDH961EQ6PM824GS6FQ2Y>
+              Compiled codument embeds built-in prompts and does not read `src/prompts/*.md` from the source checkout at runtime
+              </?01M02JDH961EQ6PM824GS6FQ2Y>
+            ]>
+          )>
+        ]>
+      )>
+      <TaskGroup #P4 { name = "Tests and validation" status = "DONE" order = 3 } (
+        <Description ?01M02JDH961EQ6PM824GS6FQ2Z>
+        Add focused tests and run validation for the track.
+        </?01M02JDH961EQ6PM824GS6FQ2Z>
+        <SubNodes [
+          <Task { id = "T4.1" name = "Add validation tests" status = "DONE" order = 0 priority = "P0" } (
+            <Description ?01M02JDH961EQ6PM824GS6FQ30>
+            Add tests for valid artifacts.xml, invalid resource types, invalid artifact children, policy values, and artifact-sync references.
+            </?01M02JDH961EQ6PM824GS6FQ30>
+            <Acceptance [
+              <Criterion { id = "T4.1-AC1" checked = true } ?01M02JDH961EQ6PM824GS6FQ31>
+              Tests cover valid artifacts.xml and artifact-sync hook
+              </?01M02JDH961EQ6PM824GS6FQ31>
+              <Criterion { id = "T4.1-AC2" checked = true } ?01M02JDH961EQ6PM824GS6FQ32>
+              Tests cover invalid resource and artifact node shapes
+              </?01M02JDH961EQ6PM824GS6FQ32>
+              <Criterion { id = "T4.1-AC3" checked = true } ?01M02JDH961EQ6PM824GS6FQ33>
+              Tests cover unknown artifact-sync references
+              </?01M02JDH961EQ6PM824GS6FQ33>
+            ]>
+          )>
+          <Task { id = "T4.2" name = "Run project validation" status = "DONE" order = 1 priority = "P0" } (
+            <Description ?01M02JDH961EQ6PM824GS6FQ34>
+            Run relevant tests and `codument validate add-artifact-sync-config --strict` or equivalent.
+            </?01M02JDH961EQ6PM824GS6FQ34>
+            <Acceptance [
+              <Criterion { id = "T4.2-AC1" checked = true } ?01M02JDH961EQ6PM824GS6FQ35>
+              Relevant automated tests pass
+              </?01M02JDH961EQ6PM824GS6FQ35>
+              <Criterion { id = "T4.2-AC2" checked = true } ?01M02JDH961EQ6PM824GS6FQ36>
+              Track validation passes
+              </?01M02JDH961EQ6PM824GS6FQ36>
+            ]>
+          )>
+        ]>
+        <Hooks [
+          <Hook { on = "phase:after" } (
+            <GapLoop { max_rounds = 5 on_exhausted = "block" }>
+          )>
+        ]>
+      )>
+    ]>
+  )>
+  <Schedule>
+)>

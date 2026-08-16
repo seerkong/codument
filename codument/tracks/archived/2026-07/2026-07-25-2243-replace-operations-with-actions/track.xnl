@@ -1,0 +1,19 @@
+<Track #replace-operations-with-actions apiVersion="codument.tech/v1alpha1" version="1" { status = "completed" goal = "全面迁移 operation 到 action，并建立 std taxonomy。" description = "修改发布模板、upgrade 和 tests。" question_mode = "decision-tree" question_severity = "auto" commit_mode = "manual" created_at = "2026-07-25T22:27:33+03:00" updated_at = "2026-07-25T22:43:23+03:00" } (
+  <Ports { scope = "track" } [
+    <MaterialBundle { role = "output" name = "templates" domain = "codument" path = "vfs://@/src/templates/" }>
+  ]>
+  <TaskSpace #space_replace-operations-with-actions { name = "replace-operations-with-actions" } (
+    <SubNodes [
+      <TaskGroup #P1 { name = "taxonomy and migration" status = "DONE" order = 0 } (
+        <SubNodes [
+          <Task #T1 { name = "rename release surface and upgrade migration" status = "DONE" order = 0 }>
+        ]>
+      )>
+      <TaskGroup #P2 { name = "validation" status = "DONE" order = 1 } (
+        <SubNodes [
+          <Task #T2 { name = "test init and upgrade" status = "DONE" order = 0 }>
+        ]>
+      )>
+    ]>
+  )>
+)>
