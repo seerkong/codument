@@ -1,0 +1,38 @@
+<BehaviorPatch #track.allow-lifecycle-reopen.behavior_patch.codument-core apiVersion="codument.tech/v1alpha1" version="1" { capability = "codument-core" } (
+  <Mutations [
+    <Upsert { selector = "behavior://codument-core/requirements/lifecycle-reopen" } (
+      <Requirement #lifecycle-reopen (
+        <Statement ?>系统 SHALL 允许用户通过 lifecycle CLI 重新打开已完成、取消、替代或归档的 Track / Mission，同时保留完成门禁与归档提升结果。</?>
+        <Suites [
+          <Suite #root-transition { name = "Root lifecycle reopen" } (
+            <Cases [
+              <Case #completed-reopen (
+                <Given ?>一个 Track 已 completed，或一个 Mission 已 completed/cancelled/superseded</?>
+                <When ?>用户将 Track transition 为 in_progress，或将 Mission transition 为 active</?>
+                <Then ?>CLI SHALL 原子更新根状态、updated_at 和适用的 Mission revision，不要求手工编辑 XNL。</?>
+              )>
+              <Case #archived-restore (
+                <Given ?>唯一匹配 id 的 Track 或 Mission authority 位于 archived 目录</?>
+                <When ?>用户通过同一 transition 命令恢复到 in_progress/active</?>
+                <Then ?>CLI SHALL 将 authority 移回标准 active 目录并更新根状态。</?>
+                <Ands [
+                  <And ?>CLI SHALL NOT 回滚归档时已经提升的 durable artifacts。</?>
+                ]>
+              )>
+              <Case #ambiguous-restore (
+                <Given ?>存在多个匹配 id 的 archived authority，或 active 目标目录已存在</?>
+                <When ?>用户尝试恢复</?>
+                <Then ?>CLI SHALL fail closed，不覆盖任何 authority。</?>
+              )>
+              <Case #completion-gate-preserved (
+                <Given ?>重新打开的工作项之后再次请求 completed</?>
+                <When ?>仍有未终态任务或 Track 验收条件未勾选</?>
+                <Then ?>CLI SHALL 继续拒绝完成转换。</?>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+  ]>
+)>

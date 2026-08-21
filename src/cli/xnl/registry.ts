@@ -155,6 +155,44 @@ function walkXnlFiles(dir: string, base: string, out: string[]): void {
 }
 
 /** Discover non-hidden `.xnl` files recursively using portable stable ordering. */
+export interface ValidateXnlFileResult {
+  file: string;
+  line?: number;
+  message: string;
+}
+
+/**
+ * Validate a single XNL file in block-text mode and return syntax findings.
+ *
+ * This is intentionally domain-neutral: it only reports what xnl-core surfaced
+ * during parse, so any `.xnl` file (modeling / engineering / decisions /
+ * session histories) gets the same marker / block-closure guarantees.
+ */
+export function validateXnlFile(relFile: string, content: string): ValidateXnlFileResult[] {
+  const findings: ValidateXnlFileResult[] = [];
+  try {
+    parseXnl(content, { textBlockStyle: true });
+  } catch (error) {
+    if (error instanceof XnlParseError) {
+      findings.push({
+        file: relFile,
+        line: error.line,
+        message: error.message,
+      });
+    } else {
+      findings.push({
+        file: relFile,
+        message: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+  return findings;
+}
+
+/**
+ * Discover non-hidden `.xnl` files recursively under `dir`, returning portable
+ * relative paths in stable order.
+ */
 export function discoverXnlRegistryFiles(dir: string): string[] {
   const files: string[] = [];
   walkXnlFiles(dir, dir, files);

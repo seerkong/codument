@@ -42,7 +42,7 @@ import { validateModelingTree } from '../modeling/validate';
 import { applyBehaviorPatchToRegistry, applySpecXmlPatchToRegistry, parseSpecXmlContent } from '../utils/spec-xml';
 import { buildArchiveDestination, formatLocalMinutePrefix, resolveTrackUpdatedDate } from '../utils/track-time';
 import { applyDecisionSources, collectDecisionSourceFiles } from '../decisions/registry';
-import { discoverXnlRegistryFiles } from '../xnl/registry';
+import { discoverXnlRegistryFiles, validateXnlFile } from '../xnl/registry';
 import { parseTrackResource, resolveTrackAuthority } from '../track/resource';
 import { parseMissionResource } from '../mission/resource';
 import { markMissionArchived } from '../resources/lifecycle';
@@ -114,6 +114,7 @@ export async function archiveCommand(
 
   assertValidArchiveDecisions(trackDir);
   assertNoLegacyDecisionMarkdown(trackDir);
+  validateTrackXnlFiles(trackDir);
   const engineeringPlan = prepareEngineeringDeltaMerge(trackDir);
   const modelingPlan = prepareModelingDeltaMerge(trackDir);
   const decisionSources = collectDecisionSourceFiles(trackDir);
@@ -384,6 +385,32 @@ function assertNoLegacyDecisionMarkdown(trackDir: string): void {
   if (legacyFiles.length === 0) return;
   throw new Error(
     `Legacy Decision Markdown requires upgrade-resource and AI review before archive: ${legacyFiles.sort().join(', ')}`,
+  );
+}
+
+function validateTrackXnlFiles(trackDir: string): void {
+  const findings: { file: string; line?: number; message: string }[] = [];
+  const visit = (dir: string): void => {
+    if (!fs.existsSync(dir)) return;
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const entryPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        visit(entryPath);
+        continue;
+      }
+      if (!entry.isFile() || !entry.name.toLowerCase().endsWith('.xnl')) continue;
+      const relFile = path.relative(trackDir, entryPath);
+      const content = fs.readFileSync(entryPath, 'utf-8');
+      for (const finding of validateXnlFile(relFile, content)) {
+        findings.push(finding);
+      }
+    }
+  };
+  visit(trackDir);
+  if (findings.length === 0) return;
+  throw new Error(
+    'XNL syntax validation failed before archive:\n'
+      + findings.map((finding) => `  - ${finding.file}${finding.line ? `:${finding.line}` : ''}: ${finding.message}`).join('\n'),
   );
 }
 

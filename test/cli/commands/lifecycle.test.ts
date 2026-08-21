@@ -157,6 +157,51 @@ describe('resource lifecycle commands', () => {
     expect((await run(ws, ['track', 'transition', 'gated-track', 'completed'])).code).toBe(0);
   });
 
+  it('reopens completed Tracks and preserves the completion gate on the next completion', async () => {
+    const ws = workspace();
+    expect((await run(ws, ['track', 'create', 'reopen-track', '--stage', 'active'])).code).toBe(0);
+    const active = path.join(ws, 'codument', 'tracks', 'active', 'reopen-track', 'track.xnl');
+    expect((await run(ws, ['track', 'transition', 'reopen-track', 'completed'])).code).toBe(0);
+
+    const reopened = await run(ws, ['track', 'transition', 'reopen-track', 'in_progress', '--json']);
+    expect(reopened.code).toBe(0);
+    expect(JSON.parse(reopened.out)).toMatchObject({ from: 'completed', to: 'in_progress' });
+    expect(fs.readFileSync(active, 'utf8')).toContain('status = "in_progress"');
+
+    fs.writeFileSync(active, fs.readFileSync(active, 'utf8').replace(
+      '    <SubNodes []>',
+      '    <SubNodes [<Task #late-task { status = "NOT_STARTED" }>]>',
+    ));
+    const incomplete = await run(ws, ['track', 'transition', 'reopen-track', 'completed']);
+    expect(incomplete.code).toBe(1);
+    expect(incomplete.err).toContain('unfinished tasks');
+  });
+
+  it('restores an archived Track to active and rejects ambiguous archived authorities', async () => {
+    const ws = workspace();
+    expect((await run(ws, ['track', 'create', 'archived-track', '--stage', 'active'])).code).toBe(0);
+    expect((await run(ws, ['track', 'transition', 'archived-track', 'completed'])).code).toBe(0);
+    expect((await run(ws, ['archive', 'archived-track', '--skip-specs'])).code).toBe(0);
+
+    const restored = await run(ws, ['track', 'transition', 'archived-track', 'in_progress', '--json']);
+    const active = path.join(ws, 'codument', 'tracks', 'active', 'archived-track', 'track.xnl');
+    expect(restored.code).toBe(0);
+    expect(JSON.parse(restored.out)).toMatchObject({ from: 'completed', to: 'in_progress' });
+    expect(fs.existsSync(active)).toBe(true);
+    expect(fs.readFileSync(active, 'utf8')).toContain('status = "in_progress"');
+
+    const archivedRoot = path.join(ws, 'codument', 'tracks', 'archived', '2026-08');
+    const firstArchive = path.join(archivedRoot, '2026-08-20-1000-ambiguous-track');
+    const secondArchive = path.join(archivedRoot, '2026-08-20-1100-ambiguous-track');
+    expect((await run(ws, ['track', 'create', 'ambiguous-track', '--stage', 'active'])).code).toBe(0);
+    fs.mkdirSync(archivedRoot, { recursive: true });
+    fs.renameSync(path.join(ws, 'codument', 'tracks', 'active', 'ambiguous-track'), firstArchive);
+    fs.cpSync(firstArchive, secondArchive, { recursive: true });
+    const ambiguous = await run(ws, ['track', 'transition', 'ambiguous-track', 'in_progress']);
+    expect(ambiguous.code).toBe(1);
+    expect(ambiguous.err).toContain('multiple archived authorities');
+  });
+
   it('rolls up parent TaskGroups without Gates after a child completes', async () => {
     const ws = workspace();
     expect((await run(ws, ['track', 'create', 'rollup-track', '--stage', 'active'])).code).toBe(0);
@@ -234,5 +279,26 @@ describe('resource lifecycle commands', () => {
     const archived = fs.readdirSync(archivedRoot).find((entry) => entry.endsWith('-done-mission'));
     expect(archived).toBeDefined();
     expect(fs.readFileSync(path.join(archivedRoot, archived!, 'mission.xnl'), 'utf8')).toContain('status = "archived"');
+  });
+
+  it('reopens completed Missions and restores archived Missions to active', async () => {
+    const ws = workspace();
+    expect((await run(ws, ['mission', 'create', 'reopen-mission', '--stage', 'active'])).code).toBe(0);
+    expect((await run(ws, ['mission', 'transition', 'reopen-mission', 'completed'])).code).toBe(0);
+
+    const reopened = await run(ws, ['mission', 'transition', 'reopen-mission', 'active', '--json']);
+    expect(reopened.code).toBe(0);
+    expect(JSON.parse(reopened.out)).toMatchObject({ from: 'completed', to: 'active' });
+    const active = path.join(ws, 'codument', 'missions', 'active', 'reopen-mission', 'mission.xnl');
+    const revisionAfterReopen = Number(fs.readFileSync(active, 'utf8').match(/revision = (\d+)/)?.[1]);
+    expect(revisionAfterReopen).toBeGreaterThan(1);
+
+    expect((await run(ws, ['mission', 'transition', 'reopen-mission', 'completed'])).code).toBe(0);
+    expect((await run(ws, ['mission', 'archive', 'reopen-mission'])).code).toBe(0);
+    const restored = await run(ws, ['mission', 'transition', 'reopen-mission', 'active', '--json']);
+    expect(restored.code).toBe(0);
+    expect(JSON.parse(restored.out)).toMatchObject({ from: 'archived', to: 'active' });
+    expect(fs.existsSync(active)).toBe(true);
+    expect(fs.readFileSync(active, 'utf8')).toContain('status = "active"');
   });
 });

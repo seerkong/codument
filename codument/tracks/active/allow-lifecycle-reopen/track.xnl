@@ -1,0 +1,75 @@
+<Track #allow-lifecycle-reopen apiVersion="codument.tech/v1alpha1" version="1" { status = "completed" goal = "允许通过 lifecycle CLI 重新打开已完成或已归档的 Track / Mission" description = "扩展根状态图和 archived authority 恢复，同时保留 completion gate 与 durable artifact 边界。" question_mode = "decision-tree" question_severity = "auto" commit_mode = "manual" created_at = "2026-08-20T05:40:31.460Z" updated_at = "2026-08-20T05:48:45.050Z" modeling_base_commit = "5e9e2ac26c867671cb9f7f9e740d19c5a0f768ba" engineering_base_commit = "5e9e2ac26c867671cb9f7f9e740d19c5a0f768ba" } (
+  <Ports { scope = "track" }>
+  <TaskSpace #space_allow-lifecycle-reopen { name = "allow-lifecycle-reopen" version = "1" child_mode = "dag" } (
+    <SubNodes [
+      <TaskGroup #P1 { name = "Lifecycle reopen core" status = "DONE" priority = "P0" order = 0 } (
+        <SubNodes [
+          <Task #P1-T1 { name = "Add reversible root transitions" status = "DONE" priority = "P0" order = 0 } (
+            <Description ?01M0EV2MNPY6SM0SBG97C1NBYY>
+            扩展 Track/Mission 根状态图，并让 transition 唯一定位和恢复 archived authority。
+            </?01M0EV2MNPY6SM0SBG97C1NBYY>
+            <Acceptance [
+              <Criterion #P1-T1-AC1 { checked = true } ?01M0EV2MNPY6SM0SBG97C1NBYZ>
+              completed Track/Mission 可恢复到执行中。
+              </?01M0EV2MNPY6SM0SBG97C1NBYZ>
+              <Criterion #P1-T1-AC2 { checked = true } ?01M0EV2MNPY6SM0SBG97C1NBZ0>
+              archived authority 可原子移回 active。
+              </?01M0EV2MNPY6SM0SBG97C1NBZ0>
+              <Criterion #P1-T1-AC3 { checked = true } ?01M0EV2MNPY6SM0SBG97C1NBZ1>
+              歧义和目标冲突 fail closed。
+              </?01M0EV2MNPY6SM0SBG97C1NBZ1>
+            ]>
+          )>
+          <Task #P1-T2 { name = "Preserve completion and archive boundaries" status = "DONE" priority = "P0" order = 1 } (
+            <Description ?01M0EV2MNPY6SM0SBG97C1NBZ2>
+            保持 completion gate，不回滚 durable artifacts，并覆盖再次完成行为。
+            </?01M0EV2MNPY6SM0SBG97C1NBZ2>
+            <Acceptance [
+              <Criterion #P1-T2-AC1 { checked = true } ?01M0EV2MNPY6SM0SBG97C1NBZ3>
+              恢复不重置 task，不撤销长期 registry。
+              </?01M0EV2MNPY6SM0SBG97C1NBZ3>
+              <Criterion #P1-T2-AC2 { checked = true } ?01M0EV2MNPY6SM0SBG97C1NBZ4>
+              再次 completed 仍执行原 completion gate。
+              </?01M0EV2MNPY6SM0SBG97C1NBZ4>
+            ]>
+          )>
+        ]>
+      )>
+      <TaskGroup #P2 { name = "Documentation and verification" status = "DONE" priority = "P1" order = 1 } (
+        <SubNodes [
+          <Task #P2-T1 { name = "Align specs and operations" status = "DONE" priority = "P1" order = 0 } (
+            <Description ?01M0EV2MNPY6SM0SBG97C1NBZ5>
+            同步 Track/Mission spec 与实现 operation 的恢复语义。
+            </?01M0EV2MNPY6SM0SBG97C1NBZ5>
+            <Acceptance [
+              <Criterion #P2-T1-AC1 { checked = true } ?01M0EV2MNPY6SM0SBG97C1NBZ6>
+              模板明确可恢复边、归档目录移动和 durable artifact 边界。
+              </?01M0EV2MNPY6SM0SBG97C1NBZ6>
+            ]>
+          )>
+          <Task #P2-T2 { name = "Verify lifecycle compatibility" status = "DONE" priority = "P0" order = 1 } (
+            <Description ?01M0EV2MNPY6SM0SBG97C1NBZ7>
+            运行 lifecycle、validate、模板 lint、类型检查和 diff 检查。
+            </?01M0EV2MNPY6SM0SBG97C1NBZ7>
+            <Acceptance [
+              <Criterion #P2-T2-AC1 { checked = true } ?01M0EV2MNPY6SM0SBG97C1NBZ8>
+              新增与既有 lifecycle 测试通过。
+              </?01M0EV2MNPY6SM0SBG97C1NBZ8>
+              <Criterion #P2-T2-AC2 { checked = true } ?01M0EV2MNPY6SM0SBG97C1NBZ9>
+              静态检查和模板 lint 通过。
+              </?01M0EV2MNPY6SM0SBG97C1NBZ9>
+            ]>
+          )>
+        ]>
+      )>
+    ]>
+  )>
+  <Schedule [
+    <Dag { for = "space_allow-lifecycle-reopen" } [
+      <Node #P2 [
+        <After { ref = "P1" }>
+      ]>
+    ]>
+  ]>
+  <Hooks []>
+)>

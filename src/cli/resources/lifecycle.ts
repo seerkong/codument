@@ -20,7 +20,7 @@ const MISSION_TASK_STATES = new Set(['NOT_STARTED', 'ACTIVE', 'DONE', 'BLOCKED',
 
 interface LocatedResource {
   dir: string;
-  stage: 'pending' | 'active';
+  stage: 'pending' | 'active' | 'archived';
   file: string;
 }
 
@@ -45,7 +45,7 @@ export function transitionResource(kind: ResourceKind, id: string, status: strin
   const allowed = kind === 'track' ? TRACK_STATES : MISSION_STATES;
   if (!allowed.has(status)) throw new Error(`Invalid ${kind} status '${status}'.`);
 
-  const located = locateResource(kind, id);
+  const located = locateTransitionResource(kind, id, status);
   const { root } = readRoot(located.file, kind === 'track' ? 'Track' : 'Mission');
   const from = scalar(root.attributes?.status) ?? located.stage;
   assertRootTransition(kind, from, status);
@@ -203,29 +203,56 @@ function locateResource(kind: ResourceKind, id: string): LocatedResource {
   throw new Error(`${kind} '${id}' was not found in pending or active lifecycle directories.`);
 }
 
+function locateTransitionResource(kind: ResourceKind, id: string, status: string): LocatedResource {
+  try {
+    return locateResource(kind, id);
+  } catch (error) {
+    const reopensActive = status === 'active' || (kind === 'track' && status === 'in_progress');
+    if (!reopensActive) throw error;
+    const archived = locateArchivedResource(kind, id);
+    if (archived) return archived;
+    throw error;
+  }
+}
+
+function locateArchivedResource(kind: ResourceKind, id: string): LocatedResource | undefined {
+  const plural = kind === 'track' ? 'tracks' : 'missions';
+  const authority = kind === 'track' ? 'track.xnl' : 'mission.xnl';
+  const expectedTag = kind === 'track' ? 'Track' : 'Mission';
+  const root = path.join('codument', plural, 'archived');
+  const candidates: LocatedResource[] = [];
+
+  const visit = (dir: string): void => {
+    if (!fs.existsSync(dir)) return;
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const candidate = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        visit(candidate);
+        continue;
+      }
+      if (!entry.isFile() || entry.name !== authority) continue;
+      const { root: resource } = readRoot(candidate, expectedTag);
+      if (wordToString(resource.id) === id) {
+        candidates.push({ dir: path.dirname(candidate), stage: 'archived', file: candidate });
+      }
+    }
+  };
+  visit(root);
+
+  if (candidates.length > 1) {
+    throw new Error(`${kind} '${id}' has multiple archived authorities: ${candidates.map((candidate) => candidate.dir).join(', ')}`);
+  }
+  return candidates[0];
+}
+
 function locateAnyTrack(id: string): { file: string } {
   try {
     return { file: locateResource('track', id).file };
   } catch {
-    const root = path.join('codument', 'tracks', 'archived');
-    const file = findFile(root, (candidate) => path.basename(path.dirname(candidate)).endsWith(`-${id}`));
-    if (file) return { file };
+    const archived = locateArchivedResource('track', id);
+    if (archived) return { file: archived.file };
     throw new Error(`Track '${id}' has no active, pending or archived authority.`);
   }
-}
-
-function findFile(dir: string, accept: (file: string) => boolean): string | undefined {
-  if (!fs.existsSync(dir)) return undefined;
-  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    const candidate = path.join(dir, entry.name);
-    if (entry.isDirectory()) {
-      const found = findFile(candidate, accept);
-      if (found) return found;
-    } else if (entry.isFile() && entry.name === 'track.xnl' && accept(candidate)) {
-      return candidate;
-    }
-  }
-  return undefined;
 }
 
 function readRoot(file: string, expectedTag: string): { root: DataElementNode } {
@@ -254,10 +281,16 @@ function assertRootTransition(kind: ResourceKind, from: string, to: string): voi
     ? new Map([
       ['new', new Set(['in_progress', 'cancelled'])],
       ['in_progress', new Set(['completed', 'cancelled'])],
+      ['completed', new Set(['in_progress'])],
+      ['cancelled', new Set(['in_progress'])],
     ])
     : new Map([
       ['pending', new Set(['active', 'cancelled', 'superseded'])],
       ['active', new Set(['completed', 'cancelled', 'superseded'])],
+      ['completed', new Set(['active'])],
+      ['cancelled', new Set(['active'])],
+      ['superseded', new Set(['active'])],
+      ['archived', new Set(['active'])],
     ]);
   if (!allowed.get(from)?.has(to)) throw new Error(`Invalid ${kind} transition '${from}' -> '${to}'.`);
 }
