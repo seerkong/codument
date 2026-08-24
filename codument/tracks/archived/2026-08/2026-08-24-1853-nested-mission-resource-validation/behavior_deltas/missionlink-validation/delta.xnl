@@ -1,0 +1,20 @@
+<BehaviorPatch #track.nested-mission-resource-validation.behavior_patch.missionlink-validation apiVersion="codument.tech/v1alpha1" version="1" { capability = "missionlink-validation" } (
+  <Mutations [
+    <Upsert { selector = "behavior://missionlink-validation/requirements/structured-links" } (
+      <Requirement #structured-links (
+        <Statement ?>Mission resources SHALL parse MissionLink, ParentMission, SelectedTasks and cross-layer TrackLink context as structured logical references, while preserving compatibility with existing Mission resources and rejecting persisted absolute workspace paths</?>
+        <Suites [
+          <Suite #mission-resource-links { name = "Mission resource links" } (
+            <Cases [
+              <Case #parse-structured-links (
+                <Given ?>a Mission XNL contains a MissionLink with selected leaf TaskRefs and a reciprocal ParentMission</?>
+                <When ?>the resource parser loads the Mission</?>
+                <Then ?>the parser SHALL preserve project_ref, mission_ref, link_ref, completion_mode and selected target identity for validation and lifecycle operations</?>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+  ]>
+)>

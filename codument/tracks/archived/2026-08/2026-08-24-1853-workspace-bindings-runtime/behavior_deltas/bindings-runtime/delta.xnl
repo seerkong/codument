@@ -1,0 +1,20 @@
+<BehaviorPatch #track.workspace-bindings-runtime.behavior_patch.bindings-runtime apiVersion="codument.tech/v1alpha1" version="1" { capability = "bindings-runtime" } (
+  <Mutations [
+    <Upsert { selector = "behavior://bindings-runtime/requirements/local-file" } (
+      <Requirement #local-file (
+        <Statement ?>The project binding CLI SHALL write only codument/.local/workspace-bindings.xnl, normalize local paths, replace bindings by logical project_ref, and never change Mission revision</?>
+        <Suites [
+          <Suite #bindings-cli { name = "Workspace binding CLI" } (
+            <Cases [
+              <Case #bind-switch-computer (
+                <Given ?>a logical ProjectRef needs a different local path on another computer</?>
+                <When ?>the user runs codument project bind</?>
+                <Then ?>the local binding file SHALL be updated without modifying committed Mission resources</?>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+  ]>
+)>

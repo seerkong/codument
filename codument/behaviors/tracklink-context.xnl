@@ -1,0 +1,26 @@
+<Behavior #tracklink-context apiVersion="codument.tech/v1alpha1" version="1" (
+  <Requirements [
+    <Requirement #mission-ref (
+      <Statement ?01M0T7TPJJC4NVDM57QZEY0Y7X>
+      TrackLink SHALL explicitly identify its Mission context with mission_ref; a cross-layer TrackLink SHALL also identify the concrete Track with track_ref; the child Mission SHALL remain the sole Track lifecycle owner
+      </?01M0T7TPJJC4NVDM57QZEY0Y7X>
+      <Suites [
+        <Suite #tracklink-context-suite { name = "TrackLink mission context" } (
+          <Cases [
+            <Case #cross-layer-owner (
+              <Given ?01M0T7TPJJC4NVDM57QZEY0Y7Y>
+              a parent Mission references a Track in a child Mission
+              </?01M0T7TPJJC4NVDM57QZEY0Y7Y>
+              <When ?01M0T7TPJJC4NVDM57QZEY0Y7Z>
+              the parent reconciles the TrackLink
+              </?01M0T7TPJJC4NVDM57QZEY0Y7Z>
+              <Then ?01M0T7TPJJC4NVDM57QZEY0Y80>
+              the reference SHALL resolve project_ref, mission_ref and track_ref without creating a second Track owner
+              </?01M0T7TPJJC4NVDM57QZEY0Y80>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+  ]>
+)>

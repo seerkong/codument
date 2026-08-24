@@ -122,7 +122,6 @@ function resolveEngineeringScaffoldDir(plane: string, trackOpt: string | boolean
 }
 
 function awaitImportFs(): typeof import('fs') {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
   return require('fs') as typeof import('fs');
 }
 

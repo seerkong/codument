@@ -15,6 +15,7 @@ import { upgradeWorkspaceCommand } from './commands/upgrade-workspace';
 import { validateCommand } from './commands/validate';
 import { bindMissionTrackCommand, gapRoundCommand, taskCompleteCommand, taskTransitionCommand, trackReadyCommand, trackVerifyCommand, transitionCommand } from './commands/lifecycle';
 import { stdLintCommand } from './commands/std';
+import { projectBindingCommand } from './commands/project';
 import { VERSION } from '../version';
 import {
   createArgvSchema,
@@ -108,6 +109,17 @@ export const COMMANDS: readonly CommandDefinition[] = Object.freeze([
   leaf('status', 'Show project status overview.', 'codument status', [
     'codument status',
   ], statusCommand),
+  { name: 'project', summary: 'Manage local logical ProjectRef workspace bindings.', usage: ['codument project <command>'], examples: ['codument project bind repo-a /work/repo-a'], children: [
+    leaf('bind', 'Bind a logical ProjectRef to a local workspace path.', 'codument project bind <project-ref> <workspace-path>', [
+      'codument project bind repo-a /work/repo-a',
+    ], (args) => projectBindingCommand(['bind', ...args])),
+    leaf('bindings', 'List local ProjectRef workspace bindings.', 'codument project bindings', [
+      'codument project bindings',
+    ], (args) => projectBindingCommand(['bindings', ...args])),
+    leaf('unbind', 'Remove a local ProjectRef workspace binding.', 'codument project unbind <project-ref>', [
+      'codument project unbind repo-a',
+    ], (args) => projectBindingCommand(['unbind', ...args])),
+  ] },
   { name: 'modeling', summary: 'Inspect and validate the modeling registry.', usage: ['codument modeling <command>'], examples: ['codument modeling validate codument/modeling'], children: [
     leaf('lint', 'Flag oversized modeling XNL files for fractal split.', 'codument modeling lint [dir] [--max-lines N] [--max-nodes N]', [
       'codument modeling lint codument/modeling --max-lines 400 --max-nodes 8',

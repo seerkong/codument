@@ -1,0 +1,26 @@
+<Behavior #external-create apiVersion="codument.tech/v1alpha1" version="1" (
+  <Requirements [
+    <Requirement #autonomous-child (
+      <Statement ?01M0T7VKBRDG3ASFZ1TW6HFKDC>
+      A parent Mission MAY create a pending child Mission in a bound external workspace, SHALL persist reciprocal ParentMission identity, and SHALL never overwrite a conflicting parent relationship
+      </?01M0T7VKBRDG3ASFZ1TW6HFKDC>
+      <Suites [
+        <Suite #external-create-suite { name = "External child Mission creation" } (
+          <Cases [
+            <Case #create-bound-child (
+              <Given ?01M0T7VKBRDG3ASFZ1TW6HFKDD>
+              the ProjectRef has a valid local binding and the child Mission is absent
+              </?01M0T7VKBRDG3ASFZ1TW6HFKDD>
+              <When ?01M0T7VKBRDG3ASFZ1TW6HFKDE>
+              the parent applies a candidate MissionLink
+              </?01M0T7VKBRDG3ASFZ1TW6HFKDE>
+              <Then ?01M0T7VKBRDG3ASFZ1TW6HFKDF>
+              the child Mission SHALL be created with ParentMission and the parent link SHALL become bound only after reciprocal validation
+              </?01M0T7VKBRDG3ASFZ1TW6HFKDF>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+  ]>
+)>

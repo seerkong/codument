@@ -1,0 +1,20 @@
+<BehaviorPatch #track.nested-mission-compatibility-audit.behavior_patch.compatibility-audit apiVersion="codument.tech/v1alpha1" version="1" { capability = "compatibility-audit" } (
+  <Mutations [
+    <Upsert { selector = "behavior://compatibility-audit/requirements/legacy-missions" } (
+      <Requirement #legacy-missions (
+        <Statement ?>Existing Mission authorities and legacy single-Mission TrackLinks SHALL remain valid after nested Mission validation is introduced</?>
+        <Suites [
+          <Suite #audit { name = "Legacy Mission audit" } (
+            <Cases [
+              <Case #strict-existing (
+                <Given ?>an existing Mission authority has no nested Mission links</?>
+                <When ?>strict validation runs</?>
+                <Then ?>the authority SHALL remain valid without requiring fabricated parent or child references</?>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+  ]>
+)>

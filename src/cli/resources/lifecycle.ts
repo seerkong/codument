@@ -9,6 +9,7 @@ import {
   type TextElementNode,
   type XnlNode,
 } from 'xnl-core';
+import { resolveWorkspaceBinding } from '../project/bindings';
 import { serializeXnlFile } from '../xnl/registry';
 
 export type ResourceKind = 'track' | 'mission';
@@ -152,12 +153,13 @@ export function setGapRound(kind: ResourceKind, id: string, round: number): Tran
 
 export function bindMissionTrack(missionId: string, taskId: string, trackId: string): TransitionReceipt {
   const mission = locateResource('mission', missionId);
-  const track = locateAnyTrack(trackId);
   const { root } = readRoot(mission.file, 'Mission');
   const task = findById(root, taskId);
   if (!task || task.tag !== 'Task') throw new Error(`Mission '${missionId}' has no leaf Task '${taskId}'.`);
   const link = children(task).find((node) => node.tag === 'TrackLink');
   if (!link) throw new Error(`Mission task '${taskId}' has no TrackLink.`);
+  const projectRef = scalar(link.attributes?.project_ref);
+  const track = locateMissionTrack(root, trackId, projectRef);
   const from = `${wordToString(link.id) ?? ''}:${scalar(link.attributes?.state) ?? 'candidate'}`;
   link.id = MakeWord(trackId);
   link.attributes = { ...(link.attributes ?? {}), state: 'bound' };
@@ -172,7 +174,7 @@ export function bindMissionTrack(missionId: string, taskId: string, trackId: str
     '# Track Bind CLI Receipt', '',
     `- Mission task: \`${taskId}\``,
     `- Track: \`${trackId}\``,
-    `- Track authority: \`${track.file}\``,
+    `- Track authority: \`${track.authority}\``,
     '- State: `bound`',
     `- Bound at: \`${new Date().toISOString()}\``, '',
   ].join('\n'), 'utf8');
@@ -183,6 +185,35 @@ export function bindMissionTrack(missionId: string, taskId: string, trackId: str
     throw error;
   }
   return { kind: 'mission', id: `${missionId}:${taskId}`, from, to: `${trackId}:bound`, directory: mission.dir };
+}
+
+function locateMissionTrack(
+  mission: DataElementNode,
+  trackId: string,
+  projectRef: string | undefined,
+): { file: string; authority: string } {
+  if (!projectRef) {
+    const track = locateAnyTrack(trackId);
+    return { ...track, authority: track.file };
+  }
+  const project = findById(mission, projectRef);
+  if (!project || project.tag !== 'ProjectRef') {
+    throw new Error(`TrackLink references unknown ProjectRef '${projectRef}'.`);
+  }
+  const kind = scalar(project.attributes?.kind);
+  if (kind !== 'host' && kind !== 'external') {
+    throw new Error(`ProjectRef '${projectRef}' requires kind 'host' or 'external'.`);
+  }
+  const boundWorkspace = resolveWorkspaceBinding(projectRef);
+  if (!boundWorkspace && kind === 'external') {
+    throw new Error(`ProjectRef '${projectRef}' is not bound to a local workspace.`);
+  }
+  const workspace = path.resolve(boundWorkspace ?? process.cwd());
+  const track = locateAnyTrackInWorkspace(trackId, workspace);
+  return {
+    file: track.file,
+    authority: path.relative(workspace, track.file).split(path.sep).join('/'),
+  };
 }
 
 export function markMissionArchived(file: string): void {
@@ -253,6 +284,35 @@ function locateAnyTrack(id: string): { file: string } {
     if (archived) return { file: archived.file };
     throw new Error(`Track '${id}' has no active, pending or archived authority.`);
   }
+}
+
+function locateAnyTrackInWorkspace(id: string, workspace: string): { file: string } {
+  for (const stage of ['active', 'pending'] as const) {
+    const file = path.join(workspace, 'codument', 'tracks', stage, id, 'track.xnl');
+    if (fs.existsSync(file)) return { file };
+  }
+
+  const archivedRoot = path.join(workspace, 'codument', 'tracks', 'archived');
+  const candidates: string[] = [];
+  const visit = (dir: string): void => {
+    if (!fs.existsSync(dir)) return;
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const candidate = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        visit(candidate);
+        continue;
+      }
+      if (!entry.isFile() || entry.name !== 'track.xnl') continue;
+      const { root } = readRoot(candidate, 'Track');
+      if (wordToString(root.id) === id) candidates.push(candidate);
+    }
+  };
+  visit(archivedRoot);
+  if (candidates.length > 1) {
+    throw new Error(`Track '${id}' has multiple archived authorities in ProjectRef workspace.`);
+  }
+  if (candidates.length === 1) return { file: candidates[0] };
+  throw new Error(`Track '${id}' has no active, pending or archived authority in ProjectRef workspace.`);
 }
 
 function readRoot(file: string, expectedTag: string): { root: DataElementNode } {

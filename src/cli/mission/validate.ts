@@ -50,6 +50,17 @@ function descendants(node: SpecXmlNode, predicate: (child: SpecXmlNode) => boole
   return result;
 }
 
+function linkTag(tag: string, name: string): boolean {
+  return tag === name || tag === `cdt:${name}`;
+}
+
+function attr(node: SpecXmlNode, ...names: string[]): string | undefined {
+  for (const name of names) {
+    if (node.attrs[name] !== undefined) return node.attrs[name];
+  }
+  return undefined;
+}
+
 function persistedPathAttributes(node: SpecXmlNode): string[] {
   return Object.keys(node.attrs).filter((name) => {
     if (/^(?:workspace(?:-|_)?path|workspace)$/i.test(name)) return true;
@@ -143,13 +154,61 @@ function validateMissionTaskSpace(root: SpecXmlNode, findings: MissionValidation
         message: `<${n.tag} id="${id}"> cdt:child-mode="${cm}" 非法（sequential|dag）`,
       });
     }
-    // cdt:TrackLink is a leaf-Task-only binding pointer (mission-xml-spec §6.1).
-    if (n.tag === 'TaskGroup' && childrenByTag(n, 'cdt:TrackLink').length > 0) {
+    const missionLinks = n.children.filter((child) => linkTag(child.tag, 'MissionLink'));
+    const trackLinks = n.children.filter((child) => linkTag(child.tag, 'TrackLink'));
+    // MissionLink and TrackLink are leaf-Task-only binding pointers.
+    if (n.tag === 'TaskGroup' && (missionLinks.length > 0 || trackLinks.length > 0)) {
       findings.push({
         severity: 'error',
-        rule: 'mission.tracklink.group',
-        message: `<TaskGroup id="${id}"> 不允许挂 <cdt:TrackLink>（只允许挂在叶子 <Task> 上）`,
+        rule: 'mission.link.group',
+        message: `<TaskGroup id="${id}"> 不允许挂 MissionLink/TrackLink（只允许挂在叶子 <Task> 上）`,
       });
+    }
+    for (const link of missionLinks) {
+      const projectRef = attr(link, 'project-ref', 'project_ref', 'projectRef');
+      const missionRef = attr(link, 'mission-ref', 'mission_ref', 'missionRef', 'id');
+      const mode = attr(link, 'completion-mode', 'completion_mode', 'completionMode');
+      if (!projectRef) findings.push({ severity: 'error', rule: 'mission.missionlink.project-ref', message: `MissionLink ${link.attrs.id ?? 'missing'} requires project_ref` });
+      if (!missionRef) findings.push({ severity: 'error', rule: 'mission.missionlink.mission-ref', message: `MissionLink ${link.attrs.id ?? 'missing'} requires mission_ref` });
+      if (mode !== 'selected-tasks') findings.push({ severity: 'error', rule: 'mission.missionlink.completion-mode', message: `MissionLink ${link.attrs.id ?? 'missing'} requires completion_mode="selected-tasks"` });
+      const selected = link.children.filter((child) => linkTag(child.tag, 'SelectedTasks'));
+      for (const collection of selected) {
+        const refs = collection.children.filter((child) => linkTag(child.tag, 'TaskRef'));
+        for (const ref of refs) {
+          const target = attr(ref, 'ref', 'task-ref', 'task_ref');
+          if (!target) findings.push({ severity: 'error', rule: 'mission.missionlink.selected-task-ref', message: 'SelectedTasks TaskRef requires ref' });
+        }
+      }
+    }
+    for (const link of trackLinks) {
+      const missionRef = attr(link, 'mission-ref', 'mission_ref', 'missionRef');
+      const trackRef = attr(link, 'track-ref', 'track_ref', 'trackRef');
+      const projectRef = attr(link, 'project-ref', 'project_ref', 'projectRef');
+      if (!projectRef) findings.push({ severity: 'error', rule: 'mission.tracklink.project-ref', message: `TrackLink ${link.attrs.id ?? 'missing'} requires project_ref` });
+      // Existing single-Mission TrackLinks remain valid. Once a link opts into
+      // cross-layer context, both mission_ref and track_ref are required.
+      if (trackRef && !missionRef) findings.push({ severity: 'error', rule: 'mission.tracklink.mission-ref', message: `Cross-layer TrackLink ${link.attrs.id ?? 'missing'} requires mission_ref` });
+      if (missionRef && !trackRef) findings.push({ severity: 'error', rule: 'mission.tracklink.track-ref', message: `Cross-layer TrackLink ${link.attrs.id ?? 'missing'} requires track_ref` });
+    }
+  }
+}
+
+function validateMissionLinks(root: SpecXmlNode, findings: MissionValidationFinding[]): void {
+  const parentMissions = descendants(root, (node) => linkTag(node.tag, 'ParentMission'));
+  if (parentMissions.length > 1) {
+    findings.push({ severity: 'error', rule: 'mission.parent.single', message: 'Mission allows at most one ParentMission' });
+  }
+  for (const link of descendants(root, (node) => linkTag(node.tag, 'MissionLink'))) {
+    const projectRef = attr(link, 'project-ref', 'project_ref', 'projectRef');
+    const missionRef = attr(link, 'mission-ref', 'mission_ref', 'missionRef', 'id');
+    const mode = attr(link, 'completion-mode', 'completion_mode', 'completionMode');
+    if (!projectRef) findings.push({ severity: 'error', rule: 'mission.missionlink.project-ref', message: `MissionLink ${link.attrs.id ?? 'missing'} requires project_ref` });
+    if (!missionRef) findings.push({ severity: 'error', rule: 'mission.missionlink.mission-ref', message: `MissionLink ${link.attrs.id ?? 'missing'} requires mission_ref` });
+    if (mode !== 'selected-tasks') findings.push({ severity: 'error', rule: 'mission.missionlink.completion-mode', message: `MissionLink ${link.attrs.id ?? 'missing'} requires completion_mode="selected-tasks"` });
+    for (const collection of link.children.filter((child) => linkTag(child.tag, 'SelectedTasks'))) {
+      for (const ref of collection.children.filter((child) => linkTag(child.tag, 'TaskRef'))) {
+        if (!attr(ref, 'ref', 'task-ref', 'task_ref')) findings.push({ severity: 'error', rule: 'mission.missionlink.selected-task-ref', message: 'SelectedTasks TaskRef requires ref' });
+      }
     }
   }
 }
@@ -317,6 +376,7 @@ export function validateMissionNode(root: SpecXmlNode, options: { currentXnl?: b
   // state/schedule/hook rules are never silently skipped by the early return below.
   validateMissionMetadata(root, findings, options.currentXnl === true);
   validateMissionTaskSpace(root, findings);
+  validateMissionLinks(root, findings);
   validateMissionSchedule(root, findings);
   validateMissionHooks(root, findings);
 

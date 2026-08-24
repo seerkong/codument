@@ -1,0 +1,20 @@
+<BehaviorPatch #track.nested-mission-lifecycle.behavior_patch.lifecycle-contract apiVersion="codument.tech/v1alpha1" version="1" { capability = "lifecycle-contract" } (
+  <Mutations [
+    <Upsert { selector = "behavior://nested-mission-lifecycle/requirements/atomic-binding" } (
+      <Requirement #atomic-binding (
+        <Statement ?>MissionLink binding SHALL resolve a local ProjectRef workspace, create or find a child Mission without overwriting conflicting ParentMission, verify reciprocal identity, and atomically persist bound state</?>
+        <Suites [
+          <Suite #nested-lifecycle { name = "Nested Mission lifecycle" } (
+            <Cases [
+              <Case #unbound-fail-closed (
+                <Given ?>a ProjectRef has no local WorkspaceBinding</?>
+                <When ?>the parent applies a candidate MissionLink</?>
+                <Then ?>the operation SHALL return UNBOUND and SHALL NOT guess a path or persist bound state</?>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+  ]>
+)>

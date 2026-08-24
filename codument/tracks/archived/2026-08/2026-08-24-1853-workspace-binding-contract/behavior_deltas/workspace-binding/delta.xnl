@@ -1,0 +1,20 @@
+<BehaviorPatch #track.workspace-binding-contract.behavior_patch.workspace-binding apiVersion="codument.tech/v1alpha1" version="1" { capability = "workspace-binding" } (
+  <Mutations [
+    <Upsert { selector = "behavior://workspace-binding/requirements/portable-local-path" } (
+      <Requirement #portable-local-path (
+        <Statement ?>ProjectRef SHALL retain a portable logical id in committed resources; the current machine absolute workspace path SHALL be stored only in codument/.local/workspace-bindings.xnl, which SHALL be ignored by Git and SHALL not change Mission revision</?>
+        <Suites [
+          <Suite #workspace-binding-suite { name = "Portable local workspace binding" } (
+            <Cases [
+              <Case #switch-computer (
+                <Given ?>computer A and computer B use different absolute paths for the same logical ProjectRef</?>
+                <When ?>the user commits Mission state on A and resumes on B after creating a local binding</?>
+                <Then ?>the Mission topology SHALL remain unchanged and the runtime SHALL resolve the B path without persisting it into Mission or Track resources</?>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+  ]>
+)>

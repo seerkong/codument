@@ -1,0 +1,26 @@
+<Behavior #nested-regression apiVersion="codument.tech/v1alpha1" version="1" (
+  <Requirements [
+    <Requirement #compatibility (
+      <Statement ?01M0T7VZFJ8JSWW55XKYBNZ2VG>
+      Nested Mission validation and local ProjectRef binding behavior SHALL have focused regression coverage without invalidating legacy single-Mission TrackLinks
+      </?01M0T7VZFJ8JSWW55XKYBNZ2VG>
+      <Suites [
+        <Suite #regression { name = "Nested Mission regression" } (
+          <Cases [
+            <Case #legacy-tracklink (
+              <Given ?01M0T7VZFJ8JSWW55XKYBNZ2VH>
+              a legacy TrackLink has project_ref but no nested mission context
+              </?01M0T7VZFJ8JSWW55XKYBNZ2VH>
+              <When ?01M0T7VZFJ8JSWW55XKYBNZ2VJ>
+              strict Mission validation runs
+              </?01M0T7VZFJ8JSWW55XKYBNZ2VJ>
+              <Then ?01M0T7VZFJ8JSWW55XKYBNZ2VK>
+              the legacy TrackLink SHALL remain valid
+              </?01M0T7VZFJ8JSWW55XKYBNZ2VK>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+  ]>
+)>

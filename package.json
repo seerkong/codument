@@ -1,6 +1,6 @@
 {
   "name": "depa-codument",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "description": "DEPA-oriented Codument workflow tool for AI coding assistants",
   "type": "module",
   "main": "src/cli/index.ts",
@@ -63,7 +63,7 @@
   },
   "dependencies": {
     "chalk": "^5.3.0",
-    "halfcode-compiler.xnl": "0.2.1",
+    "halfcode-compiler.xnl": "0.2.8",
     "xnl-core": "0.1.12",
     "xnl-vfs": "^0.1.1"
   }

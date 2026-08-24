@@ -36,6 +36,7 @@ const AGENTS_END = '<!-- codument:end -->';
 const CODUMENT_GITIGNORE_RULES = [
   'codument/**/analysis',
   'codument/**/reports',
+  'codument/.local/',
 ];
 const DEPRECATED_SKILLS = [
   'codument-execute-wave',

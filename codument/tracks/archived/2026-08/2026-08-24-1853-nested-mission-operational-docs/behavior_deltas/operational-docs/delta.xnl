@@ -1,0 +1,20 @@
+<BehaviorPatch #track.nested-mission-operational-docs.behavior_patch.operational-docs apiVersion="codument.tech/v1alpha1" version="1" { capability = "operational-docs" } (
+  <Mutations [
+    <Upsert { selector = "behavior://operational-docs/requirements/recovery" } (
+      <Requirement #recovery (
+        <Statement ?>Nested Mission documentation SHALL describe structured parent-child links, selected leaf delivery, autonomous child execution, explicit TrackLink context, and per-machine workspace binding recovery</?>
+        <Suites [
+          <Suite #docs { name = "Nested Mission operations" } (
+            <Cases [
+              <Case #computer-switch (
+                <Given ?>a Mission was advanced and committed on computer A</?>
+                <When ?>computer B checks out the commit and binds local ProjectRef paths</?>
+                <Then ?>the operator SHALL be able to continue without editing committed absolute paths</?>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+  ]>
+)>

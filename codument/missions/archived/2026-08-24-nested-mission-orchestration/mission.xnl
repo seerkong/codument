@@ -1,0 +1,83 @@
+<Mission #nested-mission-orchestration apiVersion="codument.tech/v1alpha1" version="1" { status = "archived" goal = "为 Codument 增加严格树状的主子 Mission 编排、跨仓库交付投影与本地 WorkspaceBinding。" description = "以显式 MissionLink、selected-tasks 和 TrackLink mission_ref 支持多仓库长期协作，同时保持子 Mission 自治、Track 生命周期单一归属和跨机器可恢复。" question_mode = "decision-tree" question_severity = "auto" revision = 63 created_at = "2026-08-24T07:09:20.327Z" updated_at = "2026-08-24T15:58:18.196Z" } (
+  <Ports { scope = "mission" }>
+  <ProjectRefs [
+    <ProjectRef #host { kind = "host" }>
+    <ProjectRef #codument-projects { kind = "external" }>
+  ]>
+  <ActorSets { default = "default-control-loop" } [
+    <ActorSet #default-control-loop [
+      <Actor { role = "MissionPlanner" project_ref = "host" } (
+        <Description ?01M0SAAQKBTV65R0ATSSQBN01Z>
+        设计 MissionLink、父子关系、selected-tasks 交付契约和跨仓库实施切片。
+        </?01M0SAAQKBTV65R0ATSSQBN01Z>
+      )>
+      <Actor { role = "MissionObserver" project_ref = "host" } (
+        <Description ?01M0SAAQKBTV65R0ATSSQBN020>
+        读取 Mission、Track、跨仓库绑定、校验结果和历史证据，识别多仓库状态投影。
+        </?01M0SAAQKBTV65R0ATSSQBN020>
+      )>
+      <Actor { role = "MissionReconciler" project_ref = "host" } (
+        <Description ?01M0SAAQKBTV65R0ATSSQBN021>
+        比较主子 Mission desired/actual state，检查树约束、归属闭合、交付契约和 WorkspaceBinding 偏差。
+        </?01M0SAAQKBTV65R0ATSSQBN021>
+      )>
+      <Actor { role = "MissionApplier" project_ref = "host" } (
+        <Description ?01M0SAAQKBTV65R0ATSSQBN022>
+        通过真实 Track 推进实现，必要时在已绑定外部仓库创建和绑定子 Mission，并验证跨机器本地绑定不进入提交内容。
+        </?01M0SAAQKBTV65R0ATSSQBN022>
+      )>
+    ]>
+  ]>
+  <TaskSpace #space_nested-mission-orchestration { name = "nested-mission-orchestration" version = "1" child_mode = "dag" } (
+    <SubNodes [
+      <TaskGroup #G1 { name = "Model and contract" status = "DONE" order = 0 child_mode = "sequential" } (
+        <SubNodes [
+          <Task #G1-T1 { name = "Define nested Mission behavior and compatibility boundaries" status = "DONE" order = 0 }>
+          <Task #G1-T2 { name = "Define MissionLink selected-tasks contract and parent reciprocity" status = "DONE" order = 1 }>
+          <Task #G1-T3 { name = "Define TrackLink mission_ref and cross-layer track_ref ownership" status = "DONE" order = 2 }>
+          <Task #G1-T4 { name = "Define local workspace binding format and machine-switch protocol" status = "DONE" order = 3 }>
+        ]>
+      )>
+      <TaskGroup #G2 { name = "Mission resource and validator" status = "DONE" order = 1 child_mode = "sequential" } (
+        <SubNodes [
+          <Task #G2-T1 { name = "Implement MissionLink and ParentMission resource parsing" status = "DONE" order = 0 }>
+          <Task #G2-T2 { name = "Implement selected-task, parent, cycle and ownership validation" status = "DONE" order = 1 }>
+          <Task #G2-T3 { name = "Implement lifecycle and binding operations for nested Missions" status = "DONE" order = 2 }>
+        ]>
+      )>
+      <TaskGroup #G3 { name = "Cross-project runtime" status = "DONE" order = 2 child_mode = "sequential" } (
+        <SubNodes [
+          <Task #G3-T1 { name = "Implement codument/.local/workspace-bindings.xnl resolution" status = "DONE" order = 0 }>
+          <Task #G3-T2 { name = "Support external child Mission creation and autonomous execution" status = "DONE" order = 1 }>
+          <Task #G3-T3 { name = "Project child Mission and child Track state into parent reconciliation" status = "DONE" order = 2 }>
+        ]>
+      )>
+      <TaskGroup #G4 { name = "Verification and migration" status = "DONE" order = 3 child_mode = "sequential" } (
+        <SubNodes [
+          <Task #G4-T1 { name = "Add compatibility and regression tests" status = "DONE" order = 0 }>
+          <Task #G4-T2 { name = "Validate existing Missions remain valid" status = "DONE" order = 1 }>
+          <Task #G4-T3 { name = "Document examples, migration and operational recovery" status = "DONE" order = 2 }>
+        ]>
+      )>
+    ]>
+  )>
+  <Schedule [
+    <Dag { for = "space_nested-mission-orchestration" } [
+      <Node #G1 []>
+      <Node #G2 [
+        <After { ref = "G1" }>
+      ]>
+      <Node #G3 [
+        <After { ref = "G2" }>
+      ]>
+      <Node #G4 [
+        <After { ref = "G3" }>
+      ]>
+    ]>
+  ]>
+  <Hooks [
+    <Hook { on = "mission:after-node" } (
+      <MissionReconcile { max_tracks = 10 on_limit = "checkpoint" on_drift = "replan-or-block" }>
+    )>
+  ]>
+)>

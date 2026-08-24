@@ -1,0 +1,20 @@
+<BehaviorPatch #track.nested-mission-projection.behavior_patch.projection-contract apiVersion="codument.tech/v1alpha1" version="1" { capability = "projection-contract" } (
+  <Mutations [
+    <Upsert { selector = "behavior://nested-mission-projection/requirements/partial-delivery" } (
+      <Requirement #partial-delivery (
+        <Statement ?>A parent Mission SHALL complete only when all selected child leaf Tasks or explicitly accepted superseded targets satisfy evidence-backed delivery; child Mission status MAY remain active</?>
+        <Suites [
+          <Suite #projection { name = "Nested Mission delivery projection" } (
+            <Cases [
+              <Case #partial-completion (
+                <Given ?>selected child leaf Tasks are DONE while other child Mission tasks remain active</?>
+                <When ?>the parent reconciles its MissionLink</?>
+                <Then ?>the parent delivery Task SHALL be eligible for DONE and the child Mission SHALL remain autonomous</?>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+  ]>
+)>

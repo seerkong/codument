@@ -1,0 +1,114 @@
+<decision #mission.nested-orchestration apiVersion="codument.tech/v1alpha1" { priority = "P0" status = "accepted" durable_candidate = true confidence = 0.99 reversibility = "moderate" } (
+  <question ?nested01>
+  Mission 是否需要支持严格树状的主 Mission / 子 Mission 编排？
+  </?nested01>
+  <recommendation ?nested02>
+  引入 MissionLink；一个子 Mission 只能有一个父 Mission；父子关系双向持久化并禁止环和共享子 Mission。
+  </?nested02>
+  <answer {  } (
+    <raw-answer ?nested03>
+    同意第一版严格树状约束；主 Mission 可以包含多个子 Mission，但子 Mission 只有一个父 Mission。
+    </?nested03>
+    <decision-text ?nested04>
+    MissionLink 是父 Mission 对子 Mission 的编排承诺，不是任意关系标签；子 Mission 必须通过 ParentMission 回指父 Mission，双方 link_ref、project_ref 和 mission_ref 必须匹配；共享子 Mission 和 MissionLink 环第一版拒绝。
+    </?nested04>
+    <rationale ?nested05>
+    树状关系能保留唯一控制 owner、清晰生命周期和可确定的递归校验，避免分布式 Mission DAG 的多父节点和共享状态冲突。
+    </?nested05>
+    <evidence ?nested06>
+    当前 Mission 是单层 Mission -> TrackLink 模型；用户确认宏大 Mission 需要形成主子 Mission 树。
+    </?nested06>
+  )>
+)>
+
+<decision #mission.nested-orchestration.delivery-projection apiVersion="codument.tech/v1alpha1" { priority = "P0" status = "accepted" durable_candidate = true confidence = 0.99 reversibility = "moderate" } (
+  <question ?nested07>
+  父 Mission 对子 Mission 的交付要求是否要求子 Mission 整体完成？
+  </?nested07>
+  <recommendation ?nested08>
+  使用显式 selected-tasks，只选择子 Mission 的叶子 Task，不依赖自然语言 milestone。
+  </?nested08>
+  <answer {  } (
+    <raw-answer ?nested09>
+    同意 selected-tasks；父 Mission 明确选择子 Mission 中需要交付的叶子 Task，子 Mission 可以继续 active，不要求全部完成。
+    </?nested09>
+    <decision-text ?nested10>
+    MissionLink 固定支持 completion_mode = selected-tasks。SelectedTasks 显式引用子 Mission 的叶子 Task。父 Task 只有在所有选定目标达到 DONE，或有受控重规划/人工证据允许的 SUPERSEDED，且目标证据可解析时才完成。
+    </?nested10>
+    <rationale ?nested11>
+    显式结构化目标避免不透明自然语言 milestone，并支持父 Mission 只消费阶段性交付而不夺取子 Mission 控制权。
+    </?nested11>
+    <evidence ?nested12>
+    用户明确选择 selected-tasks，并同意第一版只允许叶子 Task。
+    </?nested12>
+  )>
+)>
+
+<decision #mission.nested-orchestration.track-context apiVersion="codument.tech/v1alpha1" { priority = "P0" status = "accepted" durable_candidate = true confidence = 0.99 reversibility = "moderate" } (
+  <question ?nested13>
+  TrackLink 如何表达它属于哪个子 Mission？父 Mission 是否可以同时直接引用子 Mission 和具体子 Track？
+  </?nested13>
+  <recommendation ?nested14>
+  TrackLink 显式增加 mission_ref；跨层引用同时增加 track_ref；允许 MissionLink 与跨层 TrackLink 并存。
+  </?nested14>
+  <answer {  } (
+    <raw-answer ?nested15>
+    同意显式结构化字段；父 Mission 可以同时等待子 Mission 的 selected tasks 和子 Mission 下的具体 Track。
+    </?nested15>
+    <decision-text ?nested16>
+    TrackLink 包含 state、project_ref、mission_ref，跨层直接引用时还包含 track_ref。子 Mission 是 Track 唯一生命周期 owner；父 Mission 的跨层 TrackLink 只是交付投影和观察上下文，不产生第二个 owner。
+    </?nested16>
+    <rationale ?nested17>
+    显式字段符合 Codument 结构化、可审计的设计理念，并区分 Mission 粒度交付和单 Track 粒度交付。
+    </?nested17>
+    <evidence ?nested18>
+    用户选择 TrackLink 显式 mission_ref 方案，并明确认可两类引用同时存在。
+    </?nested18>
+  )>
+)>
+
+<decision #mission.nested-orchestration.project-binding apiVersion="codument.tech/v1alpha1" { priority = "P0" status = "accepted" durable_candidate = true confidence = 0.99 reversibility = "easy" } (
+  <question ?nested19>
+  跨电脑切换时如何绑定多项目 ProjectRef 的绝对 workspace 路径？
+  </?nested19>
+  <recommendation ?nested20>
+  ProjectRef 保留可提交的逻辑 identity；标准化的 codument/.local/workspace-bindings.xnl 保存当前机器不可提交的绝对路径。
+  </?nested20>
+  <answer {  } (
+    <raw-answer ?nested21>
+    同意引入 codument/.local/workspace-bindings.xnl。电脑 A 和电脑 B 为同一逻辑 ProjectRef 分别保存本机路径，提交的 Mission 状态不包含绝对路径。
+    </?nested21>
+    <decision-text ?nested22>
+    mission.xnl 继续持久化 ProjectRef 的逻辑 id、kind 和跨仓库关系；workspace-bindings.xnl 只保存 project_ref 到本机 workspace_path 的映射，必须被 Git ignore，不参与 Mission revision。缺失 binding 报 UNBOUND；资源不存在报 MISSING。
+    </?nested22>
+    <rationale ?nested23>
+    代码提交后可以在另一台电脑重新生成或更新本地路径，不破坏跨仓库拓扑和历史；绝对路径不是项目事实，不能进入 Git。
+    </?nested23>
+    <evidence ?nested24>
+    用户明确说明电脑 A/B 交替推进 Mission，并同意标准化 codument/.local/workspace-bindings.xnl。
+    </?nested24>
+  )>
+)>
+
+<decision #mission.nested-orchestration.autonomous-child apiVersion="codument.tech/v1alpha1" { priority = "P0" status = "accepted" durable_candidate = true confidence = 0.99 reversibility = "moderate" } (
+  <question ?nested25>
+  父 Mission 与跨仓库子 Mission 的执行权如何划分？
+  </?nested25>
+  <recommendation ?nested26>
+  父 Mission 编排、观察和消费交付投影；子 Mission 自治并拥有自己的 Mission/Track 生命周期。
+  </?nested26>
+  <answer {  } (
+    <raw-answer ?nested27>
+    同意子 Mission 自治、父 Mission 编排；父 Mission 可以在已绑定外部仓库自动创建子 Mission。
+    </?nested27>
+    <decision-text ?nested28>
+    父 Applier 可以解析 binding、创建/绑定子 Mission并请求续跑；子 Applier 负责修改自己的 mission.xnl、Track、reports 和 decisions。父 Mission 不直接编辑子 Mission 的内部状态。未绑定时不猜测路径；已有 ParentMission 冲突时进入 drift/blocked。
+    </?nested28>
+    <rationale ?nested29>
+    保留每个仓库的演化历史和局部原因，避免父子 Mission 形成多个 authority 或分布式事务。
+    </?nested29>
+    <evidence ?nested30>
+    用户确认已有人工指令驱动多仓库 Mission 协作，并同意父 Mission 自动创建外部子 Mission。
+    </?nested30>
+  )>
+)>

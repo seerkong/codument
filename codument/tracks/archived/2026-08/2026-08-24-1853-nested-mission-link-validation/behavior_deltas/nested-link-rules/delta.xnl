@@ -1,0 +1,20 @@
+<BehaviorPatch #track.nested-mission-link-validation.behavior_patch.nested-link-rules apiVersion="codument.tech/v1alpha1" version="1" { capability = "nested-link-rules" } (
+  <Mutations [
+    <Upsert { selector = "behavior://nested-link-rules/requirements/validation" } (
+      <Requirement #validation (
+        <Statement ?>Mission validation SHALL reject MissionLink on TaskGroup, non-leaf SelectedTasks, duplicate ParentMission, missing cross-layer mission_ref or track_ref, and persisted absolute workspace bindings while preserving legacy missions</?>
+        <Suites [
+          <Suite #nested-link-validation { name = "Nested Mission link validation" } (
+            <Cases [
+              <Case #reject-group-link (
+                <Given ?>a TaskGroup contains a MissionLink</?>
+                <When ?>strict Mission validation runs</?>
+                <Then ?>validation SHALL report a stable leaf-only error</?>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+  ]>
+)>

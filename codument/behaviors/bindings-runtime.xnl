@@ -1,0 +1,26 @@
+<Behavior #bindings-runtime apiVersion="codument.tech/v1alpha1" version="1" (
+  <Requirements [
+    <Requirement #local-file (
+      <Statement ?01M0T7VF7PTCTNJGS8H4WTGD16>
+      The project binding CLI SHALL write only codument/.local/workspace-bindings.xnl, normalize local paths, replace bindings by logical project_ref, and never change Mission revision
+      </?01M0T7VF7PTCTNJGS8H4WTGD16>
+      <Suites [
+        <Suite #bindings-cli { name = "Workspace binding CLI" } (
+          <Cases [
+            <Case #bind-switch-computer (
+              <Given ?01M0T7VF7PTCTNJGS8H4WTGD17>
+              a logical ProjectRef needs a different local path on another computer
+              </?01M0T7VF7PTCTNJGS8H4WTGD17>
+              <When ?01M0T7VF7PTCTNJGS8H4WTGD18>
+              the user runs codument project bind
+              </?01M0T7VF7PTCTNJGS8H4WTGD18>
+              <Then ?01M0T7VF7PTCTNJGS8H4WTGD19>
+              the local binding file SHALL be updated without modifying committed Mission resources
+              </?01M0T7VF7PTCTNJGS8H4WTGD19>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+  ]>
+)>

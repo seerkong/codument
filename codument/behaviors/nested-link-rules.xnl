@@ -1,0 +1,26 @@
+<Behavior #nested-link-rules apiVersion="codument.tech/v1alpha1" version="1" (
+  <Requirements [
+    <Requirement #validation (
+      <Statement ?01M0T7V6V4Z7TQKR90T7VR9BJA>
+      Mission validation SHALL reject MissionLink on TaskGroup, non-leaf SelectedTasks, duplicate ParentMission, missing cross-layer mission_ref or track_ref, and persisted absolute workspace bindings while preserving legacy missions
+      </?01M0T7V6V4Z7TQKR90T7VR9BJA>
+      <Suites [
+        <Suite #nested-link-validation { name = "Nested Mission link validation" } (
+          <Cases [
+            <Case #reject-group-link (
+              <Given ?01M0T7V6V4Z7TQKR90T7VR9BJB>
+              a TaskGroup contains a MissionLink
+              </?01M0T7V6V4Z7TQKR90T7VR9BJB>
+              <When ?01M0T7V6V4Z7TQKR90T7VR9BJC>
+              strict Mission validation runs
+              </?01M0T7V6V4Z7TQKR90T7VR9BJC>
+              <Then ?01M0T7V6V4Z7TQKR90T7VR9BJD>
+              validation SHALL report a stable leaf-only error
+              </?01M0T7V6V4Z7TQKR90T7VR9BJD>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+  ]>
+)>

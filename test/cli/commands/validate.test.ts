@@ -430,7 +430,7 @@ test('validate checks mission.xml status, hook, schedule, and reconcile rules', 
   expect(out).toContain('mission.reconcile.on-limit');
   expect(out).toContain('mission.reconcile.on-drift');
   expect(out).toContain('mission.hook.on');                 // phase:weird 非法
-  expect(out).toContain('mission.tracklink.group');         // TrackLink 挂在 TaskGroup 上
+  expect(out).toContain('mission.link.group');              // MissionLink/TrackLink 挂在 TaskGroup 上
 });
 
 test('validate accepts a well-formed mission.xml', async () => {

@@ -268,6 +268,38 @@ describe('resource lifecycle commands', () => {
     expect(fs.readdirSync(path.join(path.dirname(active), 'reports'))).toHaveLength(1);
   });
 
+  it('binds a Mission TrackLink through its external ProjectRef workspace binding', async () => {
+    const ws = workspace();
+    const external = workspace();
+    expect((await run(ws, ['mission', 'create', 'external-track-mission', '--stage', 'active'])).code).toBe(0);
+    expect((await run(external, ['track', 'create', 'external-track', '--stage', 'active'])).code).toBe(0);
+    expect((await run(ws, ['project', 'bind', 'library', external])).code).toBe(0);
+
+    const mission = path.join(ws, 'codument', 'missions', 'active', 'external-track-mission', 'mission.xnl');
+    fs.writeFileSync(mission, fs.readFileSync(mission, 'utf8')
+      .replace(
+        '<ProjectRefs [\n    <ProjectRef #host { kind = "host" }>\n  ]>',
+        '<ProjectRefs [\n    <ProjectRef #host { kind = "host" }>\n    <ProjectRef #library { kind = "external" }>\n  ]>',
+      )
+      .replace(
+        '  <Hooks []>',
+        '  <Task #M1 { status = "NOT_STARTED" } (\n    <TrackLink #candidate { state = "candidate" project_ref = "library" }>\n  )>\n  <Hooks []>',
+      ));
+
+    const bound = await run(ws, ['mission', 'bind-track', 'external-track-mission', 'M1', 'external-track']);
+    expect(bound.code).toBe(0);
+    expect(fs.readFileSync(mission, 'utf8')).toContain(
+      '<TrackLink #external-track { state = "bound" project_ref = "library" }>',
+    );
+    const report = fs.readFileSync(
+      path.join(path.dirname(mission), 'reports', fs.readdirSync(path.join(path.dirname(mission), 'reports'))[0]),
+      'utf8',
+    );
+    expect(report).toContain('`codument/tracks/active/external-track/track.xnl`');
+    expect(report).not.toContain(external);
+    expect(fs.existsSync(path.join(ws, 'codument', 'tracks', 'active', 'external-track'))).toBe(false);
+  });
+
   it('archives a terminal Mission through the CLI transaction', async () => {
     const ws = workspace();
     expect((await run(ws, ['mission', 'create', 'done-mission', '--stage', 'active'])).code).toBe(0);

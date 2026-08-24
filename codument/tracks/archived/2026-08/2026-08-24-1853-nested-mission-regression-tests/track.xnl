@@ -1,0 +1,14 @@
+<Track #nested-mission-regression-tests apiVersion="codument.tech/v1alpha1" version="1" { status = "completed" goal = "To be authored by codument-plan-track." description = "To be authored by codument-plan-track." question_mode = "decision-tree" question_severity = "auto" commit_mode = "manual" created_at = "2026-08-24T07:49:36.820Z" updated_at = "2026-08-24T15:53:53.022Z" modeling_base_commit = "f3cf55374dc1f4359fa025471da567db3aee191d" engineering_base_commit = "f3cf55374dc1f4359fa025471da567db3aee191d" } (
+  <Ports { scope = "track" }>
+  <TaskSpace #space_nested-mission-regression-tests { name = "nested-mission-regression-tests" version = "1" } (
+    <SubNodes [
+      <TaskGroup #P1 { name = "Nested regression tests" status = "DONE" order = 0 } (
+        <SubNodes [
+          <Task #P1-T1 { name = "Run nested Mission and CLI regressions" status = "DONE" order = 0 }>
+        ]>
+      )>
+    ]>
+  )>
+  <Schedule []>
+  <Hooks []>
+)>

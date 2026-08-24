@@ -142,3 +142,4 @@ frontend/packages/react/public/**
 !frontend/packages/react/public/.gitkeep
 codument/**/analysis
 codument/**/reports
+codument/.local/

@@ -1,0 +1,37 @@
+<Behavior #nested-mission-structure apiVersion="codument.tech/v1alpha1" version="1" (
+  <Requirements [
+    <Requirement #nested-mission-links (
+      <Statement ?01M0T7RMKQ0ZZ0SY2ABYYVZ1HX>
+      父 Mission SHALL 通过显式 MissionLink 编排严格树状的子 Mission；SelectedTasks SHALL 只引用子 Mission 的叶子 Task；子 Mission SHALL 通过匹配的 ParentMission 回指父 Mission；TrackLink SHALL 显式保存 mission_ref，跨层引用时 SHALL 保存 track_ref；本机绝对 workspace path SHALL 只存在于 codument/.local/workspace-bindings.xnl，不得进入可提交 Mission 或 Track 资源。
+      </?01M0T7RMKQ0ZZ0SY2ABYYVZ1HX>
+      <Suites [
+        <Suite #nested-mission-contract { name = "Nested mission orchestration" } (
+          <Cases [
+            <Case #selected-task-delivery (
+              <Given ?01M0T7RMKQ0ZZ0SY2ABYYVZ1HY>
+              父 Mission 和子 Mission 位于不同但已绑定的 workspace，且父子关系互相匹配
+              </?01M0T7RMKQ0ZZ0SY2ABYYVZ1HY>
+              <When ?01M0T7RMKQ0ZZ0SY2ABYYVZ1HZ>
+              父 Mission 观察子 Mission 并评估 selected-tasks 交付契约
+              </?01M0T7RMKQ0ZZ0SY2ABYYVZ1HZ>
+              <Then ?01M0T7RMKQ0ZZ0SY2ABYYVZ1J0>
+              父 Mission SHALL 只等待被选择的叶子 Task，子 Mission 可以保持 active 并继续自治执行
+              </?01M0T7RMKQ0ZZ0SY2ABYYVZ1J0>
+            )>
+            <Case #portable-workspace-binding (
+              <Given ?01M0T7RMKQ0ZZ0SY2ABYYVZ1J1>
+              电脑 A 和电脑 B 为同一个逻辑 ProjectRef 使用不同绝对路径
+              </?01M0T7RMKQ0ZZ0SY2ABYYVZ1J1>
+              <When ?01M0T7RMKQ0ZZ0SY2ABYYVZ1J2>
+              用户在两台电脑之间提交代码并恢复 Mission
+              </?01M0T7RMKQ0ZZ0SY2ABYYVZ1J2>
+              <Then ?01M0T7RMKQ0ZZ0SY2ABYYVZ1J3>
+              逻辑 ProjectRef SHALL 保持稳定，本机绝对路径 SHALL 从被 Git 忽略的 codument/.local/workspace-bindings.xnl 读取
+              </?01M0T7RMKQ0ZZ0SY2ABYYVZ1J3>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+  ]>
+)>

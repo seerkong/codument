@@ -1,0 +1,26 @@
+<Behavior #nested-mission-lifecycle apiVersion="codument.tech/v1alpha1" version="1" (
+  <Requirements [
+    <Requirement #atomic-binding (
+      <Statement ?01M0T7VBDP6N7JGH9Z017GPY5W>
+      MissionLink binding SHALL resolve a local ProjectRef workspace, create or find a child Mission without overwriting conflicting ParentMission, verify reciprocal identity, and atomically persist bound state
+      </?01M0T7VBDP6N7JGH9Z017GPY5W>
+      <Suites [
+        <Suite #nested-lifecycle { name = "Nested Mission lifecycle" } (
+          <Cases [
+            <Case #unbound-fail-closed (
+              <Given ?01M0T7VBDP6N7JGH9Z017GPY5X>
+              a ProjectRef has no local WorkspaceBinding
+              </?01M0T7VBDP6N7JGH9Z017GPY5X>
+              <When ?01M0T7VBDP6N7JGH9Z017GPY5Y>
+              the parent applies a candidate MissionLink
+              </?01M0T7VBDP6N7JGH9Z017GPY5Y>
+              <Then ?01M0T7VBDP6N7JGH9Z017GPY5Z>
+              the operation SHALL return UNBOUND and SHALL NOT guess a path or persist bound state
+              </?01M0T7VBDP6N7JGH9Z017GPY5Z>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+  ]>
+)>

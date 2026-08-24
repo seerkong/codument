@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 import * as fs from 'fs';
 import * as path from 'path';
-import { loadResourceTree } from 'halfcode-compiler.xnl/resource-core';
+import { loadResourceTree } from 'halfcode-compiler.xnl';
 
 const repoRoot = path.join(import.meta.dir, '..');
 const authorityRoot = path.join(repoRoot, 'src', 'templates', 'codument', 'std', 'kinds');

@@ -1,0 +1,20 @@
+<BehaviorPatch #track.nested-mission-external-create.behavior_patch.external-create apiVersion="codument.tech/v1alpha1" version="1" { capability = "external-create" } (
+  <Mutations [
+    <Upsert { selector = "behavior://external-create/requirements/autonomous-child" } (
+      <Requirement #autonomous-child (
+        <Statement ?>A parent Mission MAY create a pending child Mission in a bound external workspace, SHALL persist reciprocal ParentMission identity, and SHALL never overwrite a conflicting parent relationship</?>
+        <Suites [
+          <Suite #external-create-suite { name = "External child Mission creation" } (
+            <Cases [
+              <Case #create-bound-child (
+                <Given ?>the ProjectRef has a valid local binding and the child Mission is absent</?>
+                <When ?>the parent applies a candidate MissionLink</?>
+                <Then ?>the child Mission SHALL be created with ParentMission and the parent link SHALL become bound only after reciprocal validation</?>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+  ]>
+)>

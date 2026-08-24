@@ -59,6 +59,10 @@ const CDT_TAGS = new Set([
   'ActorSets',
   'ActorSet',
   'Actor',
+  'MissionLink',
+  'ParentMission',
+  'SelectedTasks',
+  'TaskRef',
 ]);
 
 export function resolveMissionAuthority(missionDir: string): MissionAuthority | undefined {

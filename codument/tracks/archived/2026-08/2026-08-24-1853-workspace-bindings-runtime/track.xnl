@@ -1,0 +1,14 @@
+<Track #workspace-bindings-runtime apiVersion="codument.tech/v1alpha1" version="1" { status = "completed" goal = "To be authored by codument-plan-track." description = "To be authored by codument-plan-track." question_mode = "decision-tree" question_severity = "auto" commit_mode = "manual" created_at = "2026-08-24T07:42:14.524Z" updated_at = "2026-08-24T15:53:50.346Z" modeling_base_commit = "f3cf55374dc1f4359fa025471da567db3aee191d" engineering_base_commit = "f3cf55374dc1f4359fa025471da567db3aee191d" } (
+  <Ports { scope = "track" }>
+  <TaskSpace #space_workspace-bindings-runtime { name = "workspace-bindings-runtime" version = "1" } (
+    <SubNodes [
+      <TaskGroup #P1 { name = "Workspace binding runtime" status = "DONE" order = 0 } (
+        <SubNodes [
+          <Task #P1-T1 { name = "Implement local workspace binding CLI and file" status = "DONE" order = 0 }>
+        ]>
+      )>
+    ]>
+  )>
+  <Schedule []>
+  <Hooks []>
+)>

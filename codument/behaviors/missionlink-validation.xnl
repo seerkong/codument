@@ -1,0 +1,26 @@
+<Behavior #missionlink-validation apiVersion="codument.tech/v1alpha1" version="1" (
+  <Requirements [
+    <Requirement #structured-links (
+      <Statement ?01M0T7V01B7C1T0R5B0T83YFXM>
+      Mission resources SHALL parse MissionLink, ParentMission, SelectedTasks and cross-layer TrackLink context as structured logical references, while preserving compatibility with existing Mission resources and rejecting persisted absolute workspace paths
+      </?01M0T7V01B7C1T0R5B0T83YFXM>
+      <Suites [
+        <Suite #mission-resource-links { name = "Mission resource links" } (
+          <Cases [
+            <Case #parse-structured-links (
+              <Given ?01M0T7V01B7C1T0R5B0T83YFXN>
+              a Mission XNL contains a MissionLink with selected leaf TaskRefs and a reciprocal ParentMission
+              </?01M0T7V01B7C1T0R5B0T83YFXN>
+              <When ?01M0T7V01B7C1T0R5B0T83YFXP>
+              the resource parser loads the Mission
+              </?01M0T7V01B7C1T0R5B0T83YFXP>
+              <Then ?01M0T7V01B7C1T0R5B0T83YFXQ>
+              the parser SHALL preserve project_ref, mission_ref, link_ref, completion_mode and selected target identity for validation and lifecycle operations
+              </?01M0T7V01B7C1T0R5B0T83YFXQ>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+  ]>
+)>

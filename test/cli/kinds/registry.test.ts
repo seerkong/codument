@@ -2,7 +2,8 @@ import { describe, expect, it } from 'bun:test';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import { loadResourceTree } from 'halfcode-compiler.xnl/resource-core';
+import { fileURLToPath } from 'url';
+import { loadResourceTree } from 'halfcode-compiler.xnl';
 import { GENERATED_KIND_DEFINITIONS } from '../../../src/cli/kinds/generated';
 import { getKindDefinition } from '../../../src/cli/kinds/registry';
 import { SourceResourceEffect, walkResourceFiles } from '../../../src/cli/effects/resource';
@@ -12,6 +13,27 @@ const authorityRoot = path.join(repoRoot, 'src', 'templates', 'codument', 'std',
 const packagedResources = new SourceResourceEffect(path.join(repoRoot, 'src', 'templates'));
 
 describe('Halfcode-backed Codument Kind registry', () => {
+  it('resolves resource loading from the exact npm distribution root', () => {
+    const consumerManifest = JSON.parse(fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8'));
+    const dependency = consumerManifest.dependencies?.['halfcode-compiler.xnl'];
+    expect(dependency).toMatch(/^\d+\.\d+\.\d+$/);
+
+    const entry = fileURLToPath(import.meta.resolve('halfcode-compiler.xnl'));
+    const packageRoot = path.dirname(path.dirname(entry));
+    const distributionManifest = JSON.parse(fs.readFileSync(path.join(packageRoot, 'package.json'), 'utf8'));
+    const rootExport = distributionManifest.exports?.['.'];
+
+    expect(distributionManifest.name).toBe('halfcode-compiler.xnl');
+    expect(distributionManifest.version).toBe(dependency);
+    expect(rootExport).toEqual({
+      types: './dist/index.d.ts',
+      import: './dist/index.js',
+    });
+    expect(typeof loadResourceTree).toBe('function');
+    expect(fs.existsSync(path.join(packageRoot, rootExport.import))).toBe(true);
+    expect(fs.existsSync(path.join(packageRoot, rootExport.types))).toBe(true);
+  });
+
   it('keeps the generated CLI projection equal to the validated XNL authority', async () => {
     const tree = await loadResourceTree({ rootDir: authorityRoot });
     const projected = Object.fromEntries(

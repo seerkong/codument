@@ -1,0 +1,26 @@
+<Behavior #operational-docs apiVersion="codument.tech/v1alpha1" version="1" (
+  <Requirements [
+    <Requirement #recovery (
+      <Statement ?01M0T7W9AXG54CY24GWES9HKK3>
+      Nested Mission documentation SHALL describe structured parent-child links, selected leaf delivery, autonomous child execution, explicit TrackLink context, and per-machine workspace binding recovery
+      </?01M0T7W9AXG54CY24GWES9HKK3>
+      <Suites [
+        <Suite #docs { name = "Nested Mission operations" } (
+          <Cases [
+            <Case #computer-switch (
+              <Given ?01M0T7W9AXG54CY24GWES9HKK4>
+              a Mission was advanced and committed on computer A
+              </?01M0T7W9AXG54CY24GWES9HKK4>
+              <When ?01M0T7W9AXG54CY24GWES9HKK5>
+              computer B checks out the commit and binds local ProjectRef paths
+              </?01M0T7W9AXG54CY24GWES9HKK5>
+              <Then ?01M0T7W9AXG54CY24GWES9HKK6>
+              the operator SHALL be able to continue without editing committed absolute paths
+              </?01M0T7W9AXG54CY24GWES9HKK6>
+            )>
+          ]>
+        )>
+      ]>
+    )>
+  ]>
+)>
