@@ -31,6 +31,18 @@ depa-codument --help
 - Bun runtime available on the machine that runs the CLI.
 - An AI coding assistant that can read installed skills, such as Codex, Claude Code, or OpenCode.
 
+## Cross-repository timeline
+
+To build local Track/Mission data and a standalone time-series chart from Git repositories below your home directory:
+
+```bash
+bun run codument:timeline -- --home "$HOME" --out ./codument-timeline --group-by quarter
+```
+
+The scanner stops at every `.git` root (directory or worktree file), deduplicates roots by real path, and reads only the sibling `codument/` directory. It writes `resources.json`, `resources.csv`, `timeline.json`, and an offline `timeline.html`. The HTML report can switch between quarter, month, week, and day without rescanning; `--group-by` controls the initial `timeline.json` granularity. Use `--json` to omit the HTML chart.
+
+To restrict the report to repositories hosted by one Git server, add `--remote-host`. For example: `--remote-host git.example.company`. A host-filtered HTML report also provides a table of per-remote-repository Track, Mission, and total counts.
+
 ## What It Provides
 
 Codument organizes AI-assisted development by task scale:

@@ -3,6 +3,7 @@ import * as path from 'path';
 import { getSpecXmlStats, loadSpecXml, parseSpecXmlContent, type SpecXmlNode } from './spec-xml';
 import { parseTrackResource, resolveTrackAuthority, type TrackAuthority } from '../track/resource';
 import { parseBehaviorXnlContent } from '../behavior/resource';
+import { codumentRootExists } from '../workspace/root';
 
 // Workspace directory (can be changed via --workspace-dir)
 let workspaceDir = process.cwd();
@@ -174,7 +175,7 @@ export function parsePlanMetadata(planPath: string, trackIdFallback?: string): T
  * Check if codument directory exists
  */
 export function codumentExists(): boolean {
-  return fs.existsSync(CODUMENT_DIR);
+  return codumentRootExists();
 }
 
 /**

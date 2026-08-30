@@ -1,0 +1,90 @@
+<Track #add-codument-timeline-report apiVersion="codument.tech/v1alpha1" version="1" { status = "completed" goal = "统计用户主目录 Git 仓库中同级 Codument Track/Mission 的历史时间数据，并生成可分组趋势图。" description = "新增无依赖 Bun 扫描器、历史格式兼容解析、JSON/CSV 聚合输出和离线 HTML/SVG 时间曲线，支持按远端仓库查看累计资源。" question_mode = "decision-tree" question_severity = "auto" commit_mode = "manual" created_at = "2026-08-26T18:39:11.667Z" updated_at = "2026-08-27T05:45:12.551Z" modeling_base_commit = "0063620f4dcd2f4b20788862720eaf7a028d4247" engineering_base_commit = "0063620f4dcd2f4b20788862720eaf7a028d4247" } (
+  <Ports { scope = "track" } [
+    <MaterialBundle #migration-code { role = "input" name = "migration-code" domain = "code" path = "vfs://@/src/cli/migrations/" }>
+    <MaterialBundle #timeline-script { role = "output" name = "timeline-script" domain = "code" path = "vfs://@/scripts/codument-timeline.ts" }>
+    <MaterialBundle #timeline-tests { role = "output" name = "timeline-tests" domain = "test" path = "vfs://@/test/scripts/codument-timeline.test.ts" }>
+  ]>
+  <TaskSpace #space_add-codument-timeline-report { name = "add-codument-timeline-report" version = "1" } (
+    <SubNodes [
+      <TaskGroup #P1 { name = "扫描与资源规范化" status = "DONE" priority = "P0" order = 0 } (
+        <Description ?01M0ZP00D16VC1FYSERSAPPHZN>
+        建立 Git 边界发现、生命周期路径枚举与跨历史格式的时间元数据提取。
+        </?01M0ZP00D16VC1FYSERSAPPHZN>
+        <SubNodes [
+          <Task #P1-T1 { name = "编写扫描器行为测试" status = "DONE" priority = "P0" order = 0 }>
+          <Task #P1-T2 { name = "实现 Git 根发现和 Track/Mission 解析" status = "DONE" priority = "P0" order = 1 }>
+        ]>
+      )>
+      <TaskGroup #P2 { name = "数据产品与可视化" status = "DONE" priority = "P0" order = 1 } (
+        <Description ?01M0ZP00D16VC1FYSERSAPPHZP>
+        从规范化记录生成可复用的 JSON/CSV、时间桶和离线图表。
+        </?01M0ZP00D16VC1FYSERSAPPHZP>
+        <SubNodes [
+          <Task #P2-T1 { name = "编写聚合和图表输出测试" status = "DONE" priority = "P0" order = 0 }>
+          <Task #P2-T2 { name = "实现输出、分组和 SVG 图表" status = "DONE" priority = "P0" order = 1 }>
+        ]>
+      )>
+      <TaskGroup #P3 { name = "端到端验证与使用入口" status = "DONE" priority = "P1" order = 2 } (
+        <Description ?01M0ZP00D16VC1FYSERSAPPHZQ>
+        验证隔离样本和真实工作区，并提供 package script 入口。
+        </?01M0ZP00D16VC1FYSERSAPPHZQ>
+        <SubNodes [
+          <Task #P3-T1 { name = "运行测试和真实工作区冒烟测试" status = "DONE" priority = "P1" order = 0 }>
+          <Task #P3-T2 { name = "更新 package script 与使用说明" status = "DONE" priority = "P1" order = 1 }>
+        ]>
+      )>
+      <TaskGroup #P4 { name = "交互式时间分组" status = "DONE" priority = "P0" order = 3 } (
+        <Description ?01M0ZQMKVJ900ABPX82K8PBR27>
+        让离线 HTML 在季度、月、周、天之间即时切换，而不重新扫描仓库。
+        </?01M0ZQMKVJ900ABPX82K8PBR27>
+        <SubNodes [
+          <Task #P4-T1 { name = "补充分组切换验收测试" status = "DONE" priority = "P0" order = 0 }>
+          <Task #P4-T2 { name = "实现季度聚合与交互式 HTML 重绘" status = "DONE" priority = "P0" order = 1 }>
+          <Task #P4-T3 { name = "验证离线四粒度报告" status = "DONE" priority = "P1" order = 2 }>
+        ]>
+      )>
+      <TaskGroup #P5 { name = "可读性与图表检视" status = "DONE" priority = "P0" order = 4 } (
+        <Description ?01M0ZS8JPDDQBBYPGA36YSQTTA>
+        按实体类型分组累计和表格指标，并提供曲线悬停数据提示。
+        </?01M0ZS8JPDDQBBYPGA36YSQTTA>
+        <SubNodes [
+          <Task #P5-T1 { name = "补充累计分组与悬停提示测试" status = "DONE" priority = "P0" order = 0 }>
+          <Task #P5-T2 { name = "实现表格重组和 SVG 指标提示" status = "DONE" priority = "P0" order = 1 }>
+          <Task #P5-T3 { name = "浏览器验收图表悬停" status = "DONE" priority = "P1" order = 2 }>
+        ]>
+      )>
+      <TaskGroup #P6 { name = "Git Remote 维度统计" status = "DONE" priority = "P0" order = 5 } (
+        <Description ?01M0ZSYVVDN74PWFYP41WHNJ3Z>
+        按 Git remote host 筛选仓库，并产出特定公司的 Codument 使用统计。
+        </?01M0ZSYVVDN74PWFYP41WHNJ3Z>
+        <SubNodes [
+          <Task #P6-T1 { name = "补充 Remote URL 过滤测试" status = "DONE" priority = "P0" order = 0 }>
+          <Task #P6-T2 { name = "实现 Remote Host CLI 筛选和报告元数据" status = "DONE" priority = "P0" order = 1 }>
+          <Task #P6-T3 { name = "生成公司维度的真实统计报告" status = "DONE" priority = "P1" order = 2 }>
+        ]>
+      )>
+      <TaskGroup #P7 { name = "远端仓库累计视图" status = "DONE" priority = "P0" order = 6 } (
+        <Description ?01M0ZV7G36W0B3HKC8FRBGC0Q8>
+        探索远端 host 筛选后的单仓库累计 Track 与 Mission 视图。
+        </?01M0ZV7G36W0B3HKC8FRBGC0Q8>
+        <SubNodes [
+          <Task #P7-T1 { name = "补充仓库累计视图验收测试" status = "DONE" priority = "P0" order = 0 }>
+          <Task #P7-T2 { name = "实现仓库选择器和累计 SVG 图表" status = "DONE" priority = "P0" order = 1 }>
+          <Task #P7-T3 { name = "验证真实远端筛选报告" status = "DONE" priority = "P1" order = 2 }>
+        ]>
+      )>
+      <TaskGroup #P8 { name = "远端仓库汇总表" status = "DONE" priority = "P0" order = 7 } (
+        <Description ?01M0ZZ8G36W0B3HKC8FRBGC0Q9>
+        在远端 host 筛选后的离线报告中，按 Git remote repository 汇总 Track、Mission 与总资源数。
+        </?01M0ZZ8G36W0B3HKC8FRBGC0Q9>
+        <SubNodes [
+          <Task #P8-T1 { name = "补充远端仓库汇总表测试" status = "DONE" priority = "P0" order = 0 }>
+          <Task #P8-T2 { name = "实现远端仓库汇总数据和 HTML 表格" status = "DONE" priority = "P0" order = 1 }>
+          <Task #P8-T3 { name = "验证真实远端筛选汇总表" status = "DONE" priority = "P1" order = 2 }>
+        ]>
+      )>
+    ]>
+  )>
+  <Schedule []>
+  <Hooks []>
+)>

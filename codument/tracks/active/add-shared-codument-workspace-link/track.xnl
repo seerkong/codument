@@ -1,0 +1,84 @@
+<Track #add-shared-codument-workspace-link apiVersion="codument.tech/v1alpha1" version="1" { status = "completed" goal = "让 Codument 透明支持 workspace 中用户预先创建的 codument 目录软链接。" description = "普通 init 仍创建普通目录；已有链接时，初始化、升级和所有修改写入链接目标并保留链接。" question_mode = "decision-tree" question_severity = "auto" commit_mode = "manual" created_at = "2026-08-26T12:37:09.424Z" updated_at = "2026-08-26T15:52:48.567Z" modeling_base_commit = "0063620f4dcd2f4b20788862720eaf7a028d4247" engineering_base_commit = "0063620f4dcd2f4b20788862720eaf7a028d4247" } (
+  <Ports { scope = "track" } [
+    <MaterialBundle #cli { role = "input" name = "cli" domain = "code" path = "vfs://@/src/cli/" }>
+    <MaterialBundle #tests { role = "output" name = "tests" domain = "test" path = "vfs://@/test/cli/" }>
+  ]>
+  <TaskSpace #space_add-shared-codument-workspace-link { name = "add-shared-codument-workspace-link" version = "1" child_mode = "dag" } (
+    <SubNodes [
+      <TaskGroup #P1 { name = "链接路径语义" status = "DONE" priority = "P0" order = 0 } (
+        <Description ?01M0ZBWCSVZ2REDWD7VHHPVA1B>
+        建立已有 codument 目录链接的统一识别和错误语义。
+        </?01M0ZBWCSVZ2REDWD7VHHPVA1B>
+        <SubNodes [
+          <Task #P1-T1 { name = "实现链接感知的 workspace root 检查" status = "DONE" priority = "P0" order = 0 } (
+            <Acceptance [
+              <Criterion #P1-T1-AC1 { checked = true } ?01M0ZBWCSW00QNZAXQGS8K66A7>
+              普通目录和有效目录链接均可使用，损坏链接及文件目标在写入前得到明确诊断。
+              </?01M0ZBWCSW00QNZAXQGS8K66A7>
+            ]>
+          )>
+          <Task #P1-T2 { name = "收敛软链接权威说明" status = "DONE" priority = "P1" order = 1 } (
+            <Acceptance [
+              <Criterion #P1-T2-AC1 { checked = true } ?01M0ZBWCSW00QNZAXQGS8K66A8>
+              软链接语义只在一个 workspace 权威提示词中简短说明，其他 operation 不重复。
+              </?01M0ZBWCSW00QNZAXQGS8K66A8>
+            ]>
+          )>
+        ]>
+      )>
+      <TaskGroup #P2 { name = "接入现有 workspace 操作" status = "DONE" priority = "P0" order = 1 } (
+        <Description ?01M0ZBWCSW00QNZAXQGS8K66A9>
+        让 init、升级和迁移在链接模式保留链接并更新真实目标。
+        </?01M0ZBWCSW00QNZAXQGS8K66A9>
+        <SubNodes [
+          <Task #P2-T1 { name = "链接感知初始化与升级" status = "DONE" priority = "P0" order = 0 } (
+            <Acceptance [
+              <Criterion #P2-T1-AC1 { checked = true } ?01M0ZBWCSW00QNZAXQGS8K66AA>
+              链接 workspace 升级后链接节点保持不变，目标 std 资源已刷新且调用 clone 有本地备份。
+              </?01M0ZBWCSW00QNZAXQGS8K66AA>
+            ]>
+          )>
+          <Task #P2-T2 { name = "资源修改与生命周期兼容" status = "DONE" priority = "P1" order = 1 } (
+            <Acceptance [
+              <Criterion #P2-T2-AC1 { checked = true } ?01M0ZBWCSW00QNZAXQGS8K66AB>
+              upgrade-resource 及其他 Codument 写操作修改链接目标，不删除或替换 codument 链接。
+              </?01M0ZBWCSW00QNZAXQGS8K66AB>
+            ]>
+          )>
+        ]>
+      )>
+      <TaskGroup #P3 { name = "跨 clone 验证" status = "DONE" priority = "P0" order = 2 } (
+        <Description ?01M0ZBWCSW00QNZAXQGS8K66AC>
+        证明共享状态、升级与跨平台链接分支可用。
+        </?01M0ZBWCSW00QNZAXQGS8K66AC>
+        <SubNodes [
+          <Task #P3-T1 { name = "补齐集成与平台测试" status = "DONE" priority = "P0" order = 0 } (
+            <Acceptance [
+              <Criterion #P3-T1-AC1 { checked = true } ?01M0ZBWCSW00QNZAXQGS8K66AD>
+              两个临时 workspace 可共享 track 与 workspace binding，并覆盖普通 init、有效链接、损坏链接和文件目标。
+              </?01M0ZBWCSW00QNZAXQGS8K66AD>
+            ]>
+          )>
+          <Task #P3-T2 { name = "运行全量验证" status = "DONE" priority = "P0" order = 1 } (
+            <Acceptance [
+              <Criterion #P3-T2-AC1 { checked = true } ?01M0ZBWCSW00QNZAXQGS8K66AE>
+              bun run check 通过，且真实目录软链接 smoke test 证明 init 和 upgrade 都保留链接。
+              </?01M0ZBWCSW00QNZAXQGS8K66AE>
+            ]>
+          )>
+        ]>
+      )>
+    ]>
+  )>
+  <Schedule { max_concurrent = 1 spot_check = true } [
+    <Dag { for = "space_add-shared-codument-workspace-link" } [
+      <Node #P2 [
+        <After { ref = "P1" }>
+      ]>
+      <Node #P3 [
+        <After { ref = "P2" }>
+      ]>
+    ]>
+  ]>
+  <Hooks []>
+)>

@@ -1,0 +1,49 @@
+<BehaviorPatch #track.add-codument-timeline-report.behavior_patch.codument-core apiVersion="codument.tech/v1alpha1" version="1" { capability = "codument-core" } (
+  <Mutations [
+    <Upsert { selector = "behavior://codument-core/requirements/cross-repository-timeline-reporting" } (
+      <Requirement #cross-repository-timeline-reporting (
+        <Statement ?>系统 SHALL 提供一个 Bun 脚本，在 Git 根目录边界内汇总同级 Codument Track 与 Mission 的历史时间元数据。</?>
+        <Suites [
+          <Suite #repository-boundary { name = "Git 边界和去重" } (
+            <Cases [
+              <Case #only-sibling-codument-is-read (
+                <Given ?>扫描根目录包含嵌套目录、Git worktree 和多个 Git 根目录</?>
+                <When ?>用户运行 timeline 脚本</?>
+                <Then ?>系统 SHALL 以 `.git` 目录或文件识别 Git 根，以真实路径去重，且只读取其同级 `codument/` 资源目录</?>
+              )>
+            ]>
+          )>
+          <Suite #format-and-output { name = "格式兼容与统计输出" } (
+            <Cases [
+              <Case #normalize-historical-metadata (
+                <Given ?>Track/Mission 同时存在 XNL、XML 或 legacy plan metadata 格式</?>
+                <When ?>脚本扫描 Codument 资源</?>
+                <Then ?>系统 SHALL 输出逐资源创建时间、更新时间、格式和来源，并生成可按时间分组的机器可读数据与离线趋势图</?>
+              )>
+              <Case #switch-html-grouping (
+                <Given ?>离线趋势图已内嵌规范化的 Track 与 Mission 时间数据</?>
+                <When ?>用户选择季度、月、周或天</?>
+                <Then ?>系统 SHALL 无须重新扫描仓库，即时重绘该粒度的 SVG 曲线和统计表</?>
+              )>
+              <Case #inspect-series-values (
+                <Given ?>离线趋势图显示 Track 与 Mission 的创建和更新曲线</?>
+                <When ?>用户悬停图表中的任意时间位置</?>
+                <Then ?>系统 SHALL 显示最近时间桶的 Tracks created、Missions created、Tracks updated 和 Missions updated，并将累计 Track/Mission 分开列示</?>
+              )>
+              <Case #filter-by-git-remote-host (
+                <Given ?>扫描范围内的 Git 仓库 remote 使用 SSH、HTTPS 或 SCP-like URL</?>
+                <When ?>用户以 `--remote-host &lt;host&gt;` 运行报告</?>
+                <Then ?>系统 SHALL 仅统计 remote host 为所请求主机的仓库，并在报告中标示该筛选条件</?>
+              )>
+              <Case #inspect-cumulative-resources-by-repository (
+                <Given ?>报告已按 Git remote host 筛选并包含多个 Git repository 的资源</?>
+                <When ?>用户查看 Git repository 汇总表</?>
+                <Then ?>系统 SHALL 以 Git remote repository 为第一列、合并相同 remote 的本地 checkout，并列出每个 repository 的 Track 总数、Mission 总数与总计</?>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+  ]>
+)>

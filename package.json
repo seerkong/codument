@@ -1,6 +1,6 @@
 {
   "name": "depa-codument",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "description": "DEPA-oriented Codument workflow tool for AI coding assistants",
   "type": "module",
   "main": "src/cli/index.ts",
@@ -10,6 +10,7 @@
   },
   "files": [
     "src",
+    "scripts",
     "README.md",
     "LICENSE"
   ],
@@ -31,6 +32,7 @@
     "gen:kinds": "bun run scripts/gen-kind-registry.ts",
     "gen:kinds:check": "bun run scripts/gen-kind-registry.ts --check",
     "dev": "bun run src/cli/index.ts",
+    "codument:timeline": "bun run scripts/codument-timeline.ts",
     "build": "bun run gen:kinds && bun run scripts/build.ts --outfile=dist/codument",
     "build:dev": "bun run gen:kinds && bun run scripts/build.ts --outfile=dist/codument-dev",
     "build:all": "bun run build && bun run build:dev",

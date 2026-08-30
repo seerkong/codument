@@ -11,6 +11,7 @@ import {
 } from '../utils/install';
 import type { CommandRuntime } from '../contracts/command';
 import { createCommandRuntime } from '../runtime';
+import { assertCodumentRootUsable } from '../workspace/root';
 
 /**
  * `codument init` — pure text copy of the embedded templates into the project.
@@ -25,6 +26,7 @@ import { createCommandRuntime } from '../runtime';
  *   --force               overwrite existing codument/** files (default: preserve existing)
  */
 export async function initCommand(args: string[], runtime: CommandRuntime = createCommandRuntime()): Promise<void> {
+  assertCodumentRootUsable(process.cwd(), { allowMissing: true });
   const { options } = parseOptions(args);
   const selectedTools = parseAgents(typeof options['agent'] === 'string' ? String(options['agent']) : undefined);
   const targets = resolveSkillsTargets(options, selectedTools);

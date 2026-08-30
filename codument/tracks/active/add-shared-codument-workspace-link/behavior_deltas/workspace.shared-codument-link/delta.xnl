@@ -1,0 +1,48 @@
+<BehaviorPatch #track.add-shared-codument-workspace-link.behavior_patch.workspace.shared-codument-link apiVersion="codument.tech/v1alpha1" version="1" { capability = "workspace.shared-codument-link" } (
+  <Mutations [
+    <Upsert { selector = "behavior://workspace/shared-codument-link/requirements/follow-existing-directory-link" } (
+      <Requirement #follow-existing-directory-link (
+        <Statement ?>系统 SHALL 将 workspace 中已有的有效 codument 目录软链接视为 Codument root，并让所有读写透明作用于链接目标且保留链接节点。</?>
+        <Suites [
+          <Suite #workspace-initialization { name = "工作区初始化" } (
+            <Cases [
+              <Case #default-regular-directory (
+                <Given ?>workspace 中不存在 codument 路径</?>
+                <When ?>用户执行 codument init</?>
+                <Then ?>系统 SHALL 按默认行为创建普通 codument 目录。</?>
+              )>
+              <Case #initialize-through-existing-link (
+                <Given ?>workspace 中的 codument 是指向有效目录的软链接</?>
+                <When ?>用户执行 codument init</?>
+                <Then ?>系统 SHALL 将模板写入链接目标并保持 codument 为软链接。</?>
+              )>
+            ]>
+          )>
+          <Suite #workspace-mutation { name = "工作区修改" } (
+            <Cases [
+              <Case #upgrade-through-existing-link (
+                <Given ?>已初始化 workspace 的 codument 是有效目录软链接</?>
+                <When ?>用户执行 upgrade-workspace、upgrade-resource 或其他 Codument 写操作</?>
+                <Then ?>系统 SHALL 修改链接目标中的资源并保持 codument 链接节点不变。</?>
+              )>
+              <Case #share-local-bindings (
+                <Given ?>两个 workspace 的 codument 链接到同一目录</?>
+                <When ?>任一 workspace 写入 codument/.local/workspace-bindings.xnl</?>
+                <Then ?>另一个 workspace SHALL 读取到同一份 bindings。</?>
+              )>
+            ]>
+          )>
+          <Suite #invalid-link { name = "无效链接" } (
+            <Cases [
+              <Case #reject-invalid-link (
+                <Given ?>workspace 中的 codument 是损坏链接或指向普通文件</?>
+                <When ?>用户执行会写入 Codument workspace 的命令</?>
+                <Then ?>系统 SHALL 在写入前失败并且不得用普通目录替换该链接。</?>
+              )>
+            ]>
+          )>
+        ]>
+      )>
+    )>
+  ]>
+)>

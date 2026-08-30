@@ -1,0 +1,85 @@
+<decision #shared-root-and-local-scope apiVersion="codument.tech/v1alpha1" { status = "accepted" priority = "P1" blocks = ["design.md" "implementation" "tests"] durable_candidate = true confidence = 0.99 reversibility = "moderate" } (
+  <question ?01M0Z16AAE9ZPNADYW8Z970EHB>
+  同机同项目的多个 clone 是否共享整个 codument 根目录及其 .local bindings？
+  </?01M0Z16AAE9ZPNADYW8Z970EHB>
+  <recommendation ?01M0Z16AAE9ZPNADYW8Z970EHC>
+  共享完整 codument 根目录，并由用户自行管理各 clone 的链接目标。
+  </?01M0Z16AAE9ZPNADYW8Z970EHC>
+  <options {  } [
+    <option { key = "A" recommended = true } (
+      <title ?01M0Z16AAE9ZPNADYW8Z970EHD>
+      共享完整 codument 目录。
+      </?01M0Z16AAE9ZPNADYW8Z970EHD>
+      <description ?01M0Z16AAE9ZPNADYW8Z970EHE>
+      所有 clone 链接到同一真实目录，包含 tracks、missions、attractors、decisions 与 .local/workspace-bindings.xnl。
+      </?01M0Z16AAE9ZPNADYW8Z970EHE>
+      <tradeoff ?01M0Z16AAE9ZPNADYW8Z970EHF>
+      不同 clone 无法持有彼此独立的 Codument 本地绑定；本需求明确接受此共享语义。
+      </?01M0Z16AAE9ZPNADYW8Z970EHF>
+    )>
+    <option { key = "B" recommended = false } (
+      <title ?01M0Z16AAE9ZPNADYW8Z970EHG>
+      将 .local 留在每个 clone。
+      </?01M0Z16AAE9ZPNADYW8Z970EHG>
+      <description ?01M0Z16AAE9ZPNADYW8Z970EHH>
+      共享长期规划数据，但为每个 clone 维护独立的本地绑定 overlay。
+      </?01M0Z16AAE9ZPNADYW8Z970EHH>
+      <tradeoff ?01M0Z16AAE9ZPNADYW8Z970EHJ>
+      引入双层解析、冲突优先级和额外迁移语义，不符合当前目标。
+      </?01M0Z16AAE9ZPNADYW8Z970EHJ>
+    )>
+  ]>
+  <answer {  } (
+    <raw-answer ?01M0Z90DC1BAPDRE0JNV98NHXM>
+    是的要共享。
+    </?01M0Z90DC1BAPDRE0JNV98NHXM>
+    <decision-text ?01M0Z90DC1BAPDRE0JNV98NHXN>
+    共享整个 codument 目录，并将 .local/workspace-bindings.xnl 纳入共享状态。
+    </?01M0Z90DC1BAPDRE0JNV98NHXN>
+    <rationale ?01M0Z90DC1BAPDRE0JNV98NHXP>
+    用户明确需要同一电脑、同一项目的多个 clone 互通，并确认 bindings 也应共享。
+    </?01M0Z90DC1BAPDRE0JNV98NHXP>
+    <evidence ?01M0Z90DC1BAPDRE0JNV98NHXQ>
+    用户在讨论中确认“是的要共享”。
+    </?01M0Z90DC1BAPDRE0JNV98NHXQ>
+  )>
+)>
+
+<decision #caller-managed-link apiVersion="codument.tech/v1alpha1" { status = "accepted" priority = "P0" blocks = ["design.md" "implementation" "tests"] durable_candidate = true confidence = 0.99 reversibility = "easy" } (
+  <question ?01M0Z90DC1BAPDRE0JNV98NHXR>
+  Codument 是否负责创建和管理共享链接，还是只透明支持 workspace 中已有的 codument 目录软链接？
+  </?01M0Z90DC1BAPDRE0JNV98NHXR>
+  <recommendation ?01M0Z90DC1BAPDRE0JNV98NHXS>
+  Codument 只透明支持已有链接；init 默认仍创建普通目录，用户自行管理链接及目标。
+  </?01M0Z90DC1BAPDRE0JNV98NHXS>
+  <options {  } [
+    <option { key = "A" recommended = true } (
+      <title ?01M0Z90DC1BAPDRE0JNV98NHXT>
+      只支持已有链接。
+      </?01M0Z90DC1BAPDRE0JNV98NHXT>
+      <description ?01M0Z90DC1BAPDRE0JNV98NHXV>
+      所有命令沿 workspace 的 codument 逻辑路径工作；已有目录链接时写入目标，否则保持普通目录行为。
+      </?01M0Z90DC1BAPDRE0JNV98NHXV>
+      <tradeoff ?01M0Z90DC1BAPDRE0JNV98NHXW>
+      用户需要在执行 init 前自行创建链接，并自行决定共享目录的位置与 Git 忽略策略。
+      </?01M0Z90DC1BAPDRE0JNV98NHXW>
+    )>
+    <option { key = "B" recommended = false } (
+      <title ?01M0Z90DC1BAPDRE0JNV98NHXX>
+      增加链接管理命令。
+      </?01M0Z90DC1BAPDRE0JNV98NHXX>
+      <description ?01M0Z90DC1BAPDRE0JNV98NHXY>
+      CLI 根据 Git remote 创建和登记共享目录，并负责链接生命周期。
+      </?01M0Z90DC1BAPDRE0JNV98NHXY>
+      <tradeoff ?01M0Z90DC1BAPDRE0JNV98NHXZ>
+      引入项目身份、state root、跨平台链接创建和 Git ignore 等超出需求的机制。
+      </?01M0Z90DC1BAPDRE0JNV98NHXZ>
+    )>
+  ]>
+  <answer { } (
+    <raw-answer ?>默认初始化和升级仍使用普通目录；如果项目中已经存在 codument 软链接，则所有修改写入软链接目标。提示词应尽量精简。</?>
+    <decision-text ?>不增加链接创建命令；Codument 透明跟随用户预置的 codument 目录软链接，并把提示词规则收敛到一个权威位置。</?>
+    <rationale ?>该边界保持默认工作流不变，同时让多个 clone 可以共享完整 Codument 状态，且避免增加不需要的身份和链接管理体系。</?>
+    <evidence ?>用户明确补充了默认普通目录、已有链接才跟随以及减少提示词散弹修改的要求。</?>
+  )>
+)>
